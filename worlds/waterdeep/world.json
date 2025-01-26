@@ -1,0 +1,14 @@
+{
+  "title": "Waterdeep",
+  "id": "waterdeep",
+  "system": "dnd5e",
+  "joinTheme": "default",
+  "coreVersion": "12.331",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "systemVersion": "4.2.0",
+  "lastPlayed": "Fri Jan 24 2025 16:23:57 GMT-0500 (Eastern Standard Time)",
+  "playtime": 18669
+}

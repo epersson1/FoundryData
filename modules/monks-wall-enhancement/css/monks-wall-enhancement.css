@@ -1,0 +1,25 @@
+#wall-ctrls {
+    position: absolute;
+    width:10px;
+    height:40px;
+}
+
+#controls #wall-ctrls ol.control-tools {
+    top: 0px;
+    left: 0px;
+    width: 0px;
+    overflow: hidden;
+    transition: width 0.2s ease-in;
+    margin-left: 10px;
+    padding-left: 0px;
+    margin-top: 0px;
+}
+
+#wall-ctrls ol li {
+    display: inline-block;
+}
+
+#controls li[data-tool="walltype"]:hover #wall-ctrls ol {
+    width: 40px;
+    pointer-events: all;
+}

@@ -1,0 +1,89 @@
+{
+  "label": "Magic Items",
+  "entries": {
+    "Crystal Ball": {
+      "name": "Crystal Ball"
+    },
+    "Cubic Gate": {
+      "name": "Cubic Gate"
+    },
+    "Elemental Gem of Air": {
+      "name": "Elemental Gem of Air"
+    },
+    "Helm of Telepathy": {
+      "name": "Helm of Telepathy"
+    },
+    "Helm of Teleportation": {
+      "name": "Helm of Teleportation"
+    },
+    "Medallion of Thoughts": {
+      "name": "Medallion of Thoughts"
+    },
+    "Ring of Air Elemental Command": {
+      "name": "Ring of Air Elemental Command"
+    },
+    "Ring of Animal Influence": {
+      "name": "Ring of Animal Influence"
+    },
+    "Ring of Shooting Stars": {
+      "name": "Ring of Shooting Stars"
+    },
+    "Ring of Telekinesis": {
+      "name": "Ring of Telekinesis"
+    },
+    "Robe of Stars": {
+      "name": "Robe of Stars"
+    },
+    "Staff of Charming": {
+      "name": "Staff of Charming"
+    },
+    "Staff of Fire": {
+      "name": "Staff of Fire"
+    },
+    "Staff of Frost": {
+      "name": "Staff of Frost"
+    },
+    "Staff of Healing": {
+      "name": "Staff of Healing"
+    },
+    "Staff of Power": {
+      "name": "Staff of Power"
+    },
+    "Wand of Binding": {
+      "name": "Wand of Binding"
+    },
+    "Wand of Enemy Detection": {
+      "name": "Wand of Enemy Detection"
+    },
+    "Wand of Fear": {
+      "name": "Wand of Fear"
+    },
+    "Wand of Fireballs": {
+      "name": "Wand of Fireballs"
+    },
+    "Wand of Lightning Bolts": {
+      "name": "Wand of Lightning Bolts"
+    },
+    "Wand of Magic Detection": {
+      "name": "Wand of Magic Detection"
+    },
+    "Wand of Magic Missiles": {
+      "name": "Wand of Magic Missiles"
+    },
+    "Wand of Paralysis": {
+      "name": "Wand of Paralysis"
+    },
+    "Wand of Polymorph": {
+      "name": "Wand of Polymorph"
+    },
+    "Wand of Secrets": {
+      "name": "Wand of Secrets"
+    },
+    "Wand of Web": {
+      "name": "Wand of Web"
+    },
+    "Wand of Wonder": {
+      "name": "Wand of Wonder"
+    }
+  }
+}

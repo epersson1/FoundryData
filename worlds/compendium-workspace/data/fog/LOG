@@ -1,0 +1,8 @@
+2025/01/22-20:54:02.143 5dd8 Recovering log #87
+2025/01/22-20:54:02.158 5dd8 Delete type=0 #87
+2025/01/22-20:54:02.158 5dd8 Delete type=3 #86
+2025/01/22-20:59:15.862 2948 Level-0 table #91: started
+2025/01/22-20:59:15.862 2948 Level-0 table #91: 0 bytes OK
+2025/01/22-20:59:15.867 2948 Delete type=0 #89
+2025/01/22-20:59:15.910 2948 Manual compaction at level-0 from '!fog!SP37SECjiPoEBQPk' @ 72057594037927935 : 1 .. '!fog!SP37SECjiPoEBQPk' @ 0 : 0; will stop at (end)
+2025/01/22-20:59:15.940 2948 Manual compaction at level-1 from '!fog!SP37SECjiPoEBQPk' @ 72057594037927935 : 1 .. '!fog!SP37SECjiPoEBQPk' @ 0 : 0; will stop at (end)

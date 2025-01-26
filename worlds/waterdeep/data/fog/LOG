@@ -1,0 +1,5 @@
+2025/01/24-16:23:56.141 5fd8 Recovering log #67
+2025/01/24-16:23:56.143 5fd8 Level-0 table #69: started
+2025/01/24-16:23:56.151 5fd8 Level-0 table #69: 44135 bytes OK
+2025/01/24-16:23:56.163 5fd8 Delete type=0 #67
+2025/01/24-16:23:56.163 5fd8 Delete type=3 #65

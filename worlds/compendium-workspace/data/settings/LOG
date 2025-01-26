@@ -1,0 +1,24 @@
+2025/01/22-20:54:02.499 5dd8 Recovering log #110
+2025/01/22-20:54:02.499 5dd8 Level-0 table #112: started
+2025/01/22-20:54:02.518 5dd8 Level-0 table #112: 2525 bytes OK
+2025/01/22-20:54:02.527 5dd8 Delete type=0 #110
+2025/01/22-20:54:02.527 5dd8 Delete type=3 #109
+2025/01/22-20:59:16.591 2948 Level-0 table #115: started
+2025/01/22-20:59:16.625 2948 Level-0 table #115: 1535 bytes OK
+2025/01/22-20:59:16.633 2948 Delete type=0 #113
+2025/01/22-20:59:16.641 2948 Manual compaction at level-0 from '!settings!1DorgynOb93uwETk' @ 72057594037927935 : 1 .. '!settings!x625AcESDELZzND4' @ 0 : 0; will stop at '!settings!nxZgjdruKCf9barl' @ 115 : 1
+2025/01/22-20:59:16.641 2948 Compacting 2@0 + 0@1 files
+2025/01/22-20:59:16.649 2948 Generated table #116@0: 2 keys, 1535 bytes
+2025/01/22-20:59:16.649 2948 Compacted 2@0 + 0@1 files => 1535 bytes
+2025/01/22-20:59:16.659 2948 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/01/22-20:59:16.660 2948 Delete type=2 #112
+2025/01/22-20:59:16.660 2948 Delete type=2 #115
+2025/01/22-20:59:16.660 2948 Manual compaction at level-0 from '!settings!nxZgjdruKCf9barl' @ 115 : 1 .. '!settings!x625AcESDELZzND4' @ 0 : 0; will stop at (end)
+2025/01/22-20:59:16.660 2948 Manual compaction at level-1 from '!settings!1DorgynOb93uwETk' @ 72057594037927935 : 1 .. '!settings!x625AcESDELZzND4' @ 0 : 0; will stop at '!settings!nxZgjdruKCf9barl' @ 119 : 1
+2025/01/22-20:59:16.660 2948 Compacting 1@1 + 1@2 files
+2025/01/22-20:59:16.723 2948 Generated table #117@1: 14 keys, 3155 bytes
+2025/01/22-20:59:16.723 2948 Compacted 1@1 + 1@2 files => 3155 bytes
+2025/01/22-20:59:16.725 2948 compacted to: files[ 0 0 1 0 0 0 0 ]
+2025/01/22-20:59:16.725 2948 Delete type=2 #108
+2025/01/22-20:59:16.725 2948 Delete type=2 #116
+2025/01/22-20:59:16.731 2948 Manual compaction at level-1 from '!settings!nxZgjdruKCf9barl' @ 119 : 1 .. '!settings!x625AcESDELZzND4' @ 0 : 0; will stop at (end)

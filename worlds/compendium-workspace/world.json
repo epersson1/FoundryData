@@ -1,0 +1,28 @@
+{
+  "title": "Compendium Workspace",
+  "id": "compendium-workspace",
+  "system": "dnd5e",
+  "joinTheme": "default",
+  "coreVersion": "12.331",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "systemVersion": "4.2.0",
+  "lastPlayed": "Wed Jan 22 2025 20:59:15 GMT-0500 (Eastern Standard Time)",
+  "playtime": 48546,
+  "packs": [
+    {
+      "label": "Spells",
+      "type": "Item",
+      "name": "spells",
+      "path": "packs/spells",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    }
+  ]
+}

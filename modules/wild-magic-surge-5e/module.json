@@ -1,0 +1,79 @@
+{
+    "id": "wild-magic-surge-5e",
+    "title": "Wild Magic Surge 5e",
+    "description": "A module to remind you whenever a player with the Wild Magic Surge Feat casts a spell and to roll a d20.",
+    "version": "6.0.0",
+    "library": "false",
+    "compatibility": {
+        "minimum": "12",
+        "verified": "12.331",
+        "maximum": "12"
+    },
+    "minimumCoreVersion": "12",
+    "compatibleCoreVersion": "12",
+    "authors": [
+        {
+            "name": "John Nolan",
+            "url": "https://github.com/johnnolan",
+            "discord": "JB#2780",
+            "website": "https://www.johnnolan.dev"
+        }
+    ],
+    "relationships": {
+        "systems": [
+            {
+                "id": "dnd5e",
+                "type": "system",
+                "manifest": "https://raw.githubusercontent.com/foundryvtt/dnd5e/master/system.json",
+                "compatibility": {
+                    "minimum": "4.0.4",
+                    "verified": "4.0.4"
+                }
+            }
+        ]
+    },
+    "packs": [
+        {
+            "name": "wild-magic-surge-5e",
+            "label": "Wild Magic Surge 5e Example Macros",
+            "path": "packs/wild-magic-surge-5e.db",
+            "module": "wild-magic-surge-5e",
+            "type": "Macro"
+        }
+    ],
+    "esmodules": [
+        "/dist/module.js"
+    ],
+    "scripts": [],
+    "styles": [],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "languages/en.json"
+        },
+        {
+            "lang": "fr",
+            "name": "Français",
+            "path": "languages/fr.json"
+        },
+        {
+            "lang": "es",
+            "name": "Español",
+            "path": "languages/es.json"
+        },
+        {
+            "lang": "de",
+            "name": "Deutsch",
+            "path": "languages/de.json"
+        }
+    ],
+    "readme": "https://github.com/johnnolan/wild-magic-surge-5e/blob/main/README.md",
+    "license": "https://github.com/johnnolan/wild-magic-surge-5e/blob/main/LICENSE",
+    "bugs": "https://github.com/johnnolan/wild-magic-surge-5e/issues/new/choose",
+    "changelog": "https://github.com/johnnolan/wild-magic-surge-5e/releases",
+    "socket": true,
+    "url": "https://github.com/johnnolan/wild-magic-surge-5e",
+    "manifest": "https://github.com/johnnolan/wild-magic-surge-5e/releases/latest/download/module.json",
+    "download": "https://github.com/johnnolan/wild-magic-surge-5e/releases/download/6.0.0/module.zip"
+}

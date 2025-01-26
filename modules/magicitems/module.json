@@ -1,0 +1,155 @@
+{
+    "id": "magicitems",
+    "title": "Magic Items",
+    "description": "Module that adds the ability to create magical items with spells or feats that belong to the item itself, such as staffs or magic wands, which will be automatically inherited from the character who owns the item.",
+    "version": "4.3.1",
+    "compatibility": {
+        "minimum": 12,
+        "verified": 12.331,
+        "maximum": 12.999
+    },
+    "authors": [
+        {
+            "name": "PwQt",
+            "url": "https://github.com/PwQt/magic-items-2",
+            "discord": "PwQt#7620",
+            "ko-fi": "pewukut"
+        }
+    ],
+    "socket": true,
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "languages/en.json"
+        },
+        {
+            "lang": "it",
+            "name": "Italian",
+            "path": "languages/it.json"
+        },
+        {
+            "lang": "ko",
+            "name": "Korean",
+            "path": "languages/ko.json"
+        },
+        {
+            "lang": "pt-BR",
+            "name": "Português (Brasil)",
+            "path": "languages/pt-BR.json"
+        },
+        {
+            "lang": "fr",
+            "name": "Francais",
+            "path": "languages/fr.json"
+        },
+        {
+            "lang": "de",
+            "name": "Deutsch",
+            "path": "languages/de.json"
+        },
+        {
+            "lang": "cs",
+            "name": "Česky",
+            "path": "languages/cs.json"
+        },
+        {
+            "lang": "pl",
+            "name": "Polski",
+            "path": "languages/pl.json"
+        },
+        {
+            "lang": "ru",
+            "name": "Pусский",
+            "path": "languages/ru.json"
+        },
+        {
+            "lang": "ja",
+            "name": "Japanese",
+            "path": "languages/ja.json"
+        }
+    ],
+    "packs": [
+        {
+            "name": "magicitems",
+            "label": "Magic Items",
+            "path": "packs/magicitems",
+            "type": "Item",
+            "system": "dnd5e",
+            "ownership": {
+                "PLAYER": "NONE",
+                "TRUSTED": "NONE",
+                "ASSISTANT": "OWNER"
+            },
+            "module": "magicitems",
+            "flags": {}
+        },
+        {
+            "name": "magicitem-feats",
+            "label": "Magic Items: Item Feats",
+            "path": "packs/magicitem-feats",
+            "type": "Item",
+            "system": "dnd5e",
+            "ownership": {
+                "PLAYER": "NONE",
+                "TRUSTED": "NONE",
+                "ASSISTANT": "OWNER"
+            },
+            "module": "magicitems",
+            "flags": {}
+        },
+        {
+            "name": "magicitem-tables",
+            "label": "Magic Items: Item Tables",
+            "path": "packs/magicitem-tables",
+            "type": "RollTable",
+            "system": "dnd5e",
+            "ownership": {
+                "PLAYER": "NONE",
+                "TRUSTED": "NONE",
+                "ASSISTANT": "OWNER"
+            },
+            "module": "magicitems",
+            "flags": {}
+        }
+    ],
+    "packFolders": [
+        {
+            "name": "Magic Items",
+            "color": "#8900bf",
+            "sorting": "a",
+            "packs": [
+                "magicitems",
+                "magicitem-feats",
+                "magicitem-tables"
+            ]
+        }
+    ],
+    "esmodules": [
+        "module.js"
+    ],
+    "styles": [
+        "styles/magicitems.css"
+    ],
+    "url": "https://github.com/PwQt/magic-items-2",
+    "manifest": "https://github.com/PwQt/magic-items-2/releases/latest/download/module.json",
+    "download": "https://github.com/PwQt/magic-items-2/releases/download/4.3.1/module.zip",
+    "readme": "https://github.com/PwQt/magic-items-2/blob/master/README.md",
+    "bugs": "https://github.com/PwQt/magic-items-2/issues",
+    "relationships": {
+        "systems": [
+            {
+                "id": "dnd5e",
+                "type": "system",
+                "manifest": "https://raw.githubusercontent.com/foundryvtt/dnd5e/master/system.json",
+                "compatibility": {
+                    "minimum": "3.3.0",
+                    "verified": "3.3.1",
+                    "maximum": "3.3.999"
+                }
+            }
+        ],
+        "requires": [],
+        "conflicts": []
+    }
+}

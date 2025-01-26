@@ -1,0 +1,23 @@
+{
+  "label": "Magic Items: Item Feats",
+  "entries": {
+    "Ball Lightning": {
+      "name": "Ball Lightning"
+    },
+    "Cone of Fear": {
+      "name": "Cone of Fear"
+    },
+    "Enemy Detection": {
+      "name": "Enemy Detection"
+    },
+    "Paralysis": {
+      "name": "Paralysis"
+    },
+    "Retributive Strike": {
+      "name": "Retributive Strike"
+    },
+    "Reveal Secret": {
+      "name": "Reveal Secret"
+    }
+  }
+}

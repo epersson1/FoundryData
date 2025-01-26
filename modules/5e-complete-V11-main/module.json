@@ -1,0 +1,215 @@
+{
+  "id": "5e-complete-V11-main",
+  "title": "5e Complete Compendium",
+  "version": "0.3.3",
+  "authors": [
+    {
+      "name": "btbias",
+      "url": "https://github.com/btbias",
+      "discord": "btbias#9324",
+      "flags": {}
+    }
+  ],
+  "compatibility": {
+    "minimum": "10",
+    "verified": "10.290"
+  },
+  "styles": [
+    "css/styles.css"
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "manifest": "https://raw.githubusercontent.com/foundryvtt/dnd5e/master/system.json",
+        "compatibility": {
+          "minimum": "2.0.0",
+          "verified": "2.0.3"
+        }
+      }
+    ]
+  },
+  "packs": [
+    {
+      "name": "5e-creatures",
+      "label": "5e Creatures",
+      "path": "packs/5e-creatures",
+      "type": "Actor",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-backgrounds",
+      "label": "5e Backgrounds",
+      "path": "packs/5e-backgrounds",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-background-features",
+      "label": "5e Background Features",
+      "path": "packs/5e-background-features",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-classes",
+      "label": "5e Classes",
+      "path": "packs/5e-classes",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-class-features",
+      "label": "5e Class Features",
+      "path": "packs/5e-class-features",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-creature-abilities",
+      "label": "5e Creature Abilities",
+      "path": "packs/5e-creature-abilities",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-feats",
+      "label": "5e Feats",
+      "path": "packs/5e-feats",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-items",
+      "label": "5e Items",
+      "path": "packs/5e-items",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-races",
+      "label": "5e Races",
+      "path": "packs/5e-races",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-racial-features",
+      "label": "5e Racial Features",
+      "path": "packs/5e-racial-features",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-spells",
+      "label": "5e Spells",
+      "path": "packs/5e-spells",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-subclasses",
+      "label": "5e Subclasses",
+      "path": "packs/5e-subclasses",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-journals",
+      "label": "5e Journals",
+      "path": "packs/5e-journals",
+      "type": "JournalEntry",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-macros",
+      "label": "5e Macros",
+      "path": "packs/5e-macros",
+      "type": "Macro",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-roll-tables",
+      "label": "5e Roll Tables",
+      "path": "packs/5e-roll-tables",
+      "type": "RollTable",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "5e-trade-goods",
+      "label": "5e Trade Goods",
+      "path": "packs/5e-trade-goods",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ],
+  "url": "https://github.com/btbias/5e-complete",
+  "manifest": "https://github.com/btbias/5e-complete/releases/latest/download/module.json",
+  "download": "https://github.com/btbias/5e-complete/releases/download/v0.3.3/module.zip",
+  "description": "This module adds classes, subclasses, and other items missing from the D&amp;D 5e SRD"
+}

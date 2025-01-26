@@ -1,0 +1,50 @@
+<form id="{{ appId }}" data-level="{{ level }}" data-id="{{ advancement.id }}" data-type="{{ type }}">
+    <h3>{{{ this.title }}}</h3>
+    {{#if advancement.hint}}<p>{{ advancement.hint }}</p>{{/if}}
+
+    {{#if showImprovement}}
+    <ul class="ability-scores {{#if lockImprovement}}disabled{{/if}}">
+        {{#unless staticIncrease}}
+        <label>
+            {{#if lockImprovement}}
+            {{ localize "DND5E.ADVANCEMENT.AbilityScoreImprovement.LockedHint" }}
+            {{else}}
+            {{ pointsRemaining }}
+            {{#if advancement.configuration.cap}}<p class="cap">{{ pointCap }}</p>{{/if}}
+            {{/if}}
+        </label>
+        {{/unless}}
+        {{#each abilities}}
+        {{> "dnd5e.advancement-ability-score-control" this canAdjust=(not @root.staticIncrease) }}
+        {{/each}}
+    </ul>
+    {{/if}}
+
+    {{#if advancement.allowFeat}}
+    {{#if showImprovement}}<h3>{{ localize "DND5E.Feature.Feat.Label" }}</h3>{{/if}}
+
+    {{#if showASIFeat}}
+    <div class="item-name flexrow drop-area dnd5e2">
+        <div class="item-image"
+             style="background-image: url('icons/skills/melee/weapons-crossed-swords-white-blue.webp');"></div>
+        <span class="name">{{ localize "DND5E.ADVANCEMENT.AbilityScoreImprovement.Feat.ASIName" }}</span>
+        <dnd5e-checkbox class="item-control" name="asi-selected" {{ checked feat.isASI }}></dnd5e-checkbox>
+    </div>
+    {{/if}}
+
+    {{#unless feat.isASI}}
+    <div class="item-name flexrow drop-area {{#unless feat}}empty{{/unless}}">
+        {{#if feat}}
+        <div class="item-image" style="background-image: url('{{ feat.img }}');"></div>
+        <a class="name" data-uuid="{{ feat.uuid }}">{{ feat.name }}</a>
+        <button type="button" class="unbutton control-button item-control" data-action="delete"
+                data-tooltip="DND5E.ItemDelete" aria-label="{{ localize 'DND5E.ItemDelete' }}">
+            <i class="fas fa-trash" inert></i>
+        </button>
+        {{else}}
+        {{ localize "DND5E.ADVANCEMENT.AbilityScoreImprovement.Feat.Hint" }}
+        {{/if}}
+    </div>
+    {{/unless}}
+    {{/if}}
+</form>
