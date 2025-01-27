@@ -1,21 +1,54 @@
-2025/01/23-12:52:21.112 2408 Recovering log #70
-2025/01/23-12:52:21.124 2408 Level-0 table #73: started
-2025/01/23-12:52:21.169 2408 Level-0 table #73: 2435535 bytes OK
-2025/01/23-12:52:21.180 2408 Delete type=0 #70
-2025/01/23-12:52:21.182 2408 Delete type=3 #68
-2025/01/23-12:52:21.479 3b0c Compacting 2@0 + 1@1 files
-2025/01/23-12:52:21.503 3b0c Generated table #75@0: 334 keys, 34252 bytes
-2025/01/23-12:52:21.503 3b0c Compacted 2@0 + 1@1 files => 34252 bytes
-2025/01/23-12:52:21.511 3b0c compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/01/23-12:52:21.511 3b0c Delete type=2 #51
-2025/01/23-12:52:21.512 3b0c Delete type=2 #71
-2025/01/23-12:52:21.513 3b0c Delete type=2 #73
-2025/01/23-15:22:49.895 3b0c Level-0 table #77: started
-2025/01/23-15:22:49.951 3b0c Level-0 table #77: 3493985 bytes OK
-2025/01/23-15:22:49.955 3b0c Delete type=0 #74
-2025/01/23-15:30:24.249 3b0c Compacting 1@0 + 1@1 files
-2025/01/23-15:30:24.298 3b0c Generated table #78@0: 821 keys, 81450 bytes
-2025/01/23-15:30:24.298 3b0c Compacted 1@0 + 1@1 files => 81450 bytes
-2025/01/23-15:30:24.301 3b0c compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/01/23-15:30:24.301 3b0c Delete type=2 #75
-2025/01/23-15:30:24.301 3b0c Delete type=2 #77
+2025/01/26-13:43:36.351 18a4 Recovering log #110
+2025/01/26-13:43:36.408 18a4 Delete type=0 #110
+2025/01/26-13:43:36.408 18a4 Delete type=3 #104
+2025/01/26-15:49:40.805 200c Level-0 table #116: started
+2025/01/26-15:49:40.997 200c Level-0 table #116: 3716873 bytes OK
+2025/01/26-15:49:41.151 200c Delete type=0 #114
+2025/01/26-16:07:41.860 200c Level-0 table #118: started
+2025/01/26-16:07:41.997 200c Level-0 table #118: 3882274 bytes OK
+2025/01/26-16:07:42.045 200c Delete type=0 #115
+2025/01/26-16:37:02.375 200c Level-0 table #120: started
+2025/01/26-16:37:02.475 200c Level-0 table #120: 3927578 bytes OK
+2025/01/26-16:37:02.500 200c Delete type=0 #117
+2025/01/26-16:40:42.101 200c Level-0 table #122: started
+2025/01/26-16:40:42.186 200c Level-0 table #122: 3933145 bytes OK
+2025/01/26-16:40:42.235 200c Delete type=0 #119
+2025/01/26-16:40:42.236 200c Compacting 4@0 + 1@1 files
+2025/01/26-16:40:42.320 200c Generated table #123@0: 723 keys, 89518 bytes
+2025/01/26-16:40:42.320 200c Compacted 4@0 + 1@1 files => 89518 bytes
+2025/01/26-16:40:42.352 200c compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/01/26-16:40:42.352 200c Delete type=2 #112
+2025/01/26-16:40:42.352 200c Delete type=2 #116
+2025/01/26-16:40:42.353 200c Delete type=2 #118
+2025/01/26-16:40:42.354 200c Delete type=2 #120
+2025/01/26-16:40:42.355 200c Delete type=2 #122
+2025/01/26-16:51:54.055 200c Level-0 table #125: started
+2025/01/26-16:51:54.159 200c Level-0 table #125: 3947833 bytes OK
+2025/01/26-16:51:54.181 200c Delete type=0 #121
+2025/01/26-16:55:05.191 200c Level-0 table #127: started
+2025/01/26-16:55:05.301 200c Level-0 table #127: 3948476 bytes OK
+2025/01/26-16:55:05.326 200c Delete type=0 #124
+2025/01/26-16:58:40.352 200c Level-0 table #129: started
+2025/01/26-16:58:40.445 200c Level-0 table #129: 3943090 bytes OK
+2025/01/26-16:58:40.478 200c Delete type=0 #126
+2025/01/26-17:00:42.085 200c Level-0 table #131: started
+2025/01/26-17:00:42.203 200c Level-0 table #131: 3938739 bytes OK
+2025/01/26-17:00:42.236 200c Delete type=0 #128
+2025/01/26-17:00:42.236 200c Compacting 4@0 + 1@1 files
+2025/01/26-17:00:42.304 200c Generated table #132@0: 740 keys, 93928 bytes
+2025/01/26-17:00:42.304 200c Compacted 4@0 + 1@1 files => 93928 bytes
+2025/01/26-17:00:42.338 200c compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/01/26-17:00:42.338 200c Delete type=2 #123
+2025/01/26-17:00:42.338 200c Delete type=2 #125
+2025/01/26-17:00:42.340 200c Delete type=2 #127
+2025/01/26-17:00:42.340 200c Delete type=2 #129
+2025/01/26-17:00:42.340 200c Delete type=2 #131
+2025/01/26-17:05:28.682 200c Level-0 table #134: started
+2025/01/26-17:05:28.775 200c Level-0 table #134: 3948828 bytes OK
+2025/01/26-17:05:28.800 200c Delete type=0 #130
+2025/01/26-17:08:40.527 200c Level-0 table #136: started
+2025/01/26-17:08:40.638 200c Level-0 table #136: 3946660 bytes OK
+2025/01/26-17:08:40.670 200c Delete type=0 #133
+2025/01/26-17:18:22.862 200c Level-0 table #138: started
+2025/01/26-17:18:22.963 200c Level-0 table #138: 3955338 bytes OK
+2025/01/26-17:18:22.988 200c Delete type=0 #135
