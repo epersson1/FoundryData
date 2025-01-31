@@ -1,0 +1,43 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class='custom-system-form-field'>
+    <label for='textFieldLabel'>{{localize 'CSB.ComponentProperties.InputComponent.Label'}}</label>
+    <input id='textFieldLabel' type='text' data-key='label' value='{{label}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='textFieldSize'>{{localize 'CSB.ComponentProperties.Size.SectionTitle'}}*</label>
+    <select id='textFieldSize' data-key='size'>
+        {{selectOptions COMPONENT_SIZES selected=size localize=true}}
+    </select>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='textFieldCharList'>{{localize 'CSB.ComponentProperties.TextField.AllowedCharacterList'}}</label>
+    <input id='textFieldCharList' type='text' data-key='charList' value='{{charList}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='textFieldMaxLength'>{{localize 'CSB.ComponentProperties.TextField.MaxLength'}}</label>
+    <input id='textFieldMaxLength' type='number' data-key='maxLength' value='{{maxLength}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='textFieldValue'>{{localize 'CSB.ComponentProperties.DefaultValue'}}
+        {{> icon-formula}}
+        {{> icon-info title=(localize "CSB.ComponentProperties.AllowFormulaCreateTimeOnly")}}
+    </label>
+    <input id='textFieldValue' type='text' data-key='defaultValue' value='{{defaultValue}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='textFieldAutocomplete'>{{localize 'CSB.ComponentProperties.TextField.AutoComplete'}}
+        {{> icon-formula}}
+        {{> icon-info title=(localize "CSB.ComponentProperties.TextField.AutoCompleteDescription")}}
+    </label>
+    <input id='textFieldAutocomplete' type='text' data-key='autocomplete' value='{{autocomplete}}' />
+</div>

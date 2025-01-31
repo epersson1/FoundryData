@@ -1,0 +1,172 @@
+{
+  "enhancedcombathud": {
+    "controls": {
+      "toggle": {
+        "title": "Basculer le HUD de combat d'Argon",
+        "warning": "Argon Combat HUD: Aucun jeton sélectionné. Veuillez sélectionner un jeton pour activer le HUD"
+      }
+    },
+    "settings": {
+      "color": {
+        "label": "Couleur",
+        "text": "Couleur principale",
+        "hint": "Couleur de l'onglet des actions et des autres caractéristiques principales du HUD"
+      },
+      "fore-color": {
+        "text": "Couleur du texte",
+        "hint": "Couleur du texte"
+      },
+      "color-bonus-action": {
+        "text": "Couleur des actions bonus",
+        "hint": "Couleur de l'onglet de l'action bonus"
+      },
+      "color-free-action": {
+        "text": "Couleur des actions gratuites",
+        "hint": "Couleur de l'onglet d'action libre"
+      },
+      "color-reaction": {
+        "text": "Couleur des réactions",
+        "hint": "Couleur de l'onglet de réaction"
+      },
+      "color-end-turn": {
+        "text": "Couleur de la fin de tour",
+        "hint": "Couleur de l'onglet de fin du tour"
+      },
+      "color-tooltip": {
+        "text": "Couleur des infobulles",
+        "hint": "Couleur des infobulles et de la fenêtre \"Sauvegarder/compétences/outils\"."
+      },
+      "theme": {
+        "name": "Thème",
+        "hint": "Thème du HUD",
+        "custom": "Personalisé",
+        "helium": "Helium",
+        "neon": "Neon",
+        "argon": "Argon",
+        "krypton": "Krypton",
+        "xenon": "Xenon",
+        "radon": "Radon",
+        "oganesson": "Oganesson"
+      },
+      "scale": {
+        "name": "Échelle",
+        "hint": "Échelle du HUD - si l'échelle automatique est activée, ce paramètre sera utilisé comme un multiplicateur en plus de l'échelle calculée."
+      },
+      "noAutoscale": {
+        "name": "Ne pas faire de mise à l'échelle automatique",
+        "hint": "Ne mettez pas le HUD à l'échelle de l'écran, utilisez plutôt la valeur plate du paramètre Scale."
+      },
+      "leftPos": {
+        "name": "Position gauche",
+        "hint": "Distance de la bordure gauche en pixels"
+      },
+      "botPos": {
+        "name": "Position basse",
+        "hint": "Distance de la bordure inférieure en pixels"
+      },
+      "playerDetailsBottom": {
+        "name": "Détails sur le joueur en bas",
+        "hint": "Positionne le nom des joueurs et les informations sur la classe en bas pour le portrait."
+      },
+      "preparedSpells": {
+        "name": "Sorts préparés uniquement",
+        "hint": "Ne montrez que les sorts préparés"
+      },
+      "showTooltips": {
+        "name": "Afficher les infobulles",
+        "hint": "Afficher les infobulles au survol"
+      },
+      "showTooltipsSpecial": {
+        "name": "Afficher des infobulles pour les actions spéciales",
+        "hint": "Afficher des infobulles au survol pour les actions spéciales (esquive, désengagement, poussée...)"
+      },
+      "showTooltipsAbilityMenuAbilities": {
+        "name": "Afficher les infobulles des capacités",
+        "hint": "Afficher des infobulles au survol des capacités dans le menu des capacités"
+      },
+      "showTooltipsAbilityMenuSkills": {
+        "name": "Afficher les infobulles pour les compétences",
+        "hint": "Afficher des infobulles au survol des compétences dans le menu des capacités"
+      },
+      "showTooltipsAbilityMenuTools": {
+        "name": "Afficher les infobulles des outils",
+        "hint": "Afficher des infobulles au survol des outils dans le menu d'aptitude"
+      },
+      "fadeOutInactive": {
+        "name": "Fondu enchaîné",
+        "hint": "Disparition du HUD après 5 secondes sans survol de la souris"
+      },
+      "thememenu": {
+        "name": "Personnalisation du thème",
+        "hint": "Configurer, choisir et personnaliser les thèmes d'Argon",
+        "label": "Configurer les thèmes"
+      }
+    },
+    "hud": {
+      "pass": {
+        "name": "Passer"
+      },
+      "endturn": {
+        "name": "Fin de tour"
+      }
+    },
+    "tooltip": {
+      "target": {
+        "name": "Cible"
+      },
+      "range": {
+        "name": "Portée"
+      },
+      "properties": {
+        "name": "Propriétés"
+      }
+    },
+    "themeOptions": {
+      "save": "Enregistrer les modifications",
+      "export": "Exporter le thème",
+      "autoTextColorTitle": "Définition automatique des couleurs de texte en fonction de l'arrière-plan",
+      "autoTextColorHint": "Ce paramètre ajuste la couleur du texte en fonction de la couleur de l'arrière-plan pour obtenir une couleur qui devrait être lisible.",
+      "exportThemeName": "Nom du thème exporté :",
+      "exportTheme": {
+        "save": "Enregistrer",
+        "cancel": "Annuler"
+      },
+      "themeTitle": "Choisissez un thème",
+      "themeHint": "La sélection d'un thème permet d'appliquer une palette de couleurs prédéfinie à Argon.",
+      "mainAction": "Couleur des actions principales",
+      "bonusAction": "Couleur des actions bonus",
+      "freeAction": "Couleur des actions gratuites",
+      "reaction": "Couleur des réactions",
+      "endTurn": "Couleur de la fin du tour",
+      "tooltip": "Couleur des infobulles",
+      "abilityMenu": "Couleur des capacités",
+      "buttons": "Couleur des boutons",
+      "movement": "Couleur des cases de mouvements",
+      "background": "Couleur de fond",
+      "color": "Couleur du texte",
+      "border": "Couleur des bordures",
+      "boxShadow": "Couleur de l'ombre de la boîte",
+      "mainActionBase": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris n'est pas sur l'élément",
+      "mainActionHover": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris se trouve sur un élément",
+      "bonusActionBase": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris n'est pas sur l'élément",
+      "bonusActionHover": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris se trouve sur un élément",
+      "freeActionBase": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris n'est pas sur l'élément",
+      "freeActionHover": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris se trouve sur un élément",
+      "reactionBase": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris n'est pas sur l'élément",
+      "reactionHover": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris se trouve sur un élément",
+      "endTurnBase": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris n'est pas sur l'élément",
+      "endTurnHover": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris se trouve sur un élément",
+      "tooltipHeader": "Couleurs d'arrière-plan/de fond/de bordure de l'en-tête des infobulles/fenêtres",
+      "tooltipSubtitle": "Couleurs d'arrière-plan/de fond/de bordure du sous-titre dans les infobulles",
+      "tooltipBody": "Couleurs d'arrière-plan/de fond/de bordure du corps des infobulles/fenêtres",
+      "abilityMenuBase": "Couleurs de l'avant-plan/de l'ombre de la boîte lorsque la souris n'est pas sur l'élément",
+      "abilityMenuHover": "Couleurs de l'avant-plan/de l'ombre de la boîte lorsque la souris est au-dessus de l'élément",
+      "buttonsBase": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris n'est pas sur l'élément",
+      "buttonsHover": "Couleurs d'arrière-plan/de premier plan/de bordure lorsque la souris se trouve sur un élément",
+      "movementUsed": "Fond/Boîte Ombre de la boîte indiquant les espaces de mouvement utilisés",
+      "movementBaseMovement": "Fond/Boîte Ombre de la boîte indiquant les espaces de mouvement disponibles",
+      "movementDashMovement": "Fond/Boîte Ombre de la boîte indiquant les espaces de mouvement du tiret",
+      "movementDangerMovement": "Fond/Boîte Ombre de la boîte indiquant les espaces de mouvement dépassés"
+    }
+  }
+}

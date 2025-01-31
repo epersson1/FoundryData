@@ -1,0 +1,66 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class='custom-system-form-field'>
+    <label for='meterLabel'>{{localize 'CSB.ComponentProperties.InputComponent.Label'}}</label>
+    <input id='meterLabel' type='text' data-key='label' value='{{label}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='meterSize'>{{localize 'CSB.ComponentProperties.Size.SectionTitle'}}*</label>
+    <select id='meterSize' data-key='size'>
+        {{selectOptions COMPONENT_SIZES selected=size localize=true}}
+    </select>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='meterValue'>{{localize 'CSB.ComponentProperties.Meter.Value'}}*
+        {{> icon-formula}}
+    </label>
+    <textarea id='meterValue' data-key='value'>{{value}}</textarea>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='meterMin'>{{localize 'CSB.ComponentProperties.Meter.Minimum'}}
+        {{> icon-formula}}
+    </label>
+    <textarea id='meterMin' data-key='min'>{{min}}</textarea>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='meterMax'>{{localize 'CSB.ComponentProperties.Meter.Maximum'}}
+        {{> icon-formula}}
+    </label>
+    <textarea id='meterMax' data-key='max'>{{max}}</textarea>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='meterLow'>{{localize 'CSB.ComponentProperties.Meter.LowValue'}}
+        {{> icon-formula}}
+    </label>
+    <textarea id='meterLow' data-key='low'>{{low}}</textarea>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='meterHigh'>{{localize 'CSB.ComponentProperties.Meter.HighValue'}}
+        {{> icon-formula}}
+    </label>
+    <textarea id='meterHigh' data-key='high'>{{high}}</textarea>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='meterOptimum'>{{localize 'CSB.ComponentProperties.Meter.OptimumValue'}}
+        {{> icon-formula}}
+    </label>
+    <textarea id='meterOptimum' data-key='optimum'>{{optimum}}</textarea>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='meterTextOption'>{{localize 'CSB.ComponentProperties.Meter.TextDisplay.SectionTitle'}}</label>
+    <select id='meterTextOption' data-key='size'>
+        {{selectOptions METER_TEXT_OPTIONS selected=textOption localize=true}}
+    </select>
+</div>

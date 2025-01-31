@@ -1,0 +1,14 @@
+{
+  "title": "Everrealm",
+  "id": "everrealm",
+  "system": "custom-system-builder",
+  "joinTheme": "default",
+  "coreVersion": "12.331",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "systemVersion": "4.2.0",
+  "lastPlayed": "Thu Jan 30 2025 15:50:51 GMT-0500 (Eastern Standard Time)",
+  "playtime": 135
+}

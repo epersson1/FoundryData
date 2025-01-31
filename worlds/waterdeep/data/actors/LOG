@@ -1,11 +1,22 @@
-2025/01/26-21:13:35.434 15f0 Recovering log #103
-2025/01/26-21:13:35.475 15f0 Level-0 table #105: started
-2025/01/26-21:13:35.602 15f0 Level-0 table #105: 1602077 bytes OK
-2025/01/26-21:13:35.634 15f0 Delete type=0 #103
-2025/01/26-21:13:35.634 15f0 Delete type=3 #102
-2025/01/26-21:13:38.125 29dc Compacting 1@0 + 1@1 files
-2025/01/26-21:13:38.176 29dc Generated table #107@0: 301 keys, 466598 bytes
-2025/01/26-21:13:38.176 29dc Compacted 1@0 + 1@1 files => 466598 bytes
-2025/01/26-21:13:38.225 29dc compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/01/26-21:13:38.225 29dc Delete type=2 #101
-2025/01/26-21:13:38.225 29dc Delete type=2 #105
+2025/01/30-14:53:42.575 288c Recovering log #114
+2025/01/30-14:53:42.575 288c Level-0 table #117: started
+2025/01/30-14:53:42.582 288c Level-0 table #117: 66776 bytes OK
+2025/01/30-14:53:42.590 288c Delete type=0 #114
+2025/01/30-14:53:42.590 288c Delete type=3 #112
+2025/01/30-14:53:43.846 6494 Compacting 1@0 + 1@1 files
+2025/01/30-14:53:43.880 6494 Generated table #119@0: 309 keys, 483994 bytes
+2025/01/30-14:53:43.880 6494 Compacted 1@0 + 1@1 files => 483994 bytes
+2025/01/30-14:53:43.882 6494 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/01/30-14:53:43.884 6494 Delete type=2 #115
+2025/01/30-14:53:43.886 6494 Delete type=2 #117
+2025/01/30-15:23:37.207 6494 Level-0 table #121: started
+2025/01/30-15:23:37.215 6494 Level-0 table #121: 376248 bytes OK
+2025/01/30-15:23:37.217 6494 Delete type=0 #118
+2025/01/30-15:23:37.239 6494 Manual compaction at level-0 from '!actors!7cPD1gXz44tnhWIj' @ 72057594037927935 : 1 .. '!actors.items.effects!lOkfQf9t8VSe4aNI.oWIuvWtjHfff9hRS.dnd5espellchange' @ 0 : 0; will stop at '!actors.items.effects!K10NeZxAnjgLRYBz.1lUaN3gvOldM3cR8.p1RjtNU48OxYf1hs' @ 3049 : 1
+2025/01/30-15:23:37.239 6494 Compacting 1@0 + 1@1 files
+2025/01/30-15:23:37.251 6494 Generated table #122@0: 341 keys, 522910 bytes
+2025/01/30-15:23:37.251 6494 Compacted 1@0 + 1@1 files => 522910 bytes
+2025/01/30-15:23:37.253 6494 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/01/30-15:23:37.253 6494 Delete type=2 #119
+2025/01/30-15:23:37.253 6494 Delete type=2 #121
+2025/01/30-15:23:37.272 6494 Manual compaction at level-0 from '!actors.items.effects!K10NeZxAnjgLRYBz.1lUaN3gvOldM3cR8.p1RjtNU48OxYf1hs' @ 3049 : 1 .. '!actors.items.effects!lOkfQf9t8VSe4aNI.oWIuvWtjHfff9hRS.dnd5espellchange' @ 0 : 0; will stop at (end)

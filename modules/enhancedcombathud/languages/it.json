@@ -1,0 +1,86 @@
+{
+  "enhancedcombathud": {
+    "settings": {
+      "color": {
+        "label": "Colore",
+        "text": "Colore Principale",
+        "hint": "Colore di sfondo delle azioni e altre caratteristiche principali dell'HUD"
+      },
+      "fore-color": {
+        "text": "Colore Testo",
+        "hint": "Colore testo"
+      },
+      "color-bonus-action": {
+        "text": "Colore Azione Bonus",
+        "hint": "Colore di sfondo dell'azione bonus"
+      },
+      "color-free-action": {
+        "text": "Colore Azione Gratuita",
+        "hint": "Colore di sfondo dell'azione gratuita"
+      },
+      "color-reaction": {
+        "text": "Colore Reazione",
+        "hint": "Colore di sfondo della reazione"
+      },
+      "color-end-turn": {
+        "text": "Colore Fine Turno",
+        "hint": "Colore di sfondo del fine turno"
+      },
+      "color-tooltip": {
+        "text": "Colore Tooltip",
+        "hint": "Colore delle descrizioni comandi e pop-up di tiri salvezza/abilità/strumenti"
+      },
+      "theme": {
+        "name": "Tema",
+        "hint": "Tema del HUD",
+        "custom": "Personalizzato",
+        "helium": "Helium",
+        "neon": "Neon",
+        "argon": "Argon",
+        "krypton": "Krypton",
+        "xenon": "Xenon",
+        "radon": "Radon",
+        "oganesson": "Oganesson"
+      },
+      "scale": {
+        "name": "Dimensione",
+        "hint": "Dimensione HUD - se la Dimensione Automatica è abilitata, questa impostazione verrà utilizzata come moltiplicatore alla dimensione calcolata"
+      },
+      "noAutoscale": {
+        "name": "Disattiva Dimensione Automatica",
+        "hint": "Non ridimensionare l'HUD per adattarlo allo schermo, usa invece il valore assegnato nell'impostazione Dimensione"
+      },
+      "leftPos": {
+        "name": "Posiziona a Sinistra",
+        "hint": "Distanza da sinistra in pixel"
+      },
+      "botPos": {
+        "name": "Posiziona in Basso",
+        "hint": "Distanza dal basso in pixel"
+      },
+      "preparedSpells": {
+        "name": "Solo Incantesimi Preparati",
+        "hint": "Mostra solo incantesimi preparati"
+      },
+      "showTooltips": {
+        "name": "Mostra Suggerimanti",
+        "hint": "Mostra Suggerimenti col passaggio del mouse"
+      },
+      "showTooltipsSpecial": {
+        "name": "Mostra Suggerimenti per Azioni Speciali",
+        "hint": "Mostra Suggerimenti col passaggio del mouse per le azioni speciali (schivare, disimpegno, spingere...)"
+      }
+    },
+    "tooltip": {
+      "target": {
+        "name": "Bersaglio"
+      },
+      "range": {
+        "name": "Distanza"
+      },
+      "properties": {
+        "name": "Proprietà"
+      }
+    }
+  }
+}

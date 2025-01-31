@@ -1,0 +1,109 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class="custom-system-form-field">
+    <label for="tableHead">{{localize 'CSB.ComponentProperties.ExtensibleTable.ColumnNameBold'}}</label>
+    <input type="checkbox" id="tableHead" data-key="head" {{checked head}} />
+</div>
+
+<div class="custom-system-form-field">
+    <label for="tableDeleteWarning">{{localize 'CSB.ComponentProperties.DynamicTable.ConfirmDialogOnDelete'}}</label>
+    <input type="checkbox" id="tableDeleteWarning" data-key="deleteWarning" {{checked deleteWarning}} />
+</div>
+
+<div class="custom-system-form-field">
+    <label for="tableCanPlayerAdd">{{localize 'CSB.ComponentProperties.DynamicTable.CanAddRow'}}</label>
+    <input type="checkbox" id="tableCanPlayerAdd" data-key="canPlayerAdd" {{checked canPlayerAdd}} />
+</div>
+
+<div class="custom-system-form-field"><h3>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Title'}}</h3></div>
+<div class="custom-system-form-field">
+    <label>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.SortOptions'}}*</label>
+    <div class="custom-system-form-field">
+        <div>
+            <label for="sortAuto">{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Auto'}}</label>
+            <input
+                type="radio"
+                id="sortAuto"
+                value="auto"
+                name="tableSortOption"
+                {{checked (eq sortOption 'auto')}}
+            />
+        </div>
+        <div>
+            <label for="sortManual">{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Manual'}}</label>
+            <input
+                type="radio"
+                id="sortManual"
+                value="manual"
+                name="tableSortOption"
+                {{checked (eq sortOption 'manual')}}
+            />
+        </div>
+        <div>
+            <label for="sortDisabled">{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Disabled'}}</label>
+            <input
+                type="radio"
+                id="sortDisabled"
+                value="disabled"
+                name="tableSortOption"
+                {{checked (eq sortOption 'disabled')}}
+            />
+        </div>
+    </div>
+</div>
+
+<div class="custom-system-sort-auto" style="{{#unless (eq sortOption 'auto')}}display: none;{{/unless}}">
+    <div class="custom-system-form-field"><h4>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.AddSortingCriteria'}}:</h4></div>
+    <div class="custom-system-form-field">
+        <table id="custom-system-table-sort-predicates">
+            <thead>
+            <tr>
+                <td>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.ColumnKey'}}*</td>
+                <td>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Operator'}}*</td>
+                <td>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Value'}}</td>
+                <td></td>
+            </tr>
+            </thead>
+            <tbody>
+            {{#each sortPredicates}}
+            <tr class="custom-system-table-sort-predicate">
+                <td><input type="text" name="tableSortProp" style="width: 130px" value="{{this.prop}}" /></td>
+                <td>
+                    <select name="tableSortOp" id="tableSortOp_{{@index}}" style="width: 70px">
+                        {{selectOptions ../SORT_OPERATORS selected=this.operator localize=true}}
+                    </select>
+                </td>
+                <td><input type="text" name="tableSortValue" style="width: 130px" value="{{this.value}}" /></td>
+                <td>
+                    <a class="custom-system-delete-sort-predicate"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            {{/each}}
+            </tbody>
+        </table>
+        <a id="custom-system-add-sort-predicate"><i class="fas fa-plus-circle"></i></a>
+    </div>
+</div>
+
+<div class="custom-system-sort-column" style="{{#unless (eq sortOption 'column')}}display: none;{{/unless}}"></div>
+<div class="custom-system-sort-manual" style="{{#unless (eq sortOption 'manual')}}display: none;{{/unless}}"></div>
+<div class="custom-system-sort-disabled" style="{{#unless (eq sortOption 'disabled')}}display: none;{{/unless}}"></div>
+
+<template id="custom-system-table-sort-predicate-template">
+    <tr class="custom-system-table-sort-predicate">
+        <td><input type="text" name="tableSortProp" style="width: 130px" /></td>
+        <td>
+            <select name="tableSortOp" style="width: 70px">
+                {{selectOptions SORT_OPERATORS selected=this.operator localize=true}}
+            </select>
+        </td>
+        <td><input type="text" name="tableSortValue" style="width: 130px" /></td>
+        <td>
+            <a class="custom-system-delete-sort-predicate"><i class="fas fa-trash"></i></a>
+        </td>
+    </tr>
+</template>

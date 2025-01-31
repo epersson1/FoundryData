@@ -1,0 +1,75 @@
+{
+  "id": "_chatcommands",
+  "title": "Chat Commander",
+  "description": "Extends built-in commands with autocompletion and enables modules to register their own commands.",
+  "version": "2.0.2",
+  "library": true,
+  "compatibility": {
+    "minimum": "11.299",
+    "verified": "12.324"
+  },
+  "authors": [
+    {
+      "name": "Cody Swendrowski",
+      "url": "https://swendrowski.us",
+      "email": "cody@swendrowski.us",
+      "discord": "cswendrowski#9701",
+      "flags": {}
+    },
+    {
+      "name": "The League of Extraordinary FVTT Developers",
+      "url": "https://github.com/League-of-Foundry-Developers",
+      "discord": "https://discord.gg/Es2Bv9MyaR",
+      "flags": {}
+    },
+    {
+      "name": "Adrian Haberecht",
+      "flags": {}
+    }
+  ],
+  "esmodules": [
+    "_chatcommands.js"
+  ],
+  "styles": [
+    "styles/chatcommands.css"
+  ],
+  "languages": [
+    {
+      "lang": "de",
+      "name": "Deutsch",
+      "path": "lang/de.json",
+      "flags": {}
+    },
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json",
+      "flags": {}
+    },
+    {
+      "lang": "pl",
+      "name": "Polski",
+      "path": "lang/pl.json",
+      "flags": {}
+    }
+  ],
+  "url": "https://gitlab.com/woodentavern/foundryvtt-chat-command-lib",
+  "manifest": "https://gitlab.com/woodentavern/foundryvtt-chat-command-lib/-/raw/master/src/module.json",
+  "download": "https://gitlab.com/api/v4/projects/43336899/packages/generic/releases/2.0.2/_chatcommands-v2.0.2.zip",
+  "license": "https://gitlab.com/woodentavern/foundryvtt-chat-command-lib/-/blob/master/LICENSE",
+  "readme": "https://gitlab.com/woodentavern/foundryvtt-chat-command-lib/-/blob/master/README.md",
+  "bugs": "https://gitlab.com/woodentavern/foundryvtt-chat-command-lib/-/issues",
+  "changelog": "https://gitlab.com/woodentavern/foundryvtt-chat-command-lib/-/blob/master/CHANGELOG.md",
+  "flags": {
+    "hotReload": {
+      "extensions": [
+        "css",
+        "json"
+      ],
+      "paths": [
+        "styles/chatcommands.css",
+        "lang"
+      ]
+    }
+  }
+}

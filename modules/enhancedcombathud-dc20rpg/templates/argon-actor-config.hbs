@@ -1,0 +1,18 @@
+<form autocomplete="off">
+    <div class="form-group">
+        <label>{{localize 'enhancedcombathud-dc20rpg.portraitConfig.prepared.label'}}</label>
+        <div class="form-fields">
+            <select name="flags.enhancedcombathud-dc20rpg.showPrepared">
+                {{#select flags.enhancedcombathud-dc20rpg.showPrepared}}
+                <option value="auto">{{localize 'enhancedcombathud-dc20rpg.portraitConfig.prepared.auto'}}</option>
+                <option value="preparedOnly">{{localize 'enhancedcombathud-dc20rpg.portraitConfig.prepared.preparedOnly'}}</option>
+                <option value="all">{{localize 'enhancedcombathud-dc20rpg.portraitConfig.prepared.all'}}</option>
+                {{/select}}
+            </select>
+        </div>
+    </div>
+
+    <button type="submit">
+        <i class="fas fa-save"></i> {{localize 'PLAYERS.SaveConfig'}}
+    </button>
+</form>

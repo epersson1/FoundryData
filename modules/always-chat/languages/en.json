@@ -1,0 +1,37 @@
+{
+	"always-chat": {
+		"title": "Always Chat",
+		"settings": {
+			"showChatWhenNotActive.name": "Show Chat when NOT Active",
+			"showChatWhenNotActive.hint": "When enabled the chat will be displayed to the right of sidebar when not the active sidebar tab.",
+			"showChatWhenCollapsed.name": "Show Chat when Collapsed",
+			"showChatWhenCollapsed.hint": "When enabled the chat will always be displayed when the sidebar is collapsed.",
+			"onlyShowNewMessages.name": "Only Show New Messages",
+			"onlyShowNewMessages.hint": "When enabled only newly registered messages will Show Up.",
+			"delayNewMessagesFadeOut.name": "Hide New Messages After",
+			"delayNewMessagesFadeOut.hint": "WYou can adjust the time that a new message stays available for in seconds. Setting this value to 0 Means the message will stay until you refresh the screen or if it falls below your Number of Messages to Show setting.",
+			"numberOfMessagesToDisplay.name": "Number of Messages to Show",
+			"numberOfMessagesToDisplay.hint": "You can adjust this setting to adjust the number of messages shown. Setting this to 0 will allow 999 messages to be shown. Please note that there is no scroll bar and you wont be able to interact with messages that out of your browsers height.",
+			"inactiveScale.name": "Scale of Inactive Chat",
+			"inactiveScale.hint": "You can adjust the scale of the chat sidebar when its inactive to get it more out of the way.",
+			"inactiveOpacity.name": "Scale of Opacity Chat",
+			"inactiveOpacity.hint": "You can adjust the opacity of the chat messages when they are not hovered over.",
+			"chatPosition": {
+				"name": "Pin the Chat To",
+				"hint": "You can set if you would like the chat to be pinned to the top or bottom right of the sidebar.",
+				"choices": {
+					"bottomRight": "Bottom Right",
+					"topRight": "Top Right"
+				}
+			},
+			"chatDirection": {
+				"name": "Newest Chat Message",
+				"hint": "You can set if you would like the newest chat message to be on the top or bottom of the list.",
+				"choices": {
+					"bottom": "Bottom",
+					"top": "Top"
+				}
+			}
+		}
+	}
+}

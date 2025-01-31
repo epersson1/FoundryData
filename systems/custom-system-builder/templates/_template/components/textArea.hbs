@@ -1,0 +1,25 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class='custom-system-form-field'>
+    <label for='textAreaLabel'>{{localize 'CSB.ComponentProperties.InputComponent.Label'}}</label>
+    <input id='textAreaLabel' type='text' data-key='label' value='{{label}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='textAreaStyle'>{{localize 'CSB.ComponentProperties.TextArea.Style.SectionTitle'}}*</label>
+    <select id='textAreaStyle' data-key='style'>
+        {{selectOptions RICH_TEXT_AREA_STYLES selected=style localize=true}}
+    </select>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='textAreaValue'>{{localize 'CSB.ComponentProperties.DefaultValue'}}
+        {{> icon-formula}}
+        {{> icon-info title=(localize "CSB.ComponentProperties.AllowFormulaCreateTimeOnly")}}
+    </label>
+    <textarea id='textAreaValue' data-key='defaultValue'>{{defaultValue}}</textarea>
+</div>

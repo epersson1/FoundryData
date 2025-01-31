@@ -1,0 +1,36 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class='custom-system-form-field'>
+    <label for='radioButtonLabel'>{{localize 'CSB.ComponentProperties.InputComponent.Label'}}</label>
+    <input id='radioButtonLabel' type='text' data-key='label' value='{{label}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='radioButtonSize'>{{localize 'CSB.ComponentProperties.Size.SectionTitle'}}*</label>
+    <select id='radioButtonSize' data-key='size'>
+        {{selectOptions COMPONENT_SIZES selected=size localize=true}}
+    </select>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='radioButtonGroup'>{{localize 'CSB.ComponentProperties.RadioButton.Group'}}*
+        {{> icon-info title=(localize "CSB.ComponentProperties.RadioButton.GroupDescription")}}
+    </label>
+    <input id='radioButtonGroup' type='text' data-key='group' value='{{group}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='radioButtonValue'>{{localize 'CSB.ComponentProperties.RadioButton.Value'}}
+        {{> icon-formula}}
+    </label>
+    <input id='radioButtonValue' type='text' data-key='value' value='{{value}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='radioButtonDefaultChecked'>{{localize 'CSB.ComponentProperties.CheckedByDefault'}}</label>
+    <input id='radioButtonDefaultChecked' type='checkbox' data-key='defaultChecked' {{checked defaultChecked}} />
+</div>

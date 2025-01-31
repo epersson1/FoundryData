@@ -1,0 +1,177 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class="custom-system-form-field">
+    <label for="itemTitle"> {{localize 'CSB.ComponentProperties.ItemContainer.TableTitle'}}</label>
+    <input type="text" id="itemTitle" data-key="title" value="{{title}}" />
+</div>
+
+<div class="custom-system-form-field">
+    <label for="itemNameLabel">{{localize 'CSB.ComponentProperties.ItemContainer.ItemRefColLabel'}}</label>
+    <input id="itemNameLabel" type="text" data-key="nameLabel" value="{{nameLabel}}" />
+</div>
+
+<div class="custom-system-form-field">
+    <label for="itemNameAlign">{{localize 'CSB.ComponentProperties.ItemContainer.ItemRefColAlign'}}*</label>
+    <select id="itemNameAlign" data-key="nameAlign">
+        {{selectOptions ALIGNMENTS selected=nameAlign localize=true}}
+    </select>
+</div>
+
+<div class="custom-system-form-field">
+    <label for="itemHideEmpty">{{localize 'CSB.ComponentProperties.ItemContainer.HideEmpty'}}</label>
+    <input type="checkbox" id="itemHideEmpty" data-key="hideEmpty" {{checked hideEmpty}} />
+</div>
+
+<div class="custom-system-form-field">
+    <label for="itemHeadDisplay">{{localize 'CSB.ComponentProperties.ExtensibleTable.DisplayColumnName'}}</label>
+    <input type="checkbox" id="itemHeadDisplay" data-key="headDisplay" {{checked headDisplay}} />
+</div>
+
+<div class="custom-system-form-field">
+    <label for="itemHead">{{localize 'CSB.ComponentProperties.ExtensibleTable.ColumnNameBold'}}</label>
+    <input type="checkbox" id="itemHead" data-key="head" {{checked head}} />
+</div>
+
+<div class="custom-system-form-field">
+    <label for="itemShowDelete">{{localize 'CSB.ComponentProperties.ItemContainer.ShowItemDeleteButton'}}</label>
+    <input type="checkbox" id="itemShowDelete" data-key="showDelete" {{checked showDelete}} />
+</div>
+
+<div class="custom-system-form-field">
+    <label for="itemDeleteWarning">{{localize 'CSB.ComponentProperties.ItemContainer.ShowConfirmationDialogOnItemDelete'}}</label>
+    <input type="checkbox" id="itemDeleteWarning" data-key="deleteWarning" {{checked deleteWarning}} />
+</div>
+
+<div class="custom-system-form-field">
+    <label for="itemStatusIcon">{{localize 'CSB.ComponentProperties.ItemContainer.ShowItemStatus'}}</label>
+    <input type="checkbox" id="itemStatusIcon" data-key="statusIcon" {{checked statusIcon}} />
+</div>
+
+<div class="custom-system-form-field"><h3>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Title'}}</h3></div>
+<div class="custom-system-form-field">
+    <label>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.SortOptions'}}*</label>
+    <div class="custom-system-form-field">
+        <div>
+            <label for="sortAuto">{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Auto'}}</label>
+            <input
+                type="radio"
+                id="sortAuto"
+                value="auto"
+                name="containerSortOption"
+                {{checked (eq sortOption "auto")}}
+            />
+        </div>
+        <div>
+            <label for="sortManual">{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Manual'}}</label>
+            <input
+                type="radio"
+                id="sortManual"
+                value="manual"
+                name="containerSortOption"
+                {{checked (eq sortOption "manual")}}
+            />
+        </div>
+        <div>
+            <label for="sortDisabled">{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Disabled'}}</label>
+            <input
+                type="radio"
+                id="sortDisabled"
+                value="disabled"
+                name="containerSortOption"
+                {{checked (eq sortOption "disabled")}}
+            />
+        </div>
+    </div>
+</div>
+
+<div class="custom-system-sort-auto" style="{{#unless (eq sortOption 'auto')}}display: none;{{/unless}}">
+    <div class="custom-system-form-field"><h4>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.AddSortingCriteria'}}:</h4></div>
+    <div class="custom-system-form-field">
+        <table id="custom-system-sort-predicates">
+            <thead>
+            <tr>
+                <td>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.ColumnKey'}}*</td>
+                <td>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Operator'}}*</td>
+                <td>{{localize 'CSB.ComponentProperties.ExtensibleTable.Sort.Value'}}</td>
+                <td></td>
+            </tr>
+            </thead>
+            <tbody>
+            {{#each sortPredicates}}
+            <tr class="custom-system-sort-predicate">
+                <td><input type="text" name="sortProp" style="width: 130px" value="{{this.prop}}" /></td>
+                <td>
+                    <select name="sortOp" id="sortOp_{{@index}}" style="width: 70px">
+                        {{selectOptions ../SORT_OPERATORS selected=this.operator localize=true}}
+                    </select>
+                </td>
+                <td><input type="text" name="sortValue" style="width: 130px" value="{{this.value}}" /></td>
+                <td>
+                    <a class="custom-system-delete-sort-predicate"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            {{/each}}
+            </tbody>
+        </table>
+        <a id="custom-system-add-sort-predicate"><i class="fas fa-plus-circle"></i></a>
+    </div>
+</div>
+
+<div class="custom-system-sort-manual" style="{{#unless (eq sortOption 'manual')}}display: none;{{/unless}}"></div>
+<div class="custom-system-sort-disabled" style="{{#unless (eq sortOption 'disabled')}}display: none;{{/unless}}"></div>
+
+<div class="custom-system-form-field"><h3>{{localize 'CSB.ComponentProperties.ItemContainer.FilterItem'}}</h3></div>
+<div class="custom-system-form-field"><h4>{{localize 'CSB.ComponentProperties.ItemContainer.SelectTemplate'}}:</h4></div>
+<div class="custom-system-form-field">
+    <div
+        style="
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-content: space-between;
+            justify-content: space-between;
+            align-items: center;
+        "
+    >
+        {{#each availableTemplates}}
+        <span>
+            <input
+                type="checkbox"
+                id="{{this.id}}"
+                value="{{this.id}}"
+                name="itemFilterTemplate"
+                {{checked this.checked}}
+            />
+            <label for="{{this.id}}">{{this.name}}</label>
+        </span>
+        {{/each}}
+    </div>
+</div>
+
+<div class="custom-system-form-field">
+    <label for="itemFilterFormula">{{localize 'CSB.ComponentProperties.ItemContainer.FilterItemDesc'}}
+        {{> icon-formula}}
+        {{> icon-no-delimiters}}
+    </label>
+    <textarea id="itemFilterFormula" data-key="itemFilterFormula">{{itemFilterFormula}}
+    </textarea>
+</div>
+
+<template id="custom-system-sort-predicate-template">
+    <tr class="custom-system-sort-predicate">
+        <td><input type="text" name="sortProp" style="width: 130px" /></td>
+        <td>
+            <select name="sortOp" style="width: 70px">
+                {{selectOptions SORT_OPERATORS selected=this.operator localize=true}}
+            </select>
+        </td>
+        <td><input type="text" name="sortValue" style="width: 130px" /></td>
+        <td>
+            <a class="custom-system-delete-sort-predicate"><i class="fas fa-trash"></i></a>
+        </td>
+    </tr>
+</template>

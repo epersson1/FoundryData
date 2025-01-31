@@ -1,0 +1,48 @@
+{
+  "id": "custom-system-builder-example",
+  "title": "Custom System Builder - Example",
+  "version": "4.2.0.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12",
+    "maximum": "12"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "custom-system-builder",
+        "type": "system",
+        "compatibility": {
+          "minimum": "4.3.0",
+          "verified": "4.3.0"
+        }
+      }
+    ]
+  },
+  "description": "This pack contains an example for the Custom System Builder, which includes an Actor-Template and several Item Templates with concrete Items. It utilizes most features of CSB, so it might help you if you're a beginner with the system",
+  "authors": [
+    {
+      "name": "Martin1522",
+      "email": "martindeutsch152@outlook.de",
+      "url": "https://gitlab.com/martin1522",
+      "discord": "martin1522",
+      "flags": {}
+    }
+  ],
+  "url": "https://gitlab.com/martin1522/custom-system-builder-example",
+  "manifest": "https://gitlab.com/martin1522/custom-system-builder-example/-/raw/4.3.0.0/module.json",
+  "download": "https://gitlab.com/martin1522/custom-system-builder-example/-/archive/4.3.0.0/custom-system-builder-example-4.3.0.0.zip",
+  "packs": [
+    {
+      "name": "examples",
+      "label": "Examples",
+      "path": "packs/examples",
+      "type": "Adventure",
+      "system": "custom-system-builder",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class='custom-system-form-field'>
+    <label for='checkboxLabel'>{{localize 'CSB.ComponentProperties.InputComponent.Label'}}</label>
+    <input id='checkboxLabel' type='text' data-key='label' value='{{label}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='checkboxSize'>{{localize 'CSB.ComponentProperties.Size.SectionTitle'}}*</label>
+    <select id='checkboxSize' data-key='size'>
+        {{selectOptions COMPONENT_SIZES selected=size localize=true}}
+    </select>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='checkboxDefaultChecked'>{{localize 'CSB.ComponentProperties.CheckedByDefault'}}</label>
+    <input id='checkboxDefaultChecked' type='checkbox' data-key='defaultChecked' {{checked defaultChecked}} />
+</div>

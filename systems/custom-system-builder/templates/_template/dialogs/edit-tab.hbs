@@ -1,0 +1,50 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<p>{{localize 'CSB.ComponentProperties.Tab.EnterNameAndKey'}}</p>
+<p>{{localize 'CSB.ComponentProperties.Tab.NameAndKeyDescription'}}</p>
+<div><label for='tab-name'>{{localize 'CSB.ComponentProperties.Tab.TabName'}} : </label><input
+        type='text'
+        id='tab-name'
+        value='{{name}}'
+    /></div>
+<div><label for='tab-key'>{{localize 'CSB.ComponentProperties.Tab.TabKey'}} : </label><input
+        type='text'
+        id='tab-key'
+        value='{{key}}'
+    /></div>
+<div class='custom-system-form-field'>
+    <label for='tab-tooltip'>{{localize 'CSB.ComponentProperties.Tab.TabTooltip'}}</label>
+    <input type='text' id='tab-tooltip' value='{{tooltip}}' data-key='tooltip' />
+</div>
+
+<div class='custom-system-collapsible-block'>
+    <div class='custom-system-collapsible-block-title'>
+        {{localize 'CSB.ComponentProperties.AdvancedConfiguration'}}
+        <hr />
+
+    </div>
+    <div class='custom-system-collapsible-block-hide'>
+        <div class='custom-system-form-field'>
+            <label for='tabRole'>{{localize 'CSB.ComponentProperties.Tab.MinimumRole'}}</label>
+            <select id='tabRole' data-key='role'>
+                {{selectOptions roleList selected=role localize=true}}
+            </select>
+        </div>
+        <div class='custom-system-form-field'>
+            <label for='tabPerm'>{{localize 'CSB.ComponentProperties.Tab.MinimumPermission'}}</label>
+            <select id='tabPerm' data-key='permission'>
+                {{selectOptions permissionList selected=permission localize=true}}
+            </select>
+        </div>
+        <div class='custom-system-form-field'>
+            <label for='tabVisible'>{{localize 'CSB.ComponentProperties.VisibiltyFormula'}}<br />{{localize
+                    'CSB.ComponentProperties.Tab.VisibiltyFormulaDescription'
+                }}</label>
+            <input type='text' id='tabVisible' value='{{visibilityFormula}}' data-key='visibilityFormula' />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,144 @@
+#chat-form {
+    position: relative;
+}
+
+#chat-form #autocomplete-suggestion {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    opacity: 0.5;
+    box-shadow: none;
+    outline: none;
+    pointer-events: none;
+    background: transparent;
+}
+
+#autocomplete-menu {
+    flex: 0;
+    position: relative;
+}
+
+#autocomplete-menu #context-menu {
+    bottom: 0;
+    margin-left: 6px;
+    width: calc(100% - 12px);
+    display: flex;
+    flex-direction: column;
+}
+#autocomplete-menu #context-menu ol {
+    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: calc(100% + 7px);
+    padding-right: 7px;
+    scrollbar-color: #782e22 var(--color-border-dark-3);
+}
+#autocomplete-menu ol::-webkit-scrollbar {
+    background: var(--color-border-dark-3);
+}
+
+#autocomplete-menu li.context-item:focus {
+    outline: none;
+    outline: 1px solid var(--color-border-highlight-alt);
+    box-shadow: 0 0 10px inset var(--color-shadow-highlight);
+}
+#autocomplete-menu li.context-item.info:hover {
+    text-shadow: none;
+    color: revert;
+}
+
+#autocomplete-menu ol>li.context-item {
+    padding: 6px 4px 7px 4px;
+    margin: 1px;
+    line-height: normal;
+    overflow: hidden;
+}
+#autocomplete-menu li.context-item.command {
+    padding-left: 11px;
+    text-indent: -6px;
+    font-size: small;
+}
+#autocomplete-menu li.context-item.command > * {
+    text-indent: 0px;
+}
+#autocomplete-menu li.context-item.separator > hr {
+    margin: 0;
+}
+
+#autocomplete-menu .command-title {
+    font-size: larger;
+}
+#autocomplete-menu .command-title > img {
+    max-height: 20px;
+    vertical-align: text-top;
+    margin-right: 3px;
+    border: none;
+}
+#autocomplete-menu .command-title > i {
+    margin-right: 3px;
+}
+
+#autocomplete-menu .command-footer {
+    margin-top: 3px;
+    display: flex;
+    flex-direction: row-reverse;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+#autocomplete-menu .command-footer .notes {
+    margin: 0;
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#autocomplete-menu li.context-item:hover .notes {
+    text-shadow: none;
+}
+#autocomplete-menu li .notes {
+    color: var(--color-text-light-7);
+    font-size: var(--font-size-12);
+    line-height: var(--line-height-16);
+}
+#autocomplete-menu li p.notes {
+    text-align: center;
+    margin: 3px 0;
+}
+#autocomplete-menu span.parameter {
+    background: var(--color-border-dark-4);
+    padding: 1px 2px;
+    margin: 0 2px;
+    border-radius: 2px;
+}
+
+@keyframes spinner {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+#autocomplete-menu li.loading {
+    position: relative;
+    height: 32px;
+}
+#autocomplete-menu li.loading::before,
+#chatcommand-loading::before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 50%;
+    top: 50%;
+    border: solid 5px var(--color-border-light-2);
+    border-bottom-color: var(--color-border-light-1);
+    border-radius: 50%;
+    animation: 1.5s linear infinite spinner;
+    transform: translate(-50%, -50%);
+}
+#chatcommand-loading[data-active="0"]::before {
+    display: none;
+}

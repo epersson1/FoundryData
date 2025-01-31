@@ -1,0 +1,97 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class='custom-system-form-field'>
+    <label for='modifierHeadDisplay'>{{localize 'CSB.ComponentProperties.ExtensibleTable.DisplayColumnName'}}</label>
+    <input type='checkbox' id='modifierHeadDisplay' data-key='headDisplay' {{checked headDisplay}} />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='modifierInfoDisplay'>{{localize
+            'CSB.ComponentProperties.ConditionalModifierList.DisplayInfoIcon'
+        }}</label>
+    <input type='checkbox' id='modifierInfoDisplay' data-key='infoDisplay' {{checked infoDisplay}} />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='modifierHead'>{{localize 'CSB.ComponentProperties.ExtensibleTable.ColumnNameBold'}}</label>
+    <input type='checkbox' id='modifierHead' data-key='head' {{checked head}} />
+</div>
+
+<div class='custom-system-form-field'><h3>{{localize
+            'CSB.ComponentProperties.ConditionalModifierList.FilterModifierGroup'
+        }}</h3></div>
+<div class='custom-system-form-field'><h4>{{localize
+            'CSB.ComponentProperties.ConditionalModifierList.SelectGroup'
+        }}:</h4></div>
+<div class='custom-system-form-field'>
+    <div
+        style='
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-content: space-between;
+            justify-content: space-between;
+            align-items: center;
+        '
+    >
+        {{#each availableGroups}}
+            <span>
+                <input
+                    type='checkbox'
+                    id='{{this.group}}'
+                    value='{{this.group}}'
+                    name='groupFilter'
+                    {{checked this.checked}}
+                />
+                <label for='{{this.group}}'>{{this.group}}</label>
+            </span>
+        {{/each}}
+    </div>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='modifierSelectionLabel'>{{localize
+            'CSB.ComponentProperties.ConditionalModifierList.SelectionColumnName'
+        }}*</label>
+    <input id='modifierSelectionLabel' type='text' data-key='selectionLabel' value='{{selectionLabel}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='modifierSelectionAlign'>{{localize
+            'CSB.ComponentProperties.ConditionalModifierList.SelectionColumnAlign'
+        }}*</label>
+    <select id='modifierSelectionAlign' data-key='selectionAlign'>
+        {{selectOptions ALIGNMENTS selected=selectionAlign localize=true}}
+    </select>
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='modifierGroupLabel'>{{localize
+            'CSB.ComponentProperties.ConditionalModifierList.GroupColumnName'
+        }}*</label>
+    <input id='modifierGroupLabel' type='text' data-key='groupLabel' value='{{groupLabel}}' />
+</div>
+
+<div class='custom-system-form-field'>
+    <label for='modifierGroupAlign'>{{localize
+            'CSB.ComponentProperties.ConditionalModifierList.GroupColumnAlign'
+        }}*</label>
+    <select id='modifierGroupAlign' data-key='groupAlign'>
+        {{selectOptions ALIGNMENTS selected=groupAlign localize=true}}
+    </select>
+</div>
+
+<div class='custom-system-form-field'></div>
+<div class='custom-system-form-field'></div>
+<div class='custom-system-form-field'>
+    <label for='groupFilterFormula'>{{localize 'CSB.ComponentProperties.ConditionalModifierList.GroupFilterFormula'}}
+        {{> icon-formula}}
+        {{> icon-no-delimiters}}
+        {{> icon-info title=(localize "CSB.ComponentProperties.ConditionalModifierList.GroupFilterFormulaTitle")}}
+    </label>
+    <input id='groupFilterFormula' type='text' data-key='groupFilterFormula' value='{{groupFilterFormula}}' />
+</div>

@@ -1447,7 +1447,7 @@ function getHumanReadableAttributeLabel(attr, { actor, item }={}) {
 
   // Activity labels
   if ( item && attr.startsWith("activities.") ) {
-    let [, activityId, ...keyPath] = attr;
+    let [, activityId, ...keyPath] = attr.split(".");
     const activity = item.system.activities?.get(activityId);
     if ( !activity ) return attr;
     attr = keyPath.join(".");
@@ -1809,7 +1809,8 @@ class ConsumptionTargetData extends foundry.abstract.DataModel {
         break;
       default: return false;
     }
-    return recovery?.every(r => CONFIG.DND5E.limitedUsePeriods[r.period]?.type === "combat") ?? false;
+    if ( !recovery?.length ) return false;
+    return recovery.every(r => CONFIG.DND5E.limitedUsePeriods[r.period]?.type === "combat");
   }
 
   /* -------------------------------------------- */
@@ -28762,10 +28763,7 @@ class EquipmentData extends ItemDataModel.mixin(
   /** @inheritDoc */
   prepareBaseData() {
     super.prepareBaseData();
-    if ( this.armor.base === undefined ) {
-      this.armor.base = this.armor.value ?? 0;
-      this.armor.value = this.armor.base + (this.magicAvailable ? (this.armor.magicalBonus ?? 0) : 0);
-    }
+    this.armor.base = this.armor.value = (this._source.armor.value ?? 0);
   }
 
   /* -------------------------------------------- */
@@ -28777,6 +28775,7 @@ class EquipmentData extends ItemDataModel.mixin(
     this.prepareDescriptionData();
     this.prepareIdentifiable();
     this.preparePhysicalData();
+    if ( this.magicAvailable && this.armor.magicalBonus ) this.armor.value += this.armor.magicalBonus;
     this.type.label = CONFIG.DND5E.equipmentTypes[this.type.value]
       ?? game.i18n.localize(CONFIG.Item.typeLabels.equipment);
     this.type.identifier = this.type.value === "shield"
@@ -33558,10 +33557,10 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     if ( !config.rolls[0] ) return;
 
     // Display the roll configuration dialog
+    const messageOptions = { rollMode: game.settings.get("core", "rollMode") };
     if ( config.rolls[0].options?.fixed === undefined ) {
       const dialog = { options: { title: game.i18n.localize("DND5E.InitiativeRoll") } };
-      const message = { rollMode: game.settings.get("core", "rollMode") };
-      const rolls = await CONFIG.Dice.D20Roll.build(config, dialog, message);
+      const rolls = await CONFIG.Dice.D20Roll.build(config, dialog, messageOptions);
       if ( !rolls.length ) return;
       this._cachedInitiativeRoll = rolls[0];
     }
@@ -33572,7 +33571,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       this._cachedInitiativeRoll = new CONFIG.Dice.BasicRoll(String(options.fixed), data, options);
     }
 
-    await this.rollInitiative({ createCombatants: true });
+    await this.rollInitiative({ createCombatants: true, initiativeOptions: { messageOptions } });
   }
 
   /* -------------------------------------------- */
@@ -55224,12 +55223,13 @@ class CombatTracker5e extends CombatTracker {
   /* -------------------------------------------- */
 
   /** @inheritDoc */
-  async _onCombatantControl(event) {
-    const btn = event.currentTarget;
+  async _onCombatantControl(event, target) {
+    const btn = target || event.currentTarget;
     const combatantId = btn.closest(".combatant").dataset.combatantId;
     const combatant = this.viewed.combatants.get(combatantId);
-    if ( (btn.dataset.control === "rollInitiative") && combatant?.actor ) return combatant.actor.rollInitiativeDialog();
-    return super._onCombatantControl(event);
+    const action = btn.dataset.control || btn.dataset.action;
+    if ( (action === "rollInitiative") && combatant?.actor ) return combatant.actor.rollInitiativeDialog();
+    return super._onCombatantControl(event, target);
   }
 }
 
@@ -55432,7 +55432,7 @@ class CheckboxElement extends AdoptedStyleSheetMixin(
 
   /** @override */
   get value() {
-    return this.checked ? super.value : undefined;
+    return super.value;
   }
 
   /**

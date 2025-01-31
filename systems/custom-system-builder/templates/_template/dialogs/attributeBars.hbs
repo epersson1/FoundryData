@@ -1,0 +1,59 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<table class='custom-system-attribute-bars'>
+    <thead>
+        <tr>
+            <th>{{localize 'CSB.Attributes.Name'}}</th>
+            <th>{{localize 'CSB.Attributes.Value'}}</th>
+            <th>{{localize 'CSB.Attributes.Maximum'}}</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each attribute}}
+            {{#if this.value}}
+                <tr class='custom-system-attribute-bar'>
+                    <td>
+                        <input type='text' class='custom-system-attribute-name' value='{{this.name}}' />
+                    </td>
+                    <td>
+                        <input type='text' class='custom-system-attribute-value' value='{{this.value}}' />
+                    </td>
+                    <td>
+                        <input type='text' class='custom-system-attribute-max' value='{{this.max}}' />
+                    </td>
+                    <td class='custom-system-attribute-controls'>
+                        <a class='custom-system-delete-attribute-bar'><i class='fas fa-trash'></i></a>
+                    </td>
+                </tr>
+            {{/if}}
+        {{/each}}
+        <tr>
+            <td colspan='3'></td>
+            <td>
+                <a><i class='fas fa-plus-circle' id='addAttributeBar'></i></a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<template id='custom-system-attribute-bar-template'>
+    <tr class='custom-system-attribute-bar'>
+        <td>
+            <input type='text' class='custom-system-attribute-name' />
+        </td>
+        <td>
+            <input type='text' class='custom-system-attribute-value' />
+        </td>
+        <td>
+            <input type='text' class='custom-system-attribute-max' />
+        </td>
+        <td class='custom-system-attribute-controls'>
+            <a class='custom-system-delete-attribute-bar'><i class='fas fa-trash'></i></a>
+        </td>
+    </tr>
+</template>

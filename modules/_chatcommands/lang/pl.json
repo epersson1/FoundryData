@@ -1,0 +1,39 @@
+{
+    "_chatcommands": {
+        "settings": {
+            "enableAutocomplete": "Włącz autouzupełnianie",
+            "enableAutocompleteHint": "Włącza menu autouzupełniania w czasie wprowadzania komend w czacie. Zmiana wymaga restartu.",
+            "maxEntries": "Maksymalna liczba podpowiedzi",
+            "maxEntriesHint": "Ogranicza ile podpowiedzi, może być wyświetlane w menu autouzupełniania. Dodatkowe podpowiedzi zostaną zastąpione wiadomością o przepełnieniu.",
+            "autocompleteCore": "Uzupełniaj podstawowe komendy",
+            "autocompleteCoreHint": "Włącz autouzupełnianie podstawowych komend FoundryVTT. Zmiana wymaga restartu.",
+            "displayFooter": "Pokaż aliasy i moduły",
+            "displayFooterHint": "Pokazuje aliasy i moduł źródłowy, podczas uzupełniania komend."
+        },
+        "extraEntries": "Wprowadź parametry, żeby uzyskać dodatkowe wyniki.",
+        "noEntries": "Nie znaleziono komendy, która pasuje do twojego zapytania.",
+        "insufficientPermissions": "Nie posiadasz uprawnień, żeby użyć komendy: {command}.",
+        "coreCommands": {
+            "ic": "Wyślij wiadomość jako obecnie wybrana lub przypisana postać.",
+            "ooc": "Wyślij wiadomość jako gracz (nie jako postać).",
+            "emote": "Wykonaj gest jako obecnie wybrana lub przypisana postać.",
+            "whisper": {
+                "description": "Wyślij prywatną wiadomość do innego gracza.",
+                "gm": "Mistrzowie Gry",
+                "players": "Gracze"
+            },
+            "roll": {
+                "basic": "Rzuć kośćmi.",
+                "gm": "Rzuć kośćmi, które są widoczne tylko dla ciebie i Mistrza Gry.",
+                "blind": "Rzuć kośćmi, które są widoczne tylko dla Mistrza Gry.",
+                "self": "Rzuć kośćmi, które są widoczne tylko dla ciebie.",
+                "public": "Rzuć kośćmi, które są widoczne dla wszystkich",
+                "simpleInfo": "Podstawowa składnia: <span class='parameter'>Ilość</span>d<span class='parameter'>Ścianki</span>+,-,*,/<span class='parameter'>Inne rzuty lub liczby</span>",
+                "descriptionInfo": "Oznaczone rzuty: <span class='parameter'>Rzut</span>[<span class='parameter'>Opis kości</span>] # <span class='parameter'>Opis rzutu</span>",
+                "modifierInfo": "Modyfikatory: Zobacz <a href='https://foundryvtt.com/article/dice-modifiers/'>Modyfikatory kości</a>.",
+                "advancedInfo": "Pule kości, zmienne i funkcje: Zobacz <a href='https://foundryvtt.com/article/dice-advanced/'>Zaawansowane używanie kości</a>.",
+                "recent": "Ostatnio użyte"
+            }
+        }
+    }
+}

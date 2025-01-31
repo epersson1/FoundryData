@@ -1,0 +1,61 @@
+{
+    "id": "always-chat",
+    "title": "Always Chat",
+    "description": "A simple module that makes it so that the most recent chat messages are always visible even if you are on another tab or if chat is collapsed.",
+    "version": "1.0.3",
+    "compatibility": {
+        "minimum": 9,
+        "verified": 11
+    },
+    "name": "always-chat",
+    "minimumCoreVersion": 9,
+    "compatibleCoreVersion": 10,
+    "authors": [
+        {
+            "name": "Mouse0270",
+            "url": "https://github.com/mouse0270/",
+            "email": "rmcintosh@websitesbyfatdudes.com",
+            "discord": "Mouse0270#0270",
+            "flags": {
+                "twitter": "Mouse0270",
+                "patreon": "Mouse0270",
+                "github": "Mouse0270",
+                "ko-fi": "Mouse0270",
+                "reddit": "u/Mouse0270"
+            }
+        }
+    ],
+    "library": false,
+    "socket": false,
+    "relationships": {
+        "systems": [],
+        "requires": [],
+        "conflicts": []
+    },
+    "esmodules": [
+        "/scripts/init.mjs"
+    ],
+    "scripts": [],
+    "styles": [
+        "/styles/module.css"
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "languages/en.json"
+        }
+    ],
+    "media": [],
+    "url": "https://github.com/mouse0270/always-chat",
+    "manifest": "https://github.com/mouse0270/always-chat/releases/latest/download/module.json",
+    "download": "https://github.com/mouse0270/always-chat/releases/download/1.0.3/module.zip",
+    "readme": "https://github.com/mouse0270/always-chat/blob/master/README.md",
+    "changelog": "https://raw.githubusercontent.com/mouse0270/always-chat/master/CHANGELOG.md",
+    "license": "https://github.com/mouse0270/mouse0270/always-chat/blob/master/LICENSE",
+    "bugs": "https://github.com/mouse0270/always-chat/issues",
+    "flags": {
+        "allowBugReporter": true,
+        "attributions": "This is auto replaced"
+    }
+}

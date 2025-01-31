@@ -1,0 +1,56 @@
+/*
+ * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+.custom-system-form-field {
+    margin: 8px;
+}
+
+.custom-system-form-field > label {
+    margin-right: 8px;
+}
+
+.custom-system-form-field > label > input,
+.custom-system-form-field > label > select {
+    margin-left: 8px;
+}
+
+.custom-system-component-editor {
+    display: none;
+}
+
+.CSB-itemProperty {
+    border: 1px solid grey;
+    border-radius: 5px;
+}
+.custom-system-key-warning {
+    display: none;
+    margin-top: 8px;
+}
+
+.custom-system-collapsible-block {
+    padding: 8px;
+}
+
+.custom-system-collapsible-block-hide {
+    display: none;
+}
+
+.custom-system-form-field .custom-system-for-field-tooltip {
+    display: block;
+    font-size: 0.83em;
+    font-weight: bold;
+}
+
+.custom-system-formula-icon {
+    margin-bottom: 1px;
+    color: Dodgerblue;
+}
+
+.custom-system-info-icon {
+    margin-bottom: 1px;
+}

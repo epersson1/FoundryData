@@ -1,0 +1,84 @@
+	<div class="portrait-hud">
+		<div class="death-saves">
+			<div class="death-save-success">
+			<div class="death-save-result-container">
+				<span>{{successes}}</span>
+				<i class="fas fa-check"></i>
+			</div>
+			</div>
+			<div class="death-save-btn"><i class="{{deathIcon}}"></i></div>
+			<div class="death-save-fail">
+				<div class="death-save-result-container">
+					<span>{{failures}}</span>
+					<i class="fas fa-times"></i>
+				</div>
+			</div>
+		</div>
+		<div class="portrait-hud-image" style="background-image: url('{{image}}');">
+			
+			<div style="margin-top:80px; 
+  flex-direction: column;
+  display: grid;
+            grid-template-columns: 32px 32px; /* Two columns of 32px each */
+            gap: 5px; /* Space between items */
+            width: calc(32px * 2 + 5px); /* Two columns + gap */
+            
+            padding: 5px;" class="">
+  {{#each resistences as |resistence| }}
+                <span style="background-color: #fff; height: 32px; width: 32px;">
+					<img title="{{resistence.tooltip}}" style="border: 0px; height: 32px;" src="systems/dc20rpg/images/sheet/resistances/{{resistence.key}}.svg" class="icon-point">
+					</span> 
+					{{/each}}
+                </div>
+			
+                {{#ifCond staminaPoints.max ">" 0}}
+                <div style="top: 50%; background-color: #b86b0d;" class="icon-container-point">
+                    <img src="systems/dc20rpg/images/sheet/header/stamina.svg" class="icon-point">
+                    <span class="icon-text-point">{{staminaPoints.current}} / {{staminaPoints.max}}</span>
+                </div>
+                {{/ifCond}}
+                {{#ifCond manaPoints.max ">" 0}}
+                <div style="top: 50%; background-color: #124b8b;" class="icon-container-point">
+                    <img src="systems/dc20rpg/images/sheet/header/mana.svg" class="icon-point">
+                    <span class="icon-text-point">{{manaPoints.current}} / {{manaPoints.max}}</span>
+                </div>
+                 {{/ifCond}}
+                 {{#ifCond gritPoints.max ">" 0}}
+                 <div style="top: 65%; background-color: #741a89" class="icon-container-point">
+                    <img src="systems/dc20rpg/images/sheet/header/grit.svg" class="icon-point">
+                    <span class="icon-text-point">{{gritPoints.current}} / {{gritPoints.max}}</span>
+                </div>
+                {{/ifCond}}
+                <div style="top: 35%; background-color: gray" class="icon-container-point">
+                    <img src="modules/token-action-hud-dc20rpg/assets/ap.svg" class="icon-point">
+                    <span class="icon-text-point">{{actionPoints.current}} / {{actionPoints.max}}</span>
+                </div>
+				{{#if immunities.exists}}
+				<div style="top: 50%; 
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    width: 42px;
+    right: 10px;
+    position: absolute;">
+                    <img title="{{immunities.label}}" src="modules/enhancedcombathud-dc20rpg/assets/shield-reflect.svg" >
+                    <span class="icon-text-point">{{immunities.label}}</span>
+                </div>
+				{{/if}}
+        </div>
+		<div class="portrait-stat-block player-details{{#if playerDetailsBottom}} player-details-bottom{{/if}}">
+			<span class="player-name">{{name}}</span>
+				<span class="player-detail">
+					{{description}}
+				</span>
+				<div class="effects-container" style="display: none;">
+				</div>
+		</div>
+		<div class="player-buttons">
+
+
+		</div>
+		<!--div class="portrait-actor-configuration">
+			<i id="argon-actor-config" class="fa-solid fa-gear"></i>
+		</div-->
+	</div>

@@ -1,0 +1,184 @@
+{
+  "enhancedcombathud": {
+    "controls": {
+      "toggle": {
+        "title": "Alternar Argon Combat HUD",
+        "warning": "Argon Combat HUD: Nenhum token selecionado. Por favor selecione um token para ativar o HUD"
+      }
+    },
+    "settings": {
+      "color": {
+        "label": "Cor",
+        "text": "Cor principal",
+        "hint": "Cor para aba de ações e outras funcionalidades principais da HUD"
+      },
+      "fore-color": {
+        "text": "Cor do Texto",
+        "hint": "Cor do texto"
+      },
+      "color-bonus-action": {
+        "text": "Cor da Ação Bônus",
+        "hint": "Cor da aba de ação bonûs"
+      },
+      "color-free-action": {
+        "text": "Cor da Ação Livre",
+        "hint": "Cor da aba da ação livre"
+      },
+      "color-reaction": {
+        "text": "Cor de Reações",
+        "hint": "Cor da aba de reações"
+      },
+      "color-end-turn": {
+        "text": "Cor do Fim do Turno",
+        "hint": "Cor da aba de fim do turno"
+      },
+      "color-tooltip": {
+        "text": "Cor de Dica",
+        "hint": "Cor do 'popup' dicas para testes/perícias/ferramentas"
+      },
+      "theme": {
+        "name": "Tema",
+        "hint": "Tema do HUD",
+        "custom": "Customizado",
+        "helium": "Helium",
+        "neon": "Neon",
+        "argon": "Argon",
+        "krypton": "Krypton",
+        "xenon": "Xenon",
+        "radon": "Radon",
+        "oganesson": "Oganesson"
+      },
+      "scale": {
+        "name": "Dimensionamento de HUD",
+        "hint": "Se o auto dimensionamento de escala estiver ativado, essa configuração será usada como multiplicador máximo da dimensão calculada"
+      },
+      "noAutoscale": {
+        "name": "Desativar Auto Dimensionamento",
+        "hint": "Não dimensionar a HUD para caber na tela, usar um valor fixo no lugar"
+      },
+      "leftPos": {
+        "name": "Posição à Esquerda",
+        "hint": "Distância da borda esquerda em pixels"
+      },
+      "botPos": {
+        "name": "Posição à Baixo",
+        "hint": "Distância da borda inferior em pixels"
+      },
+      "playerDetailsBottom": {
+        "name": "Detalhes de Jogador Abaixo",
+        "hint": "Mostrar nome do jogador e classe abaixo do retrato"
+      },
+      "preparedSpells": {
+        "name": "Apenas Magias Preparadas",
+        "hint": "Mostrar apenas magias preparadas"
+      },
+      "showTooltips": {
+        "name": "Mostrar Dicas",
+        "hint": "Mostrar dicas ao passar o mouse"
+      },
+      "showTooltipsSpecial": {
+        "name": "Mostrar Dicas para Ações Especiais",
+        "hint": "Mostrar dicas para ações especiais (esquivar-se, desengajar, empurrar...)"
+      },
+      "showTooltipsAbilityMenuAbilities": {
+        "name": "Mostrar Dicas para Atributos",
+        "hint": "Mostrar dica fluante para atributos no menu de habilidades"
+      },
+      "showTooltipsAbilityMenuSkills": {
+        "name": "Mostrar Dicas para Perícias",
+        "hint": "Mostrar dica fluante para perícias no menu de habilidades"
+      },
+      "showTooltipsAbilityMenuTools": {
+        "name": "Mostrar Dicas para Ferramentas",
+        "hint": "Mostrar dica fluante para ferramentas no menu de habilidades"
+      },
+      "fadeOutInactive": {
+        "name": "Esmaecer",
+        "hint": "Esmaecer a HUD caso o mouse não se mova por 5 segundos"
+      },
+      "fadeoutDelay": {
+        "name": "Atraso de Esmaecimento",
+        "hint": "Tempo em segundos antes da HUD esmaecer"
+      },
+      "fadeoutOpacity": {
+        "name": "Opacidade de Esmaecimento",
+        "hint": "Opacidade da HUD quando esmaecida"
+      },
+      "hideMacroPlayers": {
+        "name": "Esconder a barra de macros e lista de jogadores",
+        "hint": "Esconder a barra de macros e lista de jogadores enquanto a HUD estiver aberta"
+      },
+      "openCombatStart": {
+        "name": "Abrir ao começar o combate",
+        "hint": "Abrir a HUD automaticamente quando o combate começar"
+      },
+      "tooltipScale": {
+        "name": "Tamanho da Dica",
+        "hint": "Escala das dicas fluantes"
+      },
+      "thememenu": {
+        "name": "Configuração do Tema",
+        "hint": "Configure, escolha e personalize os temas de Argon",
+        "label": "Configurar Temas"
+      }
+    },
+    "tooltip": {
+      "target": {
+        "name": "Alvo"
+      },
+      "range": {
+        "name": "Alcance"
+      },
+      "properties": {
+        "name": "Propriedades"
+      }
+    },
+    "themeOptions": {
+      "save": "Salvar Mudanças",
+      "export": "Exportar Tema",
+      "autoTextColorTitle": "Autoset Text Colors Based off Background",
+      "autoTextColorHint": "This setting adjust the text color based on the background color to a color that should be legiable.",
+      "exportThemeName": "Export Theme Name:",
+      "exportTheme": {
+        "save": "Salvar",
+        "cancel": "Cancelar"
+      },
+      "themeTitle": "Escolha um tema",
+      "themeHint": "Selecionar um tema aplicará uma paleta de cores no Argon.",
+      "mainAction": "Cores de Ação",
+      "bonusAction": "Cores de Ação Bônus",
+      "freeAction": "Cores de Ação Livre",
+      "reaction": "Cores de Reação",
+      "endTurn": "Cores de Fim de Turno",
+      "tooltip": "Cores das Dicas",
+      "abilityMenu": "Cores do Menu de Atributos",
+      "buttons": "Cores dos Botões",
+      "movement": "Cores da Caixa de Movimentação",
+      "background": "Cor de Fundo",
+      "color": "Cor do Texto",
+      "border": "Cor da Borda",
+      "boxShadow": "Cor da Sombra",
+      "mainActionBase": "Cores de Fundo, Primeiro Plano e Borda quando o mouse não está sobre o Elemento",
+      "mainActionHover": "Cores de Fundo, Primeiro Plano e Borda quando o mouse está sobre o Elemento",
+      "bonusActionBase": "Cores de Fundo, Primeiro Plano e Borda quando o mouse não está sobre o Elemento",
+      "bonusActionHover": "Cores de Fundo, Primeiro Plano e Borda quando o mouse está sobre o Elemento",
+      "freeActionBase": "Cores de Fundo, Primeiro Plano e Borda quando o mouse não está sobre o Elemento",
+      "freeActionHover": "Cores de Fundo, Primeiro Plano e Borda quando o mouse está sobre o Elemento",
+      "reactionBase": "Cores de Fundo, Primeiro Plano e Borda quando o mouse não está sobre o Elemento",
+      "reactionHover": "Cores de Fundo, Primeiro Plano e Borda quando o mouse está sobre o Elemento",
+      "endTurnBase": "Cores de Fundo, Primeiro Plano e Borda quando o mouse não está sobre o Elemento",
+      "endTurnHover": "Cores de Fundo, Primeiro Plano e Borda quando o mouse está sobre o Elemento",
+      "tooltipHeader": "Cores de Fundo, Primeiro Plano e Borda do cabeçalho das Dicas e Janelas",
+      "tooltipSubtitle": "Cor de Fundo, Primeiro Plano e Borda da legenda das dicas",
+      "tooltipBody": "Cor de Fundo, Primeiro Plano e Borda do corpo das Dicas e Janelas",
+      "abilityMenuBase": "Cores de Primeiro Plano e Sobra quando o mouse não está sobre o Elemento",
+      "abilityMenuHover": "Cores de Primeiro Plano e Sobra quando o mouse está sobre o Elemento",
+      "buttonsBase": "Cores de Fundo, Primeiro Plano e Borda quando o mouse não está sobre o Elemento",
+      "buttonsHover": "Cores de Fundo, Primeiro Plano e Borda quando o mouse está sobre o Elemento",
+      "movementUsed": "Fundo/Sombra da caixa que indica os espaços usados no movimento",
+      "movementBaseMovement": "Fundo/Sombra da caixa que indica os espaços de movimento disponíveis",
+      "movementDashMovement": "Fundo/Sombra da caixa que indica os espaços usados na disparada",
+      "movementDangerMovement": "Fundo/Sombra da caixa que indica os espaços de disparada disponíveis"
+    }
+  }
+}

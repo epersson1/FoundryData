@@ -1,0 +1,50 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<table class='custom-system-attributes'>
+    <thead>
+        <tr>
+            <th>{{localize 'CSB.Attributes.Name'}}</th>
+            <th>{{localize 'CSB.Attributes.Formula'}}</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each attribute}}
+            <tr class='custom-system-hidden-attribute'>
+                <td>
+                    <input type='text' class='custom-system-attribute-name' value='{{this.name}}' />
+                </td>
+                <td>
+                    <textarea class='custom-system-attribute-formula'>{{this.value}}</textarea>
+                </td>
+                <td class='custom-system-attribute-controls'>
+                    <a class='custom-system-delete-hidden-attribute'><i class='fas fa-trash'></i></a>
+                </td>
+            </tr>
+        {{/each}}
+        <tr>
+            <td colspan='2'></td>
+            <td>
+                <a><i class='fas fa-plus-circle' id='addAttribute'></i></a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<template id='custom-system-hidden-attribute-template'>
+    <tr class='custom-system-hidden-attribute'>
+        <td>
+            <input type='text' class='custom-system-attribute-name' />
+        </td>
+        <td>
+            <textarea class='custom-system-attribute-formula'></textarea>
+        </td>
+        <td class='custom-system-attribute-controls'>
+            <a class='custom-system-delete-hidden-attribute'><i class='fas fa-trash'></i></a>
+        </td>
+    </tr>
+</template>

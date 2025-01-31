@@ -1,0 +1,77 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class='custom-system-component-editor-dialog'>
+    <div class='custom-system-component-generic-fields'>
+        <div class='custom-system-form-field'>
+            <label for='compType'>{{localize 'CSB.ComponentProperties.ComponentType.SectionTitle'}}*</label>
+            <select id='compType' data-key='type'></select>
+        </div>
+        <div class='custom-system-form-field'>
+            <label for='compKey'>{{localize 'CSB.ComponentProperties.ComponentKey'}}</label><input
+                type='text'
+                id='compKey'
+                value='{{key}}'
+                data-key='key'
+            />
+            <div class='custom-system-key-warning notification warning'>
+                {{localize 'CSB.ComponentProperties.ComponentKeyWarning'}}
+            </div>
+        </div>
+
+        <div class='custom-system-collapsible-block'>
+            <div class='custom-system-collapsible-block-title advanced-configuration'>{{localize
+                    'CSB.ComponentProperties.AdvancedConfiguration'
+                }}<hr /></div>
+            <div class='custom-system-collapsible-block-hide'>
+                <div class='custom-system-form-field'>
+                    <label for='compTooltip'>{{localize 'CSB.ComponentProperties.Tooltip'}}
+                        {{> icon-formula}}
+                    </label>
+                    <input type='text' id='compTooltip' value='{{tooltip}}' data-key='tooltip' />
+                </div>
+                <div class='custom-system-form-field'>
+                    <label for='compRole'>{{localize 'CSB.ComponentProperties.MinimumRole'}}*</label>
+                    <select id='compRole' data-key='role'>
+                        {{selectOptions roleList selected=role localize=true}}
+                    </select>
+                </div>
+                <div class='custom-system-form-field'>
+                    <label for='compPerm'>{{localize 'CSB.ComponentProperties.MinimumPermission'}}*</label>
+                    <select id='compPerm' data-key='permission'>
+                        {{selectOptions permissionList selected=permission localize=true}}
+                    </select>
+                </div>
+                <div class='custom-system-form-field'>
+                    <label for='compVisible'>{{localize 'CSB.ComponentProperties.VisibiltyFormula'}}
+                        {{> icon-formula}}
+                        {{> icon-no-delimiters}}
+                        {{> icon-info title=(localize "CSB.ComponentProperties.VisibiltyFormulaDescription")}}
+                    </label>
+                    <input type='text' id='compVisible' value='{{visibilityFormula}}' data-key='visibilityFormula' />
+                </div>
+                <div class='custom-system-form-field'>
+                    <label for='compClass'>{{localize 'CSB.ComponentProperties.AdditionalCssClasses'}}</label>
+                    <input type='text' id='compClass' value='{{cssClass}}' data-key='cssClass' />
+                </div>
+            </div>
+        </div>
+        {{#if isDynamic}}
+            <div class='custom-system-form-field'>
+                <label for='compAlign'>{{localize 'CSB.ComponentProperties.ExtensibleTable.Alignment'}}*</label>
+                <select id='compAlign' data-key='align'>
+                    {{selectOptions alignmentList selected=align localize=true}}
+                </select>
+            </div>
+
+            <div class='custom-system-form-field'>
+                <label for='compColName'>{{localize 'CSB.ComponentProperties.ExtensibleTable.ColumnName'}}</label>
+                <input type='text' id='compColName' value='{{colName}}' data-key='colName' />
+            </div>
+        {{/if}}
+    </div>
+    <hr />
+</div>

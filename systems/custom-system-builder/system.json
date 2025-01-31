@@ -1,0 +1,83 @@
+{
+    "id": "custom-system-builder",
+    "title": "Custom System Builder",
+    "description": "Build your own system with easy to use components",
+    "compatibility": {
+        "minimum": "12",
+        "verified": "12.331",
+        "maximum": "12"
+    },
+    "authors": [
+        {
+            "name": "Jean-Baptiste Louvet-Daniel",
+            "email": "linkedfluuuush@gmail.com",
+            "discord": "LinkedFluuuush"
+        },
+        {
+            "name": "Martin1522",
+            "email": "martindeutsch152@outlook.de",
+            "discord": "Martin1522"
+        },
+        {
+            "name": "Caloup"
+        }
+    ],
+    "relationships": {
+        "requires": [
+            {
+                "id": "_chatcommands",
+                "type": "module",
+                "manifest": "https://gitlab.com/woodentavern/foundryvtt-chat-command-lib/-/raw/master/src/module.json",
+                "compatibility": {
+                    "minimum": "2.0.1",
+                    "verified": "2.0.1"
+                }
+            }
+        ]
+    },
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "lang/en.json"
+        },
+        {
+            "lang": "fr",
+            "name": "Français",
+            "path": "lang/fr.json"
+        },
+        {
+            "lang": "de",
+            "name": "Deutsch",
+            "path": "lang/de.json"
+        }
+    ],
+    "esmodules": [
+        "module/custom-system-builder.js"
+    ],
+    "scripts": [
+        "lib/math.js",
+        "lib/deep-diff.min.js",
+        "scripts/chat-enhancements.js"
+    ],
+    "styles": [
+        "css/actor/character-display.css",
+        "css/actor/template-display.css",
+        "css/chat-message.css",
+        "css/attributes-editor.css",
+        "css/component-editor.css",
+        "css/user-input-editor.css",
+        "css/export-display.css",
+        "css/modifiers-editor.css"
+    ],
+    "grid": {
+        "distance": 2,
+        "units": "m",
+        "type": 1,
+        "diagonals": 0
+    },
+    "url": "https://gitlab.com/custom-system-builder/custom-system-builder/",
+    "manifest": "https://gitlab.com/custom-system-builder/custom-system-builder/-/raw/main/system.json",
+    "download": "https://gitlab.com/custom-system-builder/custom-system-builder/-/releases/4.2.0/downloads/custom-system-builder.zip",
+    "version": "4.2.0"
+}

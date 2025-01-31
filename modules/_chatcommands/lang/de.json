@@ -1,0 +1,39 @@
+{
+    "_chatcommands": {
+        "settings": {
+            "enableAutocomplete": "Vervollständigung aktivieren",
+            "enableAutocompleteHint": "Zeigt ein Menü zur automatischen Vervollständigen von Befehlen im Chat an. Erfordert zur Anwendung das Neuladen des Fensters.",
+            "maxEntries": "Maximale Einträge zur Vervollständigung",
+            "maxEntriesHint": "Begrenzt die Anzahl der angezeigten Einträge im Menü der Vervollständigung. Zusätzliche Einträge werden mit einem entsprechenden Hinweis ersetzt.",
+            "autocompleteCore": "Interne Befehle vervollständigen",
+            "autocompleteCoreHint": "Fügt FoundryVTT interne Befehle zur Vervollständigung hinzu. Erfordert zur Anwendung das Neuladen des Fensters.",
+            "displayFooter": "Aliasse und Module anzeigen",
+            "displayFooterHint": "Blendet Aliasse und den Namen des dazugehörigen Moduls ein, wenn Befehle vervollständigt werden."
+        },
+        "extraEntries": "Füge Parameter für zusätzliche Ergebnisse hinzu.",
+        "noEntries": "Deine Eingabe entspricht keinem bekannten Befehl.",
+        "insufficientPermissions": "Du bist nicht berechtigt, den {command} Befehl aufzurufen.",
+        "coreCommands": {
+            "ic": "Sendet eine Nachricht als der aktuell ausgewählte oder zugewiesene Charakter.",
+            "ooc": "Sendet eine Nachricht ohne Charakter.",
+            "emote": "Führt ein Emote als der aktuell ausgewählte oder zugewiesene Charakter.",
+            "whisper": {
+                "description": "Sendet eine private Nachricht an einen anderen Spieler.",
+                "gm": "Spielleiter",
+                "players": "Spieler"
+            },
+            "roll": {
+                "basic": "Rollt ein paar Würfel.",
+                "gm": "Rollt ein paar Würfel, die nur dir und dem Spielleiter angezeigt werden.",
+                "blind": "Rollt ein paar Würfel, die nur dem Spielleiter angezeigt werden.",
+                "self": "Rollt ein paar Würfel, die nur dir angezeigt werden.",
+                "public": "Rollt ein paar Würfel, die allen angezeigt werden.",
+                "simpleInfo": "Einfaches Format: <span class='parameter'>Anzahl</span>d<span class='parameter'>Seiten</span>+,-,*,/<span class='parameter'>Weitere Würfel oder Zahlen</span>",
+                "descriptionInfo": "Benannte Würfe: <span class='parameter'>Würfel</span>[<span class='parameter'>Würfelbeschreibung</span>] # <span class='parameter'>Formelbeschreibung</span>",
+                "modifierInfo": "Modifikatoren: Siehe <a href='https://foundryvtt.com/article/dice-modifiers/'>Dice Modifiers</a>.",
+                "advancedInfo": "Pools, Variablen & Funktionen: Siehe <a href='https://foundryvtt.com/article/dice-advanced/'>Advanced Dice</a>.",
+                "recent": "Zuletzt verwendet"
+            }
+        }
+    }
+}

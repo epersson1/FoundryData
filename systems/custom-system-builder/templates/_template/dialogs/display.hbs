@@ -1,0 +1,40 @@
+{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
+   - 
+   - This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+
+<div class='custom-system-display'>
+    <label for='custom-system-display-width'>{{localize 'CSB.Display.DefaultWidth'}}</label>
+    <input type='text' id='custom-system-display-width' class='custom-system-display-width' value='{{width}}' />
+    <br />
+    <label for='custom-system-display-height'>{{localize 'CSB.Display.DefaultHeight'}}</label>
+    <input type='text' id='custom-system-display-height' class='custom-system-display-height' value='{{height}}' />
+    <br />
+    <label for='custom-system-display-fix-size'>{{localize 'CSB.Display.PreventSheetResizing'}}</label>
+    <input
+        type='checkbox'
+        id='custom-system-display-fix-size'
+        class='custom-system-display-fix-size'
+        {{checked fix_size}}
+    />
+    <br />
+    <label for='custom-system-display-pp-width'>{{localize 'CSB.Display.ProfilPictureWidth'}}</label>
+    <input
+        type='text'
+        id='custom-system-display-pp-width'
+        class='custom-system-display-pp-width'
+        value='{{pp_width}}'
+    />
+    <br />
+    <label for='custom-system-display-pp-height'>{{localize 'CSB.Display.ProfilPictureHeight'}}</label>
+    <input
+        type='text'
+        id='custom-system-display-pp-height'
+        class='custom-system-display-pp-height'
+        value='{{pp_height}}'
+    />
+</div>
+<script>
+    (() => { $('.custom-system-attributes').parents('.dialog').css('height', 'auto').css('max-height', '75%'); })();
+</script>

@@ -1,33 +1,7 @@
-2025/01/26-21:13:37.259 13a8 Recovering log #137
-2025/01/26-21:13:37.284 13a8 Level-0 table #140: started
-2025/01/26-21:13:37.422 13a8 Level-0 table #140: 3772669 bytes OK
-2025/01/26-21:13:37.475 13a8 Delete type=0 #137
-2025/01/26-21:13:37.475 13a8 Delete type=3 #113
-2025/01/26-21:13:37.475 29dc Compacting 4@0 + 1@1 files
-2025/01/26-21:13:37.738 29dc Generated table #142@0: 766 keys, 104706 bytes
-2025/01/26-21:13:37.738 29dc Compacted 4@0 + 1@1 files => 104706 bytes
-2025/01/26-21:13:37.868 29dc compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/01/26-21:13:37.868 29dc Delete type=2 #132
-2025/01/26-21:13:37.868 29dc Delete type=2 #134
-2025/01/26-21:13:37.869 29dc Delete type=2 #136
-2025/01/26-21:13:37.869 29dc Delete type=2 #138
-2025/01/26-21:13:37.870 29dc Delete type=2 #140
-2025/01/26-21:39:21.560 29dc Level-0 table #144: started
-2025/01/26-21:39:21.666 29dc Level-0 table #144: 3644017 bytes OK
-2025/01/26-21:39:21.694 29dc Delete type=0 #141
-2025/01/26-21:42:08.374 29dc Level-0 table #146: started
-2025/01/26-21:42:08.433 29dc Level-0 table #146: 3945421 bytes OK
-2025/01/26-21:42:08.466 29dc Delete type=0 #143
-2025/01/26-21:45:42.068 29dc Compacting 2@0 + 1@1 files
-2025/01/26-21:45:42.699 29dc Generated table #147@0: 1145 keys, 160021 bytes
-2025/01/26-21:45:42.699 29dc Compacted 2@0 + 1@1 files => 160021 bytes
-2025/01/26-21:45:43.342 29dc compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/01/26-21:45:43.342 29dc Delete type=2 #142
-2025/01/26-21:45:43.342 29dc Delete type=2 #144
-2025/01/26-21:45:43.342 29dc Delete type=2 #146
-2025/01/26-22:04:57.462 29dc Level-0 table #149: started
-2025/01/26-22:04:57.546 29dc Level-0 table #149: 3975054 bytes OK
-2025/01/26-22:04:57.581 29dc Delete type=0 #145
-2025/01/26-22:06:09.065 29dc Level-0 table #151: started
-2025/01/26-22:06:09.126 29dc Level-0 table #151: 3933815 bytes OK
-2025/01/26-22:06:09.158 29dc Delete type=0 #148
+2025/01/30-14:53:43.617 1db4 Recovering log #158
+2025/01/30-14:53:43.628 1db4 Delete type=0 #158
+2025/01/30-14:53:43.628 1db4 Delete type=3 #156
+2025/01/30-15:23:37.336 6494 Level-0 table #163: started
+2025/01/30-15:23:37.336 6494 Level-0 table #163: 0 bytes OK
+2025/01/30-15:23:37.340 6494 Delete type=0 #161
+2025/01/30-15:23:37.357 6494 Manual compaction at level-0 from '!scenes!Nj7588Tle5eAV5wc' @ 72057594037927935 : 1 .. '!scenes.walls!yPc3Cf5hJ2d7ZQs5.zlashxFbpTyjyOHo' @ 0 : 0; will stop at (end)

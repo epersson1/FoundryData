@@ -1,0 +1,42 @@
+ 
+  .icon-container-point {
+    position: absolute;
+    /*top: 50%;*/
+    right: 10px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+  }
+  
+  .icon-point {
+    /*font-size: 24px;*/
+    width: 32px;
+    transition: transform 0.3s ease;
+  }
+  
+  .icon-text-point {
+    margin-left: 10px;
+    opacity: 0;
+    font-size: 32px;
+    white-space: nowrap; /* Prevents text from wrapping */
+    transition: opacity 0.3s ease;
+    display: none;
+  }
+  
+  /* Hover effect */
+  .icon-container-point:hover .icon {
+    transform: translateX(-20px); /* Moves the icon left */
+  }
+  
+  .icon-container-point:hover .icon-text-point {
+    opacity: 1; /* Fades in the text */
+    display: block;
+  }
+
+  .icon-container:first-of-type {
+    top: 40%; /* Position of the first icon-container */
+  }
+  .icon-container:last-of-type {
+    top: 60%; /* Position of the second icon-container */
+  }
+  
