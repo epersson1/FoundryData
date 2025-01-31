@@ -1,7 +1,5 @@
-2025/01/30-14:53:42.760 1db4 Recovering log #96
-2025/01/30-14:53:42.770 1db4 Delete type=0 #96
-2025/01/30-14:53:42.770 1db4 Delete type=3 #94
-2025/01/30-15:23:37.218 6494 Level-0 table #101: started
-2025/01/30-15:23:37.218 6494 Level-0 table #101: 0 bytes OK
-2025/01/30-15:23:37.220 6494 Delete type=0 #99
-2025/01/30-15:23:37.253 6494 Manual compaction at level-0 from '!combats!1QC8D6DYcKuqHvkD' @ 72057594037927935 : 1 .. '!combats.combatants!1QC8D6DYcKuqHvkD.voPrYiw7KH9LKBQH' @ 0 : 0; will stop at (end)
+2025/01/30-21:09:03.523 4198 Recovering log #103
+2025/01/30-21:09:03.523 4198 Level-0 table #105: started
+2025/01/30-21:09:03.559 4198 Level-0 table #105: 1654 bytes OK
+2025/01/30-21:09:03.610 4198 Delete type=0 #103
+2025/01/30-21:09:03.610 4198 Delete type=3 #102
