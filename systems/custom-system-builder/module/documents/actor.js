@@ -36,6 +36,14 @@ export class CustomActor extends Actor {
         return this._templateSystem;
     }
     /**
+     * @returns {EmbeddedCollection<CustomItem, ItemData>}
+     */
+    getItems() {
+        return new Collection(this.items
+            .filter((item) => item.system.container === null || item.system.container === undefined)
+            .map((item) => [item.id, item]));
+    }
+    /**
      * @override
      * @ignore
      */
@@ -91,20 +99,6 @@ export class CustomActor extends Actor {
         return this.templateSystem.getRollData(data);
     }
     /**
-     * @override
-     * @inheritDoc
-     * @ignore
-     */
-    async getTokenDocument(data = {}, options = {}) {
-        const tokenDocument = await super.getTokenDocument(data, options);
-        const rollData = this.getRollData();
-        // Prepare character roll data.
-        for (const prop in rollData) {
-            tokenDocument[prop] = rollData[prop];
-        }
-        return tokenDocument;
-    }
-    /**
      * Handle how changes to a Token attribute bar are applied to the Actor.
      * @param {string} attribute    The attribute path
      * @param {number} value        The target attribute value
@@ -121,7 +115,7 @@ export class CustomActor extends Actor {
             if (barDefinition) {
                 if (isDelta)
                     value = Number(current.value) + value;
-                value = Math.clamped(0, value, barDefinition.max);
+                value = Math.clamp(0, value, barDefinition.max);
                 attribute = 'props.' + barDefinition.key;
                 isBar = false;
                 isDelta = false;

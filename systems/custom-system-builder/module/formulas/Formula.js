@@ -187,7 +187,8 @@ class Formula {
             }
             else {
                 const tmpPanelElt = await Panel.fromJSON(templateItem.system.body, 'body').render(options.triggerEntity, true, {
-                    reference: reference
+                    reference: reference,
+                    customProps: localVars
                 });
                 let userData = await new Promise((resolve) => {
                     Dialog.prompt({
@@ -258,16 +259,16 @@ class Formula {
             let userInputDisplaySettings = userInputDisplayRegex.exec(userInputDisplaySettingsRaw).groups;
             userInputSettings.name = userInputDisplaySettings.name;
             userInputSettings.displayName = userInputDisplaySettings.displayName
-                ? (await new Formula(userInputDisplaySettings.displayName).compute(props, options)).result
+                ? (await new Formula(userInputDisplaySettings.displayName).compute({ ...props, ...localVars }, options)).result
                 : userInputDisplaySettings.name;
             userInputSettings.type = userInputDisplaySettings.type ?? 'text';
             let userInputChoices = userInputData.split('|').splice(1);
             let values = [];
             for (let choice of userInputChoices) {
                 let parsedChoice = userInputValuesRegex.exec(choice).groups;
-                let name = (await new Formula(parsedChoice.key).compute(props, options)).result;
+                let name = (await new Formula(parsedChoice.key).compute({ ...props, ...localVars }, options)).result;
                 let displayValue = parsedChoice.value
-                    ? (await new Formula(parsedChoice.value).compute(props, options)).result
+                    ? (await new Formula(parsedChoice.value).compute({ ...props, ...localVars }, options)).result
                     : name;
                 let computedChoice = { name, displayValue };
                 values.push(computedChoice);
@@ -363,7 +364,7 @@ class Formula {
             }
             roll = rollMessages.next();
         }
-        return this.computeStatic({ ...props, ...options.triggerEntity?.props }, {
+        return this.computeStatic({ ...options.triggerEntity?.props, ...props }, {
             ...options,
             localVars,
             textVars,

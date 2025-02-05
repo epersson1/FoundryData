@@ -389,9 +389,7 @@ class Component {
                 const item = await Item.fromDropData(dropData);
                 if (item && item.type === 'subTemplate') {
                     try {
-                        await insertionTarget.addNewComponent(entity, 
-                        //@ts-expect-error cast error, to be removed once everything is TS
-                        item.system.body.contents, insertionOptions);
+                        await insertionTarget.addNewComponent(entity, item.system.body.contents, insertionOptions);
                     }
                     catch (e) {
                         ui.notifications.error(e.message);

@@ -77,7 +77,7 @@
         "diagonals": 0
     },
     "url": "https://gitlab.com/custom-system-builder/custom-system-builder/",
-    "manifest": "https://gitlab.com/custom-system-builder/custom-system-builder/-/raw/main/system.json",
-    "download": "https://gitlab.com/custom-system-builder/custom-system-builder/-/releases/4.2.0/downloads/custom-system-builder.zip",
-    "version": "4.2.0"
+    "manifest": "https://gitlab.com/custom-system-builder/custom-system-builder/-/releases/permalink/latest/downloads/system.json",
+    "download": "https://gitlab.com/custom-system-builder/custom-system-builder/-/releases/4.3.1/downloads/custom-system-builder.zip",
+    "version": "4.3.1"
 }

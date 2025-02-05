@@ -1,4 +1,7 @@
-2025/01/30-22:01:54.050 1818 Log #11: 0 ops saved to Table #12 OK
-2025/01/30-22:01:54.050 1818 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/fog/000011.log: OK
-2025/01/30-22:01:54.093 1818 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/fog/MANIFEST-000010: OK
-2025/01/30-22:01:54.110 1818 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/fog; recovered 0 files; 0 bytes. Some data may have been lost. ****
+2025/02/04-11:16:43.995 9774 Recovering log #24
+2025/02/04-11:16:44.004 9774 Delete type=0 #24
+2025/02/04-11:16:44.004 9774 Delete type=3 #23
+2025/02/04-12:25:17.849 6f8 Level-0 table #28: started
+2025/02/04-12:25:17.849 6f8 Level-0 table #28: 0 bytes OK
+2025/02/04-12:25:17.852 6f8 Delete type=0 #26
+2025/02/04-12:25:17.856 6f8 Manual compaction at level-0 from 'undefined' @ 72057594037927935 : 1 .. 'undefined' @ 0 : 0; will stop at (end)

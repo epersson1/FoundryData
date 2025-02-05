@@ -49,9 +49,10 @@ class RadioButton extends InputComponent {
      */
     async _getElement(entity, isEditable = true, options = {}) {
         const { reference } = options;
+        const props = { ...entity.system.props, ...options.customProps };
         const jQElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-radio');
-        const value = ComputablePhrase.computeMessageStatic(this._value, entity.system.props, {
+        const value = ComputablePhrase.computeMessageStatic(this._value, props, {
             source: this.key,
             reference,
             defaultValue: '',
@@ -61,7 +62,7 @@ class RadioButton extends InputComponent {
         inputElement.attr('type', 'radio');
         inputElement.attr('id', `${entity.uuid}-${this.key}`);
         inputElement.attr('value', value);
-        const radioGroupValue = foundry.utils.getProperty(entity.system.props, this._group);
+        const radioGroupValue = foundry.utils.getProperty(props, this._group);
         if (radioGroupValue === value || (radioGroupValue === undefined && this._defaultChecked)) {
             inputElement.attr('checked', 'checked');
             if (!entity.isTemplate) {

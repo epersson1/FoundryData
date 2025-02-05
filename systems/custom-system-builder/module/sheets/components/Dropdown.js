@@ -40,6 +40,7 @@ class Dropdown extends InputComponent {
      */
     async _getElement(entity, isEditable = true, options = {}) {
         const { reference } = options;
+        const props = { ...entity.system.props, ...options.customProps };
         const jQElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-select');
         const selectElement = $('<select />');
@@ -76,20 +77,14 @@ class Dropdown extends InputComponent {
                 }
             }
             else if (this._selectedOptionType === 'formula' && !entity.isTemplate) {
-                const keyOptions = (await ComputablePhrase.computeMessage(this._formulaKeyOptions, {
-                    ...entity.system.props,
-                    ...options.customProps
-                }, {
+                const keyOptions = (await ComputablePhrase.computeMessage(this._formulaKeyOptions, props, {
                     ...options,
                     source: `${this.key}.keyOptions`,
                     reference,
                     defaultValue: '',
                     triggerEntity: entity
                 })).result.split(',');
-                const labelOptions = (await ComputablePhrase.computeMessage(this._formulaLabelOptions ?? '', {
-                    ...entity.system.props,
-                    ...options.customProps
-                }, {
+                const labelOptions = (await ComputablePhrase.computeMessage(this._formulaLabelOptions ?? '', props, {
                     ...options,
                     source: `${this.key}.labelOptions`,
                     reference,
@@ -110,8 +105,8 @@ class Dropdown extends InputComponent {
                     selectElement.append(this._addOption(optionKeys, option.key, option.value));
                 }
             }
-            const selectedValue = foundry.utils.getProperty(entity.system.props, this.key) ??
-                ComputablePhrase.computeMessageStatic(this.defaultValue ?? '', entity.system.props, {
+            const selectedValue = foundry.utils.getProperty(props, this.key) ??
+                ComputablePhrase.computeMessageStatic(this.defaultValue ?? '', props, {
                     source: this.key,
                     reference,
                     defaultValue: '',

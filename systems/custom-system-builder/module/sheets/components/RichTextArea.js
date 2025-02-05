@@ -11,6 +11,8 @@
  */
 import InputComponent, { COMPONENT_SIZES } from './InputComponent.js';
 import { RequiredFieldError } from '../../errors/ComponentValidationError.js';
+import CustomDialog from '../../applications/custom-dialog.js';
+import { createProseMirrorEditor, trimProseMirrorEmptyValue } from '../../utils.js';
 export const RICH_TEXT_AREA_STYLES = {
     sheet: 'CSB.ComponentProperties.TextArea.Style.InSheetEditor',
     dialog: 'CSB.ComponentProperties.TextArea.Style.DialogEditor',
@@ -32,11 +34,12 @@ class RichTextArea extends InputComponent {
      * Renders component
      */
     async _getElement(entity, isEditable = true, options = {}) {
+        const props = { ...entity.system.props, ...options.customProps };
         const jQElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-text-area');
         jQElement.addClass('custom-system-rich-editor' + (this._style !== 'sheet' ? '-dialog' : ''));
         if (!entity.isTemplate) {
-            const contents = (foundry.utils.getProperty(entity.system.props, this.key) || this.defaultValue) ?? '';
+            const contents = (foundry.utils.getProperty(props, this.key) || this.defaultValue) ?? '';
             const enrichedContents = await TextEditor.enrichHTML(contents, {
                 secrets: isEditable,
                 rollData: entity.getRollData()
@@ -45,10 +48,11 @@ class RichTextArea extends InputComponent {
             editButton.addClass('custom-system-rich-editor-button');
             editButton.html('<i class="fas fa-edit"></i>');
             editButton.on('click', () => {
-                const content = `<textarea id='custom-system-rich-text-editor-${this
-                    .key}' class='custom-system-rich-text-editor'>${contents}</textarea><input type="hidden" class="closingAction" value="save" />`;
+                const content = `<div class="custom-system-dialog-editor editor prosemirror"><div class="editor-content"></div></div><input type="hidden" class="closingAction" value="save" />`;
+                //@ts-expect-error Outdated types
+                let editor;
                 // Dialog creation
-                const d = new Dialog({
+                const d = new CustomDialog({
                     title: game.i18n.localize('CSB.ComponentProperties.TextArea.Dialog.Title'),
                     content: content,
                     buttons: {
@@ -64,42 +68,26 @@ class RichTextArea extends InputComponent {
                             }
                         }
                     },
-                    render: () => {
-                        //Pre-emptively remove editors to guarantee init
-                        tinymce.remove('textarea.custom-system-rich-text-editor');
-                        tinymce.init({
-                            ...CONFIG.TinyMCE,
-                            selector: 'textarea.custom-system-rich-text-editor',
-                            paste_block_drop: true,
-                            save_onsavecallback: () => {
-                                $(`#custom-system-rich-text-editor-${this.key.replace(/\./g, '\\.')}`)
-                                    .parents('.dialog')
-                                    .find('.dialog-button.validate')
-                                    .trigger('click');
-                            },
-                            init_instance_callback: function (editor) {
-                                editor.on('drop', async function (e) {
-                                    e.preventDefault();
-                                    editor.insertContent(
-                                    //@ts-expect-error Outdated types
-                                    String(await TextEditor.getContentLink(TextEditor.getDragEventData(e))));
-                                });
-                            }
-                        });
+                    render: async (html) => {
+                        editor = await createProseMirrorEditor($(html).find('.editor-content')[0], contents);
                     },
                     close: (html) => {
                         const action = $(html).find('.closingAction').val();
                         if (action === 'save') {
-                            foundry.utils.setProperty(entity.system.props, this.key, tinymce.get(`custom-system-rich-text-editor-${this.key}`).getContent());
+                            const newValue = $(html).find('textarea').length > 0
+                                ? $(html).find('textarea').val()
+                                : editor.view.dom.innerHTML;
+                            foundry.utils.setProperty(entity.system.props, this.key, trimProseMirrorEmptyValue(newValue));
                             entity.entity.update({
                                 system: {
                                     props: entity.system.props
                                 }
                             });
                         }
+                        editor.destroy();
                     }
                 }, {
-                    width: 500,
+                    width: 530,
                     height: 480,
                     resizable: true
                 });
@@ -112,13 +100,13 @@ class RichTextArea extends InputComponent {
                     if (isEditable) {
                         editor.html(
                         //@ts-expect-error Outdated types
-                        HandlebarsHelpers.editor(enrichedContents, {
-                            hash: {
-                                target: 'system.props.' + this.key,
-                                button: true,
-                                editable: isEditable
-                            }
-                        }).toHTML());
+                        foundry.applications.fields.createEditorInput({
+                            name: 'system.props.' + this.key,
+                            value: enrichedContents,
+                            button: true,
+                            editable: isEditable,
+                            engine: 'prosemirror'
+                        }));
                     }
                     else {
                         editor.html(enrichedContents);
@@ -221,13 +209,10 @@ class RichTextArea extends InputComponent {
     /**
      * Attaches event-listeners to the html of the config-form
      */
-    static attachListenersToConfigForm() {
-        const textAreaSelector = 'textarea#textAreaValue';
-        tinymce.remove(textAreaSelector);
-        tinymce.init({
-            ...CONFIG.TinyMCE,
-            selector: textAreaSelector
-        });
+    static attachListenersToConfigForm(html) {
+        const previousValue = html.find('#textAreaPreviousValue').val();
+        console.log(previousValue);
+        createProseMirrorEditor($(html).find('#textAreaValue')[0], String(previousValue ?? ''));
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -236,10 +221,13 @@ class RichTextArea extends InputComponent {
      * @throws {Error} If configuration is not correct
      */
     static extractConfig(html) {
+        const newValue = $(html).find('.editor textarea').length > 0
+            ? $(html).find('.editor textarea').val()?.toString()
+            : html.find('#textAreaValue').html();
         const fieldData = {
             ...super.extractConfig(html),
             label: html.find('#textAreaLabel').val()?.toString(),
-            defaultValue: html.find('#textAreaValue').val()?.toString(),
+            defaultValue: trimProseMirrorEmptyValue(newValue),
             style: html.find('#textAreaStyle').val()?.toString()
         };
         this.validateConfig(fieldData);

@@ -21,5 +21,8 @@
         {{> icon-formula}}
         {{> icon-info title=(localize "CSB.ComponentProperties.AllowFormulaCreateTimeOnly")}}
     </label>
-    <textarea id='textAreaValue' data-key='defaultValue'>{{defaultValue}}</textarea>
+    <div class="custom-system-dialog-editor editor prosemirror">
+        <div id='textAreaValue' class="editor-content" data-key='defaultValue'></div>
+    </div>
+    <textarea id="textAreaPreviousValue" style="display: none;">{{defaultValue}}</textarea>
 </div>

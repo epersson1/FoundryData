@@ -223,15 +223,15 @@ class ExtensibleTable extends Container {
     static getSortOrder(a, b, value, operator) {
         switch (operator) {
             case COMPARISON_OPERATOR.GREATER_THAN:
-                if (typeof a === 'string' && typeof b === 'string') {
-                    return -a.localeCompare(b);
+                if (typeof a === 'string' || typeof b === 'string') {
+                    return -String(a).localeCompare(String(b));
                 }
                 else {
                     return a > b ? -1 : a < b ? 1 : 0;
                 }
             case COMPARISON_OPERATOR.LESSER_THAN:
-                if (typeof a === 'string' && typeof b === 'string') {
-                    return a.localeCompare(b);
+                if (typeof a === 'string' || typeof b === 'string') {
+                    return String(a).localeCompare(String(b));
                 }
                 else {
                     return a < b ? -1 : a > b ? 1 : 0;

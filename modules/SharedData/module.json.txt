@@ -1,0 +1,19 @@
+{   
+   "name": "SharedData",   
+   "title": "Shared Data",   
+   "description": "Sharing data across worlds",   
+   "author": "Ellen",
+   "version": "1.0.0",
+   "minimumCoreVersion": "0.5.0",
+   "compatibleCoreVersion":"0.5.5",
+   "packs": [
+    {
+      "name": "items",
+      "system": "dnd5e",
+      "label": "My Items",
+      "path": "packs/items.db",
+      "entity": "Item",
+      "module": "SharedData"
+    }
+  ]
+ }

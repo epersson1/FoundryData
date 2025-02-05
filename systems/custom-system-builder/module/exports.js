@@ -9,7 +9,7 @@
  * @ignore
  * @module
  */
-export const exportTemplates = (event) => {
+export const exportTemplates = () => {
     Dialog.prompt({
         title: game.i18n.localize('CSB.Export.ExportDialog.Title'),
         content: `<h1>${game.i18n.localize('CSB.Export.ExportDialog.Subtitle')}</h1>` +
@@ -19,48 +19,45 @@ export const exportTemplates = (event) => {
             '</div>',
         label: game.i18n.localize('CSB.Export.ExportDialog.Action'),
         callback: (html) => {
+            if (html instanceof HTMLElement) {
+                return;
+            }
             // Fetch every _template actor
-            let actorTemplates = game.actors.filter((actor) => actor.isTemplate);
-            let itemTemplates = game.items.filter((item) => item.isTemplate);
-            let tplIds = html
+            const actorTemplates = game.actors.filter((actor) => actor.isTemplate);
+            const itemTemplates = game.items.filter((item) => item.isTemplate);
+            const tplIds = html
                 .find('input:checked')
                 .get()
                 .filter((elt) => elt.id)
-                .map((elt) => {
-                return elt.id;
-            });
+                .map((elt) => elt.id);
             // Cleanup data
-            let exportActorTemplates = actorTemplates
-                .filter((tpl) => {
-                return tplIds.includes(tpl.id);
-            })
+            const exportActorTemplates = actorTemplates
+                .filter((tpl) => tplIds.includes(tpl.id))
                 .map((tpl) => {
-                tpl = JSON.parse(JSON.stringify(tpl));
-                delete tpl.system.props;
+                const json = JSON.parse(JSON.stringify(tpl));
+                delete json.system.props;
                 return {
-                    id: tpl.id,
-                    type: tpl.type,
-                    name: tpl.name,
-                    data: tpl.system,
-                    flags: tpl.flags
+                    id: json._id,
+                    type: json.type,
+                    name: json.name,
+                    data: json.system,
+                    flags: json.flags
                 };
             });
-            let exportItemTemplates = itemTemplates
-                .filter((tpl) => {
-                return tplIds.includes(tpl.id);
-            })
+            const exportItemTemplates = itemTemplates
+                .filter((tpl) => tplIds.includes(tpl.id))
                 .map((tpl) => {
-                tpl = JSON.parse(JSON.stringify(tpl));
-                delete tpl.system.props;
+                const json = JSON.parse(JSON.stringify(tpl));
+                delete json.system.props;
                 return {
-                    id: tpl.id,
-                    type: tpl.type,
-                    name: tpl.name,
-                    data: tpl.system,
-                    flags: tpl.flags
+                    id: json._id,
+                    type: json.type,
+                    name: json.name,
+                    data: json.system,
+                    flags: json.flags
                 };
             });
-            let exportTemplates = {
+            const exportTemplates = {
                 isCustomSystemExport: true,
                 actors: exportActorTemplates,
                 items: exportItemTemplates
@@ -69,36 +66,36 @@ export const exportTemplates = (event) => {
             saveDataToFile(JSON.stringify(exportTemplates), CONST.TEXT_FILE_EXTENSIONS.json, 'export.json');
         },
         render: (html) => {
-            let actorFolder = {
+            if (html instanceof HTMLElement) {
+                return;
+            }
+            const actorFolder = {
                 name: 'Base',
                 depth: 0,
-                children: game.folders.filter((folder) => {
-                    return folder.depth === 1 && folder.type === 'Actor';
-                }),
-                contents: game.actors.filter((actor) => {
-                    return actor.isTemplate && actor.folder === null;
-                })
+                children: game.folders.filter((folder) => folder.depth === 1 && folder.type === 'Actor'),
+                contents: game.actors.filter((actor) => actor.isTemplate && actor.folder === null),
+                get folder() {
+                    return null;
+                }
             };
-            let itemFolder = {
+            const itemFolder = {
                 name: 'Base',
                 depth: 0,
-                children: game.folders.filter((folder) => {
-                    return folder.depth === 1 && folder.type === 'Item';
-                }),
-                contents: game.items.filter((item) => {
-                    return item.isTemplate && item.folder === null;
-                })
+                children: game.folders.filter((folder) => folder.depth === 1 && folder.type === 'Item'),
+                contents: game.items.filter((item) => item.isTemplate && item.folder === null),
+                get folder() {
+                    return null;
+                }
             };
-            html.find('#custom_system_actor_export_list').append(getFolderStructure([actorFolder], $('<div></div>')));
-            html.find('#custom_system_item_export_list').append(getFolderStructure([itemFolder], $('<div></div>')));
+            html.find('#custom_system_actor_export_list').append(getFolderStructure([actorFolder]));
+            html.find('#custom_system_item_export_list').append(getFolderStructure([itemFolder]));
             html.find('.custom-system-full-selector').on('change', (ev) => {
-                let target = $(ev.currentTarget);
-                let newState = target.is(':checked');
+                const target = $(ev.currentTarget);
+                const newState = target.is(':checked');
                 target.parents('.custom_system_export_list').find('input[type=checkbox]').prop('checked', newState);
             });
         },
         options: {
-            width: 'auto',
             height: 'auto'
         }
     });
@@ -107,34 +104,34 @@ export const exportTemplates = (event) => {
  * @ignore
  */
 const getFolderStructure = (folderArray) => {
-    let folderList = $('<div></div>');
+    const folderList = $('<div></div>');
     for (let folder of folderArray) {
         if (!folder.name) {
             folder = folder.folder;
         }
         let className = '';
-        if (folder.depth > 1) {
+        if (folder.depth ?? 0 > 1) {
             className = 'custom_system_export_folder';
         }
-        let baseFolderElt = $(`<div class="${className}"></div>`);
-        let expandButton = $(`<i class="fas fa-caret-down"></i>`);
-        let checkFolderButton = $(`<input type="checkbox" checked="checked" />`);
-        let folderNameSpan = $('<span></span>');
-        if (folder.depth > 0) {
+        const baseFolderElt = $(`<div class="${className}"></div>`);
+        const expandButton = $(`<i class="fas fa-caret-down"></i>`);
+        const checkFolderButton = $(`<input type="checkbox" checked="checked" />`);
+        const folderNameSpan = $('<span></span>');
+        if (folder.depth ?? 0 > 0) {
             baseFolderElt.append(expandButton);
             baseFolderElt.append(checkFolderButton);
             folderNameSpan.append('<i class="fas fa-folder-open"></i>&nbsp;');
-            folderNameSpan.append(folder.name);
+            folderNameSpan.append(folder.name ?? '');
             baseFolderElt.append(folderNameSpan);
         }
-        let subFolderStructure = getFolderStructure(folder.children);
-        let actorContainer = $(`<div></div>`);
-        if (folder.depth > 0) {
+        const subFolderStructure = getFolderStructure(folder.children);
+        const actorContainer = $(`<div></div>`);
+        if (folder.depth ?? 0 > 0) {
             actorContainer.addClass('custom_system_export_folder');
         }
-        for (let entity of folder.contents) {
+        for (const entity of folder.contents) {
             if (entity.isTemplate) {
-                let baseActorElt = $(`<p><input type="checkbox" id="${entity.id}" checked="checked"  data-type="${entity.type}" /><label for="${entity.id}"><i class="fas fa-user"></i>&nbsp;${entity.name}</label></p>`);
+                const baseActorElt = $(`<p><input type="checkbox" id="${entity.id}" checked="checked"  data-type="${entity.type}" /><label for="${entity.id}"><i class="fas fa-user"></i>&nbsp;${entity.name}</label></p>`);
                 actorContainer.append(baseActorElt);
             }
         }
@@ -174,9 +171,9 @@ const getFolderStructure = (folderArray) => {
 /**
  * @ignore
  */
-export const importTemplates = (event) => {
+export const importTemplates = () => {
     // Create File Picker to get export JSON
-    let fp = new FilePicker({
+    const fp = new FilePicker({
         callback: async (filePath) => {
             // Get file from server
             const response = await fetch(filePath);
@@ -192,34 +189,33 @@ export const importTemplates = (event) => {
             new Dialog({
                 title: game.i18n.localize('CSB.Export.ImportDialog.Title'),
                 content: `<p>${game.i18n.localize('CSB.Export.ImportDialog.Content')}</p>`,
-                buttons: [
-                    {
+                buttons: {
+                    one: {
                         label: game.i18n.localize('Close'),
                         callback: () => {
                             window.location.reload();
                         }
                     }
-                ]
+                }
             }).render(true);
         }
     });
     // Tweak to allow only json files to be uploaded / selected
     fp.extensions = ['.json'];
-    fp.browse();
+    fp.browse('');
 };
 const importActorTemplate = async (importedPack) => {
-    let actorTemplates = game.actors.filter((actor) => actor.isTemplate);
-    for (let imported of importedPack) {
+    const actorTemplates = game.actors.filter((actor) => actor.isTemplate);
+    for (const imported of importedPack) {
         // If a same name template exist, we replace its data with the imported data
-        let matchingLocalTemplates = actorTemplates.filter((tpl) => tpl.name === imported.name && tpl.type === imported.type);
+        const matchingLocalTemplates = actorTemplates.filter((tpl) => tpl.name === imported.name && tpl.type === imported.type);
         if (matchingLocalTemplates.length > 0) {
-            for (let match of matchingLocalTemplates) {
+            for (const match of matchingLocalTemplates) {
                 match
                     .update({
                     system: {
                         hidden: imported.data.hidden,
                         header: imported.data.header,
-                        tabs: imported.data.tabs,
                         body: imported.data.body,
                         templateSystemUniqueVersion: imported.data.templateSystemUniqueVersion ?? (Math.random() * 0x100000000) >>> 0
                     },
@@ -248,18 +244,17 @@ const importActorTemplate = async (importedPack) => {
     }
 };
 const importItemTemplate = async (importedPack) => {
-    let itemTemplates = game.items.filter((item) => item.isTemplate);
-    for (let imported of importedPack) {
+    const itemTemplates = game.items.filter((item) => item.isTemplate);
+    for (const imported of importedPack) {
         // If a same name template exist, we replace its data with the imported data
-        let matchingLocalTemplates = itemTemplates.filter((tpl) => tpl.name === imported.name && tpl.type === imported.type);
+        const matchingLocalTemplates = itemTemplates.filter((tpl) => tpl.name === imported.name && tpl.type === imported.type);
         if (matchingLocalTemplates.length > 0) {
-            for (let match of matchingLocalTemplates) {
+            for (const match of matchingLocalTemplates) {
                 match
                     .update({
                     system: {
                         hidden: imported.data.hidden,
                         header: imported.data.header,
-                        tabs: imported.data.tabs,
                         body: imported.data.body,
                         modifiers: imported.data.modifiers,
                         templateSystemUniqueVersion: imported.data.templateSystemUniqueVersion ?? (Math.random() * 0x100000000) >>> 0

@@ -163,8 +163,6 @@ const component = async (callback, { componentData = undefined, allowedComponent
                 icon: '<i class="fas fa-check"></i>',
                 label: game.i18n.localize('Save'),
                 callback: (html) => {
-                    // Save all editors
-                    tinyMCE.triggerSave();
                     const newCompType = html.find('#compType').val();
                     const componentClass = componentFactory.getComponentClass(newCompType);
                     // Retrieve HTML-data only from relevant parts to avoid selector-collisions

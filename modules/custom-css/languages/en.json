@@ -1,0 +1,22 @@
+{
+    "CCSS": {
+        "settings": {
+            "CustomCss":"Custom CSS",
+            "CustomCssHint": "Make sure you validate your CSS and use !important",
+            "settingsMenu": {
+                "name": "Custom CSS Rules",
+                "label": "Custom CSS Rules",
+                "title": "Custom CSS Rules"
+            },
+            "transition": {
+                "name": "Transition",
+                "hint": "Whether or not to animate the style changes when they are saved."
+            }
+        },
+        "migration": {
+            "startMessage": "Migrating Custom CSS data...",
+            "endMessage": "...Custom CSS migration complete.",
+            "uiMessage": "Custom CSS data Migrated. Check module settings."
+        }
+    }
+}

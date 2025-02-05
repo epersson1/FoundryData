@@ -74,7 +74,7 @@ class TemplateSystem {
      * Returns the entity's items
      */
     get items() {
-        return this.entity.items;
+        return this.entity.getItems();
     }
     /**
      * Returns component's types that are allowed in this entity
@@ -90,9 +90,6 @@ class TemplateSystem {
                 break;
             default:
                 break;
-        }
-        if (this.entityType === 'item') {
-            allowedComponents = allowedComponents.filter((componentType) => !['itemContainer'].includes(componentType));
         }
         return allowedComponents;
     }
@@ -177,7 +174,7 @@ class TemplateSystem {
         do {
             nLoops++;
             computedProps = {};
-            const formulaProps = foundry.utils.mergeObject(system.props, computedProps, {
+            const baseFormulaProps = foundry.utils.mergeObject(system.props, computedProps, {
                 inplace: false
             });
             // For each uncomputed property, we try to compute it
@@ -190,8 +187,11 @@ class TemplateSystem {
                     }
                     else {
                         const { formula, options } = computeValue;
+                        let formulaProps = baseFormulaProps;
                         if (options?.customProps) {
-                            foundry.utils.mergeObject(formulaProps, options.customProps);
+                            formulaProps = foundry.utils.mergeObject(baseFormulaProps, options.customProps, {
+                                inplace: false
+                            });
                         }
                         newComputedValue = ComputablePhrase.computeMessageStatic(formula, formulaProps, {
                             ...options,
@@ -267,11 +267,11 @@ class TemplateSystem {
     _computeModifierValues(modifier, triggeringEntity, result) {
         try {
             if (modifier) {
-                modifier.key = ComputablePhrase.computeMessageStatic(modifier.key, triggeringEntity.system.props, {
+                const modifierKeys = ComputablePhrase.computeMessageStatic(modifier.key, triggeringEntity.system.props, {
                     source: `modifier.${modifier.key}.key`,
                     defaultValue: 0,
                     triggerEntity: triggeringEntity
-                }).result;
+                }).result.split(',');
                 modifier.value = ComputablePhrase.computeMessageStatic(modifier.formula, triggeringEntity.system.props, {
                     source: `modifier.${modifier.value}.value`,
                     defaultValue: 0,
@@ -280,7 +280,7 @@ class TemplateSystem {
                 modifier.isSelected =
                     !modifier.conditionalGroup ||
                         this.system.activeConditionalModifierGroups.includes(modifier.conditionalGroup);
-                result[modifier.key] ? result[modifier.key].push(modifier) : (result[modifier.key] = [modifier]);
+                modifierKeys.forEach((key) => result[key] ? result[key].push({ ...modifier, key }) : (result[key] = [{ ...modifier, key }]));
             }
         }
         catch (err) {
@@ -841,7 +841,7 @@ class TemplateSystem {
                         editable: true
                     };
                     newEffect.modifiers = this.system.activeEffects[anEffect.id] ?? [];
-                    newEffect.label = game.i18n.localize(anEffect.label);
+                    newEffect.label = game.i18n.localize(anEffect.name);
                     return newEffect;
                 });
                 // Open the dialog for edition

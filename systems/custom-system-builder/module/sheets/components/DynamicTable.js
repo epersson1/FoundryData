@@ -10,7 +10,7 @@
  * @module
  */
 import ExtensibleTable, { TABLE_SORT_OPTION, COMPARISON_OPERATOR, SORT_OPERATORS } from './ExtensibleTable.js';
-import { castToPrimitive } from '../../utils.js';
+import { castToPrimitive, fastSetFlag } from '../../utils.js';
 import { isComputableElement } from '../../interfaces/ComputableElement.js';
 import { isChatSenderElement } from '../../interfaces/ChatSenderElement.js';
 import Checkbox from './Checkbox.js';
@@ -21,6 +21,7 @@ import RadioButton from './RadioButton.js';
 import RichTextArea from './RichTextArea.js';
 import TextField from './TextField.js';
 import Meter from './Meter.js';
+import InputComponent from './InputComponent.js';
 const isPredefinedLine = (entry) => entry[1].$predefinedIdx !== undefined;
 /**
  * DynamicTable component
@@ -117,11 +118,11 @@ class DynamicTable extends ExtensibleTable {
                 }
                 cell.addClass('custom-system-clickable');
                 cell.on('click', async () => {
-                    await game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
+                    fastSetFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
                         prop: component.key,
                         operator: nextSortIsToAsc ? COMPARISON_OPERATOR.LESSER_THAN : COMPARISON_OPERATOR.GREATER_THAN
                     });
-                    await entity.render(false);
+                    entity.render(false);
                 });
             }
             cell.append(colNameSpan);
@@ -136,6 +137,9 @@ class DynamicTable extends ExtensibleTable {
                 cell.append(sortRightTabButton);
             }
             firstRow.append(cell);
+            if (component instanceof InputComponent) {
+                sampleNewRow[component.key] = component.defaultValue;
+            }
         }
         const headControlsRow = $('<td></td>');
         if (entity.isTemplate) {
@@ -152,7 +156,7 @@ class DynamicTable extends ExtensibleTable {
             ? this.predefinedLines
             : foundry.utils.getProperty(entity.system.props, this.key);
         const rowOrder = this._sortRows(dynamicProps, entity);
-        await game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption.savedOrder', rowOrder);
+        fastSetFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption.savedOrder', rowOrder);
         for (const [index, line] of Object.entries(rowOrder)) {
             const parsedIndex = parseInt(index);
             const tableRow = $('<tr></tr>');
@@ -308,13 +312,46 @@ class DynamicTable extends ExtensibleTable {
                 }
                 else {
                     let tableProps = foundry.utils.getProperty(entity.system.props, this.key) ?? {};
-                    if (Object.keys(tableProps).length) {
-                        const newIdx = Math.max(...Object.keys(tableProps).map((key) => Number(key))) + 1;
-                        tableProps[newIdx] = { ...sampleNewRow };
+                    const newIdx = Math.max(...Object.keys(tableProps).map((key) => Number(key))) + 1;
+                    // Compute new row
+                    const newRow = {
+                        $deleted: false
+                    };
+                    let keysToCompute = Object.keys(sampleNewRow).filter((key) => {
+                        return key !== '$deleted' && sampleNewRow[key] !== undefined;
+                    });
+                    let computedKeys = [];
+                    do {
+                        computedKeys = [];
+                        for (const key of keysToCompute) {
+                            try {
+                                const tmpProps = foundry.utils.mergeObject(entity.system.props, {
+                                    [this.key]: {
+                                        [newIdx]: newRow
+                                    }
+                                }, { inplace: false });
+                                newRow[key] = sampleNewRow[key]
+                                    ? ComputablePhrase.computeMessageStatic(String(sampleNewRow[key]), tmpProps, {
+                                        source: `${this.key}.${newIdx}.${key}.defaultValue`,
+                                        triggerEntity: entity,
+                                        reference: `${this.key}.${newIdx}`
+                                    }).result
+                                    : undefined;
+                                computedKeys.push(key);
+                            }
+                            catch (_err) {
+                                null;
+                            }
+                        }
+                        keysToCompute = keysToCompute.filter((key) => !computedKeys.includes(key));
+                    } while (keysToCompute.length > 0 && computedKeys.length > 0);
+                    // Add new row to table data
+                    if (newIdx > 0) {
+                        tableProps[newIdx] = { ...newRow };
                     }
                     else {
                         tableProps = {
-                            0: { ...sampleNewRow }
+                            0: { ...newRow }
                         };
                     }
                     foundry.utils.setProperty(entity.system.props, this.key, tableProps);
@@ -412,13 +449,12 @@ class DynamicTable extends ExtensibleTable {
             const temp = rowOrder[rowIdx1];
             rowOrder[rowIdx1] = rowOrder[rowIdx2];
             rowOrder[rowIdx2] = temp;
-            game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
+            fastSetFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
                 ['-=prop']: true,
                 ['-=operator']: true,
                 savedOrder: rowOrder
-            }).then(() => {
-                entity.render(false);
             });
+            entity.render(false);
         }
     }
     /**

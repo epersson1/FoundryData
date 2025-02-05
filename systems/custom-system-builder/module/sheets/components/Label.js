@@ -7,6 +7,7 @@
  */
 import InputComponent, { COMPONENT_SIZES } from './InputComponent.js';
 import Logger from '../../Logger.js';
+import { createProseMirrorEditor, trimProseMirrorEmptyValue } from '../../utils.js';
 export const LABEL_STYLES = {
     label: 'CSB.ComponentProperties.Label.LabelStyle.Default',
     title: 'CSB.ComponentProperties.Label.LabelStyle.Title',
@@ -598,28 +599,36 @@ class Label extends InputComponent {
      * @param html
      */
     static attachListenersToConfigForm(html) {
-        const richTextAreaSelectorsByCheckboxId = new Map([
-            ['labelRichText', 'textarea#labelText'],
-            ['rollRichText', 'textarea#labelRollMessage'],
-            ['altRollRichText', 'textarea#labelAltRollMessage']
-        ]);
+        const openEditors = new Map();
         $(html)
             .find("input[name='editorToggle']")
-            .on('click', (event) => {
+            .on('click', async (event) => {
             const checkbox = $(event.currentTarget);
             const checkboxId = checkbox[0].id;
-            if (!richTextAreaSelectorsByCheckboxId.has(checkboxId)) {
+            const rtaSelectors = Label.configRichTextAreaSelectors.get(checkboxId);
+            if (!rtaSelectors) {
                 throw new Error(`Failed to map Checkbox-ID to an RTA. Unexpected Element-ID "${checkboxId}"`);
             }
-            const rtaSelector = richTextAreaSelectorsByCheckboxId.get(checkboxId);
-            if (rtaSelector) {
-                tinymce.remove(rtaSelector);
-            }
+            const rawTextArea = html.find(rtaSelectors.textarea);
+            const editorDiv = html.find(rtaSelectors.editor);
+            const existingEditor = openEditors.get(checkboxId);
             if (checkbox.is(':checked')) {
-                tinymce.init({
-                    ...CONFIG.TinyMCE,
-                    selector: rtaSelector
-                });
+                const textAreaValue = rawTextArea.val()?.toString();
+                if (!existingEditor) {
+                    const newEditor = await createProseMirrorEditor(editorDiv.find('.editor-content')[0], textAreaValue ?? '');
+                    openEditors.set(checkboxId, newEditor);
+                }
+                editorDiv.find('.editor-content').html(textAreaValue ?? '');
+                editorDiv.show();
+                rawTextArea.hide();
+            }
+            else {
+                const editorValue = editorDiv.find('textarea').length > 0
+                    ? editorDiv.find('textarea').val()?.toString()
+                    : editorDiv.find('.editor-content').html();
+                rawTextArea.val(editorValue ?? '');
+                rawTextArea.show();
+                editorDiv.hide();
             }
         });
     }
@@ -631,6 +640,24 @@ class Label extends InputComponent {
      * @throws {Error} If configuration is not correct
      */
     static extractConfig(html) {
+        // Resync editors to textareas
+        $(html)
+            .find("input[name='editorToggle']")
+            .each((_idx, checkbox) => {
+            const checkboxId = checkbox.id;
+            const rtaSelectors = Label.configRichTextAreaSelectors.get(checkboxId);
+            if (!rtaSelectors) {
+                throw new Error(`Failed to map Checkbox-ID to an RTA. Unexpected Element-ID "${checkboxId}"`);
+            }
+            if ($(checkbox).is(':checked')) {
+                const rawTextArea = html.find(rtaSelectors.textarea);
+                const editorDiv = html.find(rtaSelectors.editor);
+                const editorValue = editorDiv.find('textarea').length > 0
+                    ? editorDiv.find('textarea').val()?.toString()
+                    : editorDiv.find('.editor-content').html();
+                rawTextArea.val(trimProseMirrorEmptyValue(editorValue));
+            }
+        });
         return {
             ...super.extractConfig(html),
             type: 'label',
@@ -648,6 +675,11 @@ class Label extends InputComponent {
     }
 }
 Label.valueType = 'none';
+Label.configRichTextAreaSelectors = new Map([
+    ['labelRichText', { textarea: 'textarea#labelText', editor: 'div#labelTextEditor' }],
+    ['rollRichText', { textarea: 'textarea#labelRollMessage', editor: 'div#labelRollMessageEditor' }],
+    ['altRollRichText', { textarea: 'textarea#labelAltRollMessage', editor: 'div#labelAltRollMessageEditor' }]
+]);
 /**
  * @ignore
  */

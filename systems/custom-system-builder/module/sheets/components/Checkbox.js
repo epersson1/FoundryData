@@ -36,6 +36,7 @@ class Checkbox extends InputComponent {
      * @returns The jQuery element holding the component
      */
     async _getElement(entity, isEditable = true, options = {}) {
+        const props = { ...entity.system.props, ...options.customProps };
         const jQElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-checkbox');
         const inputElement = $('<input />');
@@ -44,7 +45,7 @@ class Checkbox extends InputComponent {
         if (!entity.isTemplate) {
             inputElement.attr('name', 'system.props.' + this.key);
         }
-        const checkedStatus = foundry.utils.getProperty(entity.system.props, this.key);
+        const checkedStatus = foundry.utils.getProperty(props, this.key);
         const checked = checkedStatus || (checkedStatus === undefined && this._defaultChecked);
         if (checked) {
             inputElement.attr('checked', 'checked');

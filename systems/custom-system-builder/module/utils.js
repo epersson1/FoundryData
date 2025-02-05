@@ -210,3 +210,33 @@ export function quoteString(value) {
     }
     return value === null ? null : value?.toString();
 }
+export function fastSetFlag(scope, key, value) {
+    game.user.setFlag(scope, key, value);
+    foundry.utils.setProperty(game.user.flags, `${scope}.${key}`, value);
+}
+export async function createProseMirrorEditor(container, contents, options = {}) {
+    options = foundry.utils.mergeObject({
+        collaborate: false,
+        plugins: {
+            //@ts-expect-error Outdated types
+            highlightDocumentMatches: ProseMirror.ProseMirrorHighlightMatchesPlugin.build(
+            //@ts-expect-error Outdated types
+            ProseMirror.defaultSchema)
+        }
+    }, options);
+    //@ts-expect-error Outdated types
+    return ProseMirrorEditor.create(container, contents, options);
+}
+export function trimProseMirrorEmptyValue(value) {
+    if (value === undefined) {
+        return '';
+    }
+    const htmlValue = $(`<div>${value}</div>`);
+    htmlValue.find('br.ProseMirror-trailingBreak').remove();
+    htmlValue.find('.ProseMirror-selectednode').removeClass('ProseMirror-selectednode').removeAttr('draggable');
+    value = htmlValue.html();
+    if (value === '<p></p>') {
+        return '';
+    }
+    return value;
+}

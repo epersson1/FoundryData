@@ -36,6 +36,7 @@ class TextField extends InputComponent {
      */
     async _getElement(entity, isEditable = true, options = {}) {
         const { reference } = options;
+        const props = { ...entity.system.props, ...options.customProps };
         const jQElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-text-field');
         const inputElement = $('<input />');
@@ -47,9 +48,9 @@ class TextField extends InputComponent {
         if (!isEditable) {
             inputElement.attr('disabled', 'disabled');
         }
-        const fieldValue = foundry.utils.getProperty(entity.system.props, this.key) ??
+        const fieldValue = foundry.utils.getProperty(props, this.key) ??
             (this.defaultValue
-                ? ComputablePhrase.computeMessageStatic(this.defaultValue, entity.system.props, {
+                ? ComputablePhrase.computeMessageStatic(this.defaultValue, props, {
                     source: `${this.key}.defaultValue`,
                     reference,
                     defaultValue: '',
@@ -84,7 +85,7 @@ class TextField extends InputComponent {
         if (!entity.isTemplate && this._autocomplete) {
             let autocompleteOptions;
             try {
-                autocompleteOptions = ComputablePhrase.computeMessageStatic(this._autocomplete, entity.system.props, {
+                autocompleteOptions = ComputablePhrase.computeMessageStatic(this._autocomplete, props, {
                     source: `${this.key}.autocompleteOptions`,
                     reference,
                     defaultValue: '',

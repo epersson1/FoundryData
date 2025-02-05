@@ -23,6 +23,10 @@
     display: none;
 }
 
+.custom-system-component-editor .custom-system-dialog-editor {
+    height: 20em;
+}
+
 .CSB-itemProperty {
     border: 1px solid grey;
     border-radius: 5px;

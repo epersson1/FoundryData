@@ -179,12 +179,6 @@ Hooks.once('init', async function () {
             label: 'Default'
         });
         setInitiativeFormula();
-        // Set a min-height on TinyMCE to ensure it displays even when empty
-        CONFIG.TinyMCE.min_height = 100;
-        // Allow TinyMCE to be resized vertically
-        CONFIG.TinyMCE.resize = true;
-        CONFIG.TinyMCE.statusbar = true;
-        CONFIG.TinyMCE.elementpath = false;
         // Helper-functions for handlebars
         Handlebars.registerHelper('eq', (a, b) => a == b);
         // Partials
@@ -319,6 +313,18 @@ Hooks.once('ready', async function () {
         });
     }
     // game.model.Actor.character = { props: allReferencableProps };
+    if (game.user.isGM) {
+        if (!CustomItem.getEmbeddedItemsFolder(false)) {
+            Folder.createDocuments([
+                {
+                    name: CustomItem.EMBEDDED_ITEMS_FOLDER_NAME,
+                    type: 'Item',
+                    description: game.i18n.localize('CSB.Items.EmbeddedItemsFolderDescription'),
+                    color: '#211A1B'
+                }
+            ]);
+        }
+    }
     Hooks.callAll('customSystemBuilderReady');
 });
 // Prepare export buttons

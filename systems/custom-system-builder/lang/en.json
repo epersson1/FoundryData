@@ -391,6 +391,9 @@
             "Target": "Target",
             "Where": "Where"
         },
+        "Items": {
+            "EmbeddedItemsFolderDescription": "This folder contains all items embedded in game level items (items not embedded in an actor)"
+        },
         "Modifier": {
             "Description": "Desc.",
             "EditDialog": {
@@ -485,6 +488,9 @@
             "Dropdown": {
                 "OptionsLengthError": "{COMPONENT_KEY}: Key and Label-options are not of same length."
             },
+            "CannotMoveItemInItself": "It is impossible to move an item inside itself",
+            "EmbeddedItemsFolderNotFound": "Embedded items folder was not found. Please create an Item folder named {EMBEDDED_ITEMS_FOLDER_NAME}",
+            "ItemMaxDepth": "Items cannot be nested more than {depth} levels deep.",
             "ItemTemplateDeleted": "Item template has been deleted for item {ITEM_NAME} - {ITEM_UUID} used in {ENTITY_NAME} - {ENTITY_UUID}",
             "Label": {
                 "ChatCommandeCreationError": "Could not create chat command."

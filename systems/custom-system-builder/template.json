@@ -63,7 +63,8 @@
             "template": null,
             "props": {},
             "modifiers": [],
-            "unique": false
+            "unique": false,
+            "container": null
         },
         "subTemplate": {
             "body": {

@@ -44,7 +44,7 @@ class NumberField extends InputComponent {
      * @returns The max value
      */
     getMaxValue(entity, options, keyOverride) {
-        return this._getMaxVal(entity, { ...options, source: keyOverride ?? this.key });
+        return this._getMaxVal(entity, entity.system.props, { ...options, source: keyOverride ?? this.key });
     }
     /**
      * Compute the value of this Number Field
@@ -62,12 +62,12 @@ class NumberField extends InputComponent {
     isEditable() {
         return true;
     }
-    _getMinVal(entity, options) {
+    _getMinVal(entity, props, options) {
         let min = -Infinity;
         if (this._minVal) {
             min = Number(this._minVal);
             if (Number.isNaN(min)) {
-                min = Number(ComputablePhrase.computeMessageStatic(this._minVal, entity.system.props, {
+                min = Number(ComputablePhrase.computeMessageStatic(this._minVal, props, {
                     source: `${options?.source ?? this.key}.min`,
                     reference: options?.reference,
                     defaultValue: '0',
@@ -80,12 +80,12 @@ class NumberField extends InputComponent {
         }
         return min;
     }
-    _getMaxVal(entity, options) {
+    _getMaxVal(entity, props, options) {
         let max = Infinity;
         if (this._maxVal) {
             max = Number(this._maxVal);
             if (Number.isNaN(max)) {
-                max = Number(ComputablePhrase.computeMessageStatic(this._maxVal, entity.system.props, {
+                max = Number(ComputablePhrase.computeMessageStatic(this._maxVal, props, {
                     source: `${options?.source ?? this.key}.max`,
                     reference: options?.reference,
                     defaultValue: '0',
@@ -105,6 +105,7 @@ class NumberField extends InputComponent {
      */
     async _getElement(entity, isEditable = true, options = {}) {
         const { reference } = options;
+        const props = { ...entity.system.props, ...options.customProps };
         const jQElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-number-field');
         const fieldSpan = $('<span></span>');
@@ -117,17 +118,17 @@ class NumberField extends InputComponent {
         const inputElement = $('<input />');
         inputElement.attr('type', this._inputStyle);
         if (this._inputStyle === 'range') {
-            inputElement.attr('min', this._getMinVal(entity, options));
-            inputElement.attr('max', this._getMaxVal(entity, options));
+            inputElement.attr('min', this._getMinVal(entity, props, options));
+            inputElement.attr('max', this._getMaxVal(entity, props, options));
         }
         inputElement.attr('id', `${entity.uuid}-${this.key}`);
         if (!isEditable) {
             hiddenInputElement.attr('disabled', 'disabled');
             inputElement.attr('disabled', 'disabled');
         }
-        const fieldValue = foundry.utils.getProperty(entity.system.props, this.key) ??
+        const fieldValue = foundry.utils.getProperty(props, this.key) ??
             (this.defaultValue
-                ? Number(ComputablePhrase.computeMessageStatic(this.defaultValue, entity.system.props, {
+                ? Number(ComputablePhrase.computeMessageStatic(this.defaultValue, props, {
                     source: `${this.key}.defaultValue`,
                     reference,
                     defaultValue: '',
@@ -153,12 +154,12 @@ class NumberField extends InputComponent {
                 if (this._allowRelative && (newValue.startsWith('+') || newValue.startsWith('-'))) {
                     persistedValue = Number(oldValue) + Number(newValue);
                 }
-                const min = this._getMinVal(entity, options);
+                const min = this._getMinVal(entity, props, options);
                 if (persistedValue < min) {
                     persistedValue = min;
                     ui.notifications.warn(game.i18n.format('CSB.UserMessages.NumberField.ValueNotTooLow', { VALUE: min }));
                 }
-                const max = this._getMaxVal(entity, options);
+                const max = this._getMaxVal(entity, props, options);
                 if (persistedValue > max) {
                     persistedValue = max;
                     ui.notifications.warn(game.i18n.format('CSB.UserMessages.NumberField.ValueNotTooHigh', { VALUE: max }));
@@ -192,25 +193,25 @@ class NumberField extends InputComponent {
                         minusTenButton.text('-10');
                         minusTenButton.addClass('custom-system-number-field-control');
                         minusTenButton.on('click', () => {
-                            inputElement.val(Math.max(Number(inputElement.val()) - 10, this._getMinVal(entity, options)));
+                            inputElement.val(Math.max(Number(inputElement.val()) - 10, this._getMinVal(entity, props, options)));
                         });
                         const minusButton = $('<button type="button"></button >');
                         minusButton.text('-1');
                         minusButton.addClass('custom-system-number-field-control');
                         minusButton.on('click', () => {
-                            inputElement.val(Math.max(Number(inputElement.val()) - 1, this._getMinVal(entity, options)));
+                            inputElement.val(Math.max(Number(inputElement.val()) - 1, this._getMinVal(entity, props, options)));
                         });
                         const plusButton = $('<button type="button"></button >');
                         plusButton.text('+1');
                         plusButton.addClass('custom-system-number-field-control');
                         plusButton.on('click', () => {
-                            inputElement.val(Math.min(Number(inputElement.val()) + 1, this._getMaxVal(entity, options)));
+                            inputElement.val(Math.min(Number(inputElement.val()) + 1, this._getMaxVal(entity, props, options)));
                         });
                         const plusTenButton = $('<button type="button"></button >');
                         plusTenButton.text('+10');
                         plusTenButton.addClass('custom-system-number-field-control');
                         plusTenButton.on('click', () => {
-                            inputElement.val(Math.min(Number(inputElement.val()) + 10, this._getMaxVal(entity, options)));
+                            inputElement.val(Math.min(Number(inputElement.val()) + 10, this._getMaxVal(entity, props, options)));
                         });
                         fieldSpan.append(minusTenButton);
                         fieldSpan.append(minusButton);
@@ -230,14 +231,14 @@ class NumberField extends InputComponent {
                         minusButton.append('<i class="fa fa-minus"></i>');
                         minusButton.addClass('custom-system-number-field-control custom-system-number-field-control-minus');
                         minusButton.on('click', () => {
-                            inputElement.val(Math.max(Number(inputElement.val()) - 1, this._getMinVal(entity, options)));
+                            inputElement.val(Math.max(Number(inputElement.val()) - 1, this._getMinVal(entity, props, options)));
                         });
                         minusButton.hide();
                         const plusButton = $('<button type="button"></button >');
                         plusButton.append('<i class="fa fa-plus"></i>');
                         plusButton.addClass('custom-system-number-field-control custom-system-number-field-control-plus');
                         plusButton.on('click', () => {
-                            inputElement.val(Math.min(Number(inputElement.val()) + 1, this._getMaxVal(entity, options)));
+                            inputElement.val(Math.min(Number(inputElement.val()) + 1, this._getMaxVal(entity, props, options)));
                         });
                         plusButton.hide();
                         fieldSpan.append(minusButton);

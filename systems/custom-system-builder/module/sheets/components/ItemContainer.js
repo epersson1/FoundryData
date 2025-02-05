@@ -10,7 +10,7 @@
  * @module
  */
 import ExtensibleTable, { TABLE_SORT_OPTION, COMPARISON_OPERATOR, SORT_OPERATORS } from './ExtensibleTable.js';
-import { castToPrimitive, getLocalizedAlignmentList } from '../../utils.js';
+import { castToPrimitive, fastSetFlag, getLocalizedAlignmentList } from '../../utils.js';
 import Formula from '../../formulas/Formula.js';
 import { isComputableElement
 // isComputableElement
@@ -53,7 +53,7 @@ class ItemContainer extends ExtensibleTable {
         let relevantItems = this.filterItems(entity, options);
         if (!entity.isTemplate) {
             relevantItems = this._sortItems(relevantItems, entity);
-            await game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption.savedOrder', relevantItems.map((item) => item.id));
+            fastSetFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption.savedOrder', relevantItems.map((item) => item.id));
         }
         if (!this._headDisplay && !this._showDelete && this.contents.length === 0 && !entity.isTemplate) {
             jQElement.addClass('flexcol flex-group-no-stretch');
@@ -124,7 +124,7 @@ class ItemContainer extends ExtensibleTable {
                     }
                     cell.addClass('custom-system-clickable');
                     cell.on('click', async () => {
-                        await game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
+                        fastSetFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
                             prop: 'name',
                             operator: nextSortIsToAsc
                                 ? COMPARISON_OPERATOR.LESSER_THAN
@@ -186,7 +186,7 @@ class ItemContainer extends ExtensibleTable {
                         }
                         cell.addClass('custom-system-clickable');
                         cell.on('click', async () => {
-                            await game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
+                            fastSetFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
                                 prop: component.key,
                                 operator: nextSortIsToAsc
                                     ? COMPARISON_OPERATOR.LESSER_THAN
@@ -297,7 +297,7 @@ class ItemContainer extends ExtensibleTable {
                                 if (!item.id) {
                                     return;
                                 }
-                                await entity.entity.deleteEmbeddedDocuments('Item', [item.id]);
+                                await item.delete();
                                 entity.render(false);
                             };
                             if (this._deleteWarning) {
@@ -334,6 +334,7 @@ class ItemContainer extends ExtensibleTable {
         for (const item of relevantItems) {
             computationFunctions[`${computationKey}.${item.id}.name`] = { formula: item.name ?? '' };
             computationFunctions[`${computationKey}.${item.id}.id`] = { formula: item.id };
+            computationFunctions[`${computationKey}.${item.id}.uuid`] = { formula: item.uuid };
             const itemProps = item.system.props;
             itemProps.name = item.name;
             for (const computableElement of computableFields) {
@@ -631,8 +632,8 @@ class ItemContainer extends ExtensibleTable {
                 sortPredicates = this._sortPredicates.map((predicate) => ({ ...predicate })).reverse();
                 sortPredicates.forEach((predicate) => {
                     items.sort((a, b) => {
-                        const aValue = a.system.props[predicate.prop];
-                        const bValue = b.system.props[predicate.prop];
+                        const aValue = castToPrimitive(a.system.props[predicate.prop]) ?? '';
+                        const bValue = castToPrimitive(b.system.props[predicate.prop]) ?? '';
                         const value = castToPrimitive(predicate.value);
                         return ItemContainer.getSortOrder(aValue, bValue, value, predicate.operator);
                     });
@@ -745,13 +746,12 @@ class ItemContainer extends ExtensibleTable {
         const temp = savedOrder[index1];
         savedOrder[index1] = savedOrder[index2];
         savedOrder[index2] = temp;
-        game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
+        fastSetFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.sortOption', {
             ['-=prop']: true,
             ['-=operator']: true,
             savedOrder
-        }).then(() => {
-            entity.render(false);
         });
+        entity.render(false);
     }
     /**
      * Fetches data from an HTML-Table

@@ -18,6 +18,9 @@ export default class CustomDialog extends Dialog {
      * @override
      */
     submit(button, event) {
+        if (!button) {
+            return;
+        }
         try {
             let result = true;
             if (button.callback)

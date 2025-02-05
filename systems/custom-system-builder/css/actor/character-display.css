@@ -101,12 +101,6 @@
     }
 }
 
-.custom-system-actor .editor {
-    height: 100%;
-    min-height: 100px;
-    width: 100%;
-}
-
 .tabs .active {
     text-shadow: 0 0 8px var(--color-shadow-primary);
 }
@@ -678,6 +672,16 @@ table {
 
 /* RICH EDITOR STYLING */
 
+.custom-system-actor .editor {
+    height: 100%;
+    width: 100%;
+    min-height: 100px;
+}
+
+.custom-system .prosemirror .editor-container .editor-content {
+    position: relative;
+}
+
 .custom-system-rich-editor {
     height: fill-available;
     height: -webkit-fill-available;
@@ -707,6 +711,15 @@ table {
     width: 100%;
 }
 
+.custom-system-dialog-editor {
+    height: 100%;
+    width: 100%;
+}
+
+.custom-system-dialog-editor .editor-content {
+    overflow-y: auto;
+}
+
 .custom-system-text-area {
     display: block;
 }
@@ -718,4 +731,8 @@ table {
 
 .custom-system-clickable {
     cursor: pointer;
+}
+
+.window-app .window-content > .dialog-buttons {
+    flex-grow: 0;
 }

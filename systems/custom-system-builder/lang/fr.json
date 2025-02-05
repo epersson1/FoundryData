@@ -391,6 +391,9 @@
             "Target": "Valeur",
             "Where": "Où"
         },
+        "Items": {
+            "EmbeddedItemsFolderDescription": "Ce dossier contient tous les objets inclus dans des objets au niveau du jeu (pas dans un acteur)"
+        },
         "Modifier": {
             "Description": "Desc.",
             "EditDialog": {
@@ -482,9 +485,12 @@
             "Variable": "Variable"
         },
         "UserMessages": {
+            "CannotMoveItemInItself": "Il est impossible de déplacer un objet à l'intérieur de lui-même",
             "Dropdown": {
                 "OptionsLengthError": "{COMPONENT_KEY}: Les listes de clés et de libellés pour les options ne sont pas de la même longueur."
             },
+            "EmbeddedItemsFolderNotFound": "Le dossier des objets inclus n'a pas été trouvé. Veuillez créer un dossier d'objets nommé {EMBEDDED_ITEMS_FOLDER_NAME}",
+            "ItemMaxDepth": "Les objets ne peuvent pas être imbriqués sur plus de {depth} niveaux.",
             "ItemTemplateDeleted": "Le modèle d'objet a été supprimé pour l'objet {ITEM_NAME} - {ITEM_UUID} utilisé dans {ENTITY_NAME} - {ENTITY_UUID}",
             "Label": {
                 "ChatCommandeCreationError": "Erreur à la création de la commande de chat."
