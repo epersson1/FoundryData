@@ -140,6 +140,8 @@ function setupActvities() {
 	globalThis.MidiQOL.activityTypes["attack"] = { documentClass: MidiAttackActivity };
 	setupDamageActivity();
 	globalThis.MidiQOL.activityTypes["damage"] = { documentClass: MidiDamageActivity };
+	setupCastActivity();
+	globalThis.MidiQOL.activityTypes["cast"] = { documentClass: MidiDamageActivity };
 	setupSaveActivity();
 	globalThis.MidiQOL.activityTypes["save"] = { documentClass: MidiSaveActivity };
 	setupCheckActivity(); // must happen after setupSaveActivity
@@ -453,10 +455,10 @@ function addConfigOptions() {
 		config.midiProperties["noConcentrationCheck"] = i18n("midi-qol.noConcentrationEffectProp");
 		config.midiProperties["toggleEffect"] = i18n("midi-qol.toggleEffectProp");
 		config.midiProperties["ignoreTotalCover"] = i18n("midi-qol.ignoreTotalCover");
-		config.midiProperties["idr"] = "Ignore dr";
-		config.midiProperties["idi"] = "Ignore di";
-		config.midiProperties["idv"] = "Ignore dv";
-		config.midiProperties["ida"] = "Ignore da";
+		// config.midiProperties["idr"] = "Ignore dr";
+		// config.midiProperties["idi"] = "Ignore di";
+		// config.midiProperties["idv"] = "Ignore dv";
+		// config.midiProperties["ida"] = "Ignore da";
 		config.damageTypes["none"] = { label: i18n("midi-qol.noType"), icon: "systems/dnd5e/icons/svg/trait-damage-immunities.svg", toString: function () { return this.label; } };
 		config.damageTypes["midi-none"] = { label: i18n("midi-qol.midi-none"), icon: "systems/dnd5e/icons/svg/trait-damage-immunities.svg", toString: function () { return this.label; } };
 		// sliver, adamant, spell, nonmagic, maic are all deprecated and should only appear as custom
@@ -697,6 +699,7 @@ import { resolveTargetConfirmation, showItemInfo, templateTokens } from './modul
 import { MidiActivityMixin, setupMidiActivityMixin } from './module/activities/MidiActivityMixin.js';
 import { MidiForwardActivity, setupForwardActivity } from './module/activities/ForwardActivity.js';
 import { MidiEnchantActivity, setupEnchantActivity } from './module/activities/EnchantActivity.js';
+import { setupCastActivity } from './module/activities/CastActivity.js';
 Hooks.once("midi-qol.midiReady", () => {
 	setupMidiTests();
 });
@@ -712,7 +715,7 @@ const MidiQOL = {
 	canSense: function canSee(tokenEntity: Token | TokenDocument | string, targetEntity: Token | TokenDocument | string): boolean,
 	cansSenseModes: function canSenseModes(tokenEntity: Token | TokenDocument | string, targetEntity: Token | TokenDocument | string, validModes: Array<string> = ["all"]): Array<string>,
 	checkDistance: function checkDistnce(tokenEntity1: Token | TokenDocument | string, tokenEntity2: Token | TokenDocument | string, distance: number, wallsBlock?: boolean): boolean,
-	checkIncapacitated: function checkIncapacitated(actor: Actor, logResult?: true): boolean,
+	checkIncapacitated: function checkIncapacitated(actor: Actor, logResult?: true, warning?: false): boolean,
 	checkNearby: function checkNearby(tokenEntity: Token | TokenDocument | string, targetEntity: Token | TokenDocument | string, range: number): boolean,
 	checkRange: function checkRange(item: Item, tokenEntity: Token | TokenDocument | string, targetEntity: Token | TokenDocument | string, range: number): boolean,
 	checkActivityRange: function checkActivityRange(activity: Activity, tokenEntity: Token | TokenDocument | string, targetEntity: Token | TokenDocument | string, range: number): boolean,

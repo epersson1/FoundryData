@@ -10,20 +10,9 @@
   },
   "authors": [
     {
-      "name": "Cody Swendrowski",
-      "url": "https://swendrowski.us",
-      "email": "cody@swendrowski.us",
-      "discord": "cswendrowski#9701",
-      "flags": {}
-    },
-    {
-      "name": "The League of Extraordinary FVTT Developers",
-      "url": "https://github.com/League-of-Foundry-Developers",
-      "discord": "https://discord.gg/Es2Bv9MyaR",
-      "flags": {}
-    },
-    {
       "name": "Adrian Haberecht",
+      "url": "https://gitlab.com/woodentavern",
+      "discord": "dj_addi",
       "flags": {}
     }
   ],

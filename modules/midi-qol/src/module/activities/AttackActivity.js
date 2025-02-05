@@ -3,7 +3,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 	if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
 	return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-import { debugEnabled, warn, GameSystemConfig, debug, i18n } from "../../midi-qol.js";
+import { debugEnabled, warn, GameSystemConfig, debug, i18n, MODULE_ID } from "../../midi-qol.js";
 import { untimedExecuteAsGM } from "../GMAction.js";
 import { Workflow } from "../Workflow.js";
 import { defaultRollOptions } from "../patching.js";
@@ -12,6 +12,7 @@ import { busyWait } from "../tests/setupTest.js";
 import { addAdvAttribution, areMidiKeysPressed, asyncHooksCall, displayDSNForRoll, getSpeaker, processAttackRollBonusFlags } from "../utils.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
 import { doActivityReactions } from "./activityHelpers.js";
+import { OnUseMacros } from "../apps/Item.js";
 export var MidiAttackSheet;
 export var MidiAttackActivity;
 export var MidiAttackActivityData;
@@ -212,6 +213,10 @@ let defineMidiAttackActivityClass = (ActivityClass) => {
 					if (this.workflow) {
 						this.workflow.attackMode = rolls[0].options.attackMode ?? config.attackMode;
 						this.workflow.ammunition = rolls[0].options.ammunition ?? config.ammunition;
+						this.workflow.ammo = this.ammunitionItem;
+						if (configSettings.allowUseMacro) {
+							this.workflow.ammoOnUseMacros = foundry.utils.getProperty(this.workflow.ammo ?? {}, `flags.${MODULE_ID}.onUseMacroParts`) ?? new OnUseMacros();
+						}
 						if (this.workflow.workflowOptions?.attackRollDSN !== false)
 							await displayDSNForRoll(rolls[0], "attackRollD20");
 						await this.workflow?.setAttackRoll(rolls[0]);

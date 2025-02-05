@@ -223,7 +223,6 @@
     "wallsBlock": "Walls Block",
     "wallsBlockIgnoreIncapacitated": "Walls Block - Ignore Incapacitated/Dead",
     "wallsBlockIgnoreDefeated": "Walls Block - Ignore Dead",
-    "dftemplates": "Use DF Template Enhancements",
     "walledtemplates": "Use Walled Templates"
   },
   "midi-qol.autoCheckSavesOptions": {
@@ -510,7 +509,12 @@
     "tokenvisibility": "Alternative Token Visibility - deprecated"
   },
   "midi-qol.NearbyAllyRanged.Hint": "Ranged Attacks with allies nearby (5 feet) to the target have disadvantage for targets smaller than this (w*h). 0 disables",
-  "midi-qol.Incapacitated.Name": "Incapacitated actors can't take actions or reactions",
+  "midi-qol.Incapacitated.Name": "When an Incapacitated actor takes an action, MidiQOL should",
+  "midi-qol.IncapacitatedOptions": {
+    "nothing": "Do nothing",
+    "enforce": "Enforce no actions",
+    "warn": "Post a warning only"
+  },
   "midi-qol.RemoveHiddenInvis.Name": "Attacking removes hidden (use CE/CV/CUB/core foundry specialStatus )",
   "midi-qol.CriticalSaves.Name": "(House Rule) Critical/Fumble always succeed/fail for saving throws",
   "midi-qol.MaxDRValue.Name": "(House rule) Enabling this means that only the most effective Damage Reduction will apply. Off means DR accumulates",
@@ -896,22 +900,6 @@
   "midi-qol.MidiSettings": "Midi Settings",
   "midi-qol.ConcentrationIncapacitatedConditionCheck.Name": "Remove concentration when incapacitated status applied",
   "midi-qol.ConcentrationIncapacitatedConditionCheck.Hint": "Incapacitated, Dead,  Unconscious, Petrified, Paralysed and Stunned remove concentration",
-  "midi-qol.AoETargetType.Name": "AoE Target Type",
-  "midi-qol.AoETargetType.Hint": "Midi will only target tokens of the specified type when using AoE templates",
-  "midi-qol.AoETargetTypeOptions": {
-    "any": "Any",
-    "ally": "Ally",
-    "notAlly": "Non Ally",
-    "enemy": "Enemy",
-    "notEnemy": "Non Enemy",
-    "neutral": "Neutral",
-    "notNeutral": "Non Neutral",
-    "hostile": "Hostile",
-    "notHostile": "Not Hostile",
-    "Friendly": "Friendly",
-    "notFriendly": "Not Friendly"
-  },
-  "midi-qol.AoETargetTypeIncludeSelf.Name": "Include Self in AoE targets",
   "midi-qol.AutoCompleteWorkflow.Name": "Autocomplete workflow if required",
   "midi-qol.AutoCompleteWorkflow.Hint": "Workflows will be marked as complete if rolled before completion, no extra rolls will be performed",
   "midi-qol.emanationNoTemplate": "Emanation - No Template",
@@ -942,6 +930,19 @@
   "midi-qol.ConfirmAmmunition.Name": "Confirm Ammunition choice when rolling attack - shows attack roll configuration",
   "midi-qol.ActivityNamePrefix.Name": "Activity Prefix",
   "midi-qol.ActivityNamePrefix.Hint": "Prefix midi-qol activities name with Midi. Change requires reload",
+  "midi-qol.AoETargetTypeOptions": {
+    "any": "Any",
+    "ally": "Ally",
+    "notAlly": "Non Ally",
+    "enemy": "Enemy",
+    "notEnemy": "Non Enemy",
+    "neutral": "Neutral",
+    "notNeutral": "Non Neutral",
+    "hostile": "Hostile",
+    "notHostile": "Not Hostile",
+    "Friendly": "Friendly",
+    "notFriendly": "Not Friendly"
+  },
   "midi-qol.TriggeredActivityTargetOptions": {
     "self": "Target item owner",
     "targets": "Same targets",
@@ -983,6 +984,14 @@
         "confirmTargets": {
           "label": "Target Confirmation",
           "hint": "Confirm targets before rolling"
+        },
+        "autoTargetType": {
+          "label": "AoE Target Type",
+          "hint": "Midi will only target tokens of the specified type when using AoE templates"
+        },
+        "autoTargetAction": {
+          "label": "Target on template draw",
+          "hint": "When placing a template (e.g. spell) target tokens inside the template. If 'Center + Levels' is set in ranged targeting Levels Volumetric Templates will be used (if installed)"
         },
         "automationOnly": {
           "label": "Automation Only",
@@ -1090,6 +1099,12 @@
         "label": "Other Activity",
         "hint": "Extra activity to preform 'other' damage"
       }
+    }
+  },
+  "midi-qol.CAST": {
+    "Title": {
+      "one": "Midi Cast",
+      "other": "Midi Casts"
     }
   },
   "midi-qol.DAMAGE": {

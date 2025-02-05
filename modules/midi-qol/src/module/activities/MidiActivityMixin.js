@@ -12,7 +12,7 @@ import { checkMechanic, configSettings } from "../settings.js";
 import { installedModules } from "../setupModules.js";
 import { busyWait } from "../tests/setupTest.js";
 import { saveUndoData } from "../undo.js";
-import { activityHasAreaTarget, asyncHooksCall, canSee, canSense, checkActivityRange, checkIncapacitated, createConditionData, displayDSNForRoll, evalActivationCondition, evalCondition, getAutoRollAttack, getAutoRollDamage, getRemoveAttackButtons, getRemoveDamageButtons, getSpeaker, getStatusName, getToken, activityHasAutoPlaceTemplate, hasUsedBonusAction, hasUsedReaction, initializeVision, isAutoConsumeResource, isInCombat, needsBonusActionCheck, needsReactionCheck, processDamageRollBonusFlags, setBonusActionUsed, setReactionUsed, sumRolls, tokenForActor, validTargetTokens, activityHasEmanationNoTemplate, getActivityAutoTarget, areMidiKeysPressed, getActor, setRangedTargets, isAutoFastDamage } from "../utils.js";
+import { activityHasAreaTarget, asyncHooksCall, canSee, canSense, checkActivityRange, checkIncapacitated, createConditionData, displayDSNForRoll, evalActivationCondition, evalCondition, getAutoRollAttack, getAutoRollDamage, getRemoveAttackButtons, getRemoveDamageButtons, getSpeaker, getToken, activityHasAutoPlaceTemplate, hasUsedBonusAction, hasUsedReaction, initializeVision, isAutoConsumeResource, isInCombat, logIncapacitatedCheckResult, needsBonusActionCheck, needsReactionCheck, processDamageRollBonusFlags, setBonusActionUsed, setReactionUsed, sumRolls, tokenForActor, validTargetTokens, activityHasEmanationNoTemplate, getActivityAutoTargetAction, areMidiKeysPressed, getActor, setRangedTargets, isAutoFastDamage } from "../utils.js";
 import { confirmWorkflow, preTemplateTargets, removeFlanking, selectTargets, setDamageRollMinTerms } from "./activityHelpers.js";
 export var MidiActivityMixin = Base => {
 	var _a, _b, _MidiActivityMixin_applyEffects, _MidiActivityMixin_confirmDamageRollCancel, _MidiActivityMixin_confirmDamageRollComplete, _MidiActivityMixin_confirmDamageRollCompleteHit, _MidiActivityMixin_confirmDamageRollCompleteMiss, _MidiActivityMixin_rollDamageNoCritical, _MidiActivityMixin_rollDamgeCritical;
@@ -51,6 +51,8 @@ export var MidiActivityMixin = Base => {
 						triggeredActivityRollAs: new StringField({ name: "triggeredActivityRollAs", initial: "self" }),
 						forceDialog: new BooleanField({ name: "forceDialog", initial: false }),
 						confirmTargets: new StringField({ name: "confirmTargets", initial: "default" }),
+						autoTargetType: new StringField({ name: "autoTargetType", initial: "any" }),
+						autoTargetAction: new StringField({ name: "autoTargetAction", initial: "default" }),
 						automationOnly: new BooleanField({ name: "automationOnly", initial: false }),
 						otherActivityCompatible: new BooleanField({ name: "otherActivityCompatible", initial: true }),
 						identifier: new StringField({ name: "identifier", initial: "", required: false }),
@@ -674,11 +676,12 @@ export var MidiActivityMixin = Base => {
 				if (debugEnabled > 0)
 					warn("MidiQOL | confirmCanProceed | Called", this);
 				try {
-					if (!config.midiOptions?.workflowOptions?.allowIncapacitated && checkMechanic("incapacitated")) {
-						const condition = checkIncapacitated(this.actor, true);
+					if (!config.midiOptions?.workflowOptions?.allowIncapacitated && checkMechanic("incapacitated") !== "nothing") {
+						const condition = checkIncapacitated(this.actor, true, false);
 						if (condition) {
-							ui.notifications?.warn(`${this.actor.name} is ${getStatusName(condition)} and is incapacitated`);
-							return false;
+							logIncapacitatedCheckResult(this.actor.name, condition, debugEnabled > 0, true);
+							if (checkMechanic("incapacitated") === "enforce")
+								return false;
 						}
 					}
 					let isEmanationTargeting = activityHasAutoPlaceTemplate(this) || activityHasEmanationNoTemplate(this);
@@ -905,11 +908,12 @@ export var MidiActivityMixin = Base => {
 							return this.removeWorkflow();
 						}
 					}
-					if (!config.midiOptions?.workflowOptions?.allowIncapacitated && checkMechanic("incapacitated")) {
-						const condition = checkIncapacitated(this.actor, true);
+					if (!config.midiOptions?.workflowOptions?.allowIncapacitated && checkMechanic("incapacitated") !== "nothing") {
+						const condition = checkIncapacitated(this.actor, true, false);
 						if (condition) {
-							ui.notifications?.warn(`${this.actor.name} is ${getStatusName(condition)} and is incapacitated`);
-							return this.removeWorkflow();
+							logIncapacitatedCheckResult(this.actor.name, condition, debugEnabled > 0, true);
+							if (checkMechanic("incapacitated") === "enforce")
+								return this.removeWorkflow();
 						}
 					}
 					let isEmanationTargeting = activityHasAutoPlaceTemplate(this) || activityHasEmanationNoTemplate(this);
@@ -1230,7 +1234,7 @@ export var MidiActivityMixin = Base => {
 								if (workflow && !foundry.utils.getProperty(this, "item.flags.walledtemplates.noAutotarget"))
 									selectTargets.bind(this)(td);
 							}
-							else if (getActivityAutoTarget(this) !== "none")
+							else if (getActivityAutoTargetAction(this) !== "none")
 								selectTargets.bind(this)(td);
 						}
 						return templates;
@@ -1471,7 +1475,12 @@ export var MidiActivityMixinSheet = Base => {
 					//@ts-expect-error
 					return { value, label: entry.label, selected: this.activity.midiProperties.ignoreTraits.has(value) };
 				});
+				context.AutoTargetTypeOptions = Object.entries(geti18nOptions("AoETargetTypeOptions")).map(([value, label]) => ({ value, label }));
+				const defaultAction = { "default": i18n("midi-qol.MidiSettings") };
+				context.AutoTargetActionOptions = Object.entries(mergeObject(defaultAction, geti18nOptions("autoTargetOptions"))).map(([value, label]) => ({ value, label }));
+				context.hasAreaTarget = this.activity.target?.template?.type;
 				context.possibleOtherActivity = this.activity.possibleOtherActivity;
+				console.error(context);
 				return context;
 			}
 			async _preparePartContext(partId, context) {

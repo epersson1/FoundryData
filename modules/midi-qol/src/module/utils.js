@@ -1607,10 +1607,11 @@ export function checkDefeated(actorRef) {
 	return hasCondition(actor, CONFIG.specialStatusEffects.DEFEATED)
 		|| hasCondition(actor, configSettings.midiDeadCondition);
 }
-export function checkIncapacitated(actorRef, logResult = true) {
+export function checkIncapacitated(actorRef, logResult = true, warning = false) {
 	const actor = getActor(actorRef);
 	if (!actor)
 		return false;
+	let status = false;
 	//@ts-expect-error
 	if (actor.system.traits?.ci?.value?.has("incapacitated"))
 		return false;
@@ -1619,9 +1620,7 @@ export function checkIncapacitated(actorRef, logResult = true) {
 		const vitality = foundry.utils.getProperty(actor, vitalityResource.trim()) ?? 0;
 		//@ts-expect-error .system
 		if (vitality <= 0 && actor?.system.attributes?.hp?.value <= 0) {
-			if (logResult)
-				log(`${actor.name} is dead and therefore incapacitated`);
-			return "dead";
+			status = "dead";
 		}
 	}
 	else {
@@ -1631,28 +1630,29 @@ export function checkIncapacitated(actorRef, logResult = true) {
 		}
 		//@ts-expect-error .system
 		if (actor?.system?.attributes?.hp?.value <= 0) {
-			if (logResult)
-				log(`${actor.name} is incapacitated`);
-			return "dead";
+			status = "dead";
 		}
 	}
 	if (configSettings.midiUnconsciousCondition && hasCondition(actor, configSettings.midiUnconsciousCondition)) {
-		if (logResult)
-			log(`${actor.name} is ${getStatusName(configSettings.midiUnconsciousCondition)} and therefore incapacitated`);
-		return configSettings.midiUnconsciousCondition;
+		status = configSettings.midiUnconsciousCondition;
 	}
 	if (configSettings.midiDeadCondition && hasCondition(actor, configSettings.midiDeadCondition)) {
-		if (logResult)
-			log(`${actor.name} is ${getStatusName(configSettings.midiDeadCondition)} and therefore incapacitated`);
-		return configSettings.midiDeadCondition;
+		status = configSettings.midiDeadCondition;
 	}
 	const incapCondition = (globalThis.MidiQOL.incapacitatedConditions ?? ["incapacitated"]).find(cond => hasCondition(actor, cond));
 	if (incapCondition) {
-		if (logResult)
-			log(`${actor.name} has condition ${getStatusName(incapCondition)} so incapacitated`);
-		return incapCondition;
+		status = incapCondition;
 	}
-	return false;
+	if (status)
+		logIncapacitatedCheckResult(actor.name ?? "unknown", status, logResult, warning);
+	return status;
+}
+export function logIncapacitatedCheckResult(actorName, status, logResult = true, warning = false) {
+	const displayString = status === "incapacitated" ? `${actorName} is ${getStatusName(status)}` : `${actorName} is ${getStatusName(status)} and therefore ${getStatusName("incapacitated")}`;
+	if (logResult)
+		log(displayString);
+	if (warning)
+		ui.notifications?.warn(displayString);
 }
 export function getUnitDist(x1, y1, z1, token2) {
 	if (!canvas?.dimensions)
@@ -2775,7 +2775,7 @@ export function findNearby(disposition, token /*Token | uuuidString */, distance
 			//@ts-expect-error .height .width v10
 			if (options.maxSize && t.document.height * t.document.width > options.maxSize)
 				return false;
-			if (!options.includeIncapacitated && checkIncapacitated(t.actor, debugEnabled > 0))
+			if (!options.includeIncapacitated && checkIncapacitated(t.actor, debugEnabled > 0, false))
 				return false;
 			let inRange = false;
 			if (t.actor &&
@@ -3591,6 +3591,15 @@ export async function bonusDialog(bonusFlags, flagSelector, showRoll, title, rol
 						if (showDiceSoNice)
 							await displayDSNForRoll(newRoll, rollType, rollMode);
 					}
+					else if (typeof button.value == "string" && button.value.startsWith("reroll-withBonus")) {
+						let bonus = button.value.split("reroll-withBonus ").slice(1).join(" ");
+						if (!bonus.startsWith("+"))
+							bonus = "+" + bonus;
+						//@ts-expect-error
+						newRoll = await new roll.constructor(`${roll.formula} ${bonus}`, roll.data).roll();
+						if (showDiceSoNice)
+							await displayDSNForRoll(newRoll, rollType, rollMode);
+					}
 					else if (flagSelector.startsWith("damage.") && foundry.utils.getProperty(this.actor ?? this, `${button.key}.criticalDamage`)) {
 						//@ts-expect-error .DamageRoll
 						const DamageRoll = CONFIG.Dice.DamageRoll;
@@ -3788,6 +3797,43 @@ export function getOptionalCountRemainingShortFlag(actor, flag) {
 	const countRemaining = getOptionalCountRemaining(actor, `flags.${MODULE_ID}.optional.${flag}.count`) && getOptionalCountRemaining(actor, `flags.${MODULE_ID}.optional.${flag}.countAlt`);
 	return countRemaining;
 }
+//@ts-expect-error
+function getOptionalItemUsesItemMatch(actor, countValue, returnItem = false) {
+	let itemNames = countValue.split(".");
+	let itemName;
+	//@ts-expect-error
+	let item;
+	if (itemNames[1] === "identifier") {
+		itemName = itemNames[2];
+		item = actor.items.find(i => i.identifier === itemName);
+	}
+	else if (itemNames[1] === "partialNameMatch") {
+		itemName = itemNames[2];
+		item = actor.items.find(i => i.name.includes(itemName));
+	}
+	else if (itemNames[1] === "exactNameMatch") {
+		itemName = itemNames[2];
+		item = actor.items.getName(itemName);
+	}
+	else {
+		itemName = itemNames[1];
+		item = actor.items.getName(itemName);
+	}
+	if (returnItem) {
+		if (!item) {
+			const message = `midi-qol | removeEffectGranting | could not decrement uses for ${itemName} on actor ${actor.name}`;
+			error(message);
+			TroubleShooter.recordError(new Error(message), message);
+			return undefined;
+		}
+		else {
+			return item;
+		}
+	}
+	else {
+		return item?.system.uses.value;
+	}
+}
 //@ts-expect-error dnd5e v10
 export function getOptionalCountRemaining(actor, flag) {
 	const countValue = foundry.utils.getProperty(actor, flag);
@@ -3813,9 +3859,7 @@ export function getOptionalCountRemaining(actor, flag) {
 	if (Number.isNumeric(countValue))
 		return countValue;
 	if (countValue.startsWith("ItemUses.")) {
-		const itemName = countValue.split(".")[1];
-		const item = actor.items.getName(itemName);
-		return item?.system.uses.value;
+		return getOptionalItemUsesItemMatch(actor, countValue, false);
 	}
 	if (countValue.startsWith("@")) {
 		let result = foundry.utils.getProperty(actor?.system ?? {}, countValue.slice(1));
@@ -3846,25 +3890,15 @@ export async function removeEffectGranting(actor, changeKey) {
 		await effect.update({ changes: effectData.changes });
 	}
 	if (typeof count.value === "string" && count.value.startsWith("ItemUses.")) {
-		const itemName = count.value.split(".")[1];
-		const item = actor.items.getName(itemName);
-		if (!item) {
-			const message = `midi-qol | removeEffectGranting | could not decrement uses for ${itemName} on actor ${actor.name}`;
-			error(message);
-			TroubleShooter.recordError(new Error(message), message);
+		const item = getOptionalItemUsesItemMatch(actor, count.value, true);
+		if (!item)
 			return;
-		}
 		await item.update({ "system.uses.spent": Math.max(0, item.system.uses.spent + 1) });
 	}
 	if (typeof countAlt?.value === "string" && countAlt.value.startsWith("ItemUses.")) {
-		const itemName = countAlt.value.split(".")[1];
-		const item = actor.items.getName(itemName);
-		if (!item) {
-			const message = `midi-qol | removeEffectGranting | could not decrement uses for ${itemName} on actor ${actor.name}`;
-			error(message);
-			TroubleShooter.recordError(new Error(message), message);
+		const item = getOptionalItemUsesItemMatch(actor, countAlt.value, true);
+		if (!item)
 			return;
-		}
 		await item.update({ "system.uses.spent": Math.max(0, item.system.uses.spent + 1) });
 	}
 	const actorUpdates = {};
@@ -3996,12 +4030,12 @@ export async function doReactions(targetRef, triggerTokenUuid, attackRoll, trigg
 		if (!target.actor || !target.actor.flags)
 			return noResult;
 		// TODO V4 Change no reactions if incapacitated - I think this makes sense.
-		if (checkIncapacitated(target.actor, debugEnabled > 0))
+		if (checkIncapacitated(target.actor, debugEnabled > 0, false))
 			return noResult;
-		if (checkRule("incapacitated")) {
+		if (checkMechanic("incapacitated")) {
 			try {
 				enableNotifications(false);
-				if (checkIncapacitated(target.actor, debugEnabled > 0))
+				if (checkIncapacitated(target.actor, debugEnabled > 0, false))
 					return noResult;
 			}
 			finally {
@@ -4731,7 +4765,7 @@ export function createConditionData(data) {
 		item = data.activity?.item ?? data.workflow?.activity?.item ?? data.workflow?.item;
 	let rollData = data.activity?.getRollData() ?? item?.getRollData() ?? actor.getRollData() ?? {};
 	rollData = foundry.utils.mergeObject(rollData, data.extraData ?? {});
-	rollData.isAttuned = rollData.item?.attuned || rollData.item?.attunment === "";
+	rollData.isAttuned = rollData.item?.attuned || rollData.item?.attunement === "";
 	rollData.options = data?.options;
 	rollData.isConcentrationCheck = foundry.utils.getProperty(rollData, 'options.messageData.flags.midi-qol.isConcentrationCheck');
 	rollData.actor = {};
@@ -4790,7 +4824,7 @@ export function createConditionData(data) {
 			rollData.combatTurn = game.combat?.turn;
 			rollData.combatTime = game.combat?.round + (game.combat.turn ?? 0) / 100;
 			//@ts-expect-error
-			rollData.actor.isCombatTurn = game.combat?.combatant?.tokenId === data.workflow?.token.id;
+			rollData.actor.isCombatTurn = game.combat?.combatant?.tokenId === data.workflow?.token?.id;
 		}
 		else
 			rollData.combatTime = 0;
@@ -5415,7 +5449,7 @@ export function computeFlankingStatus(token, target) {
 		if (!heightIntersects(ally.document, target.document))
 			continue;
 		const actor = ally.actor;
-		if (checkIncapacitated(ally.actor, debugEnabled > 0))
+		if (checkIncapacitated(ally.actor, debugEnabled > 0, false))
 			continue;
 		if (hasCondition(actor, "incapacitated"))
 			continue;
@@ -6450,13 +6484,12 @@ export function midiMeasureDistances(segments, options = {}) {
 		});
 	}
 }
-export function getActivityAutoTarget(activity) {
+export function getActivityAutoTargetAction(activity) {
 	const item = activity?.item;
 	if (!item)
 		return configSettings.autoTarget;
 	//TODO move this to per activity flag
-	const midiFlags = foundry.utils.getProperty(item, `flags.${MODULE_ID}`);
-	const autoTarget = midiFlags.autoTarget;
+	const autoTarget = activity.midiProperties.autoTargetAction;
 	if (!autoTarget || autoTarget === "default")
 		return configSettings.autoTarget;
 	return autoTarget;
@@ -6473,23 +6506,16 @@ export function getAoETargetType(activity) {
 		if (activityTarget.affects.type === "creature")
 			AoETargetType = "any";
 	}
-	if (!activityTarget?.override) {
-		if ((foundry.utils.getProperty(activity, `item.flags.${MODULE_ID}.AoETargetType`) ?? "any") !== "any") {
-			AoETargetType = foundry.utils.getProperty(activity, `item.flags.${MODULE_ID}.AoETargetType`);
-		}
+	if (activity.midiProperties.autoTargetType !== "any") {
+		console.error("AoETargetType ", activity.midiProperties.autoTargetType, AoETargetType);
+		AoETargetType = activity.midiProperties.autoTargetType;
 	}
 	return AoETargetType;
 }
 export function getAutoTarget(item) {
 	//@ts-expect-error
-	foundry.utils.logCompatibilityWarning("getAutoTarget(item) is deprecated in favor of getActivityAutoTarget(activity).", { since: "12.1.0", until: "12.5.0" });
-	if (!item)
-		return configSettings.autoTarget;
-	const midiFlags = foundry.utils.getProperty(item, `flags.${MODULE_ID}`);
-	const autoTarget = midiFlags.autoTarget;
-	if (!autoTarget || autoTarget === "default")
-		return configSettings.autoTarget;
-	return autoTarget;
+	foundry.utils.logCompatibilityWarning("getAutoTarget(item) is deprecated in favor of getActivityAutoTarget(activity).");
+	return configSettings.autoTarget;
 }
 export function hasAutoPlaceTemplate(item) {
 	return item && item.hasAreaTarget && ["self"].includes(item.system.range?.units) && ["radius", "squareRadius"].includes(item.system.target.type);
@@ -7138,7 +7164,7 @@ export function setRangedTargets(tokenToUse, targetDetails) {
 				//@ts-expect-error .disposition v10
 				&& dispositions.includes(target.document.disposition);
 			if (target.actor && ["wallsBlockIgnoreIncapacited", "alwaysIgnoreIncapacitated"].includes(configSettings.rangeTarget))
-				inRange = inRange && !checkIncapacitated(target.actor, debugEnabled > 0);
+				inRange = inRange && !checkIncapacitated(target.actor, debugEnabled > 0, false);
 			if (["wallsBlockIgnoreDefeated", "alwaysIgnoreDefeated"].includes(configSettings.rangeTarget))
 				inRange = inRange && !checkDefeated(target);
 			inRange = inRange && (configSettings.rangeTarget === "none" || !hasWallBlockingCondition(target));

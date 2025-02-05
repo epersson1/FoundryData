@@ -1233,10 +1233,17 @@ export async function daeMacro(action, actor, effectData, lastArgOptions = {}) {
     }
     if (lastArgOptions.item)
         theItem = lastArgOptions.item;
-    if (!theItem) {
-        //@ts-expect-error fromUuidSync
-        let source = effectData.origin ? fromUuidSync(effectData.origin) : undefined;
-        if (source instanceof CONFIG.Item.documentClass)
+    if (!theItem) { // follow the origin trail backwards
+        let source = effectData.origin ? await fromUuid(effectData.origin) : undefined;
+        let count;
+        for (count = 0; count < 10 && source instanceof ActiveEffect; count++) {
+            //@ts-expect-error
+            source = await fromUuid(source.origin);
+        }
+        if (count === 10) {
+            console.warn("dae | daeMacro | too many levels of origin", effectData);
+        }
+        else if (source instanceof Item)
             theItem = source;
     }
     if (!theItem && effectData.flags.dae?.itemUuid) {
@@ -1245,11 +1252,6 @@ export async function daeMacro(action, actor, effectData, lastArgOptions = {}) {
     }
     if (!theItem && effectData.flags?.dae?.itemData) {
         theItem = new CONFIG.Item.documentClass(effectData.flags.dae.itemData, { parent: actor });
-    }
-    if (!theItem) {
-        const origin = await fromUuid(effectData.origin);
-        if (origin instanceof Item)
-            theItem = origin;
     }
     let context = actor.getRollData();
     if (theItem) {
@@ -1536,7 +1538,10 @@ export async function getMacro({ change, name }, item, effectData) {
             }
         }
         else if (change.key.startsWith("macro.itemMacro")) {
-            macroCommand = foundry.utils.getProperty(item, "flags.dae.macro.command") ?? foundry.utils.getProperty(item, "flags.itemacro.macro.command") ?? foundry.utils.getProperty(item, "flags.itemacro.macro.data.command");
+            macroCommand = foundry.utils.getProperty(effectData, "flags.dae.itemMacro")
+                ?? foundry.utils.getProperty(item, "flags.dae.macro.command")
+                ?? foundry.utils.getProperty(item, "flags.itemacro.macro.command")
+                ?? foundry.utils.getProperty(item, "flags.itemacro.macro.data.command");
             const itemData = foundry.utils.getProperty(effectData, "flags.dae.itemData");
             if (!macroCommand && itemData)
                 macroCommand = foundry.utils.getProperty(itemData, "flags.dae.macro.command");
@@ -1547,7 +1552,15 @@ export async function getMacro({ change, name }, item, effectData) {
             if (!macroCommand && !item) { // we never got an item do a last ditch attempt
                 warn("eval args: fetching item from effectData/origin ", effectData?.origin);
                 //@ts-expect-error fromUuidSync
-                item = fromUuidSync(effectData?.origin); // Try and get it from the effectData
+                const itemOrEffect = fromUuidSync(effectData.origin);
+                if (itemOrEffect instanceof CONFIG.Item.documentClass)
+                    item = itemOrEffect;
+                if (!item) {
+                    //@ts-expect-error
+                    const activity = fromUuidSync(foundry.utils.getProperty(effectData, "flags.dae.activity"));
+                    if (activity)
+                        item = activity.item;
+                }
                 macroCommand = foundry.utils.getProperty(item, "flags.dae.macro.command") ?? foundry.utils.getProperty(item, "flags.itemacro.macro.command") ?? foundry.utils.getProperty(item, "flags.itemacro.macro.data.command");
             }
         }
@@ -1641,7 +1654,7 @@ export async function applyActivityEffects(activity, activate, targets, activity
             activeEffectData.changes[changeIndex] = newChange;
         }
         ;
-        activeEffectData.origin = options.origin ?? activity.item.uuid;
+        activeEffectData.origin = options.origin ?? activityEffects[aeIndex].uuid;
         activeEffectData.duration.startTime = game.time.worldTime;
         daeSystemClass.addDAEMetaData(activeEffectData, activity.item, options);
         activityEffects[aeIndex] = activeEffectData;

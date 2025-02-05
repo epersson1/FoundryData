@@ -97,8 +97,6 @@
     "TIDY5E.RemoveFavorite": "Usuń z ulubionych",
     "TIDY5E.ShowNotProficientSkills": "Pokaż niebiegłe",
     "TIDY5E.HideNotProficientSkills": "Ukryj niebiegłe",
-    "TIDY5E.ShowEmptyTraits": "Pokaż/edytuj puste atrybuty",
-    "TIDY5E.HideEmptyTraits": "Ukryj puste atrybuty",
     "TIDY5E.Abilities": "Umiejętności",
     "TIDY5E.Environment": "Środowisko",
     "TIDY5E.EnvironmentTooltip": "Środowisko: {environment}",
@@ -307,7 +305,8 @@
         "MigrateCompendia.TotalEntriesLabel": "Łączna liczba wpisów",
         "MigrateCompendia.SelectionDialogTitle": "Wybierz kompendia do migracji",
         "MigrateCompendia.CompendiumLabel": "Kompendium",
-        "MigrateCompendia.Title": "Przeprowadź migrację kompendium"
+        "MigrateCompendia.Title": "Przeprowadź migrację kompendium",
+        "chatNotification": "Nowa migracja dla Tidy 5e Sheets jest dostępna. Zobacz Ustawienia dla Tidy 5e Sheets, żeby zobaczyć dostępne migracje."
     },
     "TIDY5E.Settings.PermanentlyUnlockCharacterSheetForGM": {
         "name": "Karta postaci: Zawsze odblokowane dla MG",
@@ -534,13 +533,9 @@
         "name": "Użyj domyślnego przejścia klawiszem Tab dla atrybutów karty",
         "hint": "Domyślna karta 5e umożliwia przechodzenie za pomocą klawiatury z jednego atrybutu do następnego, ukrywając elementy sterujące przed kolejności tabulacji. Włączenie tej opcji powiela to zachowanie. To ustawienie jest ignorowane, jeśli opcja „Użyj przystępnego wsparcia dla klawiatury” jest wyłączona."
     },
-    "TIDY5E.Settings.MoveTraitsBelowResources": {
+    "TIDY5E.Settings.MoveTraitsToRightOfSkills": {
         "hint": "Umieszcza atrybuty poniżej zasobów postaci.",
         "name": "Przenieś atrybuty poniżej zasobów"
-    },
-    "TIDY5E.Settings.AlwaysShowTraits": {
-        "hint": "Usuwa przycisk przełączający widoczność pustych atrybutów (Zmysły, Języki, Odporności, itp.) i pokazuje wszystkie.",
-        "name": "Zawsze pokazuj atrybuty"
     },
     "TIDY5E.Settings.ShowNPCSpellbookTab": {
         "hint": "Pokazuje zakładkę księgi czarów dla NPC-ów. Wyłącz, aby przenieść sekcję księgi czarów do zakładki Atrybuty.",
@@ -690,7 +685,14 @@
         },
         "ActionLabel": "Sekcja akcji",
         "Tooltip": "Określ własną sekcję dla tego przedmiotu po umieszczeniu go na karcie postaci lub pozostaw ją pustą, aby zachować domyślne zachowanie.",
-        "LabelPl": "Sekcje"
+        "LabelPl": "Sekcje",
+        "SectionSelectorChooseSectionTooltip": "Wybierz sekcję",
+        "SectionSelectorChooseActionSectionTooltip": "Wybierz Sekcję akcji",
+        "SectionSelectorTitle": "{sectionType}: {documentName}",
+        "SectionSelectorExistingSections": "Istniejące sekcje",
+        "SectionSelectorCreateNewSection": "Stwórz nową sekcję",
+        "SectionSelectorNewSectionName": "Nazwa nowej sekcji",
+        "SectionSelectorSaveNewSection": "Zapisz nową sekcję"
     },
     "TIDY5E.RollRecharge.Hint": "{rechargeLabel} (Shift+kliknij, aby pominąć rzut i natychmiast odnowić) ",
     "TIDY5E.UseDefaultDialog": {
@@ -721,10 +723,6 @@
     "TIDY5E.Settings.ShowClassList": {
         "name": "Pokaż listę klas",
         "hint": "Pokazuje listę klas pod nazwą postaci."
-    },
-    "TIDY5E.Settings.ToggleEmptyCharacterTraits": {
-        "name": "Przełącznik pustych atrybutów",
-        "hint": "Dodaje przycisk przełączający wyświetlanie/ukrywanie pustych atrybutów (Zmysły, Języki, Odporności, itp.)."
     },
     "TIDY5E.Settings.ShowTraitLabels": {
         "name": "Pokaż etykiety atrybutów",
@@ -799,5 +797,40 @@
         "hint": "Określa domyślny typ rzutu używany podczas rzutu przeciw śmiercią."
     },
     "TIDY5E.Keybindings.ToggleHeaderMenu.Name": "Przełącz menu nagłówka",
-    "TIDY5E.Keybindings.ToggleHeaderMenu.Hint": "Jeśli w interfejsie użytkownika aktywnym oknem jest karta Tidy, to naciśnięcie tego klawisza powoduje przełączenie menu nagłówka."
+    "TIDY5E.Keybindings.ToggleHeaderMenu.Hint": "Jeśli w interfejsie użytkownika aktywnym oknem jest karta Tidy, to naciśnięcie tego klawisza powoduje przełączenie menu nagłówka.",
+    "TIDY5E.WorldSettings.TabCustomSections": {
+        "ShowWhenEmptyTooltip": "Wszystkie zakładki z tablicą przedmiotów posiadają zestaw domyślnych sekcji, które zawsze się pokazują, nawet gdy nie ma przedmiotów w sekcji. Pokaż tę sekcję, nawet kiedy jest ona pusta.",
+        "tabLabel": "Niestandardowe Sekcje",
+        "LimitToSpecificSheetsLabel": "Ogranicz pokazywanie sekcji do wybranych Kart",
+        "CustomizedIndicatorLabel": "Niestandardowe",
+        "ShowWhenEmptyLabel": "Pokaż sekcję kiedy pusta",
+        "LimitToSpecificTabsLabel": "Ogranicz pokazywanie Sekcji do wybranych Zakładek"
+    },
+    "TIDY5E.BrokenLink": "Uszkodzone połączenie",
+    "TIDY5E.ItemFilters.Options.IncludeRitualsInCanCast": "Dodaj Rytuały w \"Może Rzucić\"",
+    "TIDY5E.ModuleName": "Tidy 5e Sheets",
+    "TIDY5E.ExpandCollapseMenu.OptionTopLevel": "Najwyższe sekcje",
+    "TIDY5E.Settings.GlobalCustomSections": {
+        "hint": "Własne sekcje dla Świata, mogące zostać skonfigurowane do różnych celów. Globalne Własne sekcje zawsze będą dołączane do wyboru sekcji.",
+        "name": "Globalne sekcje niestandardowe",
+        "AddSection": "Dodaj Sekcję"
+    },
+    "TIDY5E.ExpandCollapseMenu.OptionAllSections": "Wszystkie sekcje",
+    "TIDY5E.SortMenu.OptionAlphabetical": "Alfabetycznie (A-Z)",
+    "TIDY5E.SortMenu.OptionManual": "Ręcznie",
+    "TIDY5E.SortMenu.OptionPrepared": "Przygotowane",
+    "TIDY5E.SortMenu.OptionEquipped": "Wyposażone",
+    "TIDY5E.Activities.Cast.SourceHintText": "Z {itemName}",
+    "TIDY5E.Containers.HoldsNumberUnits": "{holdsElementStart}Posiada{holdsElementEnd} {numberElementStart}{number}{numberElementEnd} {unitsElementStart}{units}{unitsElementEnd}",
+    "TIDY5E.ItemSummaryCommands.ShowDescriptionInChatLabel": "Info",
+    "TIDY5E.ItemSummaryCommands.ShowDescriptionInChatTooltip": "Pokaż opis w czacie",
+    "TIDY5E.UserSettings.TabActivities": {
+        "tabLabel": "Działania"
+    },
+    "TIDY5E.Settings.InlineActivitiesPosition": {
+        "top": "Na górze",
+        "bottom": "Na dole",
+        "name": "Pozycja wiersza działań",
+        "hint": "Podczas rozwijania elementu wyświetlane są działania tego elementu. Użyj tego ustawienia, aby określić, czy działania są umieszczane na górze, przed opisem elementu, czy na dole, pod opisem elementu, przyciskami i tagami."
+    }
 }

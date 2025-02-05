@@ -1,6 +1,6 @@
 import { log, i18n, error, i18nFormat, warn, debugEnabled, GameSystemConfig, MODULE_ID, isdndv4, NumericTerm } from "../midi-qol.js";
 import { configSettings, autoFastForwardAbilityRolls, checkRule, checkMechanic, safeGetGameSetting } from "./settings.js";
-import { bonusDialog, checkDefeated, checkIncapacitated, ConvenientEffectsHasEffect, createConditionData, displayDSNForRoll, expireRollEffect, getCriticalDamage, getDeadStatus, getOptionalCountRemainingShortFlag, getTokenForActor, getSpeaker, getUnconsciousStatus, getWoundedStatus, hasAutoPlaceTemplate, hasUsedAction, hasUsedBonusAction, hasUsedReaction, midiRenderRoll, notificationNotify, removeActionUsed, removeBonusActionUsed, removeReactionUsed, tokenForActor, expireEffects, DSNMarkDiceDisplayed, evalAllConditions, evalAllConditionsAsync, MQfromUuidSync, CEAddEffectWith, isConvenientEffect, CERemoveEffect, getActivityAutoTarget, getAoETargetType, hasCondition, areMidiKeysPressed } from "./utils.js";
+import { bonusDialog, checkDefeated, checkIncapacitated, ConvenientEffectsHasEffect, createConditionData, displayDSNForRoll, expireRollEffect, getCriticalDamage, getDeadStatus, getOptionalCountRemainingShortFlag, getTokenForActor, getSpeaker, getUnconsciousStatus, getWoundedStatus, hasAutoPlaceTemplate, hasUsedAction, hasUsedBonusAction, hasUsedReaction, midiRenderRoll, notificationNotify, removeActionUsed, removeBonusActionUsed, removeReactionUsed, tokenForActor, expireEffects, DSNMarkDiceDisplayed, evalAllConditions, evalAllConditionsAsync, MQfromUuidSync, CEAddEffectWith, isConvenientEffect, CERemoveEffect, getActivityAutoTargetAction, getAoETargetType, hasCondition, areMidiKeysPressed } from "./utils.js";
 import { installedModules } from "./setupModules.js";
 import { OnUseMacro, OnUseMacros } from "./apps/Item.js";
 import { TroubleShooter } from "./apps/TroubleShooter.js";
@@ -812,7 +812,7 @@ function _midiATIRefresh(template) {
 	// We don't have an item to check auto targeting with, so just use the midi setting
 	if (!canvas?.tokens)
 		return;
-	let autoTarget = getActivityAutoTarget(template.activity);
+	let autoTarget = getActivityAutoTargetAction(template.activity);
 	if (autoTarget === "none")
 		return;
 	if (autoTarget === "dftemplates" && installedModules.get("df-templates"))
@@ -841,13 +841,13 @@ function _midiATIRefresh(template) {
 			const centerDist = r.distance;
 			if (centerDist > distance + maxExtension)
 				return false;
-			if (["alwaysIgnoreIncapacitated", "wallsBlockIgnoreIncapacitated"].includes(autoTarget) && checkIncapacitated(tk, debugEnabled > 0))
+			if (["alwaysIgnoreIncapacitated", "wallsBlockIgnoreIncapacitated"].includes(autoTarget) && checkIncapacitated(tk, debugEnabled > 0, false))
 				return false;
 			if (["alwaysIgnoreDefeated", "wallsBlockIgnoreDefeated"].includes(autoTarget) && checkDefeated(tk))
 				return false;
 			return true;
 		});
-		if (tokensToCheck.length > 0) {
+		if (tokensToCheck?.length > 0) {
 			//@ts-expect-error compute3Dtemplate(t, tokensToCheck = canvas.tokens.placeables)
 			VolumetricTemplates.compute3Dtemplate(template, tokensToCheck);
 		}
@@ -1734,7 +1734,7 @@ async function _preCreateActiveEffect(wrapped, data, options, user) {
 			//@ts-expect-error - there is a separate check for hp.value <= in Hooks.ts so don't duplicate removal
 			if (parent.system.attributes?.hp?.value > 0) {
 				//@ts-expect-error
-				parent.endConcentration();
+				await parent.endConcentration();
 			}
 		}
 	}
@@ -1790,10 +1790,10 @@ export async function doItemUse(wrapped, config = {}, dialog = {}, message = {})
 	const { legacy, chooseActivity, ...activityConfig } = config;
 	const activities = this.system.activities?.filter(a => !this.getFlag("dnd5e", "riders.activity")?.includes(a.id) && !a.midiProperties?.automationOnly);
 	const attackActivities = activities?.filter(a => a instanceof MidiAttackActivity && !a.midiProperties?.automationOnly);
-	if (attackActivities.length === 1) { // if there is a single attack activity and no other non-automation activities use it
+	if (attackActivities?.length === 1) { // if there is a single attack activity and no other non-automation activities use it
 		const attackActivity = attackActivities[0];
-		const extraActvities = activities?.filter(a => a !== attackActivity && a !== attackActivity?.otherActivity);
-		if (extraActvities.length === 0) {
+		const extraActivities = activities?.filter(a => a !== attackActivity && a !== attackActivity?.otherActivity);
+		if (extraActivities?.length === 0) {
 			return attackActivity.use(config, dialog, message);
 		}
 	}
@@ -1811,7 +1811,7 @@ export async function doItemUse(wrapped, config = {}, dialog = {}, message = {})
 		const activity = await MidiActivityChoiceDialog.create(this);
 		return activity?.use(config, dialog, message);
 	}
-	if (activities.length === 1) {
+	if (activities?.length === 1) {
 		return activities[0].use(config, dialog, message);
 	}
 	if (this.actor)

@@ -3,7 +3,7 @@ import { Workflow } from "../Workflow.js";
 import { TargetConfirmationDialog } from "../apps/TargetConfirmation.js";
 import { configSettings, targetConfirmation } from "../settings.js";
 import { installedModules } from "../setupModules.js";
-import { getFlankingEffect, CERemoveEffect, sumRolls, computeTemplateShapeDistance, getToken, MQfromUuidSync, checkActivityRange, checkDefeated, checkIncapacitated, computeCoverBonus, getSpeaker, hasWallBlockingCondition, isTargetable, tokenForActor, getActivityAutoTarget, getAoETargetType, doReactions, getUnitDist } from "../utils.js";
+import { getFlankingEffect, CERemoveEffect, sumRolls, computeTemplateShapeDistance, getToken, MQfromUuidSync, checkActivityRange, checkDefeated, checkIncapacitated, computeCoverBonus, getSpeaker, hasWallBlockingCondition, isTargetable, tokenForActor, getActivityAutoTargetAction, getAoETargetType, doReactions, getUnitDist } from "../utils.js";
 export async function confirmWorkflow(existingWorkflow) {
 	const validStates = [existingWorkflow.WorkflowState_Completed, existingWorkflow.WorkflowState_Start, existingWorkflow.WorkflowState_RollFinished];
 	if (existingWorkflow.currentAction === existingWorkflow.WorkflowState_NoAction)
@@ -152,8 +152,7 @@ export function requiresTargetConfirmation(activity, options) {
 		numTargets = 1;
 	const token = tokenForActor(activity.actor);
 	if (targetConfirmation.enabled) {
-		if (targetConfirmation.all &&
-			((activity.target?.affects.type ?? "") !== "" || activity.item.system.range?.value || activity.attack) && numTargets > 0) {
+		if (targetConfirmation.all && (activity.target?.affects.type ?? "") !== "self") {
 			if (debugEnabled > 0)
 				warn("target confirmation triggered from targetConfirmation.all");
 			return true;
@@ -436,7 +435,7 @@ export function isAoETargetable(targetToken, options = { ignoreSelf: false, AoET
 		return false;
 	const autoTarget = options.autoTarget ?? configSettings.autoTarget;
 	const selfToken = getToken(options.selfToken);
-	if (["wallsBlockIgnoreIncapacitated", "alwaysIgnoreIncapacitated"].includes(autoTarget) && checkIncapacitated(targetToken.actor, false))
+	if (["wallsBlockIgnoreIncapacitated", "alwaysIgnoreIncapacitated"].includes(autoTarget) && checkIncapacitated(targetToken.actor, false, false))
 		return false;
 	if (["wallsBlockIgnoreDefeated", "alwaysIgnoreDefeated"].includes(autoTarget) && checkDefeated(targetToken))
 		return false;
@@ -478,6 +477,7 @@ export function templateTokens(templateDetails, selfTokenRef = "", ignoreSelf = 
 	if (!autoTarget)
 		autoTarget = configSettings.autoTarget;
 	// deprecated if (!autoTarget) autoTarget = getAutoTarget(templateDetails.item);
+	console.error(templateDetails);
 	if ((autoTarget) === "none")
 		return [];
 	const wallsBlockTargeting = ["wallsBlock", "wallsBlockIgnoreDefeated", "wallsBlockIgnoreIncapacitated"].includes(autoTarget);
@@ -520,7 +520,7 @@ export function selectTargets(templateDocument, data, user) {
 	const selfToken = getToken(activity.actor);
 	const ignoreSelf = (activity?.target.affects.special ?? "").split(";").some(spec => spec === "self");
 	let AoETargetType = getAoETargetType(activity);
-	let targeting = getActivityAutoTarget(activity);
+	let targeting = getActivityAutoTargetAction(activity);
 	if ((game.user?.targets.size === 0 || activity.workflow?.workflowOptions.forceTemplateTargeting || user !== game.user?.id || installedModules.get("levelsvolumetrictemplates")) && targeting !== "none") {
 		let mTemplate = MQfromUuidSync(templateDocument.uuid)?.object;
 		if (templateDocument?.object && !installedModules.get("levelsvolumetrictemplates")) {
@@ -535,7 +535,7 @@ export function selectTargets(templateDocument, data, user) {
 				if (debugEnabled > 0)
 					warn(`selectTargets computed shape ${shape} distance ${distance}`);
 			}
-			templateTokens(mTemplate, selfToken, ignoreSelf, AoETargetType, getActivityAutoTarget(activity));
+			templateTokens(mTemplate, selfToken, ignoreSelf, AoETargetType, getActivityAutoTargetAction(activity));
 		}
 		else if (templateDocument.object) {
 			//@ts-expect-error
@@ -552,7 +552,7 @@ export function selectTargets(templateDocument, data, user) {
 		return true;
 	}
 	game.user?.targets?.forEach(token => {
-		if (!isAoETargetable(token, { ignoreSelf, selfToken, AoETargetType, autoTarget: getActivityAutoTarget(activity) }))
+		if (!isAoETargetable(token, { ignoreSelf, selfToken, AoETargetType, autoTarget: getActivityAutoTargetAction(activity) }))
 			token.setTarget(false, { user: game.user, releaseOthers: false });
 		if (activity.target?.affects.count && (game.user?.targets?.size ?? 0) > activity.target?.affects?.count)
 			token.setTarget(false, { user: game.user, releaseOthers: false });
