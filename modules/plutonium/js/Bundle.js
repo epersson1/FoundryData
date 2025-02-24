@@ -2061,6 +2061,8 @@ Parser.ENVIRONMENT__PLANAR_MAGMA = "planar, magma";
 Parser.ENVIRONMENT__PLANAR_ASH = "planar, ash";
 Parser.ENVIRONMENT__PLANAR_ICE = "planar, ice";
 
+Parser.ENVIRONMENT__PLANAR_ELEMENTAL_CHAOS = "planar, elemental chaos";
+
 Parser.ENVIRONMENT__PLANAR_ETHEREAL = "planar, ethereal";
 Parser.ENVIRONMENT__PLANAR_ASTRAL = "planar, astral";
 
@@ -2112,6 +2114,8 @@ Parser.ENVIRONMENT_GROUPS = {
 		Parser.ENVIRONMENT__PLANAR_MAGMA,
 		Parser.ENVIRONMENT__PLANAR_ASH,
 		Parser.ENVIRONMENT__PLANAR_ICE,
+
+		Parser.ENVIRONMENT__PLANAR_ELEMENTAL_CHAOS,
 	],
 	[Parser.ENVIRONMENT__GROUP_PLANAR_UPPER]: [
 		Parser.ENVIRONMENT__PLANAR_ARBOREA,
@@ -2160,6 +2164,8 @@ Parser.ENVIRONMENT_DISPLAY_NAMES = {
 	[Parser.ENVIRONMENT__PLANAR_MAGMA]: "Planar (Para-elemental Plane of Magma)",
 	[Parser.ENVIRONMENT__PLANAR_ASH]: "Planar (Para-elemental Plane of Ash)",
 	[Parser.ENVIRONMENT__PLANAR_ICE]: "Planar (Para-elemental Plane of Ice)",
+
+	[Parser.ENVIRONMENT__PLANAR_ELEMENTAL_CHAOS]: "Planar (Elemental Chaos)",
 
 	[Parser.ENVIRONMENT__PLANAR_ETHEREAL]: "Planar (Ethereal Plane)",
 	[Parser.ENVIRONMENT__PLANAR_ASTRAL]: "Planar (Astral Plane)",
@@ -3122,8 +3128,6 @@ Parser.SRC_QftIS = "QftIS";
 Parser.SRC_VEoR = "VEoR";
 Parser.SRC_GHLoE = "GHLoE";
 Parser.SRC_DoDk = "DoDk";
-Parser.SRC_HWCS = "HWCS";
-Parser.SRC_HWAitW = "HWAitW";
 Parser.SRC_ToB1_2023 = "ToB1-2023";
 Parser.SRC_XPHB = "XPHB";
 Parser.SRC_XDMG = "XDMG";
@@ -3161,6 +3165,7 @@ Parser.SRC_VNotEE = "VNotEE";
 Parser.SRC_LRDT = "LRDT";
 Parser.SRC_UtHftLH = "UtHftLH";
 Parser.SRC_ScoEE = "ScoEE";
+Parser.SRC_HBTD = "HBTD";
 
 Parser.SRC_AL_PREFIX = "AL";
 
@@ -3311,8 +3316,6 @@ Parser.SOURCE_JSON_TO_FULL[Parser.SRC_QftIS] = "Quests from the Infinite Stairca
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_VEoR] = "Vecna: Eve of Ruin";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_GHLoE] = "Grim Hollow: Lairs of Etharis";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_DoDk] = "Dungeons of Drakkenheim";
-Parser.SOURCE_JSON_TO_FULL[Parser.SRC_HWCS] = "Humblewood Campaign Setting";
-Parser.SOURCE_JSON_TO_FULL[Parser.SRC_HWAitW] = "Humblewood: Adventure in the Wood";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ToB1_2023] = "Tome of Beasts 1 (2023 Edition)";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_XPHB] = "Player's Handbook (2024)";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_XDMG] = "Dungeon Master's Guide (2024)";
@@ -3351,6 +3354,7 @@ Parser.SOURCE_JSON_TO_FULL[Parser.SRC_VNotEE] = "Vecna: Nest of the Eldritch Eye
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_LRDT] = "Red Dragon's Tale: A LEGO Adventure";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_UtHftLH] = "Uni and the Hunt for the Lost Horn";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ScoEE] = "Scions of Elemental Evil";
+Parser.SOURCE_JSON_TO_FULL[Parser.SRC_HBTD] = "Hold Back The Dead";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ALCoS] = `${Parser.AL_PREFIX}Curse of Strahd`;
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ALEE] = `${Parser.AL_PREFIX}Elemental Evil`;
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ALRoD] = `${Parser.AL_PREFIX}Rage of Demons`;
@@ -3476,8 +3480,6 @@ Parser.SOURCE_JSON_TO_ABV[Parser.SRC_QftIS] = "QftIS";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_VEoR] = "VEoR";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_GHLoE] = "GHLoE";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_DoDk] = "DoDk";
-Parser.SOURCE_JSON_TO_ABV[Parser.SRC_HWCS] = "HWCS";
-Parser.SOURCE_JSON_TO_ABV[Parser.SRC_HWAitW] = "HWAitW";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ToB1_2023] = "ToB1'23";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_XPHB] = "PHB'24";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_XDMG] = "DMG'24";
@@ -3516,6 +3518,7 @@ Parser.SOURCE_JSON_TO_ABV[Parser.SRC_VNotEE] = "VNotEE";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_LRDT] = "LRDT";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_UtHftLH] = "UHftLH";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ScoEE] = "ScoEE";
+Parser.SOURCE_JSON_TO_ABV[Parser.SRC_HBTD] = "HBTD";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ALCoS] = "ALCoS";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ALEE] = "ALEE";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ALRoD] = "ALRoD";
@@ -3640,8 +3643,6 @@ Parser.SOURCE_JSON_TO_DATE[Parser.SRC_QftIS] = "2024-07-16";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_VEoR] = "2024-05-21";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_GHLoE] = "2023-11-30";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_DoDk] = "2023-12-21";
-Parser.SOURCE_JSON_TO_DATE[Parser.SRC_HWCS] = "2019-06-17";
-Parser.SOURCE_JSON_TO_DATE[Parser.SRC_HWAitW] = "2019-06-17";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ToB1_2023] = "2023-05-31";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_XPHB] = "2024-09-17";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_XDMG] = "2024-11-12";
@@ -3679,6 +3680,7 @@ Parser.SOURCE_JSON_TO_DATE[Parser.SRC_VNotEE] = "2024-04-16";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_LRDT] = "2024-04-01";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_UtHftLH] = "2024-09-24";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ScoEE] = "2024-10-24";
+Parser.SOURCE_JSON_TO_DATE[Parser.SRC_HBTD] = "2025-02-07";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ALCoS] = "2016-03-15";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ALEE] = "2015-04-07";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ALRoD] = "2015-09-15";
@@ -3783,7 +3785,7 @@ Parser.SOURCES_ADVENTURES = new Set([
 	Parser.SRC_HFStCM,
 	Parser.SRC_GHLoE,
 	Parser.SRC_DoDk,
-	Parser.SRC_HWAitW,
+	Parser.SRC_HBTD,
 
 	Parser.SRC_AWM,
 ]);
@@ -3833,6 +3835,7 @@ Parser.SOURCES_NON_STANDARD_WOTC = new Set([
 	Parser.SRC_HFStCM,
 	Parser.SRC_UtHftLH,
 	Parser.SRC_ScoEE,
+	Parser.SRC_HBTD,
 ]);
 Parser.SOURCES_PARTNERED_WOTC = new Set([
 	Parser.SRC_RMBRE,
@@ -3847,8 +3850,6 @@ Parser.SOURCES_PARTNERED_WOTC = new Set([
 	Parser.SRC_HftT,
 	Parser.SRC_GHLoE,
 	Parser.SRC_DoDk,
-	Parser.SRC_HWCS,
-	Parser.SRC_HWAitW,
 	Parser.SRC_ToB1_2023,
 	Parser.SRC_TD,
 	Parser.SRC_LRDT,
@@ -3856,7 +3857,8 @@ Parser.SOURCES_PARTNERED_WOTC = new Set([
 Parser.SOURCES_LEGACY_WOTC = new Set([
 	Parser.SRC_PHB,
 	Parser.SRC_DMG,
-		Parser.SRC_SCREEN,
+	Parser.SRC_MM,
+	Parser.SRC_SCREEN,
 	Parser.SRC_EEPC,
 	Parser.SRC_VGM,
 	Parser.SRC_MTF,
@@ -3903,6 +3905,7 @@ Parser.SOURCES_COMEDY = new Set([
 	Parser.SRC_LRDT,
 	Parser.SRC_UtHftLH,
 	Parser.SRC_ScoEE,
+	Parser.SRC_HBTD,
 ]);
 
 Parser.SOURCES_NON_FR = new Set([
@@ -3939,12 +3942,11 @@ Parser.SOURCES_NON_FR = new Set([
 	Parser.SRC_LK,
 	Parser.SRC_GHLoE,
 	Parser.SRC_DoDk,
-	Parser.SRC_HWCS,
-	Parser.SRC_HWAitW,
 	Parser.SRC_ToB1_2023,
 	Parser.SRC_LRDT,
 	Parser.SRC_UtHftLH,
 	Parser.SRC_ScoEE,
+	Parser.SRC_HBTD,
 ]);
 
 Parser.SOURCES_AVAILABLE_DOCS_BOOK = {};
@@ -3986,7 +3988,6 @@ Parser.SOURCES_AVAILABLE_DOCS_BOOK = {};
 	Parser.SRC_PaF,
 	Parser.SRC_BMT,
 	Parser.SRC_DMTCRG,
-	Parser.SRC_HWCS,
 	Parser.SRC_ToB1_2023,
 	Parser.SRC_XPHB,
 	Parser.SRC_XMM,
@@ -4087,13 +4088,13 @@ Parser.SOURCES_AVAILABLE_DOCS_ADVENTURE = {};
 	Parser.SRC_HFStCM,
 	Parser.SRC_GHLoE,
 	Parser.SRC_DoDk,
-	Parser.SRC_HWAitW,
 	Parser.SRC_QftIS,
 	Parser.SRC_LRDT,
 	Parser.SRC_VEoR,
 	Parser.SRC_VNotEE,
 	Parser.SRC_UtHftLH,
 	Parser.SRC_ScoEE,
+	Parser.SRC_HBTD,
 ].forEach(src => {
 	Parser.SOURCES_AVAILABLE_DOCS_ADVENTURE[src] = src;
 	Parser.SOURCES_AVAILABLE_DOCS_ADVENTURE[src.toLowerCase()] = src;
@@ -4121,6 +4122,7 @@ Parser.PROP_TO_TAG = {
 };
 Parser.getPropTag = function (prop) {
 	if (Parser.PROP_TO_TAG[prop]) return Parser.PROP_TO_TAG[prop];
+	if (prop?.endsWith("Fluff")) return null;
 	return prop;
 };
 
@@ -4199,7 +4201,7 @@ Parser.NUMBERS_TEENS = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fift
 
 Parser.metric = {
 		MILES_TO_KILOMETRES: 1.6,
-	FEET_TO_METRES: 0.3, 	YARDS_TO_METRES: 0.9, 	POUNDS_TO_KILOGRAMS: 0.5, 		INCHES_TO_CENTIMETERS: 2.5, 	CUBIC_FEET_TO_LIBRES: 28, 
+	FEET_TO_METRES: 0.3, 	YARDS_TO_METRES: 0.9, 	POUNDS_TO_KILOGRAMS: 0.5, 		INCHES_TO_CENTIMETERS: 2.5, 	CUBIC_FEET_TO_LITRES: 28, 
 		getMetricNumber ({originalValue, originalUnit, toFixed = null}) {
 		if (originalValue == null || isNaN(originalValue)) return originalValue;
 
@@ -4213,7 +4215,7 @@ Parser.metric = {
 			case Parser.UNT_YARDS: out = originalValue * Parser.metric.YARDS_TO_METRES; break;
 			case Parser.UNT_MILES: out = originalValue * Parser.metric.MILES_TO_KILOMETRES; break;
 			case Parser.UNT_LBS: out = originalValue * Parser.metric.POUNDS_TO_KILOGRAMS; break;
-			case Parser.UNT_CUBIC_FEET: out = originalValue * Parser.metric.CUBIC_FEET_TO_LIBRES; break;
+			case Parser.UNT_CUBIC_FEET: out = originalValue * Parser.metric.CUBIC_FEET_TO_LITRES; break;
 			default: return originalValue;
 		}
 		if (toFixed != null) return NumberUtil.toFixedNumber(out, toFixed);
@@ -4248,7 +4250,7 @@ Parser.mapGridTypeToFull = function (gridType) {
 "use strict";
 
 globalThis.IS_DEPLOYED = undefined;
-globalThis.VERSION_NUMBER = "2.5.12";
+globalThis.VERSION_NUMBER = "2.7.1";
 globalThis.DEPLOYED_IMG_ROOT = undefined;
 globalThis.IS_VTT = false;
 
@@ -4270,6 +4272,7 @@ globalThis.VeCt = {
 	HASH_SCALED_CLASS_SUMMON: "scaledclasssummon",
 
 	FILTER_BOX_SUB_HASH_SEARCH_PREFIX: "fbsr",
+	FILTER_BOX_SUB_HASH_FLAG_IS_PRESERVE_EXISTING: "fbpe",
 
 	JSON_PRERELEASE_INDEX: `prerelease/index.json`,
 	JSON_BREW_INDEX: `homebrew/index.json`,
@@ -5113,11 +5116,6 @@ globalThis.JqueryUtil = {
 				return this;
 			},
 
-			blurOnEsc: function () {
-				return this.keydown(evt => {
-					if (evt.which === 27) this.blur(); 				});
-			},
-
 			hideVe: function () { return this.addClass("ve-hidden"); },
 			showVe: function () { return this.removeClass("ve-hidden"); },
 			toggleVe: function (val) {
@@ -5397,16 +5395,21 @@ let ElementUtil$1 = class ElementUtil {
 		ele.txt = ele.txt || ElementUtil$1._txt.bind(ele);
 		ele.tooltip = ele.tooltip || ElementUtil$1._tooltip.bind(ele);
 		ele.disableSpellcheck = ele.disableSpellcheck || ElementUtil$1._disableSpellcheck.bind(ele);
+		ele.css = ele.css || ElementUtil$1._css.bind(ele);
 		ele.onn = ele.onn || ElementUtil$1._onX.bind(ele);
+		ele.off = ele.off || ElementUtil$1._offX.bind(ele);
 		ele.onClick = ele.onClick || ElementUtil$1._onX.bind(ele, "click");
 		ele.onContextmenu = ele.onContextmenu || ElementUtil$1._onX.bind(ele, "contextmenu");
 		ele.onChange = ele.onChange || ElementUtil$1._onX.bind(ele, "change");
 		ele.onKeydown = ele.onKeydown || ElementUtil$1._onX.bind(ele, "keydown");
 		ele.onKeyup = ele.onKeyup || ElementUtil$1._onX.bind(ele, "keyup");
+		ele.trigger = ele.trigger || ElementUtil$1._trigger.bind(ele);
 		ele.first = ele.first || ElementUtil$1._first.bind(ele);
 		ele.closeste = ele.closeste || ElementUtil$1._closeste.bind(ele);
 		ele.childrene = ele.childrene || ElementUtil$1._childrene.bind(ele);
 		ele.siblings = ele.siblings || ElementUtil$1._siblings.bind(ele);
+		ele.outerWidthe = ele.outerWidthe || ElementUtil$1._outerWidthe.bind(ele);
+		ele.outerHeighte = ele.outerHeighte || ElementUtil$1._outerHeighte.bind(ele);
 
 		return ele;
 	}
@@ -5534,8 +5537,25 @@ let ElementUtil$1 = class ElementUtil {
 			.attr("spellcheck", "false");
 	}
 
+		static _css (obj) {
+		Object.entries(obj)
+			.forEach(([k, v]) => this.style[k] = v);
+		return this;
+	}
+
 		static _onX (evtName, fn) {
 		this.addEventListener(evtName, fn);
+		return this;
+	}
+
+		static _offX (evtName, fn) {
+		this.removeEventListener(evtName, fn);
+		return this;
+	}
+
+		static _trigger (evtOrEvtName) {
+		const evt = evtOrEvtName instanceof Event ? evtOrEvtName : new Event(evtOrEvtName);
+		this.dispatchEvent(evt);
 		return this;
 	}
 
@@ -5598,6 +5618,10 @@ let ElementUtil$1 = class ElementUtil {
 			.map(ele => e_({ele: ele}));
 	}
 
+		static _outerWidthe () { return this.getBoundingClientRect().width; }
+
+		static _outerHeighte () { return this.getBoundingClientRect().height; }
+
 	
 		static getBySelector (selector, parent) {
 		const ele = (parent || document).querySelector(selector);
@@ -5640,9 +5664,11 @@ let ElementUtil$1 = class ElementUtil {
 globalThis.ElementUtil = ElementUtil$1;
 
 if (typeof window !== "undefined") {
-	window.e_ = ElementUtil$1.getOrModify.bind(ElementUtil$1);
-	window.es = ElementUtil$1.getBySelector.bind(ElementUtil$1);
-	window.em = ElementUtil$1.getBySelectorMulti.bind(ElementUtil$1);
+		window.e_ = ElementUtil$1.getOrModify.bind(ElementUtil$1);
+
+		window.es = ElementUtil$1.getBySelector.bind(ElementUtil$1);
+
+		window.em = ElementUtil$1.getBySelectorMulti.bind(ElementUtil$1);
 }
 
 globalThis.ObjUtil = {
@@ -7356,7 +7382,7 @@ UrlUtil.URL_TO_HASH_BUILDER["background"] = UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.
 UrlUtil.URL_TO_HASH_BUILDER["item"] = UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_ITEMS];
 UrlUtil.URL_TO_HASH_BUILDER["itemGroup"] = UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_ITEMS];
 UrlUtil.URL_TO_HASH_BUILDER["baseitem"] = UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_ITEMS];
-UrlUtil.URL_TO_HASH_BUILDER["magicvariant"] = UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_ITEMS];
+UrlUtil.URL_TO_HASH_BUILDER["magicvariant"] = (it) => UrlUtil.encodeArrayForHash(it.name, SourceUtil.getEntitySource(it));
 UrlUtil.URL_TO_HASH_BUILDER["class"] = UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_CLASSES];
 UrlUtil.URL_TO_HASH_BUILDER["condition"] = UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_CONDITIONS_DISEASES];
 UrlUtil.URL_TO_HASH_BUILDER["disease"] = UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_CONDITIONS_DISEASES];
@@ -8153,7 +8179,10 @@ globalThis.DataUtil = {
 					if (!data[dataProp]) return; 
 					const isHasInternalCopies = (data._meta.internalCopies || []).includes(dataProp);
 
-					const dependencyData = await Promise.all(sourceIds.map(sourceId => DataUtil.pLoadByMeta(dataProp, sourceId)));
+					const dependencyData = await Promise.all(
+						DataUtil._getLoadGroupedSourceIds({prop: dataProp, sourceIds})
+							.map(sourceId => DataUtil.pLoadByMeta(dataProp, sourceId)),
+					);
 
 					const flatDependencyData = dependencyData.map(dd => dd[dataProp]).flat().filter(Boolean);
 					await Promise.all(data[dataProp].map(entry => DataUtil._pDoMetaMerge_handleCopyProp(dataProp, flatDependencyData, entry, {...options, isErrorOnMissing: !isHasInternalCopies})));
@@ -8361,14 +8390,15 @@ globalThis.DataUtil = {
 			
 						case "item":
 			case "itemGroup":
-			case "baseitem": {
+			case "baseitem":
+			case "magicvariant": {
 				const data = await DataUtil.item.loadRawJSON();
-				if (data[prop] && data[prop].some(it => it.source === source)) return data;
+				if (SourceUtil.isSiteSource(source)) return data;
 				return DataUtil._pLoadByMeta_pGetPrereleaseBrew(source);
 			}
 			case "race": {
 												const data = await DataUtil.race.loadJSON({isAddBaseRaces: true});
-				if (data[prop] && data[prop].some(it => it.source === source)) return data;
+				if (SourceUtil.isSiteSource(source)) return data;
 				return DataUtil._pLoadByMeta_pGetPrereleaseBrew(source);
 			}
 			
@@ -8376,7 +8406,7 @@ globalThis.DataUtil = {
 				const impl = DataUtil[prop];
 				if (impl && (impl.getDataUrl || impl.loadJSON)) {
 					const data = await (impl.loadJSON ? impl.loadJSON() : DataUtil.loadJSON(impl.getDataUrl()));
-					if (data[prop] && data[prop].some(it => it.source === source)) return data;
+					if (SourceUtil.isSiteSource(source)) return data;
 
 					return DataUtil._pLoadByMeta_pGetPrereleaseBrew(source);
 				}
@@ -8394,6 +8424,23 @@ globalThis.DataUtil = {
 		if (fromBrew) return fromBrew;
 
 		throw new Error(`Could not find prerelease/brew URL for source "${source}"`);
+	},
+
+	
+	_getLoadGroupedSourceIds ({prop, sourceIds}) {
+		if (DataUtil._MULTI_SOURCE_PROP_TO_DIR[prop]) return sourceIds;
+
+		let siteSourceFirst = null;
+
+		const nonSiteSources = sourceIds
+			.filter(sourceId => {
+				const isSiteSource = SourceUtil.isSiteSource(sourceId);
+				if (isSiteSource && siteSourceFirst == null) siteSourceFirst = sourceId;
+				return !isSiteSource;
+			});
+
+		if (!siteSourceFirst) return sourceIds;
+		return [siteSourceFirst, ...nonSiteSources];
 	},
 
 	
@@ -8484,22 +8531,22 @@ globalThis.DataUtil = {
 
 			if (hashCurrent === hash) throw new Error(`${hashCurrent} _copy self-references! This is a bug!`);
 
-			const it = (impl._mergeCache = impl._mergeCache || {})[hash] || DataUtil.generic._pMergeCopy_search(impl, page, entryList, entry, options);
+			const entParent = (impl._mergeCache = impl._mergeCache || {})[hash] || DataUtil.generic._pMergeCopy_search(impl, page, entryList, entry, options);
 
-			if (!it) {
+			if (!entParent) {
 				if (options.isErrorOnMissing) {
 					throw new Error(`Could not find "${page}" entity "${entry._copy.name}" ("${entry._copy.source}") to copy in copier "${entry.name}" ("${entry.source}")`);
 				}
 				return;
 			}
 
-			if (DataUtil.dbg.isTrackCopied) it.dbg_isCopied = true;
-						if (it._copy) await DataUtil.generic._pMergeCopy(impl, page, entryList, it, options);
+			if (DataUtil.dbg.isTrackCopied) entParent.dbg_isCopied = true;
+						if (entParent._copy) await DataUtil.generic._pMergeCopy(impl, page, entryList, entParent, options);
 
 									const templateData = entry._copy?._templates
 				? (await DataUtil.loadJSON(`${Renderer.get().baseUrl}data/bestiary/template.json`))
 				: null;
-			return DataUtil.generic.copyApplier.getCopy(impl, MiscUtil.copyFast(it), entry, templateData, options);
+			return DataUtil.generic.copyApplier.getCopy(impl, MiscUtil.copyFast(entParent), entry, templateData, options);
 		},
 
 		_pMergeCopy_search (impl, page, entryList, entry, options) {
@@ -8543,25 +8590,28 @@ globalThis.DataUtil = {
 				return split.join("");
 			}
 
-			static _doMod_appendStr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (copyTo[prop]) copyTo[prop] = `${copyTo[prop]}${modInfo.joiner || ""}${modInfo.str}`;
-				else copyTo[prop] = modInfo.str;
+			static _doMod_appendStr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (valExisting) MiscUtil.set(copyTo, ...propPath, `${valExisting}${modInfo.joiner || ""}${modInfo.str}`);
+				else MiscUtil.set(copyTo, ...propPath, modInfo.str);
 			}
 
-			static _doMod_replaceName ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (!copyTo[prop]) return;
+			static _doMod_replaceName ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const ents = MiscUtil.get(copyTo, ...propPath);
+				if (!ents) return;
 
 				DataUtil.generic._walker_replaceTxt = DataUtil.generic._walker_replaceTxt || MiscUtil.getWalker();
 				const re = this._getRegexFromReplaceModInfo({replace: modInfo.replace, flags: modInfo.flags});
 				const handlers = {string: this._doReplaceStringHandler.bind(null, {re: re, withStr: modInfo.with})};
 
-				copyTo[prop].forEach(it => {
-					if (it.name) it.name = DataUtil.generic._walker_replaceTxt.walk(it.name, handlers);
+				ents.forEach(ent => {
+					if (ent.name) ent.name = DataUtil.generic._walker_replaceTxt.walk(ent.name, handlers);
 				});
 			}
 
-			static _doMod_replaceTxt ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (!copyTo[prop]) return;
+			static _doMod_replaceTxt ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const ents = MiscUtil.get(copyTo, ...propPath);
+				if (!ents) return;
 
 				DataUtil.generic._walker_replaceTxt = DataUtil.generic._walker_replaceTxt || MiscUtil.getWalker();
 				const re = this._getRegexFromReplaceModInfo({replace: modInfo.replace, flags: modInfo.flags});
@@ -8571,105 +8621,112 @@ globalThis.DataUtil = {
 				if (!props.length) return;
 
 				if (props.includes(null)) {
-										copyTo[prop] = copyTo[prop].map(it => {
+										MiscUtil.set(copyTo, ...propPath, ents.map(it => {
 						if (typeof it !== "string") return it;
 						return DataUtil.generic._walker_replaceTxt.walk(it, handlers);
-					});
+					}));
 				}
 
-				copyTo[prop].forEach(it => {
+				ents.forEach(ent => {
 					props.forEach(prop => {
 						if (prop == null) return;
-						if (it[prop]) it[prop] = DataUtil.generic._walker_replaceTxt.walk(it[prop], handlers);
+						if (ent[prop]) ent[prop] = DataUtil.generic._walker_replaceTxt.walk(ent[prop], handlers);
 					});
 				});
 			}
 
-			static _doMod_prependArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_prependArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
-				copyTo[prop] = copyTo[prop] ? modInfo.items.concat(copyTo[prop]) : modInfo.items;
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				MiscUtil.set(copyTo, ...propPath, valExisting ? modInfo.items.concat(valExisting) : modInfo.items);
 			}
 
-			static _doMod_appendArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_appendArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
-				copyTo[prop] = copyTo[prop] ? copyTo[prop].concat(modInfo.items) : modInfo.items;
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				MiscUtil.set(copyTo, ...propPath, valExisting ? valExisting.concat(modInfo.items) : modInfo.items);
 			}
 
-			static _doMod_appendIfNotExistsArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_appendIfNotExistsArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
-				if (!copyTo[prop]) return copyTo[prop] = modInfo.items;
-				copyTo[prop] = copyTo[prop].concat(modInfo.items.filter(it => !copyTo[prop].some(x => CollectionUtil.deepEquals(it, x))));
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) return MiscUtil.set(copyTo, ...propPath, modInfo.items);
+				MiscUtil.set(copyTo, ...propPath, valExisting.concat(modInfo.items.filter(it => !valExisting.some(x => CollectionUtil.deepEquals(it, x)))));
 			}
 
-			static _doMod_replaceArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop, isThrow = true}) {
+			static _doMod_replaceArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath, isThrow = true}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
 
-				if (!copyTo[prop]) {
-					if (isThrow) throw new Error(`${msgPtFailed} Could not find "${prop}" array`);
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) {
+					if (isThrow) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" array`);
 					return false;
 				}
 
 				let ixOld;
 				if (modInfo.replace.regex) {
 					const re = new RegExp(modInfo.replace.regex, modInfo.replace.flags || "");
-					ixOld = copyTo[prop].findIndex(it => it.name ? re.test(it.name) : typeof it === "string" ? re.test(it) : false);
+					ixOld = valExisting.findIndex(it => it.name ? re.test(it.name) : typeof it === "string" ? re.test(it) : false);
 				} else if (modInfo.replace.index != null) {
 					ixOld = modInfo.replace.index;
 				} else {
-					ixOld = copyTo[prop].findIndex(it => it.name ? it.name === modInfo.replace : it === modInfo.replace);
+					ixOld = valExisting.findIndex(it => it.name ? it.name === modInfo.replace : it === modInfo.replace);
 				}
 
 				if (~ixOld) {
-					copyTo[prop].splice(ixOld, 1, ...modInfo.items);
+					valExisting.splice(ixOld, 1, ...modInfo.items);
 					return true;
-				} else if (isThrow) throw new Error(`${msgPtFailed} Could not find "${prop}" item with name "${modInfo.replace}" to replace`);
+				} else if (isThrow) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" item with name "${modInfo.replace}" to replace`);
 				return false;
 			}
 
-			static _doMod_replaceOrAppendArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				const didReplace = this._doMod_replaceArr({copyTo, copyFrom, modInfo, msgPtFailed, prop, isThrow: false});
-				if (!didReplace) this._doMod_appendArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
+			static _doMod_replaceOrAppendArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const didReplace = this._doMod_replaceArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath, isThrow: false});
+				if (!didReplace) this._doMod_appendArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
 			}
 
-			static _doMod_insertArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_insertArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
-				if (!copyTo[prop]) throw new Error(`${msgPtFailed} Could not find "${prop}" array`);
-				copyTo[prop].splice(~modInfo.index ? modInfo.index : copyTo[prop].length, 0, ...modInfo.items);
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) throw new Error(`${msgPtFailed} Could not find "${valExisting.join(".")}" array`);
+				valExisting.splice(~modInfo.index ? modInfo.index : valExisting.length, 0, ...modInfo.items);
 			}
 
-			static _doMod_removeArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_removeArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
 				if (modInfo.names) {
 					this._doEnsureArray({obj: modInfo, prop: "names"});
 					modInfo.names.forEach(nameToRemove => {
-						const ixOld = copyTo[prop].findIndex(it => it.name === nameToRemove);
-						if (~ixOld) copyTo[prop].splice(ixOld, 1);
+						const ixOld = valExisting.findIndex(it => it.name === nameToRemove);
+						if (~ixOld) valExisting.splice(ixOld, 1);
 						else {
-							if (!modInfo.force) throw new Error(`${msgPtFailed} Could not find "${prop}" item with name "${nameToRemove}" to remove`);
+							if (!modInfo.force) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" item with name "${nameToRemove}" to remove`);
 						}
 					});
 				} else if (modInfo.items) {
 					this._doEnsureArray({obj: modInfo, prop: "items"});
 					modInfo.items.forEach(itemToRemove => {
-						const ixOld = copyTo[prop].findIndex(it => it === itemToRemove);
-						if (~ixOld) copyTo[prop].splice(ixOld, 1);
-						else throw new Error(`${msgPtFailed} Could not find "${prop}" item "${itemToRemove}" to remove`);
+						const ixOld = valExisting.findIndex(it => it === itemToRemove);
+						if (~ixOld) valExisting.splice(ixOld, 1);
+						else throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" item "${itemToRemove}" to remove`);
 					});
 				} else throw new Error(`${msgPtFailed} One of "names" or "items" must be provided!`);
 			}
 
-			static _doMod_renameArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop, isThrow = true}) {
+			static _doMod_renameArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath, isThrow = true}) {
 				this._doEnsureArray({obj: modInfo, prop: "renames"});
 
-				if (!copyTo[prop]) {
-					if (isThrow) throw new Error(`${msgPtFailed} Could not find "${prop}" array`);
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) {
+					if (isThrow) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" array`);
 					return;
 				}
 
 				modInfo.renames
 					.forEach(rename => {
-						const ent = copyTo[prop].find(ent => ent?.name === rename.rename);
+						const ent = valExisting.find(ent => ent?.name === rename.rename);
 						if (!ent) {
-							if (isThrow) throw new Error(`${msgPtFailed} Could not find "${prop}" item with name "${rename.rename}" to rename`);
+							if (isThrow) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" item with name "${rename.rename}" to rename`);
 							return;
 						}
 
@@ -8677,8 +8734,8 @@ globalThis.DataUtil = {
 					});
 			}
 
-			static _doMod_calculateProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				copyTo[prop] = copyTo[prop] || {};
+			static _doMod_calculateProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const tgt = MiscUtil.getOrSet(copyTo, ...propPath, {});
 				const toExec = modInfo.formula.replace(/<\$([^$]+)\$>/g, (...m) => {
 					switch (m[1]) {
 						case "prof_bonus": return Parser.crToPb(copyTo.cr);
@@ -8686,31 +8743,35 @@ globalThis.DataUtil = {
 						default: throw new Error(`${msgPtFailed} Unknown variable "${m[1]}"`);
 					}
 				});
-												copyTo[prop][modInfo.prop] = eval(DataUtil.generic.variableResolver.getCleanMathExpression(toExec));
+												tgt[modInfo.prop] = eval(DataUtil.generic.variableResolver.getCleanMathExpression(toExec));
 			}
 
-			static _doMod_scalarAddProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_scalarAddProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const tgt = MiscUtil.get(copyTo, ...propPath);
+				if (!tgt) return;
+
 				const applyTo = (k) => {
-					const out = Number(copyTo[prop][k]) + modInfo.scalar;
-					const isString = typeof copyTo[prop][k] === "string";
-					copyTo[prop][k] = isString ? `${out >= 0 ? "+" : ""}${out}` : out;
+					const out = Number(tgt[k]) + modInfo.scalar;
+					const isString = typeof tgt[k] === "string";
+					tgt[k] = isString ? `${out >= 0 ? "+" : ""}${out}` : out;
 				};
 
-				if (!copyTo[prop]) return;
-				if (modInfo.prop === "*") Object.keys(copyTo[prop]).forEach(k => applyTo(k));
+				if (modInfo.prop === "*") Object.keys(tgt).forEach(k => applyTo(k));
 				else applyTo(modInfo.prop);
 			}
 
-			static _doMod_scalarMultProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_scalarMultProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const tgt = MiscUtil.get(copyTo, ...propPath);
+				if (!tgt) return;
+
 				const applyTo = (k) => {
-					let out = Number(copyTo[prop][k]) * modInfo.scalar;
+					let out = Number(tgt[k]) * modInfo.scalar;
 					if (modInfo.floor) out = Math.floor(out);
-					const isString = typeof copyTo[prop][k] === "string";
-					copyTo[prop][k] = isString ? `${out >= 0 ? "+" : ""}${out}` : out;
+					const isString = typeof tgt[k] === "string";
+					tgt[k] = isString ? `${out >= 0 ? "+" : ""}${out}` : out;
 				};
 
-				if (!copyTo[prop]) return;
-				if (modInfo.prop === "*") Object.keys(copyTo[prop]).forEach(k => applyTo(k));
+				if (modInfo.prop === "*") Object.keys(tgt).forEach(k => applyTo(k));
 				else applyTo(modInfo.prop);
 			}
 
@@ -8909,33 +8970,43 @@ globalThis.DataUtil = {
 				});
 			}
 
-			static _doMod_scalarAddHit ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (!copyTo[prop]) return;
+			static _doMod_scalarAddHit ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) return;
 
 				const re = /{@hit ([-+]?\d+)}/g;
-				copyTo[prop] = this._WALKER.walk(
-					copyTo[prop],
-					{
-						string: (str) => {
-							return str
-								.replace(re, (m0, m1) => `{@hit ${Number(m1) + modInfo.scalar}}`);
+				MiscUtil.set(
+					copyTo,
+					...propPath,
+					this._WALKER.walk(
+						valExisting,
+						{
+							string: (str) => {
+								return str
+									.replace(re, (m0, m1) => `{@hit ${Number(m1) + modInfo.scalar}}`);
+							},
 						},
-					},
+					),
 				);
 			}
 
-			static _doMod_scalarAddDc ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (!copyTo[prop]) return;
+			static _doMod_scalarAddDc ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) return;
 
 				const re = /{@dc (\d+)(?:\|[^}]+)?}/g;
-				copyTo[prop] = this._WALKER.walk(
-					copyTo[prop],
-					{
-						string: (str) => {
-							return str
-								.replace(re, (m0, m1) => `{@dc ${Number(m1) + modInfo.scalar}}`);
+				MiscUtil.set(
+					copyTo,
+					...propPath,
+					this._WALKER.walk(
+						valExisting,
+						{
+							string: (str) => {
+								return str
+									.replace(re, (m0, m1) => `{@dc ${Number(m1) + modInfo.scalar}}`);
+							},
 						},
-					},
+					),
 				);
 			}
 
@@ -8968,59 +9039,61 @@ globalThis.DataUtil = {
 				}
 			}
 
-			static _doMod_setProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				const propPath = modInfo.prop.split(".");
-				if (prop != null && prop !== "*") propPath.unshift(prop);
-				MiscUtil.set(copyTo, ...propPath, MiscUtil.copyFast(modInfo.value));
+			static _doMod_setProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const propPathCombined = modInfo.prop ? modInfo.prop.split(".") : [];
+				if (propPath != null && !CollectionUtil.deepEquals(propPath, ["*"])) propPathCombined.unshift(...propPath);
+				MiscUtil.set(copyTo, ...propPathCombined, MiscUtil.copyFast(modInfo.value));
 			}
 
-			static _doMod_prefixSuffixStringProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				const propPath = modInfo.prop.split(".");
-				if (prop != null && prop !== "*") propPath.unshift(prop);
-				const str = MiscUtil.get(copyTo, ...propPath);
+			static _doMod_prefixSuffixStringProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const propPathCombined = modInfo.prop ? modInfo.prop.split(".") : [];
+				if (propPath != null && !CollectionUtil.deepEquals(propPath, ["*"])) propPathCombined.unshift(...propPath);
+				const str = MiscUtil.get(copyTo, ...propPathCombined);
 				if (str == null || !(typeof str === "string")) return;
-				MiscUtil.set(copyTo, ...propPath, `${modInfo.prefix || ""}${str}${modInfo.suffix || ""}`);
+				MiscUtil.set(copyTo, ...propPathCombined, `${modInfo.prefix || ""}${str}${modInfo.suffix || ""}`);
 			}
 
 			static _doMod_handleProp ({copyTo, copyFrom, modInfos, msgPtFailed, prop = null}) {
+				const propPath = prop ? prop.split(".") : null;
+
 				modInfos.forEach(modInfo => {
 					if (typeof modInfo === "string") {
 						switch (modInfo) {
 							case "remove": return delete copyTo[prop];
 							default: throw new Error(`${msgPtFailed} Unhandled mode: ${modInfo}`);
 						}
-					} else {
-						switch (modInfo.mode) {
-							case "appendStr": return this._doMod_appendStr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "replaceName": return this._doMod_replaceName({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "replaceTxt": return this._doMod_replaceTxt({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "prependArr": return this._doMod_prependArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "appendArr": return this._doMod_appendArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "replaceArr": return this._doMod_replaceArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "replaceOrAppendArr": return this._doMod_replaceOrAppendArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "appendIfNotExistsArr": return this._doMod_appendIfNotExistsArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "insertArr": return this._doMod_insertArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "removeArr": return this._doMod_removeArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "renameArr": return this._doMod_renameArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "calculateProp": return this._doMod_calculateProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "scalarAddProp": return this._doMod_scalarAddProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "scalarMultProp": return this._doMod_scalarMultProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "setProp": return this._doMod_setProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "prefixSuffixStringProp": return this._doMod_prefixSuffixStringProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-														case "addSenses": return this._doMod_addSenses({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addSaves": return this._doMod_addSaves({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addSkills": return this._doMod_addSkills({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addAllSaves": return this._doMod_addAllSaves({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addAllSkills": return this._doMod_addAllSkills({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addSpells": return this._doMod_addSpells({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "replaceSpells": return this._doMod_replaceSpells({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "removeSpells": return this._doMod_removeSpells({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "maxSize": return this._doMod_maxSize({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "scalarMultXp": return this._doMod_scalarMultXp({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "scalarAddHit": return this._doMod_scalarAddHit({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "scalarAddDc": return this._doMod_scalarAddDc({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-														default: throw new Error(`${msgPtFailed} Unhandled mode: ${modInfo.mode}`);
-						}
+					}
+
+					switch (modInfo.mode) {
+						case "appendStr": return this._doMod_appendStr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "replaceName": return this._doMod_replaceName({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "replaceTxt": return this._doMod_replaceTxt({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "prependArr": return this._doMod_prependArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "appendArr": return this._doMod_appendArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "replaceArr": return this._doMod_replaceArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "replaceOrAppendArr": return this._doMod_replaceOrAppendArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "appendIfNotExistsArr": return this._doMod_appendIfNotExistsArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "insertArr": return this._doMod_insertArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "removeArr": return this._doMod_removeArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "renameArr": return this._doMod_renameArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "calculateProp": return this._doMod_calculateProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "scalarAddProp": return this._doMod_scalarAddProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "scalarMultProp": return this._doMod_scalarMultProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "setProp": return this._doMod_setProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "prefixSuffixStringProp": return this._doMod_prefixSuffixStringProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+												case "addSenses": return this._doMod_addSenses({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addSaves": return this._doMod_addSaves({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addSkills": return this._doMod_addSkills({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addAllSaves": return this._doMod_addAllSaves({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addAllSkills": return this._doMod_addAllSkills({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addSpells": return this._doMod_addSpells({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "replaceSpells": return this._doMod_replaceSpells({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "removeSpells": return this._doMod_removeSpells({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "maxSize": return this._doMod_maxSize({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "scalarMultXp": return this._doMod_scalarMultXp({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "scalarAddHit": return this._doMod_scalarAddHit({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "scalarAddDc": return this._doMod_scalarAddDc({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+												default: throw new Error(`${msgPtFailed} Unhandled mode: ${modInfo.mode}`);
 					}
 				});
 			}
@@ -9846,6 +9919,16 @@ globalThis.DataUtil = {
 		static async loadRawJSON (...args) { return DataUtil.item.loadRawJSON(...args); }
 	},
 
+	magicvariant: class extends _DataUtilPropConfig {
+		static _MERGE_REQUIRES_PRESERVE = {
+			lootTables: true,
+			tier: true,
+		};
+		static _PAGE = "magicvariant";
+
+		static async loadRawJSON (...args) { return DataUtil.item.loadRawJSON(...args); }
+	},
+
 	itemFluff: class extends _DataUtilPropConfigSingleSource {
 		static _PAGE = UrlUtil.PG_ITEMS;
 		static _FILENAME = "fluff-items.json";
@@ -10592,10 +10675,25 @@ globalThis.RollerUtil = {
 
 		colLabel = mDice ? mDice.groups.exp : Renderer.stripTags(colLabel);
 
-		if (Renderer.dice.lang.getTree3(colLabel)) return RollerUtil.ROLL_COL_STANDARD;
+		const pts = mDice
+			? colLabel
+				.split(";")
+				.map(it => it.trim())
+				.filter(Boolean)
+			: [colLabel];
 
-				colLabel = colLabel.replace(RollerUtil._REGEX_ROLLABLE_COL_LABEL, "$1");
-		if (Renderer.dice.lang.getTree3(colLabel)) return RollerUtil.ROLL_COL_VARIABLE;
+		if (pts.every(pt => !!Renderer.dice.lang.getTree3(pt))) return RollerUtil.ROLL_COL_STANDARD;
+
+				if (
+			pts
+				.every(pt => {
+					return !!Renderer.dice.lang.getTree3(
+						pt
+							.replace(RollerUtil._REGEX_ROLLABLE_COL_LABEL, "$1")
+							.replace(RollerUtil._REGEX_ROLLABLE_COL_TRAILING_VARIABLE, "$1"),
+					);
+				})
+		) return RollerUtil.ROLL_COL_VARIABLE;
 
 		return RollerUtil.ROLL_COL_NONE;
 	},
@@ -10620,6 +10718,7 @@ RollerUtil.DICE_REGEX_FULLMATCH = new RegExp(`^\\s*${RollerUtil._DICE_REGEX_STR}
 RollerUtil.REGEX_DAMAGE_DICE = /(?<average>\d+)(?<prefix> \((?:{@dice |{@damage ))(?<diceExp>[-+0-9d ]*)(?<suffix>}\)(?:\s*\+\s*the spell's level)? [a-z]+( \([-a-zA-Z0-9 ]+\))?( or [a-z]+( \([-a-zA-Z0-9 ]+\))?)? damage)/gi;
 RollerUtil.REGEX_DAMAGE_FLAT = /(?<prefix>Hit(?: or Miss)?: |Miss: |{@hom}|{@h}|{@m})(?<flatVal>[0-9]+)(?<suffix> [a-z]+( \([-a-zA-Z0-9 ]+\))?( or [a-z]+( \([-a-zA-Z0-9 ]+\))?)? damage)/gi;
 RollerUtil._REGEX_ROLLABLE_COL_LABEL = /^(.*?\d)(\s*[-+/*^×÷]\s*)([a-zA-Z0-9 ]+)$/;
+RollerUtil._REGEX_ROLLABLE_COL_TRAILING_VARIABLE = /^(.*?\d)(\s*[-+/*^×÷]\s*)(#\$.*?\$#)$/;
 RollerUtil.ROLL_COL_NONE = 0;
 RollerUtil.ROLL_COL_STANDARD = 1;
 RollerUtil.ROLL_COL_VARIABLE = 2;
@@ -11107,10 +11206,6 @@ globalThis.CollectionUtil = {
 		if (a.size !== b.size) return false;
 		for (const it of a) if (!b.has(it)) return false;
 		return true;
-	},
-
-	setDiff (set1, set2) {
-		return new Set([...set1].filter(it => !set2.has(it)));
 	},
 
 	objectDiff (obj1, obj2) {
@@ -12118,7 +12213,9 @@ if (!IS_VTT && typeof window !== "undefined") {
 		Renderer.events.bindGeneric();
 	});
 
-		if (location.hostname.endsWith(VeCt.LOC_HOSTNAME_CANCER)) {
+		const isDbgCancer = false;
+
+	if (location.hostname.endsWith(VeCt.LOC_HOSTNAME_CANCER)) {
 		const ivsCancer = [];
 		let anyFound = false;
 
@@ -12157,10 +12254,16 @@ if (!IS_VTT && typeof window !== "undefined") {
 			ivsCancer.forEach(iv => clearInterval(iv));
 		}, 6500);
 	} else {
-		window.addEventListener("load", () => $(`.cancer__anchor`).remove());
+		if (!isDbgCancer) window.addEventListener("load", () => $(`.cancer__anchor`).remove());
 	}
 
-					}
+	if (isDbgCancer) {
+		window.addEventListener("load", () => {
+			$(`.cancer__sidebar-inner--top`).append(`<div style="width: 300px; height: 600px; background: #f0f;"></div>`);
+			$(`.cancer__sidebar-inner--bottom`).append(`<div style="width: 300px; height: 600px; background: #f0f;"></div>`);
+		});
+	}
+	}
 
 "use strict";
 
@@ -12570,6 +12673,9 @@ let UiUtil$1 = class UiUtil {
 			$modal: $(modal),
 			$modalInner: $(wrpScroller),
 			$modalFooter: $(modalFooter),
+			eleModal: modal,
+			eleModalInner: wrpScroller,
+			eleModalFooter: modalFooter,
 			doClose: pHandleCloseClick,
 			doTeardown,
 			pGetResolved: () => pResolveModal,
@@ -12690,7 +12796,11 @@ let UiUtil$1 = class UiUtil {
 		return out;
 	}
 
-	static bindTypingEnd ({$ipt, fnKeyup, fnKeypress, fnKeydown, fnClick, timeout} = {}) {
+	static bindTypingEnd ({ipt, $ipt, fnKeyup, fnKeypress, fnKeydown, fnClick, timeout} = {}) {
+		if (!ipt && !$ipt?.length) throw new Error(`"ipt" or "$ipt" must be provided!`);
+
+		$ipt = $ipt || $(ipt);
+
 		let timerTyping;
 		$ipt
 			.on("keyup search paste", evt => {
@@ -13249,8 +13359,22 @@ class TabUiUtilBase {
 			};
 		};
 
-				obj._renderTabs = function (tabMetas, {$parent, propProxy = TabUiUtilBase._DEFAULT_PROP_PROXY, tabGroup = TabUiUtilBase._DEFAULT_TAB_GROUP, cbTabChange, additionalClassesWrpHeads} = {}) {
+				obj._renderTabs = function (
+			tabMetas,
+			{
+				$parent = null,
+				eleParent = null,
+				propProxy = TabUiUtilBase._DEFAULT_PROP_PROXY,
+				tabGroup = TabUiUtilBase._DEFAULT_TAB_GROUP,
+				cbTabChange,
+				additionalClassesWrpHeads,
+			} = {},
+		) {
 			if (!tabMetas.length) throw new Error(`One or more tab meta must be specified!`);
+			if ($parent && eleParent) throw new Error(`Only one of "$parent" and "eleParent" may be specified!`);
+
+			$parent ||= eleParent ? $(eleParent) : null;
+
 			obj._resetTabs({tabGroup});
 
 			const isSingleTab = tabMetas.length === 1;
@@ -13276,7 +13400,9 @@ class TabUiUtilBase {
 					...it,
 					ix: i,
 					$btnTab,
+					btnTab: $btnTab[0],
 					$wrpTab,
+					wrpTab: $wrpTab[0],
 				};
 			};
 
@@ -13638,8 +13764,10 @@ class SearchWidget {
 		return `<div class="ui-search__message"><i>Enter a search.</i></div>`;
 	}
 
-		static bindAutoSearch ($iptSearch, opts) {
+		static bindAutoSearch (iptOr$iptSearch, opts) {
 		if (opts.fnSearch && opts.pFnSearch) throw new Error(`Options "fnSearch" and "pFnSearch" are mutually exclusive!`);
+
+		const $iptSearch = $(iptOr$iptSearch);
 
 				let pSearching = null;
 		const addSearchPromiseTask = () => {
@@ -15314,7 +15442,7 @@ let DragReorderUiUtil$1 = class DragReorderUiUtil {
 			const ixRow = $children.indexOf($fnGetRow());
 
 			$children.forEach(($child, i) => {
-				const dimensions = {w: $child.outerWidth(true), h: $child.outerHeight(true)};
+				const dimensions = {w: $child.outerWidth(), h: $child.outerHeight()};
 				const $dummy = $(`<div class="no-shrink ${i === ixRow ? "ui-drag__wrp-drag-dummy--highlight" : "ui-drag__wrp-drag-dummy--lowlight"}"></div>`)
 					.width(dimensions.w).height(dimensions.h)
 					.mouseup(() => {
@@ -16363,32 +16491,57 @@ let ComponentUiUtil$1 = class ComponentUiUtil {
 		return $ele;
 	}
 
+		static getIptInt (component, prop, fallbackEmpty = 0, opts) {
+		return ComponentUiUtil$1._getIptNumeric(component, prop, UiUtil$1.strToInt, fallbackEmpty, opts);
+	}
+
+		static getIptNumber (component, prop, fallbackEmpty = 0, opts) {
+		return ComponentUiUtil$1._getIptNumeric(component, prop, UiUtil$1.strToNumber, fallbackEmpty, opts);
+	}
+
 		static $getIptInt (component, prop, fallbackEmpty = 0, opts) {
-		return ComponentUiUtil$1._$getIptNumeric(component, prop, UiUtil$1.strToInt, fallbackEmpty, opts);
+		if (opts?.$ele) opts.ele = opts.$ele[0];
+
+		const out = ComponentUiUtil$1._getIptNumeric(component, prop, UiUtil$1.strToInt, fallbackEmpty, opts);
+		if (!opts?.asMeta) return $(out);
+
+		out.$ipt = $(out.ipt);
+		out.$wrp = $(out.wrp);
+
+		return out;
 	}
 
 		static $getIptNumber (component, prop, fallbackEmpty = 0, opts) {
-		return ComponentUiUtil$1._$getIptNumeric(component, prop, UiUtil$1.strToNumber, fallbackEmpty, opts);
+		if (opts?.$ele) opts.ele = opts.$ele[0];
+
+		const out = ComponentUiUtil$1._getIptNumeric(component, prop, UiUtil$1.strToNumber, fallbackEmpty, opts);
+		if (!opts?.asMeta) return $(out);
+
+		out.$ipt = $(out.ipt);
+		out.$wrp = $(out.wrp);
+
+		return out;
 	}
 
-	static _$getIptNumeric (component, prop, fnConvert, fallbackEmpty = 0, opts) {
+	static _getIptNumeric (component, prop, fnConvert, fallbackEmpty = 0, opts) {
 		opts = opts || {};
 		opts.offset = opts.offset || 0;
 
 		const setIptVal = () => {
 			if (opts.isAllowNull && component._state[prop] == null) {
-				return $ipt.val(null);
+				return ipt.val(null);
 			}
 
 			const num = (component._state[prop] || 0) + opts.offset;
 			const val = opts.padLength ? `${num}`.padStart(opts.padLength, "0") : num;
-			$ipt.val(val);
+			ipt.val(val);
 		};
 
-		const $ipt = (opts.$ele || $(opts.html || `<input class="form-control input-xs form-control--minimal ve-text-right">`)).disableSpellcheck()
-			.keydown(evt => { if (evt.key === "Escape") $ipt.blur(); })
-			.change(() => {
-				const raw = $ipt.val().trim();
+		const ipt = (opts.ele ? e_({ele: opts.ele}) : e_({outer: opts.html || `<input class="form-control input-xs form-control--minimal ve-text-right">`}))
+			.disableSpellcheck()
+			.onn("keydown", evt => { if (evt.key === "Escape") ipt.blur(); })
+			.onn("change", () => {
+				const raw = ipt.val().trim();
 				const cur = component._state[prop];
 
 				if (opts.isAllowNull && !raw) return component._state[prop] = null;
@@ -16421,73 +16574,91 @@ let ComponentUiUtil$1 = class ComponentUiUtil {
 		component._addHookBase(prop, hook);
 		hook();
 
-		if (opts.asMeta) return this._getIptDecoratedMeta(component, prop, $ipt, hook, opts);
-		else return $ipt;
+		if (opts.asMeta) return this._getIptDecoratedMeta(component, prop, ipt, hook, opts);
+		else return ipt;
 	}
 
-		static $getIptStr (component, prop, opts) {
+		static getIptStr (component, prop, opts) {
 		opts = opts || {};
 
 				if ((opts.decorationLeft || opts.decorationRight) && !opts.asMeta) throw new Error(`Input must be created with "asMeta" option`);
 
-		const $ipt = (opts.$ele || $(opts.html || `<input class="form-control input-xs form-control--minimal">`))
-			.keydown(evt => { if (evt.key === "Escape") $ipt.blur(); })
+		const ipt = (opts.ele ? e_({ele: opts.ele}) : e_({outer: opts.html || `<input class="form-control input-xs form-control--minimal">`}))
+			.onn("keydown", evt => { if (evt.key === "Escape") ipt.blur(); })
 			.disableSpellcheck();
 		UiUtil$1.bindTypingEnd({
-			$ipt,
+			ipt,
 			fnKeyup: () => {
-				const nxtVal = opts.isNoTrim ? $ipt.val() : $ipt.val().trim();
+				const nxtVal = opts.isNoTrim ? ipt.val() : ipt.val().trim();
 				component._state[prop] = opts.isAllowNull && !nxtVal ? null : nxtVal;
 			},
 		});
 
-		if (opts.placeholder) $ipt.attr("placeholder", opts.placeholder);
+		if (opts.placeholder) ipt.attr("placeholder", opts.placeholder);
 
-		if (opts.autocomplete && opts.autocomplete.length) $ipt.typeahead({source: opts.autocomplete});
+				if (opts.autocomplete && opts.autocomplete.length) $(ipt).typeahead({source: opts.autocomplete});
 		const hook = () => {
-			if (component._state[prop] == null) $ipt.val(null);
+			if (component._state[prop] == null) ipt.val(null);
 			else {
-								if ($ipt.val().trim() !== component._state[prop]) $ipt.val(component._state[prop]);
+								if (ipt.val().trim() !== component._state[prop]) ipt.val(component._state[prop]);
 			}
 		};
 		component._addHookBase(prop, hook);
 		hook();
 
-		if (opts.asMeta) return this._getIptDecoratedMeta(component, prop, $ipt, hook, opts);
-		else return $ipt;
+		if (opts.asMeta) return this._getIptDecoratedMeta(component, prop, ipt, hook, opts);
+		else return ipt;
 	}
 
-	static _getIptDecoratedMeta (component, prop, $ipt, hook, opts) {
-		const out = {$ipt, unhook: () => component._removeHookBase(prop, hook)};
+		static $getIptStr (component, prop, opts) {
+		if (opts?.$ele) opts.ele = opts.$ele[0];
+
+		const out = ComponentUiUtil$1.getIptStr(component, prop, opts);
+		if (!opts?.asMeta) return $(out);
+
+		out.$ipt = $(out.ipt);
+		out.$wrp = $(out.wrp);
+
+		return out;
+	}
+
+	static _getIptDecoratedMeta (component, prop, ipt, hook, opts) {
+		const out = {ipt, unhook: () => component._removeHookBase(prop, hook)};
 
 		if (opts.decorationLeft || opts.decorationRight) {
 			let $decorLeft;
 			let $decorRight;
 
 			if (opts.decorationLeft) {
-				$ipt.addClass(`ui-ideco__ipt ui-ideco__ipt--left`);
-				$decorLeft = ComponentUiUtil$1._$getDecor(component, prop, $ipt, opts.decorationLeft, "left", opts);
+				ipt.addClass("ui-ideco__ipt").addClass("ui-ideco__ipt--left");
+				$decorLeft = ComponentUiUtil$1._getEleDecor(component, prop, ipt, opts.decorationLeft, "left", opts);
 			}
 
 			if (opts.decorationRight) {
-				$ipt.addClass(`ui-ideco__ipt ui-ideco__ipt--right`);
-				$decorRight = ComponentUiUtil$1._$getDecor(component, prop, $ipt, opts.decorationRight, "right", opts);
+				ipt.addClass("ui-ideco__ipt").addClass("ui-ideco__ipt--right");
+				$decorRight = ComponentUiUtil$1._getEleDecor(component, prop, ipt, opts.decorationRight, "right", opts);
 			}
 
-			out.$wrp = $$`<div class="relative w-100">${$ipt}${$decorLeft}${$decorRight}</div>`;
+			out.wrp = ee`<div class="relative w-100">${ipt}${$decorLeft}${$decorRight}</div>`;
 		}
 
 		return out;
 	}
 
-	static _$getDecor (component, prop, $ipt, decorType, side, opts) {
+	static _getEleDecor (component, prop, ipt, decorType, side, opts) {
 		switch (decorType) {
 			case "search": {
-				return $(`<div class="ui-ideco__wrp ui-ideco__wrp--${side} no-events ve-flex-vh-center"><span class="glyphicon glyphicon-search"></span></div>`);
+				return ee`<div class="ui-ideco__wrp ui-ideco__wrp--${side} no-events ve-flex-vh-center"><span class="glyphicon glyphicon-search"></span></div>`;
 			}
 			case "clear": {
-				return $(`<div class="ui-ideco__wrp ui-ideco__wrp--${side} ve-flex-vh-center clickable" title="Clear"><span class="glyphicon glyphicon-remove"></span></div>`)
-					.click(() => $ipt.val("").change().keydown().keyup());
+				return ee`<div class="ui-ideco__wrp ui-ideco__wrp--${side} ve-flex-vh-center clickable" title="Clear"><span class="glyphicon glyphicon-remove"></span></div>`
+					.onn("click", () => {
+						ipt
+							.val("")
+							.trigger("change")
+							.trigger("keydown")
+							.trigger("keyup");
+					});
 			}
 			case "ticker": {
 				const isValidValue = val => {
@@ -16501,18 +16672,18 @@ let ComponentUiUtil$1 = class ComponentUiUtil {
 					const nxt = cur + delta;
 					if (!isValidValue(nxt)) return;
 					component._state[prop] = nxt;
-					$ipt.focus();
+					ipt.focus();
 				};
 
-				const $btnUp = $(`<button class="ve-btn ve-btn-default ui-ideco__btn-ticker p-0 bold no-select">+</button>`)
-					.click(() => handleClick(1));
+				const btnUp = ee`<button class="ve-btn ve-btn-default ui-ideco__btn-ticker p-0 bold no-select">+</button>`
+					.onn("click", () => handleClick(1));
 
-				const $btnDown = $(`<button class="ve-btn ve-btn-default ui-ideco__btn-ticker p-0 bold no-select">\u2212</button>`)
-					.click(() => handleClick(-1));
+				const btnDown = ee`<button class="ve-btn ve-btn-default ui-ideco__btn-ticker p-0 bold no-select">\u2212</button>`
+					.onn("click", () => handleClick(-1));
 
-				return $$`<div class="ui-ideco__wrp ui-ideco__wrp--${side} ve-flex-vh-center ve-flex-col">
-					${$btnUp}
-					${$btnDown}
+				return ee`<div class="ui-ideco__wrp ui-ideco__wrp--${side} ve-flex-vh-center ve-flex-col">
+					${btnUp}
+					${btnDown}
 				</div>`;
 			}
 			case "spacer": {
@@ -18817,8 +18988,6 @@ globalThis.Renderer = function () {
 	this._renderImage = function (entry, textStack, meta, options) {
 		if (entry.title) this._handleTrackTitles(entry.title, {isImage: true});
 
-		textStack[0] += `<div class="float-clear"></div>`;
-
 		if (entry.imageType === "map" || entry.imageType === "mapPlayer") textStack[0] += `<div class="rd__wrp-map">`;
 		textStack[0] += `<div class="${meta._typeStack.includes("gallery") ? "rd__wrp-gallery-image" : ""}">`;
 
@@ -19393,9 +19562,29 @@ globalThis.Renderer = function () {
 		return `<span class="rd__h-toggle ml-2 clickable no-select no-print lst-is-exporting-image__hidden" data-rd-h-special-toggle-button="true" title="Toggle Visibility (CTRL to Toggle All)">[\u2013]</span>`;
 	};
 
+	
+	this._renderInset_getCssClasses = function (entry, textStack, meta, options) {
+		const out = ["rd__b-special", "rd__b-inset"];
+		if (entry.type === "insetReadaloud") out.push("rd__b-inset--readaloud");
+		if (entry.style) {
+			out.push(
+				...entry.style.split(" ")
+					.map(pt => {
+						if (pt === "comic-speaker") return "rd__b-inset--comic-speaker";
+
+						const mutGeneric = this._getMutatedStyleString(pt);
+						if (mutGeneric !== pt) return mutGeneric;
+
+						return pt;
+					}),
+			);
+		}
+		return out.join(" ");
+	};
+
 	this._renderInset = function (entry, textStack, meta, options) {
 		const dataString = this._renderEntriesSubtypes_getDataString(entry);
-		textStack[0] += `<${this.wrapperTag} class="rd__b-special rd__b-inset ${this._getMutatedStyleString(entry.style || "")}" ${dataString}>`;
+		textStack[0] += `<${this.wrapperTag} class="${this._renderInset_getCssClasses(entry, textStack, meta, options)}" ${dataString}>`;
 
 		const cachedLastDepthTrackerProps = MiscUtil.copyFast(this._lastDepthTrackerInheritedProps);
 		this._handleTrackDepth(entry, 1);
@@ -19420,7 +19609,6 @@ globalThis.Renderer = function () {
 				meta.depth = cacheDepth;
 			}
 		}
-		textStack[0] += `<div class="float-clear"></div>`;
 		textStack[0] += `</${this.wrapperTag}>`;
 
 		this._lastDepthTrackerInheritedProps = cachedLastDepthTrackerProps;
@@ -19428,7 +19616,7 @@ globalThis.Renderer = function () {
 
 	this._renderInsetReadaloud = function (entry, textStack, meta, options) {
 		const dataString = this._renderEntriesSubtypes_getDataString(entry);
-		textStack[0] += `<${this.wrapperTag} class="rd__b-special rd__b-inset rd__b-inset--readaloud ${this._getMutatedStyleString(entry.style || "")}" ${dataString}>`;
+		textStack[0] += `<${this.wrapperTag} class="${this._renderInset_getCssClasses(entry, textStack, meta, options)}" ${dataString}>`;
 
 		const cachedLastDepthTrackerProps = MiscUtil.copyFast(this._lastDepthTrackerInheritedProps);
 		this._handleTrackDepth(entry, 1);
@@ -19451,7 +19639,6 @@ globalThis.Renderer = function () {
 			this._recursiveRender(entry.entries[i], textStack, meta, {prefix: "<p>", suffix: "</p>"});
 			meta.depth = cacheDepth;
 		}
-		textStack[0] += `<div class="float-clear"></div>`;
 		textStack[0] += `</${this.wrapperTag}>`;
 
 		this._lastDepthTrackerInheritedProps = cachedLastDepthTrackerProps;
@@ -19901,8 +20088,8 @@ globalThis.Renderer = function () {
 		this._renderDataFooter(textStack);
 	};
 
-	this._renderDataHeader = function (textStack, name, style, {isStats = false, isCollapsed = false} = {}) {
-		textStack[0] += Renderer.utils.getEmbeddedDataHeader(name, style, {isStats, isCollapsed});
+	this._renderDataHeader = function (textStack, name, style, {isStats = false, isCollapsed = false, htmlNameExpanded = null, htmlNameCollapsed = null} = {}) {
+		textStack[0] += Renderer.utils.getEmbeddedDataHeader(name, style, {isStats, isCollapsed, htmlNameExpanded, htmlNameCollapsed});
 	};
 
 	this._renderDataFooter = function (textStack) {
@@ -19917,9 +20104,9 @@ globalThis.Renderer = function () {
 
 		const prop = entry.prop || Parser.getTagProps(entry.tag)[0];
 		const uid = prop ? DataUtil.proxy.getUid(prop, {...entry, source}, {isMaintainCase: true}) : "unknown|unknown";
-		const asTag = `{@${tag} ${uid}${entry.displayName ? `|${entry.displayName}` : ""}}`;
+		const asTag = tag ? `{@${tag} ${uid}${entry.displayName ? `|${entry.displayName}` : ""}}` : null;
 
-		const isFluff = prop?.includes("Fluff");
+		const isFluff = prop?.endsWith("Fluff");
 
 		const displayName = entry.displayName || entry.name || entry.abbreviation;
 
@@ -19931,10 +20118,10 @@ globalThis.Renderer = function () {
 		if (fromPlugins) return void (textStack[0] += fromPlugins);
 
 		if (!page || !source || !hash) {
-			this._renderDataHeader(textStack, displayName, entry.style, {isStats: !isFluff});
+			this._renderDataHeader(textStack, displayName, entry.style, {isStats: !isFluff, htmlNameExpanded, htmlNameCollapsed});
 			textStack[0] += `<tr>
 				<td colspan="6">
-					<i class="text-danger">Cannot load ${tag ? `&quot;${asTag}&quot;` : displayName}! An unknown tag/prop, source, or hash was provided.</i>
+					<i class="text-danger">Cannot load ${asTag ? `&quot;${asTag}&quot;` : displayName}! An unknown tag/prop, source, or hash was provided.</i>
 				</td>
 			</tr>`;
 			this._renderDataFooter(textStack);
@@ -19944,8 +20131,8 @@ globalThis.Renderer = function () {
 
 		this._renderDataHeader(textStack, displayName, entry.style, {isStats: !isFluff, isCollapsed: entry.collapsed});
 		textStack[0] += `<tr>
-			<td colspan="6" data-rd-tag="${(tag || "").qq()}" data-rd-page="${(page || "").qq()}" data-rd-source="${(source || "").qq()}" data-rd-hash="${(hash || "").qq()}" data-rd-name="${(entry.name || "").qq()}" data-rd-display-name="${(displayName || "").qq()}" data-rd-style="${(entry.style || "").qq()}">
-				<i>Loading ${tag ? `${Renderer.get().render(asTag)}` : displayName}...</i>
+			<td colspan="6" data-rd-tag="${(tag || "").qq()}" data-rd-uid="${(uid || "").qq()}" data-rd-page="${(page || "").qq()}" data-rd-source="${(source || "").qq()}" data-rd-hash="${(hash || "").qq()}" data-rd-name="${(entry.name || "").qq()}" data-rd-display-name="${(displayName || "").qq()}" data-rd-style="${(entry.style || "").qq()}" data-rd-entry-data="${JSON.stringify(entry.data || {}).qq()}">
+				<i>Loading ${asTag ? `${Renderer.get().render(asTag)}` : displayName}...</i>
 				<style onload="Renderer.events.handleLoad_inlineStatblock(this)"></style>
 			</td>
 		</tr>`;
@@ -20002,7 +20189,6 @@ globalThis.Renderer = function () {
 				meta.depth = cacheDepth;
 			}
 		}
-		textStack[0] += `<div class="float-clear"></div>`;
 		textStack[0] += `</${this.wrapperTag}>`;
 
 		this._lastDepthTrackerInheritedProps = cachedLastDepthTrackerProps;
@@ -21164,23 +21350,36 @@ Renderer.getFilterSubhashes = function (filters, namespace = null) {
 		const isBoxData = fName.startsWith("fb");
 		const key = isBoxData ? `${fName}${namespace ? `.${namespace}` : ""}` : `flst${namespace ? `.${namespace}` : ""}${UrlUtil.encodeForHash(fName)}`;
 
-		let value;
-				if (isBoxData) {
+		if (isBoxData) {
 			return {
 				key,
 				value: fVals,
 				preEncoded: true,
 			};
-		} else if (fName === "search") {
+		}
+
+				if (fName === "search") {
 						return {
 				key: VeCt.FILTER_BOX_SUB_HASH_SEARCH_PREFIX,
 				value: UrlUtil.encodeForHash(fVals),
 				preEncoded: true,
 			};
-		} else if (fName === "hash") {
+		}
+
+		if (fName === "hash") {
 			customHash = fVals;
 			return null;
-		} else if (fVals.startsWith("[") && fVals.endsWith("]")) { 			const [min, max] = fVals.substring(1, fVals.length - 1).split(";").map(it => it.trim());
+		}
+
+		if (fName === "preserve") {
+			return {
+				key: VeCt.FILTER_BOX_SUB_HASH_FLAG_IS_PRESERVE_EXISTING,
+				value: true,
+			};
+		}
+		
+		let value;
+		if (fVals.startsWith("[") && fVals.endsWith("]")) { 			const [min, max] = fVals.substring(1, fVals.length - 1).split(";").map(it => it.trim());
 			if (max == null) { 				value = [
 					`min=${min}`,
 					`max=${min}`,
@@ -21421,13 +21620,29 @@ Renderer.utils = class {
 		return Renderer.get().render(Renderer.utils.getAbilityRollerEntry(statblock, ability, {isDisplayAsBonus}));
 	}
 
-	static getEmbeddedDataHeader (name, style, {isCollapsed = false, isStatic = false, isStats = false} = {}) {
+	static getEmbeddedDataHeader (
+		name,
+		style,
+		{
+			isCollapsed = false,
+			isStatic = false,
+			isStats = false,
+
+			htmlNameCollapsed = null,
+			htmlNameExpanded = null,
+		} = {},
+	) {
 		return `<table class="rd__b-special rd__b-data ${style ? `rd__b-data--${style}` : ""} ${isStats ? `rd__b-data--stats` : ""}">
 		<thead>
 			<tr>
 				<th class="rd__data-embed-header ve-text-left" colspan="6" data-rd-data-embed-header="true">
-					<span class="rd__data-embed-name ${!isStatic && isCollapsed ? "" : `ve-hidden`}">${name}</span>
-					${isStatic ? `<span></span>` : `<span class="rd__data-embed-toggle">[${isCollapsed ? "+" : "\u2013"}]</span>`}
+					<div class="w-100 split-v-center">
+						<div class="ve-flex-v-center w-100 min-w-0">
+							<span class="rd__data-embed-name ${!isStatic && isCollapsed ? "" : `ve-hidden`}">${htmlNameCollapsed || name}</span>
+							<span class="rd__data-embed-name-expanded ve-text-right pr-2 w-100 ${!isStatic && isCollapsed ? `ve-hidden` : ""}">${htmlNameExpanded || ""}</span>
+						</div>
+						${isStatic ? `<span></span>` : `<span class="rd__data-embed-toggle">[${isCollapsed ? "+" : "\u2013"}]</span>`}
+					</div>
 				</th>
 			</tr>
 		</thead><tbody class="${!isStatic && isCollapsed ? `ve-hidden` : ""}" data-rd-embedded-data-render-target="true">`;
@@ -22316,7 +22531,7 @@ Renderer.utils = class {
 												fauxEntry.toRoll = rollText;
 
 						if (!fauxEntry.displayText && (rollText || "").includes(";")) fauxEntry.displayText = rollText.replace(/;/g, "/");
-						if ((!fauxEntry.displayText && (rollText || "").includes("#$")) || (fauxEntry.displayText && fauxEntry.displayText.includes("#$"))) fauxEntry.displayText = (fauxEntry.displayText || rollText).replace(/#\$prompt_number[^$]*\$#/g, "(n)");
+						if ((!fauxEntry.displayText && (rollText || "").includes("#$")) || (fauxEntry.displayText && fauxEntry.displayText.includes("#$"))) fauxEntry.displayText = (fauxEntry.displayText || rollText).replace(/#\$prompt_number[^$]*\$#/g, "(𝑛)");
 						fauxEntry.displayText = fauxEntry.displayText || fauxEntry.toRoll;
 
 						if (tag === "@damage") {
@@ -22726,6 +22941,8 @@ Renderer.utils = class {
 			case "@itemProperty": { out.isFauxPage = true; out.page = "itemProperty"; break; }
 			case "@itemMastery": { out.isFauxPage = true; out.page = "itemMastery"; break; }
 			case "@cite": { out.isFauxPage = true; out.page = "citation"; break; }
+
+						case "@creatureFluff": { out.isFauxPage = true; out.page = "monsterFluff"; break; }
 
 			default: throw new Error(`Unhandled tag "${tag}"`);
 		}
@@ -23897,12 +24114,17 @@ Renderer.events = class {
 	}
 
 	static handleClick_dataEmbedHeader (evt, ele) {
+		if (evt.target.closest("a")) return;
+
 		evt.stopPropagation();
 		evt.preventDefault();
 
 		const $ele = $(ele);
-		$ele.find(".rd__data-embed-name").toggleVe();
-		$ele.find(".rd__data-embed-toggle").text($ele.text().includes("+") ? "[\u2013]" : "[+]");
+		const $eleToggle = $ele.find(".rd__data-embed-toggle");
+		const isHidden = $eleToggle.text().includes("+");
+		$ele.find(".rd__data-embed-name").toggleVe(!isHidden);
+		$ele.find(".rd__data-embed-name-expanded").toggleVe(isHidden);
+		$eleToggle.text(isHidden ? "[\u2013]" : "[+]");
 		$ele.closest("table").find("tbody").toggleVe();
 	}
 
@@ -23936,11 +24158,6 @@ Renderer.events = class {
 		let eleNxt = ele.closest(".rd__h").nextElementSibling;
 
 		while (eleNxt) {
-						if (eleNxt.classList.contains("float-clear")) {
-				eleNxt = eleNxt.nextElementSibling;
-				continue;
-			}
-
 						if (selector !== `[data-rd-h-special-toggle-button]`) {
 				const eleToCheck = Renderer.events._handleClick_headerToggleButton_getEleToCheck(eleNxt);
 				if (
@@ -23990,16 +24207,49 @@ Renderer.events = class {
 		observer.track(ele.parentNode);
 	}
 
+	static _handleLoad_inlineStatblock_getHtmlNames ({tag, uid, displayName}) {
+		if (!tag) return {};
+
+		const tagMeta = Renderer.utils.getTagMeta(`@${tag}`, `${uid}${displayName ? `|${displayName}` : ""}`);
+
+		const {name, displayText, page, hash, hashPreEncoded} = tagMeta;
+
+		const fauxEntryBase = {
+			type: "link",
+			href: {
+				type: "internal",
+				path: page,
+				hash,
+			},
+		};
+		if (hashPreEncoded != null) fauxEntryBase.href.hashPreEncoded = hashPreEncoded;
+
+		return {
+			htmlNameCollapsed: Renderer.get().render({
+				...fauxEntryBase,
+				text: displayText || name,
+			}),
+			htmlNameExpanded: Renderer.get().render({
+				...fauxEntryBase,
+				text: `<button class="ve-btn ve-btn-default ve-btn-xxs" title="Go to Page">
+					<span class="glyphicon glyphicon-modal-window"></span>
+				</button>`,
+			}),
+		};
+	}
+
 	static _handleLoad_inlineStatblock_fnOnObserve ({entry}) {
 		const ele = entry.target;
 
 		const tag = ele.dataset.rdTag.uq();
+		const uid = (ele.getAttribute("data-rd-uid") || "").uq();
 		const page = ele.dataset.rdPage.uq();
 		const source = ele.dataset.rdSource.uq();
 		const name = ele.dataset.rdName.uq();
 		const displayName = ele.dataset.rdDisplayName.uq();
 		const hash = ele.dataset.rdHash.uq();
 		const style = ele.dataset.rdStyle.uq();
+		const entryData = JSON.parse((ele.getAttribute("data-rd-entry-data") || "").uq() || `{}`);
 
 		return DataLoader.pCacheAndGet(page, Parser.getTagSource(tag, source), hash)
 			.then(toRender => {
@@ -24013,11 +24263,23 @@ Renderer.events = class {
 				const headerName = displayName
 					|| (name ?? toRender.name ?? (toRender.entries?.length ? toRender.entries?.[0]?.name : "(Unknown)"));
 
+				const {htmlNameCollapsed, htmlNameExpanded} = Renderer.events._handleLoad_inlineStatblock_getHtmlNames({
+					tag, uid, displayName,
+				});
+
 				const fnRender = Renderer.hover.getFnRenderCompact(page);
 				const tbl = tr.closest("table");
 				const nxt = e_({
-					outer: Renderer.utils.getEmbeddedDataHeader(headerName, style, {isStats: !toRender.__prop?.includes("Fluff")})
-						+ fnRender(toRender, {isEmbeddedEntity: true})
+					outer: Renderer.utils.getEmbeddedDataHeader(
+						headerName,
+						style,
+						{
+							isStats: !toRender.__prop?.endsWith("Fluff"),
+							htmlNameCollapsed,
+							htmlNameExpanded,
+						},
+					)
+						+ fnRender(toRender, {...(entryData?.renderCompact || {}), isEmbeddedEntity: true})
 						+ Renderer.utils.getEmbeddedDataFooter(),
 				});
 				tbl.parentNode.replaceChild(
@@ -28063,7 +28325,7 @@ Renderer.monster = class {
 	}
 
 	
-		static getGearPart (mon, {renderer = null} = {}) {
+	static getGearPart (mon, {renderer = null} = {}) {
 		if (!mon.gear?.length && !mon.attachedItems?.length) return "";
 
 		renderer ||= Renderer.get();
@@ -28297,14 +28559,22 @@ Renderer.monster = class {
 	
 	static getSpellcastingRenderedTraits (renderer, mon, displayAsProp = "trait") {
 		const out = [];
-		(mon.spellcasting || []).filter(it => (it.displayAs || "trait") === displayAsProp).forEach(entry => {
-			entry.type = entry.type || "spellcasting";
-			const renderStack = [];
-			renderer.recursiveRender(entry, renderStack, {depth: 2});
-			const rendered = renderStack.join("");
-			if (!rendered.length) return;
-			out.push({name: entry.name, rendered});
-		});
+		(mon.spellcasting || [])
+			.filter(it => (it.displayAs || "trait") === displayAsProp)
+			.forEach(entry => {
+				const isLegendaryMythic = ["legendary", "mythic"].includes(displayAsProp);
+
+								if (isLegendaryMythic) {
+					if (!entry.headerEntries?.length) return;
+					out.push({type: "item", name: entry.name, entries: entry.headerEntries});
+					return;
+				}
+
+				entry.type = entry.type || "spellcasting";
+				const rendered = renderer.render(entry, 2);
+				if (!rendered.length) return;
+				out.push({name: entry.name, rendered});
+			});
 		return out;
 	}
 
@@ -28505,7 +28775,7 @@ Renderer.monster = class {
 		if (!envs?.length) return "";
 
 		const ptEntry = envs
-			.map(env => `{@filter ${Parser.getEnvironmentDisplayName(env)}|bestiary|environment=${env}}`)
+			.map(env => `{@filter ${Parser.getEnvironmentDisplayName(env)}|bestiary|environment=${env}|preserve}`)
 			.sort(SortUtil.ascSortLower)
 			.join(", ");
 
@@ -30102,7 +30372,12 @@ Renderer.item = class {
 		if (!item._variantName) return null;
 
 				return Renderer.utils.pGetFluff({
-			entity: {name: item._variantName, source: item.source},
+			entity: {
+				name: item._variantName,
+				source: item.source,
+				hasFluff: item.hasFluff,
+				hasFluffImages: item.hasFluffImages,
+			},
 			fluffProp: "itemFluff",
 		});
 	}
@@ -32305,14 +32580,17 @@ Renderer.hover = class {
 					break;
 				}
 			}
+			this._pHandleLinkMouseOver_doVerifyToRender({toRender, page, source, hash, preloadId, customHashId, isFluff: meta.isFluff});
 		} else if (customHashId) {
 			toRender = await DataLoader.pCacheAndGet(page, source, hash);
 			toRender = await Renderer.hover.pApplyCustomHashId(page, toRender, customHashId);
+			this._pHandleLinkMouseOver_doVerifyToRender({toRender, page, source, hash, preloadId, customHashId, isFluff: meta.isFluff});
+		} else if (meta.isFluff) {
+			toRender = await Renderer.hover.pGetHoverableFluff(page, source, hash);
 		} else {
-			if (meta.isFluff) toRender = await Renderer.hover.pGetHoverableFluff(page, source, hash);
-			else toRender = await DataLoader.pCacheAndGet(page, source, hash);
+			toRender = await DataLoader.pCacheAndGet(page, source, hash);
+			this._pHandleLinkMouseOver_doVerifyToRender({toRender, page, source, hash, preloadId, customHashId, isFluff: meta.isFluff});
 		}
-		if (!toRender) throw new Error(`Failed to load renderable content for: page="${page}" source="${source}" hash="${hash}" preloadId="${preloadId}" customHashId="${customHashId}" isFluff="${meta.isFluff}"`);
 
 		meta.isLoading = false;
 
@@ -32351,7 +32629,7 @@ Renderer.hover = class {
 			$content,
 			Renderer.hover.getWindowPositionFromEvent(tmpEvt || evt, {isPreventFlicker: !meta.isPermanent}),
 			{
-				title: toRender ? toRender.name : "",
+				title: toRender?.name || "",
 				isPermanent: meta.isPermanent,
 				pageUrl: isFauxPage ? null : `${Renderer.get().baseUrl}${page}#${hash}`,
 				cbClose: () => meta.isHovered = meta.isPermanent = meta.isLoading = meta.isFluff = false,
@@ -32363,7 +32641,7 @@ Renderer.hover = class {
 
 		if (!meta.isFluff && !win?._IS_POPOUT) {
 			const fnBind = Renderer.hover.getFnBindListenersCompact(page);
-			if (fnBind) fnBind(toRender, $content);
+			if (fnBind && toRender) fnBind(toRender, $content);
 		}
 	}
 
@@ -32372,6 +32650,11 @@ Renderer.hover = class {
 		if (VetoolsConfig.get("styleSwitcher", "style") === "classic") return null;
 
 		return Renderer.redirect.pGetRedirectByHash(page, hash);
+	}
+
+	static _pHandleLinkMouseOver_doVerifyToRender ({toRender, page, source, hash, preloadId, customHashId, isFluff}) {
+		if (toRender) return;
+		throw new Error(`Failed to load renderable content for: page="${page}" source="${source}" hash="${hash}" preloadId="${preloadId}" customHashId="${customHashId}" isFluff="${isFluff}"`);
 	}
 
 		static handleInlineMouseOver (evt, ele, entry, opts) {
@@ -33275,6 +33558,23 @@ Renderer.hover = class {
 		`;
 	}
 
+	static getCompactRenderedFluffString (entry, {isSkipRootName = false} = {}) {
+		if (!entry.entries) return "";
+
+		if (!isSkipRootName) {
+			return `<tr><td colspan="6" class="pb-2">
+			${Renderer.get().setFirstSection(true).render(entry.entries)}
+			</td></tr>`;
+		}
+
+		const toRender = MiscUtil.copyFast(entry.entries);
+		delete toRender[0]?.name;
+
+		return `<tr><td colspan="6" class="pb-2">
+		${Renderer.get().setFirstSection(true).render({type: "entries", entries: toRender})}
+		</td></tr>`;
+	}
+
 	static getFnRenderCompact (page, {isStatic = false} = {}) {
 		switch (page) {
 			case "generic":
@@ -33315,6 +33615,7 @@ Renderer.hover = class {
 			case "citation": return Renderer.hover.getGenericCompactRenderedString.bind(Renderer.hover);
 						default:
 				if (Renderer[page]?.getCompactRenderedString) return Renderer[page].getCompactRenderedString.bind(Renderer[page]);
+				if (page?.endsWith("Fluff")) return Renderer.hover.getCompactRenderedFluffString.bind(Renderer.hover);
 				return null;
 		}
 	}
@@ -33861,15 +34162,17 @@ Renderer.dice = {
 					{isDisabled: true},
 				),
 				null,
-				...options.map(it => new ContextUtil.Action(
-					`Roll ${it}`,
-					evt => {
-						shiftKey = shiftKey || evt.shiftKey;
-						ctrlKey = ctrlKey || (EventUtil.isCtrlMetaKey(evt));
-						cpyRollData.toRoll = it;
-						return cpyRollData;
-					},
-				)),
+				...options.map(rollOption => {
+					return new ContextUtil.Action(
+						`Roll ${rollOption.replace(/#\$prompt_number[^$]*\$#/g, "(𝑛)")}`,
+						evt => {
+							shiftKey = shiftKey || evt.shiftKey;
+							ctrlKey = ctrlKey || (EventUtil.isCtrlMetaKey(evt));
+							cpyRollData.toRoll = rollOption;
+							return cpyRollData;
+						},
+					);
+				}),
 			]);
 
 			chosenRollData = await ContextUtil.pOpenMenu(evt, menu);
@@ -38134,6 +38437,14 @@ class MarkdownConverter {
 			});
 		})();
 
+		(function normalizeRanges () {
+			tbl.rows.forEach(row => {
+				if (!row[0] || typeof row[0] !== "string") return;
+
+								row[0] = row[0].replace(/^(\d+)\s+([-\u2012-\u2014\u2212])\s+(\d+)$/, "$1$2$3");
+			});
+		})();
+
 		let isDiceCol0 = true;
 		(function doCheckDiceOrNumericCol0 () {
 						tbl.rows.forEach(r => {
@@ -41019,6 +41330,7 @@ let FilterBox$1 = class FilterBox extends ProxyBase {
 		const urlHeadersUpdated = new Set();
 		const subHashesConsumed = new Set();
 		let filterInitialSearch;
+		let isPreserveExisting = false;
 
 		const filterBoxState = {};
 		const statePerFilter = {};
@@ -41038,8 +41350,17 @@ let FilterBox$1 = class FilterBox extends ProxyBase {
 				}
 
 				if (Object.values(FilterBox$1._SUB_HASH_PREFIXES).includes(prefix)) {
-										if (prefix === VeCt.FILTER_BOX_SUB_HASH_SEARCH_PREFIX) filterInitialSearch = data.clean[0];
-					else filterBoxState[prefix] = data.clean;
+					switch (prefix) {
+						case VeCt.FILTER_BOX_SUB_HASH_SEARCH_PREFIX:
+							filterInitialSearch = data.clean[0];
+							break;
+						case VeCt.FILTER_BOX_SUB_HASH_FLAG_IS_PRESERVE_EXISTING:
+							isPreserveExisting = true;
+							break;
+						default:
+							filterBoxState[prefix] = data.clean;
+					}
+
 					subHashesConsumed.add(data.raw);
 					return;
 				}
@@ -41057,6 +41378,7 @@ let FilterBox$1 = class FilterBox extends ProxyBase {
 			unpacked,
 			subHashesConsumed,
 			filterInitialSearch,
+			isPreserveExisting,
 		};
 	}
 
@@ -41064,12 +41386,6 @@ let FilterBox$1 = class FilterBox extends ProxyBase {
 		const unpackedSubhashes = this.unpackSubHashes(subHashes, {force});
 
 		if (unpackedSubhashes == null) return subHashes;
-
-		const {
-			unpacked,
-			subHashesConsumed,
-			filterInitialSearch,
-		} = unpackedSubhashes;
 
 				const {box: nxtStateBox, filters: nxtStatesFilters} = this.getNextStateFromSubHashes({unpackedSubhashes});
 
@@ -41083,6 +41399,12 @@ let FilterBox$1 = class FilterBox extends ProxyBase {
 			.filter(filter => nxtStatesFilters[filter.header])
 			.forEach(filter => filter.setStateFromNextState(nxtStatesFilters));
 		
+		const {
+			unpacked,
+			subHashesConsumed,
+			filterInitialSearch,
+		} = unpackedSubhashes;
+
 				if (filterInitialSearch && ($iptSearch || this._$iptSearch)) ($iptSearch || this._$iptSearch).val(filterInitialSearch).change().keydown().keyup().trigger("instantKeyup");
 		
 				const [link] = Hist.getHashParts();
@@ -41106,6 +41428,7 @@ let FilterBox$1 = class FilterBox extends ProxyBase {
 			filterBoxState,
 			statePerFilter,
 			urlHeadersUpdated,
+			isPreserveExisting,
 		} = unpackedSubhashes;
 
 		const nxtStateBox = this._getNextBoxStateFromSubHashes(urlHeaderToFilter, filterBoxState);
@@ -41118,12 +41441,14 @@ let FilterBox$1 = class FilterBox extends ProxyBase {
 				Object.assign(nxtStateFilters, filter.getNextStateFromSubhashState(state));
 			});
 
-				Object.keys(urlHeaderToFilter)
-			.filter(k => !urlHeadersUpdated.has(k))
-			.forEach(k => {
-				const filter = urlHeaderToFilter[k];
-				Object.assign(nxtStateFilters, filter.getNextStateFromSubhashState(null));
-			});
+				if (!isPreserveExisting) {
+			Object.keys(urlHeaderToFilter)
+				.filter(k => !urlHeadersUpdated.has(k))
+				.forEach(k => {
+					const filter = urlHeaderToFilter[k];
+					Object.assign(nxtStateFilters, filter.getNextStateFromSubhashState(null));
+				});
+		}
 
 		return {box: nxtStateBox, filters: nxtStateFilters};
 	}
@@ -41351,6 +41676,7 @@ FilterBox$1._SUB_HASH_PREFIXES = {
 	minisHidden: FilterBox$1._SUB_HASH_BOX_MINIS_HIDDEN_PREFIX,
 	combineAs: FilterBox$1._SUB_HASH_BOX_COMBINE_AS_PREFIX,
 	search: VeCt.FILTER_BOX_SUB_HASH_SEARCH_PREFIX,
+	flagIsPreserveExisting: VeCt.FILTER_BOX_SUB_HASH_FLAG_IS_PRESERVE_EXISTING,
 };
 
 FilterRegistry.registerSubhashes(Object.values(FilterBox$1._SUB_HASH_PREFIXES));
@@ -46728,6 +47054,7 @@ let BlocklistUtil$1 = class BlocklistUtil {
 		"_meta",
 		"_test",
 		"linkedLootTables",
+		"$schema",
 
 				"itemProperty",
 		"itemType",
@@ -48052,8 +48379,8 @@ let PageFilterBestiary$1 = class PageFilterBestiary extends PageFilterBase {
 			max: 9,
 			displayFn: it => Parser.getOrdinalForm(it),
 		});
-		this._spellKnownFilter = new SearchableFilter({header: "Spells Known", displayFn: (it) => it.split("|")[0].toTitleCase(), itemSortFn: SortUtil.ascSortLower});
-		this._equipmentFilter = new SearchableFilter({header: "Equipment", displayFn: (it) => it.split("|")[0].toTitleCase(), itemSortFn: SortUtil.ascSortLower});
+		this._spellKnownFilter = new SearchableFilter({header: "Spells Known", displayFn: (it) => it.toTitleCase(), itemSortFn: SortUtil.ascSortLower});
+		this._equipmentFilter = new SearchableFilter({header: "Equipment", displayFn: (it) => it.toTitleCase(), itemSortFn: SortUtil.ascSortLower});
 		this._dragonAgeFilter = new Filter({
 			header: "Dragon Age",
 			items: [...PageFilterBestiary$1._DRAGON_AGES],
@@ -48222,9 +48549,7 @@ let PageFilterBestiary$1 = class PageFilterBestiary extends PageFilterBase {
 
 	static _getSpellcasterMeta_stringHandler (spellSet, str) {
 		str.replace(PageFilterBestiary$1._RE_SPELL_TAG, (...m) => {
-			const parts = m[1].split("|").slice(0, 2);
-			parts[1] = parts[1] || Parser.SRC_PHB;
-			spellSet.add(parts.join("|").toLowerCase());
+			spellSet.add(DataUtil.proxy.unpackUid("spell", m[1], "spell", {isLower: true}).name);
 			return "";
 		});
 	}
@@ -48284,8 +48609,7 @@ let PageFilterBestiary$1 = class PageFilterBestiary extends PageFilterBase {
 	static _getEquipmentList_stringHandler (itemSet, str) {
 		str
 			.replace(PageFilterBestiary$1._RE_ITEM_TAG, (...m) => {
-				const unpacked = DataUtil.proxy.unpackUid("item", m[1], "item", {isLower: true});
-				itemSet.add(DataUtil.proxy.getUid("item", unpacked));
+				itemSet.add(DataUtil.proxy.unpackUid("item", m[1], "item", {isLower: true}).name);
 				return "";
 			});
 	}
@@ -49286,6 +49610,8 @@ let PageFilterEquipment$1 = class PageFilterEquipment extends PageFilterBase {
 		"Reprinted",
 		"Disadvantage on Stealth",
 		"Strength Requirement",
+		"Emits Light, Bright",
+		"Emits Light, Dim",
 	];
 
 	static _RE_FOUNDRY_ATTR = /(?:[-+*/]\s*)?@[a-z0-9.]+/gi;
@@ -49386,6 +49712,8 @@ let PageFilterEquipment$1 = class PageFilterEquipment extends PageFilterBase {
 		if (item.miscTags) item._fMisc.push(...item.miscTags.map(Parser.itemMiscTagToFull));
 		if (item.stealth) item._fMisc.push("Disadvantage on Stealth");
 		if (item.strength != null) item._fMisc.push("Strength Requirement");
+		if (item.light?.some(l => l.bright)) item._fMisc.push("Emits Light, Bright");
+		if (item.light?.some(l => l.dim)) item._fMisc.push("Emits Light, Dim");
 
 		const itemTypeAbv = item.type ? DataUtil.itemType.unpackUid(item.type).abbreviation : null;
 		if (item.focus || item.name === "Thieves' Tools" || itemTypeAbv === Parser.ITM_TYP_ABV__INSTRUMENT || itemTypeAbv === Parser.ITM_TYP_ABV__SPELLCASTING_FOCUS || itemTypeAbv === Parser.ITM_TYP_ABV__ARTISAN_TOOL) {
@@ -52549,6 +52877,8 @@ class UtilsFoundryItem {
 				if (this._ITEM_EQUIPMENT_NAME_RES.some(it => it.test(item.name))) return this._TYPE_EQUIPMENT;
 
 		if (item.miscTags?.includes("CNS")) return this._TYPE_CONSUMABLE;
+
+				if (item.light?.length) return this._TYPE_EQUIPMENT;
 
 				return this._TYPE_LOOT;
 	}
@@ -58845,7 +59175,7 @@ let ScaleClassSummonedCreature$1 = class ScaleClassSummonedCreature extends Scal
 		if (!mon.pbNote) return;
 
 		mon.pbNote = mon.pbNote
-			.replace(/equals (?:your|the mentor's|the caregiver's) bonus\b/, (...m) => `${m[0]} [${UiUtil.intToBonus(state.proficiencyBonus, {isPretty: true})}]`);
+			.replace(/equals (?:your|the mentor's|the caregiver's) (?:Proficiency )?bonus\b/i, (...m) => `${m[0]} [${UiUtil.intToBonus(state.proficiencyBonus, {isPretty: true})}]`);
 	}
 
 	static _State = class {
@@ -62945,6 +63275,7 @@ class ConfigConsts {
 								name: "Dark",
 							},
 						],
+						isPlayerEditable: true,
 					},
 					isShowPopout: {
 						name: "Enable Sheet Popout Buttons",
@@ -63824,6 +64155,7 @@ class ConfigConsts {
 				settings: {
 					ownership: ConfigConsts._template_getEntityOwnership(`The default (i.e. used for all players unless a player-specific ownership level is set) ownership for an imported vehicle.`),
 					...ConfigConsts._template_getTokenSettings({actorType: "vehicle"}),
+					...ConfigConsts._template_getTokenSettingsDynamicRing(),
 					isMetricDistance: {
 						name: "Convert Speeds to Metric",
 						help: `Whether or not vehicle speed units should be converted to an approximate metric equivalent (${ConfigConsts._DISP_METRIC_FEET}; ${ConfigConsts._DISP_METRIC_MILES}).`,
@@ -66665,6 +66997,8 @@ class UtilApplications {
 			async activateListeners (...args) {
 				super.activateListeners(...args);
 				out.$modal = out.$modalInner = this.element.find(`.ve-window`);
+				out.eleModal = out.$modal[0];
+				out.eleModalInner = out.$modalInner[0];
 				hasClosed = false;
 			}
 		}();
@@ -66685,6 +67019,8 @@ class UtilApplications {
 		const out = {
 			$modal: null,
 			$modalInner: null,
+			eleModal: null,
+			eleModalInner: null,
 			doClose: pHandleCloseClick,
 			doAutoResize: () => this.autoResizeApplicationExisting(app),
 			pGetResolved: () => pResolveModal,
@@ -70939,6 +71275,7 @@ class UtilVersions {
 				system,
 				version,
 				isVersionFourTwoPlus: major >= 4 && minor >= 2,
+				isVersionFourThreePlus: major >= 4 && minor >= 3,
 			};
 		} catch (e) {
 			console.warn(...LGT, `Could not parse system version: "${version}"`);
@@ -72528,6 +72865,7 @@ class UtilActors {
 		UtilActors.VALID_CONDITIONS = Object.keys(MiscUtil.get(CONFIG, "DND5E", "conditionTypes") || {});
 	}
 
+	
 		static async pGetActorSpellItemOpts ({actor, isAllowAutoDetectPreparationMode = false} = {}) {
 		const opts = {
 			isActorItem: true,
@@ -72552,6 +72890,19 @@ class UtilActors {
 		return opts;
 	}
 
+	
+	static getActorSpell (actor, name, source) {
+		if (!name || !source) return null;
+		return actor.items && actor.items.find(it =>
+			(it.name || "").toLowerCase() === name.toLowerCase()
+				&& (
+					!Config.get("import", "isStrictMatching")
+					|| (UtilDocumentSource.getDocumentSource(it).source || "").toLowerCase() === source.toLowerCase()
+				),
+		);
+	}
+
+	
 	static isImporterTempActor (actor) { return !!MiscUtil.get(actor, "flags", SharedConsts.MODULE_ID, "isImporterTempActor"); }
 
 	static async _pGetActorSpellItemOpts_getAutoPreparationMode ({actor}) {
@@ -72624,7 +72975,8 @@ class UtilActors {
 
 	static getMappedCasterType (str) {
 		if (!str) return str;
-		return this._VET_CASTER_TYPE_TO_FVTT[str];
+		if (VetoolsConfig$1.get("styleSwitcher", "style") !== SITE_STYLE__ONE) return this._VET_CASTER_TYPE_TO_FVTT[str];
+		return this._VET_CASTER_TYPE_TO_FVTT__MODERN[str];
 	}
 
 	static getMappedArmorProficiency (str) {
@@ -73164,6 +73516,9 @@ UtilActors._VET_CASTER_TYPE_TO_FVTT = {
 	"pact": "pact",
 	"artificer": "artificer",
 };
+UtilActors._VET_CASTER_TYPE_TO_FVTT__MODERN = {
+	...UtilActors._VET_CASTER_TYPE_TO_FVTT,
+	"artificer": "half", };
 UtilActors.ARMOR_PROFICIENCIES = [
 	"light",
 	"medium",
@@ -77305,6 +77660,15 @@ class EntryParseStateModel {
 		]
 			.some(Boolean);
 	}
+
+	
+	hasUsesData () {
+		return [
+			this.usesMax,
+			this.usesRecovery?.length,
+		]
+			.some(Boolean);
+	}
 }
 
 class _EntryParseStateActivityModelBase {
@@ -77652,6 +78016,58 @@ class EntryParseStateActivityModelAttack extends _EntryParseStateActivityModelBa
 
 class EntryParseStateActivityModelCast extends _EntryParseStateActivityModelBase {
 	_activityType = "cast";
+
+	constructor (
+		{
+			stateInitial,
+		},
+	) {
+		super({stateInitial});
+
+		let {
+			spellAbility,
+
+			spellChallengeAttack,
+			spellChallengeSave,
+			spellChallengeOverride,
+
+			spellLevel,
+			spellProperties,
+			spellSpellbook,
+			spellUuid,
+		} = stateInitial || {};
+
+		this.spellAbility = spellAbility;
+
+		this.spellChallengeAttack = spellChallengeAttack;
+		this.spellChallengeSave = spellChallengeSave;
+		this.spellChallengeOverride = spellChallengeOverride;
+
+		this.spellLevel = spellLevel;
+		this.spellProperties = spellProperties;
+		this.spellSpellbook = spellSpellbook;
+		this.spellUuid = spellUuid;
+	}
+
+	
+	toActivityJSON () {
+		return {
+			...super.toActivityJSON(),
+
+			spell: {
+				ability: this.spellAbility,
+				challenge: {
+					attack: this.spellChallengeAttack,
+					save: this.spellChallengeSave,
+					override: this.spellChallengeOverride,
+				},
+				level: this.spellLevel,
+				properties: this.spellProperties,
+				spellbook: this.spellSpellbook,
+				uuid: this.spellUuid,
+			},
+		};
+	}
 }
 
 class EntryParseStateActivityModelCheck extends _EntryParseStateActivityModelBase {
@@ -77944,7 +78360,7 @@ class _ConsumptionInfo {
 	}
 
 		getActivityData () {
-		if (!this.isConsumes) return {};
+		if (!this.isConsumes) return null;
 
 		return {
 			allActivities: {
@@ -79526,7 +79942,11 @@ class CompendiumCacheKeyProviderItem extends CompendiumCacheKeyProviderGeneric {
 
 class UtilEntityItem extends UtilEntityBase {
 	static getFauxGeneric (itm) {
-		return {name: itm._variantName, source: itm.source};
+		return {
+			name: itm._variantName,
+			source: itm.source,
+			_plut_isFauxGeneric: true,
+		};
 	}
 
 	
@@ -80777,177 +81197,55 @@ class UtilFoundryUtil {
 	}
 }
 
-class SideDataInterfaceBase {
-	static _SIDE_DATA = null;
+class SideDataMatcherBase {
+	constructor (
+		{
+			ent,
 
-	static async pPreloadSideData () {
-		this._SIDE_DATA = await this._pGetPreloadSideData();
-		return this._SIDE_DATA;
+			sideDataSourceGenerated,
+			actorType = undefined,
+			isSilent = false,
+
+			base,
+		} = {},
+	) {
+		this._ent = ent;
+		this._sideDataSourceGenerated = sideDataSourceGenerated;
+		this._actorType = actorType;
+		this._isSilent = isSilent;
+		this._base = base;
 	}
-
-	static async _pGetPreloadSideData () { throw new Error("Unimplemented!"); }
 
 	
-	static init () {  }
+	_propPropFromEntity;
+	_propFromEntity;
+	_propFromSideLoaded;
 
-	
-		static _getSideLoadOpts (ent) { return null; }
-
-	static _SIDE_LOAD_OPTS = null;
-
-	static _getResolvedOpts ({ent, propOpts = "_SIDE_LOAD_OPTS"} = {}) {
-		const out = this._getSideLoadOpts(ent) || this[propOpts];
-		if (out.propsMatch) return out;
-		return {
-			...out,
-			propsMatch: ["source", "name"],
-		};
-	}
-
-	static async pGetRoot (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
+	async pGet (opts) {
 		if (!opts) return null;
 
-		const {propBrew, fnLoadJson, propJson, propsMatch, propsFromEntity: {root: propFromEntity = "foundryRoot"} = {}} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity, propFromSideLoaded: "root", actorType});
-	}
-
-	static async pGetSystemSideLoaded (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", systemBase = undefined, actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity: "foundrySystem", propFromSideLoaded: "system", base: systemBase, actorType});
-	}
-
-	static async pGetFlagsSideLoaded (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch, propsFromEntity: {flags: propFromEntity = "foundryFlags"} = {}} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity, propFromSideLoaded: "flags", actorType});
-	}
-
-	static async _pGetAdvancementSideLoaded (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity: "foundryAdvancement", propFromSideLoaded: "advancement", actorType});
-	}
-
-	static async pGetImgSideLoaded (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity: "foundryImg", propFromSideLoaded: "img", actorType});
-	}
-
-	static async pGetPrototypeTokenSideLoaded (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity: "foundryPrototypeToken", propFromSideLoaded: "prototypeToken", actorType});
-	}
-
-	static async pGetIsIgnoredSideLoaded (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity: "foundryIsIgnored", propFromSideLoaded: "isIgnored", actorType});
-	}
-
-	static async pIsIgnoreSrdActivitiesSideLoaded (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity: "foundryIgnoreSrdActivities", propFromSideLoaded: "ignoreSrdActivities", actorType});
-	}
-
-	static async pIsIgnoreSrdEffectsSideLoaded (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-		return this._pGetStarSideLoaded(ent, {...opts, sideDataSourceGenerated, propFromEntity: "foundryIgnoreSrdEffects", propFromSideLoaded: "ignoreSrdEffects", actorType});
-	}
-
-	static async pGetEffectsRawSideLoaded (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch} = opts;
-		const out = await this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity: "foundryEffects", propFromSideLoaded: "effects", actorType});
-
-		if (!out?.length) return out;
-
-		return out.filter(it => {
-			if (!it) return false;
-			if (!it.requires) return true;
-
-			return Object.keys(it.requires).every(k => UtilCompat.isModuleActive(k));
-		});
-	}
-
-		static async pGetEffectsSideLoadedTuples ({ent, actor = null, sheetItem = null, img = null}, sideOpts) {
-		const outRaw = await this.pGetEffectsRawSideLoaded(ent, sideOpts);
-		if (!outRaw?.length) return [];
-
-		return UtilActiveEffects.getExpandedEffects(
-			outRaw,
+		const {propBrew, fnLoadJson, propJson, propsMatch, propsFromEntity: {[this._propPropFromEntity]: propFromEntity = this._propFromEntity} = {}} = opts;
+		return this.constructor._pGetStarSideLoaded(
 			{
-				actor,
-				sheetItem,
-				parentName: UtilEntityGeneric.getName(ent),
-				img,
-			},
-			{
-				isTuples: true,
+				ent: this._ent,
+				sideDataSourceGenerated: this._sideDataSourceGenerated,
+				propBrew,
+				fnLoadJson,
+				propJson,
+				propsMatch,
+				propFromEntity,
+				propFromSideLoaded: this._propFromSideLoaded,
+				base: this._base,
+				actorType: this._actorType,
+				isSilent: this._isSilent,
 			},
 		);
 	}
 
-	static async pGetSideLoaded (ent, {sideDataSourceGenerated = null, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined, isSilent = false} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-		return this._pGetSideLoadedMatch(ent, {...opts, sideDataSourceGenerated, actorType, isSilent});
-	}
-
-	static async pGetSideLoadedType (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", validTypes, actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch} = opts;
-
-		let out = await this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity: "foundryType", propFromSideLoaded: "type", actorType});
-		if (!out) return out;
-		out = out.toLowerCase().trim();
-		if (validTypes && !validTypes.has(out)) return null;
-		return out;
-	}
-
-	static async pGetWalls (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch, propsFromEntity: {walls: propFromEntity = "foundryWalls"} = {}} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity, propFromSideLoaded: "walls", actorType});
-	}
-
-	static async pGetLights (ent, {sideDataSourceGenerated, propOpts = "_SIDE_LOAD_OPTS", actorType = undefined} = {}) {
-		const opts = this._getResolvedOpts({ent, propOpts});
-		if (!opts) return null;
-
-		const {propBrew, fnLoadJson, propJson, propsMatch, propsFromEntity: {lights: propFromEntity = "foundryLights"} = {}} = opts;
-		return this._pGetStarSideLoaded(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propFromEntity, propFromSideLoaded: "lights", actorType});
-	}
-
 	
 	static async _pGetStarSideLoaded (
-		ent,
 		{
+			ent,
 			sideDataSourceGenerated,
 			propBrew,
 			fnLoadJson,
@@ -80960,19 +81258,9 @@ class SideDataInterfaceBase {
 		},
 	) {
 		const found = await this._pGetSideLoadedMatch(ent, {sideDataSourceGenerated, propBrew, fnLoadJson, propJson, propsMatch, propBase: propFromSideLoaded, base, actorType});
-		return this._pGetStarSideLoaded_found(ent, {propFromEntity, propFromSideLoaded, found});
-	}
 
-		static _pGetStarSideLoaded_getSemiFlatOutput (outExpanded) {
-		if (outExpanded == null) return outExpanded;
-		if (typeof outExpanded !== "object") return outExpanded;
+				if (propFromEntity == null && propFromSideLoaded == null) return found;
 
-		return outExpanded instanceof Array
-			? outExpanded.map(it => foundry.utils.flattenObject(it))
-			: foundry.utils.flattenObject(outExpanded);
-	}
-
-	static async _pGetStarSideLoaded_found (ent, {propFromEntity, propFromSideLoaded, found}) {
 		const fromEntity = ent[propFromEntity];
 
 		if (!found?.[propFromSideLoaded] && !fromEntity) return null;
@@ -80990,6 +81278,15 @@ class SideDataInterfaceBase {
 		if (outExpanded instanceof Array) outExpanded.push(...cpyFromEntityEmbedExpanded); 		else Object.assign(outExpanded, cpyFromEntityEmbedExpanded); 
 		this._pGetStarSideLoaded_mutInitial({outExpanded, propFromSideLoaded});
 		return this._pGetStarSideLoaded_getSemiFlatOutput(outExpanded);
+	}
+
+		static _pGetStarSideLoaded_getSemiFlatOutput (outExpanded) {
+		if (outExpanded == null) return outExpanded;
+		if (typeof outExpanded !== "object") return outExpanded;
+
+		return outExpanded instanceof Array
+			? outExpanded.map(it => foundry.utils.flattenObject(it))
+			: foundry.utils.flattenObject(outExpanded);
 	}
 
 	static _pGetStarSideLoaded_mutInitial ({outExpanded, propFromSideLoaded}) {
@@ -81080,17 +81377,342 @@ class SideDataInterfaceBase {
 	}
 }
 
+class SideDataMatcherRoot extends SideDataMatcherBase {
+	_propPropFromEntity = "root";
+	_propFromEntity = "foundryRoot";
+	_propFromSideLoaded = "root";
+}
+
+class SideDataMatcherSystem extends SideDataMatcherBase {
+	_propPropFromEntity = "system";
+	_propFromEntity = "foundrySystem";
+	_propFromSideLoaded = "system";
+}
+
+class SideDataMatcherFlags extends SideDataMatcherBase {
+	_propPropFromEntity = "flags";
+	_propFromEntity = "foundryFlags";
+	_propFromSideLoaded = "flags";
+}
+
+class SideDataMatcherAdvancement extends SideDataMatcherBase {
+	_propPropFromEntity = "advancement";
+	_propFromEntity = "foundryAdvancement";
+	_propFromSideLoaded = "advancement";
+}
+
+class SideDataMatcherImg extends SideDataMatcherBase {
+	_propPropFromEntity = "img";
+	_propFromEntity = "foundryImg";
+	_propFromSideLoaded = "img";
+}
+
+class SideDataMatcherPrototypeToken extends SideDataMatcherBase {
+	_propPropFromEntity = "prototypeToken";
+	_propFromEntity = "foundryPrototypeToken";
+	_propFromSideLoaded = "prototypeToken";
+}
+
+class SideDataMatcherIsIgnored extends SideDataMatcherBase {
+	_propPropFromEntity = "isIgnored";
+	_propFromEntity = "foundryIsIgnored";
+	_propFromSideLoaded = "isIgnored";
+}
+
+class SideDataMatcherIgnoreSrdActivities extends SideDataMatcherBase {
+	_propPropFromEntity = "ignoreSrdActivities";
+	_propFromEntity = "foundryIgnoreSrdActivities";
+	_propFromSideLoaded = "ignoreSrdActivities";
+}
+
+class SideDataMatcherIgnoreSrdEffects extends SideDataMatcherBase {
+	_propPropFromEntity = "ignoreSrdEffects";
+	_propFromEntity = "foundryIgnoreSrdEffects";
+	_propFromSideLoaded = "ignoreSrdEffects";
+}
+
+class SideDataMatcherEffects extends SideDataMatcherBase {
+	_propPropFromEntity = "effects";
+	_propFromEntity = "foundryEffects";
+	_propFromSideLoaded = "effects";
+
+	async pGet (opts) {
+		const out = await super.pGet(opts);
+
+		if (!out?.length) return out;
+
+		return out.filter(it => {
+			if (!it) return false;
+			if (!it.requires) return true;
+
+			return Object.keys(it.requires).every(k => UtilCompat.isModuleActive(k));
+		});
+	}
+}
+
+class SideDataMatcherRaw extends SideDataMatcherBase {
+	_propPropFromEntity = null;
+	_propFromEntity = null;
+	_propFromSideLoaded = null;
+}
+
+class SideDataMatcherType extends SideDataMatcherBase {
+	_propPropFromEntity = "type";
+	_propFromEntity = "foundryType";
+	_propFromSideLoaded = "type";
+
+	constructor ({validTypes, ...rest}) {
+		super({...rest});
+		this._validTypes = validTypes;
+	}
+
+	async pGet (opts) {
+		const out = await super.pGet(opts);
+		if (!out) return out;
+
+		const outLower = out.toLowerCase().trim();
+		if (!this._validTypes) return outLower;
+
+		if (!this._validTypes.has(out)) return null;
+		return out;
+	}
+}
+
+class SideDataMatcherWalls extends SideDataMatcherBase {
+	_propPropFromEntity = "walls";
+	_propFromEntity = "foundryWalls";
+	_propFromSideLoaded = "walls";
+}
+
+class SideDataMatcherLights extends SideDataMatcherBase {
+	_propPropFromEntity = "lights";
+	_propFromEntity = "foundryLights";
+	_propFromSideLoaded = "lights";
+}
+
+class SideDataInterfaceBase {
+	static _SIDE_DATA = null;
+
+	static async pPreloadSideData () {
+		this._SIDE_DATA = await this._pGetPreloadSideData();
+		return this._SIDE_DATA;
+	}
+
+	static async _pGetPreloadSideData () { throw new Error("Unimplemented!"); }
+
+	
+	static init () {  }
+
+	
+		static _getSideLoadOpts (ent) { return null; }
+
+	static _SIDE_LOAD_OPTS = null;
+
+	static _getResolvedOpts ({ent} = {}) {
+		const out = this._getSideLoadOpts(ent) || this._SIDE_LOAD_OPTS;
+		if (out.propsMatch) return out;
+		return {
+			...out,
+			propsMatch: ["source", "name"],
+		};
+	}
+
+	
+	static async pGetRoot (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherRoot({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetSystemSideLoaded (ent, {sideDataSourceGenerated, systemBase = undefined, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherSystem({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+			base: systemBase,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetFlagsSideLoaded (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherFlags({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async _pGetAdvancementSideLoaded (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherAdvancement({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetImgSideLoaded (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherImg({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetPrototypeTokenSideLoaded (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherPrototypeToken({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetIsIgnoredSideLoaded (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherIsIgnored({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pIsIgnoreSrdActivitiesSideLoaded (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherIgnoreSrdActivities({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pIsIgnoreSrdEffectsSideLoaded (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherIgnoreSrdEffects({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetEffectsRawSideLoaded (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherEffects({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetSideLoaded (ent, {sideDataSourceGenerated = null, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherRaw({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetSideLoadedType (ent, {sideDataSourceGenerated, validTypes, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherType({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+			validTypes,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetWalls (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherWalls({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	static async pGetLights (ent, {sideDataSourceGenerated, actorType = undefined, isSilent = false} = {}) {
+		const opts = this._getResolvedOpts({ent});
+		return new SideDataMatcherLights({
+			ent,
+			sideDataSourceGenerated,
+			actorType,
+			isSilent,
+		})
+			.pGet(opts);
+	}
+
+	
+		static async pGetEffectsSideLoadedTuples ({ent, actor = null, sheetItem = null, img = null}, sideOpts) {
+		const outRaw = await this.pGetEffectsRawSideLoaded(ent, sideOpts);
+		if (!outRaw?.length) return [];
+
+		return UtilActiveEffects.getExpandedEffects(
+			outRaw,
+			{
+				actor,
+				sheetItem,
+				parentName: UtilEntityGeneric.getName(ent),
+				img,
+			},
+			{
+				isTuples: true,
+			},
+		);
+	}
+}
+
 var SideDataInterfaceBase$1 = /*#__PURE__*/Object.freeze({
     __proto__: null,
     SideDataInterfaceBase: SideDataInterfaceBase
 });
 
 class SideDataInterfaceTable extends SideDataInterfaceBase {
-	static _getSideLoadOpts (tbl) {
+	static _getPropBrew (ent) {
+		switch (ent.__prop) {
+			case "table": return "foundryTable";
+			case "tableGroup": return "foundryTableGroup";
+		}
+		throw new Error(`Unhandled prop: "${ent.__prop}"`);
+	}
+
+	static _getSideLoadOpts (ent) {
 		return {
-			propBrew: `foundry${tbl.__prop.uppercaseFirst()}`,
+			propBrew: this._getPropBrew(ent),
 			fnLoadJson: Vetools.pGetTableSideData,
-			propJson: tbl.__prop,
+			propJson: ent.__prop,
 		};
 	}
 }
@@ -81557,10 +82179,10 @@ class CompendiumCacheFlusher {
 				if (CollectionUtil.setEq(new Set(currentValue), new Set(storedValue))) return;
 
 				const toDumpCollections = [
-					...CollectionUtil.setDiff(
-						new Set(CompendiumCacheUtil.getCompendiumsFromConfigValue(storedValue).map(it => it.collection)),
-						new Set(CompendiumCacheUtil.getCompendiumsFromConfigValue(currentValue).map(it => it.collection)),
-					),
+					...new Set(CompendiumCacheUtil.getCompendiumsFromConfigValue(storedValue).map(it => it.collection))
+						.difference(
+							new Set(CompendiumCacheUtil.getCompendiumsFromConfigValue(currentValue).map(it => it.collection)),
+						),
 				];
 
 				Promise.all(
@@ -81747,7 +82369,7 @@ class CompendiumCacheBackendEmbeddedImage extends CompendiumCacheBackendImage {
 		const compendiumData = await CompendiumCacheUtil.pGetCompendiumData(compendium, {isContent: true, taskRunner});
 
 		return compendiumData
-			.flatMap(doc => [...doc.items]
+			.flatMap(doc => [...(doc.items || [])]
 				.filter(docEmbed => docEmbed.img && !UtilImage.isDefaultItemImage(docEmbed.img)));
 	}
 }
@@ -84321,6 +84943,12 @@ class Charactermancer_AdditionalSpellsUtil {
 			};
 		}
 
+		if (["halfPb", "halfPbe"].includes(castsPer)) {
+			return {
+				usesMax: "floor(@attributes.prof / 2)",
+			};
+		}
+
 		if (Parser.ABIL_ABVS.includes(castsPer.toLowerCase())) {
 			return {
 				usesMax: `@abilities.${castsPer.toLowerCase()}.mod`,
@@ -84482,7 +85110,6 @@ class Charactermancer_AdditionalSpellsSelect extends BaseComponent {
 							ability,
 							usesMax: spellMeta.usesMax,
 							usesRecovery: spellMeta.usesRecovery,
-							vetConsumes: spellMeta.vetConsumes,
 							isPrepared: spellMeta.isPrepared,
 							preparationMode: spellMeta.preparationMode,
 
@@ -84491,6 +85118,7 @@ class Charactermancer_AdditionalSpellsSelect extends BaseComponent {
 								save: {saveDcCalculation: ability},
 							},
 						},
+						vetConsumes: spellMeta.vetConsumes,
 						castAtLevel: spellMeta.castAtLevel,
 					},
 				}),
@@ -86496,13 +87124,28 @@ class UtilEntityClassSubclassFeature extends UtilEntityBase {
 }
 
 class SideDataInterfaceClassSubclassFeature extends SideDataInterfaceBase {
-	static _getSideLoadOpts (feature) {
-		return {
-			propBrew: UtilEntityClassSubclassFeature.getBrewProp(feature),
-			fnLoadJson: async () => this.pPreloadSideData(),
-			propJson: UtilEntityClassSubclassFeature.getEntityType(feature),
-			propsMatch: ["classSource", "className", "subclassSource", "subclassShortName", "level", "source", "name"],
-		};
+	static _getSideLoadOpts (ent) {
+		const entityType = UtilEntityClassSubclassFeature.getEntityType(ent);
+
+		if (entityType === "subclassFeature") {
+			return {
+				propBrew: UtilEntityClassSubclassFeature.getBrewProp(ent),
+				fnLoadJson: async () => this.pPreloadSideData(),
+				propJson: UtilEntityClassSubclassFeature.getEntityType(ent),
+				propsMatch: ["classSource", "className", "subclassSource", "subclassShortName", "level", "source", "name"],
+			};
+		}
+
+		if (entityType === "classFeature") {
+			return {
+				propBrew: UtilEntityClassSubclassFeature.getBrewProp(ent),
+				fnLoadJson: async () => this.pPreloadSideData(),
+				propJson: UtilEntityClassSubclassFeature.getEntityType(ent),
+				propsMatch: ["classSource", "className", "level", "source", "name"],
+			};
+		}
+
+		throw new Error(`Unhandled "entityType" for class/subclass feature: "${entityType}"!`);
 	}
 
 	static async _pGetPreloadSideData () {
@@ -87886,12 +88529,7 @@ class UtilAdvancementsEntry {
 	}
 }
 
-class UtilActivityBuilder {
-	static mutStateInitialTargetPrompt ({stateInitial, configGroup}) {
-		MiscUtil.set(stateInitial, "activity", "allActivities", "target", "prompt", Config.getSafe(configGroup, "isTargetTemplatePrompt"));
-	}
-
-	
+let UtilActivityBuilder$1 = class UtilActivityBuilder {
 	static getDamageOnSaveMode (str) {
 												if (
 			/\bdamage plus [^.!?:]+ damage, and the target must succeed\b/i.test(str)
@@ -87924,7 +88562,7 @@ class UtilActivityBuilder {
 				toWalk,
 				{
 					string: (str) => {
-						const {onSave: _onSave, isFound} = UtilActivityBuilder.getDamageOnSaveMode(str);
+						const {onSave: _onSave, isFound} = UtilActivityBuilder$1.getDamageOnSaveMode(str);
 						onSave = _onSave;
 						if (isFound) return true;
 					},
@@ -87945,7 +88583,7 @@ class UtilActivityBuilder {
 		if (damageBlock.damage?.parts?.[0]?.bonus?.trim()?.toLowerCase() !== "@mod") return;
 		damageBlock.damage.parts[0].bonus = "";
 	}
-}
+};
 
 class UtilItems {
 	static PROFICIENCY_LEVELS = {
@@ -88004,8 +88642,288 @@ class DocumentBuilderSharedUtil {
 	}
 }
 
+class _TargetInfo {
+	constructor () {
+		this.targetTemplateType = "";
+		this.targetTemplateCount = "";
+		this.targetTemplateContiguous = false;
+		this.targetTemplateSize = "";
+		this.targetTemplateWidth = "";
+		this.targetTemplateHeight = "";
+		this.targetTemplateUnits = ""; 
+		this.targetAffectsType = "";
+		this.targetAffectsCount = "";
+		this.targetAffectsChoice = false;
+		this.targetAffectsSpecial = "";
+	}
+
+	hasAnyTargetTemplateData () {
+		return [
+			"targetTemplateType",
+			"targetTemplateCount",
+			"targetTemplateContiguous",
+			"targetTemplateSize",
+			"targetTemplateWidth",
+			"targetTemplateHeight",
+			"targetTemplateUnits",
+		]
+			.some(prop => !!this[prop]);
+	}
+
+	hasAnyTargetAffectsData () {
+		return [
+			"targetAffectsType",
+			"targetAffectsCount",
+			"targetAffectsChoice",
+			"targetAffectsSpecial",
+		]
+			.some(prop => !!this[prop]);
+	}
+}
+
+class UtilDocumentBuilderItemTarget {
+	static getApproximateTargetInfoMeta ({entry, fvttType = null}) {
+		const targetInfo = new _TargetInfo();
+
+		UtilWalker.WALKER_READONLY_GENERIC_BOR.walk(entry.entries, {string: (str) => {
+			const strStripped = Renderer.stripTags(str);
+
+			this._getApproximateTargetInfoMeta_spell({targetInfo, strStripped});
+			this._getApproximateTargetInfoMeta_creature({targetInfo, strStripped, fvttType});
+
+						if (targetInfo.hasAnyTargetTemplateData() && targetInfo.hasAnyTargetAffectsData()) return true;
+		}});
+
+		return {
+						isFound: targetInfo.hasAnyTargetTemplateData()
+				|| targetInfo.hasAnyTargetAffectsData(),
+			targetInfo,
+		};
+	}
+
+	
+	static _getApproximateTargetInfoMeta_spell_targetAffectsChoice ({targetInfo, strStripped}) {
+										const isChooseAffected = /up to \w+ (?:willing )?creatures/i.test(strStripped)
+			|| /Choose any number of (?:willing )?creatures/i.test(strStripped)
+			|| /Choose a number of (?:nonmagical )?objects/i.test(strStripped)
+			|| /\w+ (?:willing )?creatures? of your choice/i.test(strStripped);
+		if (isChooseAffected) targetInfo.targetAffectsChoice = true;
+	}
+
+	static _getApproximateTargetInfoMeta_spell_targetAffectsType ({targetInfo, strStripped}) {
+						const mAffectsTypeRaw = /\w+ (?:(?<isWillingCreature>willing) )?(?<typeRaw>creature)s?(?: or (?:an )?(?<typeRawAlt>object)s?)?\b/i.exec(strStripped)
+			|| /nonmagical (?<typeRaw>object)s?/i.exec(strStripped);
+		if (mAffectsTypeRaw) {
+			const {isWillingCreature, typeRaw, typeRawAlt} = mAffectsTypeRaw.groups;
+			const type = typeRaw.toLowerCase().trim();
+			const typeAlt = typeRawAlt ? typeRawAlt.toLowerCase().trim() : null;
+
+						if (isWillingCreature) {
+				targetInfo.targetAffectsType = "willing";
+				return;
+			}
+
+			if (type === "creature" && typeAlt === "object") {
+				targetInfo.targetAffectsType = "creatureOrObject";
+				return;
+			}
+
+			switch (type) {
+				case "creature": targetInfo.targetAffectsType = "creature"; return;
+				case "object": targetInfo.targetAffectsType = "object"; return;
+				default: throw new Error(`Unhandled affected target type "${type}"!`);
+			}
+		}
+
+								const mTargetGeneric = /\bat one target within range or at several\b/i.test(strStripped);
+		if (mTargetGeneric) {
+			targetInfo.targetAffectsType = "any";
+		}
+	}
+
+	static _getApproximateTargetInfoMeta_spell_targetAffectsCount ({targetInfo, strStripped}) {
+		const mAffectsCount = /\b(?<amountRaw>\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen) (?:or fewer )?(?:(?:willing|\w+) )?creatures?(?! or several)/i.exec(strStripped);
+		if (mAffectsCount) {
+			const {amountRaw} = mAffectsCount.groups;
+
+			const amount = !isNaN(amountRaw) ? amountRaw : Parser.textToNumber(amountRaw);
+			if (!isNaN(amount)) {
+				targetInfo.targetAffectsCount = amount;
+				return;
+			}
+		}
+
+		const mSingle = /\b(a creature (?:that you can see )?within range|the target|the creature (?:that|which))\b/i.exec(strStripped);
+		if (mSingle) {
+			targetInfo.targetAffectsCount = 1;
+		}
+	}
+
+	static _getApproximateTargetInfoMeta_spell_targetAffects ({targetInfo, strStripped}) {
+		if (targetInfo.hasAnyTargetAffectsData()) return;
+
+		this._getApproximateTargetInfoMeta_spell_targetAffectsChoice({targetInfo, strStripped});
+		this._getApproximateTargetInfoMeta_spell_targetAffectsType({targetInfo, strStripped});
+		this._getApproximateTargetInfoMeta_spell_targetAffectsCount({targetInfo, strStripped});
+	}
+
+	
+	static _getApproximateTargetInfoMeta_spell_targetTemplate ({targetInfo, strStripped}) {
+		if (targetInfo.hasAnyTargetTemplateData()) return;
+
+				const mCube = /(?<size>\d+)[- ]foot cube/i.exec(strStripped);
+		if (mCube) {
+			targetInfo.targetTemplateSize = mCube.groups.size.trim();
+			targetInfo.targetTemplateType = "cube";
+			targetInfo.targetTemplateUnits = "ft";
+
+			return true;
+		}
+
+				const mCone = /(?<size>\d+)[- ]foot Cone/i.exec(strStripped);
+		if (mCone) {
+			targetInfo.targetTemplateSize = mCone.groups.size.trim();
+			targetInfo.targetTemplateType = "cone";
+			targetInfo.targetTemplateUnits = "ft";
+
+			return true;
+		}
+
+						const mCylinder = /Cylinder that is (?<sizeH>\d+) feet (?:high|tall) with a (?<sizeR>\d+)[- ]foot radius/i.exec(strStripped)
+			|| /(?<sizeR>\d+)[- ]foot[- ]radius,? (?<sizeH>\d+)[- ]foot[- ](?:high|tall) Cylinder/i.exec(strStripped);
+		if (mCylinder) {
+			targetInfo.targetTemplateSize = mCylinder.groups.sizeR.trim();
+			targetInfo.targetTemplateHeight = mCylinder.groups.sizeH.trim();
+			targetInfo.targetTemplateType = "cylinder";
+			targetInfo.targetTemplateUnits = "ft";
+
+			return true;
+		}
+
+				const mEmanation = /(?<size>\d+)[- ]foot (?:Emanation|radius)/i.exec(strStripped);
+		if (mEmanation) {
+			targetInfo.targetTemplateSize = mEmanation.groups.size.trim();
+			targetInfo.targetTemplateType = "radius";
+			targetInfo.targetTemplateUnits = "ft";
+
+			return true;
+		}
+
+				const mSphere = /(?<size>\d+)[- ]foot[- ]radius Sphere/i.exec(strStripped);
+		if (mSphere) {
+			targetInfo.targetTemplateSize = mSphere.groups.size.trim();
+			targetInfo.targetTemplateType = "sphere";
+			targetInfo.targetTemplateUnits = "ft";
+
+			return true;
+		}
+
+				const mSquare = /(?<size>\d+)[- ]foot square/i.exec(strStripped);
+		if (mSquare) {
+			targetInfo.targetTemplateSize = mSquare.groups.size.trim();
+			targetInfo.targetTemplateType = "square";
+			targetInfo.targetTemplateUnits = "ft";
+
+			return true;
+		}
+
+				const mLine = /(?<sizeL>\d+)[- ]foot[- ]long(?:,? (?<sizeW>\d+)[- ]foot[- ]wide)? Line/i.exec(strStripped);
+		if (mLine) {
+			targetInfo.targetTemplateSize = mLine.groups.sizeL.trim();
+			targetInfo.targetTemplateWidth = (mLine.groups.sizeW || "").trim();
+			targetInfo.targetTemplateType = "line";
+			targetInfo.targetTemplateUnits = "ft";
+
+			return true;
+		}
+
+				const mLinePrefix = /\bLine\b[^.!?]+?(?<sizeL>\d+)[- ]feet[- ]long(?: and (?<sizeW>\d+)[- ]feet[- ]wide)?/i.exec(strStripped);
+		if (mLinePrefix) {
+			targetInfo.targetTemplateSize = mLinePrefix.groups.sizeL.trim();
+			targetInfo.targetTemplateWidth = (mLinePrefix.groups.sizeW || "").trim();
+			targetInfo.targetTemplateType = "line";
+			targetInfo.targetTemplateUnits = "ft";
+
+			return true;
+		}
+
+				const mWall = /wall (?:up to )?(?<sizeL>\d+) feet long,? (?<sizeH>\d+) feet high, and (?<sizeW>\d+) feet thick/i.exec(strStripped);
+		if (mWall) {
+			targetInfo.targetTemplateSize = mWall.groups.sizeL.trim();
+			targetInfo.targetTemplateWidth = mWall.groups.sizeW.trim();
+			targetInfo.targetTemplateHeight = mWall.groups.sizeH.trim();
+			targetInfo.targetTemplateType = "wall";
+			targetInfo.targetTemplateUnits = "ft";
+			targetInfo.targetTemplateContiguous = true; 
+			return true;
+		}
+	}
+
+		static _getApproximateTargetInfoMeta_spell ({targetInfo, strStripped}) {
+		this._getApproximateTargetInfoMeta_spell_targetAffects({targetInfo, strStripped});
+		this._getApproximateTargetInfoMeta_spell_targetTemplate({targetInfo, strStripped});
+	}
+
+	
+		static _getApproximateTargetInfoMeta_creature ({targetInfo, strStripped, fvttType}) {
+		if (fvttType !== "weapon") return;
+		if (targetInfo.hasAnyTargetTemplateData() && targetInfo.hasAnyTargetAffectsData()) return;
+
+		const targetData = DocumentBuilderSharedUtil.getWeaponTargetDataDefault();
+
+		if (!targetInfo.hasAnyTargetTemplateData()) {
+			targetInfo.targetTemplateType = targetData.template?.type;
+			targetInfo.targetTemplateCount = targetData.template?.count;
+			targetInfo.targetTemplateContiguous = targetData.template?.contiguous;
+			targetInfo.targetTemplateSize = targetData.template?.size;
+			targetInfo.targetTemplateWidth = targetData.template?.width;
+			targetInfo.targetTemplateHeight = targetData.template?.height;
+			targetInfo.targetTemplateUnits = targetData.template?.units;
+		}
+
+		if (!targetInfo.hasAnyTargetAffectsData()) {
+			targetInfo.targetAffectsCount = targetData.affects?.count;
+			targetInfo.targetAffectsType = targetData.affects?.type;
+			targetInfo.targetAffectsChoice = targetData.affects?.choice;
+			targetInfo.targetAffectsSpecial = targetData.affects?.special;
+		}
+	}
+
+	
+	static mutTargetInfoMetaApplyMetric ({configGroup, targetInfo}) {
+		const originalTargetTemplateUnits = targetInfo.targetTemplateUnits;
+
+		if (targetInfo.targetTemplateUnits) targetInfo.targetTemplateUnits = Config.getMetricUnitDistance({configGroup, originalUnit: originalTargetTemplateUnits});
+
+		[
+			"targetTemplateSize",
+			"targetTemplateWidth",
+			"targetTemplateHeight",
+		]
+			.forEach(k => {
+				if (!targetInfo[k]) return;
+
+				targetInfo[k] = Config.getMetricNumberDistance({configGroup, originalValue: targetInfo[k], originalUnit: originalTargetTemplateUnits});
+			});
+	}
+}
+
+class UtilDocumentBuilderItemTargetPrompt {
+		static mutTargetPrompt ({system, configGroup}) {
+		const isPrompt = Config.getSafe(configGroup, "isTargetTemplatePrompt");
+
+		if (!system?.activities) return;
+
+		Object.values(system.activities)
+			.forEach(activity => {
+				foundry.utils.setProperty(activity, "target.prompt", isPrompt);
+			});
+	}
+}
+
 class DocumentBuilderItemBase {
 	_configGroup;
+	_ClsParseStateModel = EntryParseStateModel;
 
 	constructor (
 		{
@@ -88028,7 +88946,7 @@ class DocumentBuilderItemBase {
 
 		opts.modeOptions = opts.modeOptions || {};
 
-		const state = new EntryParseStateModel(
+		const state = new this._ClsParseStateModel(
 			{
 				entry,
 				name: UtilApplications.getCleanEntityName(UtilEntityGeneric.getNameWithSourcePart(entry, {displayName: opts.displayName, isActorItem: opts.isActorItem ?? true})),
@@ -88038,27 +88956,15 @@ class DocumentBuilderItemBase {
 		);
 		await state.pInit();
 
-						const consumptionTargets = this._getConsumptionTargets({entry, state, stateInitial});
-
-		if (consumptionTargets) {
-			MiscUtil.set(
-				stateInitial,
-				"activity",
-				"allActivities",
-				"consumptionTargets",
-				consumptionTargets,
-			);
-		}
-
-		UtilActivityBuilder.mutStateInitialTargetPrompt({stateInitial, configGroup: this._configGroup});
-		
-		this._pGetItemActorPassive_mutRecharge({entry, opts, state});
-		this._pGetItemActorPassive_mutUses({entry, opts, state, consumptionTargets});
-		this._pGetItemActorPassive_mutDuration({entry, opts, state});
-		this._pGetItemActorPassive_mutRange({entry, opts, state});
-		this._pGetItemActorPassive_mutTarget({entry, opts, state});
-		this._pGetItemActorPassive_mutProperties({entry, opts, state});
-		this._pGetItemActorPassive_mutEffects({entry, opts, state});
+		this._pGetDocumentData_mutRecharge({entry, opts, state});
+		this._pGetDocumentData_mutUses({entry, opts, state});
+		this._pGetDocumentData_mutDuration({entry, opts, state});
+		this._pGetDocumentData_mutRange({entry, opts, state});
+		this._pGetDocumentData_mutTarget({entry, opts, state});
+		this._pGetDocumentData_mutProperties({entry, opts, state});
+		this._pGetDocumentData_mutOther({entry, opts, state});
+		this._pGetDocumentData_mutEffects({entry, opts, state});
+		this._pGetDocumentData_mutCompat({entry, opts, state});
 
 		state.name = state.name.trim().replace(/\s+/g, " ");
 		if (!state.name) state.name = "(Unnamed)"; 
@@ -88067,11 +88973,7 @@ class DocumentBuilderItemBase {
 
 		this._mutStateInitialRange({state, stateInitial});
 
-		const fauxEntrySourcePage = {...entry};
-		if (opts.source != null) fauxEntrySourcePage.source = opts.source;
-		if (opts.page != null) fauxEntrySourcePage.page = opts.page;
-
-		this._pGetItemActorPassive_mutFlags({entry, opts, state});
+		this._pGetDocumentData_mutFlags({entry, opts, state});
 
 		const {name: translatedName, description: translatedDescription, flags: translatedFlags} = IntegrationBabele.getTranslationMeta({
 			translationData: opts.translationData,
@@ -88079,10 +88981,75 @@ class DocumentBuilderItemBase {
 			description: state.description,
 		});
 
-		const systemBase = {
-			source: opts.fvttSource !== undefined
-				? opts.fvttSource
-				: UtilDocumentSource.getSourceObjectFromEntity(fauxEntrySourcePage),
+		const systemBase = this._pGetDocumentData_getSystemBase({
+			entry,
+			opts,
+			state,
+			translatedDescription,
+		});
+
+		const additionalSystem = opts.additionalSystem
+			|| (opts.pFnGetAdditionalSystem ? await opts.pFnGetAdditionalSystem(entry, {opts, state, systemBase}) : null);
+
+		const systemActivities = await this._pGetSystemActivities({
+			entry,
+			stateInitial,
+			opts,
+			state,
+			systemBase,
+			additionalSystem,
+		});
+
+		const system = foundry.utils.mergeObject(
+			foundry.utils.mergeObject(
+				systemBase,
+				systemActivities,
+			),
+			(additionalSystem || {}),
+		);
+
+		UtilDocumentBuilderItemTargetPrompt.mutTargetPrompt({system, configGroup: this._configGroup});
+
+		return {
+			...UtilFoundryId.getIdObj({id: state.id}),
+			name: translatedName,
+			type: state.fvttType,
+			system,
+			ownership: {default: 0},
+			img: state.img,
+			flags: {
+				...translatedFlags,
+				...state.flagsParsed,
+				...(state.foundryFlags || {}),
+				...opts.additionalFlags,
+			},
+			effects: UtilActiveEffects.getEffectsMutDedupeId([
+				...(state.effects || []),
+				...(state.effectsParsed || []),
+			]),
+		};
+	}
+
+	_pGetDocumentData_getSystemBase_getSource ({entry, opts}) {
+		const fauxEntrySourcePage = {...entry};
+		if (opts.source != null) fauxEntrySourcePage.source = opts.source;
+		if (opts.page != null) fauxEntrySourcePage.page = opts.page;
+
+		return opts.fvttSource !== undefined
+			? opts.fvttSource
+			: UtilDocumentSource.getSourceObjectFromEntity(fauxEntrySourcePage);
+	}
+
+		_pGetDocumentData_getSystemBase (
+		{
+			entry,
+			opts,
+			state,
+			translatedDescription,
+		},
+	) {
+		return {
+			source: this._pGetDocumentData_getSystemBase_getSource({entry, opts}),
 			description: {value: translatedDescription},
 
 			duration: {
@@ -88139,43 +89106,6 @@ class DocumentBuilderItemBase {
 
 			...(state.foundrySystem || {}),
 		};
-
-		const additionalSystem = opts.additionalSystem
-			|| (opts.pFnGetAdditionalSystem ? await opts.pFnGetAdditionalSystem(entry, {systemBase}) : null);
-
-		const systemActivities = await this._pGetSystemActivities({
-			entry,
-			stateInitial,
-			opts,
-			state,
-			systemBase,
-			additionalSystem,
-		});
-
-		return {
-			...UtilFoundryId.getIdObj({id: state.id}),
-			name: translatedName,
-			type: state.fvttType,
-			system: foundry.utils.mergeObject(
-				foundry.utils.mergeObject(
-					systemBase,
-					systemActivities,
-				),
-				(additionalSystem || {}),
-			),
-			ownership: {default: 0},
-			img: state.img,
-			flags: {
-				...translatedFlags,
-				...state.flagsParsed,
-				...(state.foundryFlags || {}),
-				...opts.additionalFlags,
-			},
-			effects: UtilActiveEffects.getEffectsMutDedupeId([
-				...(state.effects || []),
-				...(state.effectsParsed || []),
-			]),
-		};
 	}
 
 	
@@ -88195,28 +89125,7 @@ class DocumentBuilderItemBase {
 	}
 
 	
-		_getConsumptionTargets ({entry, state, stateInitial}) {
-				if (stateInitial?.activity?.allActivities?.consumptionTargets) {
-			return stateInitial.activity.allActivities.consumptionTargets;
-		}
-
-				if (entry?._foundryActivity?.allActivities?.consumptionTargets) {
-			return entry._foundryActivity.allActivities.consumptionTargets;
-		}
-
-		return this._getConsumptionTargets_({entry, state, stateInitial});
-	}
-
-		_getConsumptionTargets_ ({entry, state, stateInitial}) {
-		const usesRecoveryInfo = UtilEntityGeneric.getUsesRecoveryInfo(state.name_original);
-		if (usesRecoveryInfo == null) return null;
-
-		if (usesRecoveryInfo?.consumptionTargets?.length) return usesRecoveryInfo.consumptionTargets;
-		return null;
-	}
-
-	
-	_pGetItemActorPassive_mutRecharge ({entry, opts, state}) {
+	_pGetDocumentData_mutRecharge ({entry, opts, state}) {
 		if (!state.name) return;
 
 		const usesRecoveryInfo = UtilEntityGeneric.getUsesRecoveryInfo(state.name);
@@ -88235,30 +89144,36 @@ class DocumentBuilderItemBase {
 	}
 
 	
-		_pGetItemActorPassive_mutUses ({entry, opts, state, consumptionTargets}) { throw new Error("Unimplemented!"); }
+		_pGetDocumentData_mutUses ({entry, opts, state}) { throw new Error("Unimplemented!"); }
 
 	
-		_pGetItemActorPassive_mutDuration ({entry, opts, state}) { throw new Error("Unimplemented!"); }
+		_pGetDocumentData_mutDuration ({entry, opts, state}) { throw new Error("Unimplemented!"); }
 
 	
-		_pGetItemActorPassive_mutRange ({entry, opts, state}) { throw new Error("Unimplemented!"); }
+		_pGetDocumentData_mutRange ({entry, opts, state}) { throw new Error("Unimplemented!"); }
 
 	
-		_pGetItemActorPassive_mutTarget ({entry, opts, state}) { throw new Error("Unimplemented!"); }
+		_pGetDocumentData_mutTarget ({entry, opts, state}) { throw new Error("Unimplemented!"); }
 
 	
-		_pGetItemActorPassive_mutProperties ({entry, opts, state}) { throw new Error("Unimplemented!"); }
+		_pGetDocumentData_mutProperties ({entry, opts, state}) { throw new Error("Unimplemented!"); }
 
-	
-	_pGetItemActorPassive_mutProperties_doSharedWalk ({state}, str) {
+	_pGetDocumentData_mutProperties_doSharedWalk ({state}, str) {
 		const strStripped = Renderer.stripTags(str);
 		if (UtilEntityGeneric.isConcentrationString(strStripped)) state.properties.push("concentration");
 	}
 
-		_pGetItemActorPassive_mutEffects ({entry, opts, state}) { throw new Error("Unimplemented!"); }
+	
+	_pGetDocumentData_mutOther ({entry, opts, state}) {  }
 
 	
-		_pGetItemActorPassive_mutFlags ({entry, opts, state}) { throw new Error("Unimplemented!"); }
+		_pGetDocumentData_mutEffects ({entry, opts, state}) { throw new Error("Unimplemented!"); }
+
+	
+		_pGetDocumentData_mutCompat ({entry, opts, state}) { throw new Error("Unimplemented!"); }
+
+	
+		_pGetDocumentData_mutFlags ({entry, opts, state}) { throw new Error("Unimplemented!"); }
 
 	
 	async _pGetSystemActivities (
@@ -88274,10 +89189,10 @@ class DocumentBuilderItemBase {
 		if (foundry.utils.getProperty(foundry.utils.expandObject(systemBase), "activities")) return {};
 		if (foundry.utils.getProperty(foundry.utils.expandObject(additionalSystem), "activities")) return {};
 
-		return this._pGetSystemActivities_({entry, stateInitial, opts, systemBase});
+		return this._pGetSystemActivities_({entry, stateInitial, opts, state, systemBase});
 	}
 
-		async _pGetSystemActivities_ ({entry, stateInitial, opts, systemBase}) { throw new Error("Unimplemented!"); }
+		async _pGetSystemActivities_ ({entry, stateInitial, opts, state, systemBase}) { throw new Error("Unimplemented!"); }
 
 	
 		_mutSingleAttackActivityDamage ({entry, systemBase, activities}) {
@@ -88295,10 +89210,10 @@ class DocumentBuilderItemBase {
 
 		const [activityAttack, activityAttackVersatile] = activitiesAttack;
 
-		if (!UtilActivityBuilder.isValidRootDamageBlock(activityAttack)) return;
+		if (!UtilActivityBuilder$1.isValidRootDamageBlock(activityAttack)) return;
 		if (
 			isVersatile
-			&& (!activityAttackVersatile || !UtilActivityBuilder.isValidRootDamageBlock(activityAttackVersatile))
+			&& (!activityAttackVersatile || !UtilActivityBuilder$1.isValidRootDamageBlock(activityAttackVersatile))
 		) return;
 
 				if (
@@ -88307,13 +89222,13 @@ class DocumentBuilderItemBase {
 			&& !CollectionUtil.deepEquals(activityAttack.damage.parts[0]?.types, activityAttackVersatile.damage.parts[0]?.types)
 		) return;
 
-		UtilActivityBuilder.mutRootDamageBlock(activityAttack);
+		UtilActivityBuilder$1.mutRootDamageBlock(activityAttack);
 		const [damagePartBase] = activityAttack.damage.parts;
 		delete activityAttack.damage;
 
 		let damagePartVersatile;
 		if (activityAttackVersatile) {
-			UtilActivityBuilder.mutRootDamageBlock(activityAttackVersatile);
+			UtilActivityBuilder$1.mutRootDamageBlock(activityAttackVersatile);
 			([damagePartVersatile] = activityAttackVersatile.damage.parts);
 			delete activityAttackVersatile.damage;
 
@@ -89173,7 +90088,7 @@ class DamageBlockCategorizerBase {
 			strEntry,
 		},
 	) {
-		const {onSave} = UtilActivityBuilder.getDamageOnSaveMode(strEntry);
+		const {onSave} = UtilActivityBuilder$1.getDamageOnSaveMode(strEntry);
 
 						const damageTypesChoice = this._getDamageTypeChoices({str: strEntry});
 
@@ -89996,6 +90911,10 @@ class _ExpressionTransformerBase {
 	}
 }
 
+class ExpressionTransformerStub extends _ExpressionTransformerBase {
+		getTransformedExpression (str, {activityType = null} = {}) { return str; }
+}
+
 class ExpressionTransformerPlayer extends _ExpressionTransformerBase {
 	_mode = "player";
 
@@ -90612,28 +91531,6 @@ class CompositeMutatorActivationCreature extends _CompositeMutatorActivationBase
 				return "";
 			})
 
-			.replace(/\badds? (?<ac>\d+) to (its|their|his|her) AC\b/i, (...m) => {
-				const argsDuration = UtilCompat.isDaeActive()
-					? {flags: {[UtilCompat.MODULE_DAE]: {specialDuration: ["1Reaction"]}}}
-					: {durationTurns: 1};
-
-				state.effectsParsed.push(UtilActiveEffects.getGenericEffect({
-					...argsDuration,
-					key: `system.attributes.ac.bonus`,
-					value: UiUtil.intToBonus(Number(m.last().ac)),
-					mode: CONST.ACTIVE_EFFECT_MODES.ADD,
-					name: `${cpyEntry.name}`,
-					icon: state.img,
-					disabled: false,
-					transfer: false,
-					priority: UtilActiveEffects.PRIORITY_BONUS,
-				}));
-
-				state.targetType = state.targetType || "self";
-
-				return "";
-			})
-
 			.replace(/\battack that would (?:hit|miss) (?:it|them|him|her|or miss)\b/i, () => {
 				state.activationType = "reaction";
 				return "";
@@ -90762,6 +91659,129 @@ class ActivityBuilderGenericHeal extends ActivityBuilderBase {
 	}
 }
 
+class UtilActivityBuilder {
+	static _DEFAULT_SAVING_THROW_DATA = {
+		saveAbility: undefined,
+		saveDcCalculation: undefined,
+		saveDcFormula: undefined,
+	};
+
+	static _getAsSavingThrowData ({ability, dcCalculation, dcFormula}) {
+		const out = MiscUtil.copyFast(this._DEFAULT_SAVING_THROW_DATA);
+		out.saveAbility = ability;
+		out.saveDcCalculation = dcCalculation;
+		out.saveDcFormula = dcFormula;
+		return out;
+	}
+
+	static _DEFAULT_CHECK_DATA = {
+		checkAbility: undefined,
+		checkDcCalculation: undefined,
+		checkDcFormula: undefined,
+	};
+
+	static _getAsCheckData ({ability, dcCalculation, dcFormula}) {
+		const out = MiscUtil.copyFast(this._DEFAULT_CHECK_DATA);
+		out.checkAbility = ability;
+		out.checkDcCalculation = dcCalculation;
+		out.checkDcFormula = dcFormula;
+		return out;
+	}
+
+	
+	static _RE_PT_DC_TAG = /{@dc (?<dc>[^|}]+)(?:\|[^}]+)?}/.source;
+	static _RE_PT_ABILITY = /(?<ability>Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma|str|dex|con|int|wis|cha)/.source;
+
+	static _getReDcText ({isCheck = false} = {}) {
+		const ptSuffix = isCheck
+			? /(?:check|ability check)/.source
+			: /(?:save|saving throw)/.source;
+
+		return new RegExp(`(?:${this._RE_PT_DC_TAG}|DC\\s*(?<dcAlt>\\d+))\\s*${this._RE_PT_ABILITY} ${ptSuffix}`, "i");
+	}
+
+	
+	static _getDataDcText ({expressionTransformer, reDcText, str}) {
+		const mDc = reDcText.exec(str);
+		if (!mDc) return null;
+
+		return {
+			ability: mDc.groups.ability.toLowerCase().substring(0, 3),
+			dcCalculation: SAVE_DC_CALCULATION_CUSTOM_FORMULA,
+			dcFormula: expressionTransformer.getTransformedExpression((mDc.groups.dc || mDc.groups.dcAlt)),
+		};
+	}
+
+	
+	static getSavingThrowActivityData ({entries, expressionTransformer = null}) {
+		if (!entries?.length) return {};
+
+		expressionTransformer ||= new ExpressionTransformerStub();
+
+		let out;
+
+		const reDcActSave = new RegExp(`{@actSave (?<abilityAbv>str|dex|con|int|wis|cha)} ${this._RE_PT_DC_TAG}`, "i");
+		const reDcText = this._getReDcText();
+
+		const reDcActSaveYourDc = new RegExp(`{@actSave (?<abilityAbv>str|dex|con|int|wis|cha)} DC equals your spell save DC`, "i");
+		const reDcTextYourDc = new RegExp(`${this._RE_PT_ABILITY} saving throw against your spell save DC`, "i");
+
+				UtilWalker.WALKER_READONLY_GENERIC_BOR.walk(entries, {string: str => {
+			const mActSave = reDcActSave.exec(str);
+			if (mActSave) {
+				return out = this._getAsSavingThrowData({
+					ability: mActSave.groups.abilityAbv.toLowerCase(),
+					dcCalculation: SAVE_DC_CALCULATION_CUSTOM_FORMULA,
+					dcFormula: expressionTransformer.getTransformedExpression(mActSave.groups.dc),
+				});
+			}
+
+			const dataDcText = this._getDataDcText({expressionTransformer, reDcText, str});
+			if (dataDcText) return out = this._getAsSavingThrowData(dataDcText);
+
+			const mActSaveYourDc = reDcActSaveYourDc.exec(str);
+			if (mActSaveYourDc) {
+				return out = this._getAsSavingThrowData({
+					ability: mActSaveYourDc.groups.abilityAbv.toLowerCase(),
+					dcCalculation: SAVE_DC_CALCULATION_CUSTOM_FORMULA,
+					dcFormula: `@${SharedConsts.MODULE_ID_FAKE}.userchar.spellSaveDc`,
+				});
+			}
+
+			const mDcYourDc = reDcTextYourDc.exec(str);
+			if (mDcYourDc) {
+				return out = this._getAsSavingThrowData({
+					ability: mDcYourDc.groups.ability.toLowerCase().substring(0, 3),
+					dcCalculation: SAVE_DC_CALCULATION_CUSTOM_FORMULA,
+					dcFormula: `@${SharedConsts.MODULE_ID_FAKE}.userchar.spellSaveDc`,
+				});
+			}
+		}});
+
+		if (!out) return {isFoundParse: false};
+		return {isFoundParse: true, ...out};
+	}
+
+	
+	static getCheckActivityData ({entries, expressionTransformer = null}) {
+		if (!entries?.length) return {};
+
+		expressionTransformer ||= new ExpressionTransformerStub();
+
+		let out;
+
+		const reDcText = this._getReDcText({isCheck: true});
+
+		UtilWalker.WALKER_READONLY_GENERIC_BOR.walk(entries, {string: str => {
+			const dataDcText = this._getDataDcText({expressionTransformer, reDcText, str});
+			if (dataDcText) return out = this._getAsCheckData(dataDcText);
+		}});
+
+		if (!out) return {isFoundParse: false};
+		return {isFoundParse: true, ...out};
+	}
+}
+
 const _IS_POPULATE_NON_SPELL_CHECKS = false;
 
 class _CompositeMutatorCheckBase extends CompositeMutatorBase {
@@ -90773,6 +91793,19 @@ class _CompositeMutatorCheckBase extends CompositeMutatorBase {
 	_mutateState ({cpyEntry, state}) {
 		if (state.hasExistingRelevantState()) return;
 		this._mutateState_({cpyEntry, state});
+	}
+
+	
+	_mutApplyCheckActivityData ({state, checkActivityData}) {
+		const {
+			checkAbility,
+			checkDcCalculation,
+			checkDcFormula,
+		} = checkActivityData;
+
+		state.checkAbility = checkAbility;
+		state.checkDcCalculation = checkDcCalculation;
+		state.checkDcFormula = checkDcFormula;
 	}
 
 	
@@ -90877,6 +91910,15 @@ class _CompositeMutatorCheckBase extends CompositeMutatorBase {
 	}
 
 	_mutCheck ({cpyEntry, state}) {
+						const checkActivityData = UtilActivityBuilder.getCheckActivityData({
+			entries: cpyEntry.entries,
+			expressionTransformer: this._expressionTransformer,
+		});
+		if (checkActivityData) {
+			this._mutApplyCheckActivityData({state, checkActivityData});
+			return true;
+		}
+
 		let isFound = false;
 		UtilWalker.WALKER_READONLY_GENERIC_BOR.walk(cpyEntry.entries, {string: (str) => {
 			const sentences = Util.getSentences(str);
@@ -91011,114 +92053,119 @@ class CompositeMutatorGenericRangePlayer extends _CompositeMutatorTargetBase$1 {
 }
 
 class DocumentBuilderItemPlayer extends DocumentBuilderItemBase {
-	_pGetItemActorPassive_mutUses ({entry, opts, state, consumptionTargets}) {
-				if (consumptionTargets?.length) return;
-
+	_pGetDocumentData_mutUses ({entry, opts, state}) {
 		if (!entry.entries) return;
 		if (DocumentBuilderSharedUtil.isTextOnlyItemPlayer({entry})) return;
 
-				if (state.usesRecovery === undefined) {
-			UtilWalker.WALKER_READONLY_GENERIC_BOR
-				.walk(
-					entry.entries,
-					{
-						string: (str) => {
-							const strStripped = Renderer.stripTags(str);
+		this._pGetDocumentData_mutUses_recovery({entry, opts, state});
+		this._pGetDocumentData_mutUses_max({entry, opts, state});
+	}
 
-																					const mShortAndLong = /regain (?<cntShort>one|two|three|four|five|six|seven|eight) expended use when you finish a Short Rest, and you regain all expended uses when you finish a Long Rest/i.exec(strStripped);
-							if (mShortAndLong) {
-								const {cntShort} = mShortAndLong.groups;
-								state.usesRecovery = [
-									{period: "sr", type: "formula", formula: `${Parser.textToNumber(cntShort)}`},
-									{period: "lr", type: "recoverAll"},
-								];
-								return true;
-							}
+	_pGetDocumentData_mutUses_recovery ({entry, opts, state}) {
+		if (state.usesRecovery !== undefined) return;
 
-																												if (
-								/When(?:ever)? you finish a Short Rest, .* can't do so again until you finish a Long Rest/i.test(strStripped)
-							) {
-								state.usesRecovery = [{period: "lr", type: "recoverAll"}];
-								return true;
-							}
+		UtilWalker.WALKER_READONLY_GENERIC_BOR
+			.walk(
+				entry.entries,
+				{
+					string: (str) => {
+						const strStripped = Renderer.stripTags(str);
 
-														const ptWhenever = /(?<!Whenever you )/.source;
-							const ptFinish = /(?:finish|complete)/.source;
-														const ptResets = /(?!, the \w+ resets)/.source;
+																		const mShortAndLong = /regain (?<cntShort>one|two|three|four|five|six|seven|eight) expended use when you finish a Short Rest, and you regain all expended uses when you finish a Long Rest/i.exec(strStripped);
+						if (mShortAndLong) {
+							const {cntShort} = mShortAndLong.groups;
+							state.usesRecovery = [
+								{period: "sr", type: "formula", formula: `${Parser.textToNumber(cntShort)}`},
+								{period: "lr", type: "recoverAll"},
+							];
+							return true;
+						}
 
-														const isShortRest = new RegExp(`${ptWhenever}${ptFinish} a short (?:or long )?rest(?: or long rest)?${ptResets}`, "i").test(strStripped);
-							if (isShortRest) {
-								state.usesRecovery = [{period: "sr", type: "recoverAll"}];
-								return true;
-							}
+																								if (
+							/When(?:ever)? you finish a Short Rest, .* can't do so again until you finish a Long Rest/i.test(strStripped)
+						) {
+							state.usesRecovery = [{period: "lr", type: "recoverAll"}];
+							return true;
+						}
 
-							const isLongRest = new RegExp(`${ptWhenever}${ptFinish} a long rest${ptResets}`, "i").test(strStripped);
-							if (isLongRest) {
-								state.usesRecovery = [{period: "lr", type: "recoverAll"}];
-								return true;
-							}
-						},
+												const ptWhenever = /(?<!Whenever you )/.source;
+						const ptFinish = /(?:finish|complete)/.source;
+												const ptResets = /(?!, the \w+ resets)/.source;
+
+												const isShortRest = new RegExp(`${ptWhenever}${ptFinish} a short (?:or long )?rest(?: or long rest)?${ptResets}`, "i").test(strStripped);
+						if (isShortRest) {
+							state.usesRecovery = [{period: "sr", type: "recoverAll"}];
+							return true;
+						}
+
+						const isLongRest = new RegExp(`${ptWhenever}${ptFinish} a long rest${ptResets}`, "i").test(strStripped);
+						if (isLongRest) {
+							state.usesRecovery = [{period: "lr", type: "recoverAll"}];
+							return true;
+						}
 					},
-				);
-		}
-		
-				const reAbilModifier = new RegExp(`a number of times equal to(?: (${Consts.TERMS_COUNT.map(it => it.tokens.join("")).join("|")}))? your (Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma) modifier(?: \\(minimum of (${Consts.TERMS_COUNT.map(it => it.tokens.join("")).join("|")})\\))?`, "i");
+				},
+			);
+	}
 
-		if (state.usesMax === undefined) {
-			UtilWalker.WALKER_READONLY_GENERIC_BOR
-				.walk(
-					entry.entries,
-					{
-						string: (str) => {
-							const strStripped = Renderer.stripTags(str);
+	_pGetDocumentData_mutUses_max ({entry, opts, state}) {
+		if (state.usesMax !== undefined) return;
 
-							const mAbilModifier = reAbilModifier.exec(strStripped);
-							if (mAbilModifier && opts.actor) {
-								const abv = mAbilModifier[2].slice(0, 3).toLowerCase();
-								const abilScore = MiscUtil.get(opts.actor, "system", "abilities", abv, "value");
-								if (abilScore != null) {
-									let modFormula = `@abilities.${abv}.mod`;
+		const reAbilModifier = new RegExp(`a number of times equal to(?: (${Consts.TERMS_COUNT.map(it => it.tokens.join("")).join("|")}))? your (Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma) modifier(?: \\(minimum of (${Consts.TERMS_COUNT.map(it => it.tokens.join("")).join("|")})\\))?`, "i");
 
-									if (mAbilModifier[1]) {
-										const multiplier = (Consts.TERMS_COUNT.find(it => it.tokens.join(" ") === mAbilModifier[1].trim().toLowerCase()) || {}).count || 1;
-										modFormula = `${modFormula} * ${multiplier}`;
-									}
+		UtilWalker.WALKER_READONLY_GENERIC_BOR
+			.walk(
+				entry.entries,
+				{
+					string: (str) => {
+						const strStripped = Renderer.stripTags(str);
 
-									if (mAbilModifier[3]) {
-										const min = (Consts.TERMS_COUNT.find(it => it.tokens.join("") === mAbilModifier[3].trim().toLowerCase()) || {}).count || 1;
-										modFormula = `max(${min}, ${modFormula})`;
-									}
+						const mAbilModifier = reAbilModifier.exec(strStripped);
+						if (mAbilModifier && opts.actor) {
+							const abv = mAbilModifier[2].slice(0, 3).toLowerCase();
+							const abilScore = MiscUtil.get(opts.actor, "system", "abilities", abv, "value");
+							if (abilScore != null) {
+								let modFormula = `@abilities.${abv}.mod`;
 
-									if (state.usesMax === undefined) state.usesMax = modFormula;
+								if (mAbilModifier[1]) {
+									const multiplier = (Consts.TERMS_COUNT.find(it => it.tokens.join(" ") === mAbilModifier[1].trim().toLowerCase()) || {}).count || 1;
+									modFormula = `${modFormula} * ${multiplier}`;
 								}
+
+								if (mAbilModifier[3]) {
+									const min = (Consts.TERMS_COUNT.find(it => it.tokens.join("") === mAbilModifier[3].trim().toLowerCase()) || {}).count || 1;
+									modFormula = `max(${min}, ${modFormula})`;
+								}
+
+								if (state.usesMax === undefined) state.usesMax = modFormula;
 							}
-							if (state.usesMax !== undefined) return true;
+						}
+						if (state.usesMax !== undefined) return true;
 
-							strStripped.replace(/(you can ([^.!?]+)) a number of times equal to(?<mult> twice)? your proficiency bonus/i, (...m) => {
-								const mult = m.last().mult
-									? (Consts.TERMS_COUNT.find(meta => CollectionUtil.deepEquals(meta.tokens, m.last().mult.trim().toLowerCase().split(/( )/g)))?.count || 1)
-									: 1;
-								if (state.usesMax === undefined) state.usesMax = `@prof${mult > 1 ? ` * ${mult}` : ""}`;
-							});
-							if (state.usesMax !== undefined) return true;
+						strStripped.replace(/(you can ([^.!?]+)) a number of times equal to(?<mult> twice)? your proficiency bonus/i, (...m) => {
+							const mult = m.last().mult
+								? (Consts.TERMS_COUNT.find(meta => CollectionUtil.deepEquals(meta.tokens, m.last().mult.trim().toLowerCase().split(/( )/g)))?.count || 1)
+								: 1;
+							if (state.usesMax === undefined) state.usesMax = `@prof${mult > 1 ? ` * ${mult}` : ""}`;
+						});
+						if (state.usesMax !== undefined) return true;
 
-							strStripped.replace(/[Yy]ou can use (?:this feature|this ability|(?:[A-Z][a-z]+ ?)+) (?<mult>once|twice|[a-zA-Z]+ times)/, (...m) => {
-								const mult = (Consts.TERMS_COUNT.find(meta => CollectionUtil.deepEquals(meta.tokens, m.last().mult.trim().toLowerCase().split(/( )/g)))?.count || 1);
-								if (state.usesMax === undefined) state.usesMax = `${mult}`;
-							});
-							if (state.usesMax !== undefined) return true;
-						},
+						strStripped.replace(/[Yy]ou can use (?:this feature|this ability|(?:[A-Z][a-z]+ ?)+) (?<mult>once|twice|[a-zA-Z]+ times)/, (...m) => {
+							const mult = (Consts.TERMS_COUNT.find(meta => CollectionUtil.deepEquals(meta.tokens, m.last().mult.trim().toLowerCase().split(/( )/g)))?.count || 1);
+							if (state.usesMax === undefined) state.usesMax = `${mult}`;
+						});
+						if (state.usesMax !== undefined) return true;
 					},
-				);
-		}
+				},
+			);
 
 				if (state.usesRecovery?.length && (!state.usesMax || state.usesMax === "0")) {
 			if (state.usesMax === undefined) state.usesMax = "1";
 		}
-			}
+	}
 
 	
-	_pGetItemActorPassive_mutDuration ({entry, opts, state}) {
+	_pGetDocumentData_mutDuration ({entry, opts, state}) {
 		if (!entry.entries) return;
 		if (DocumentBuilderSharedUtil.isTextOnlyItemPlayer({entry})) return;
 
@@ -91163,10 +92210,10 @@ class DocumentBuilderItemPlayer extends DocumentBuilderItemBase {
 	}
 
 	
-	_pGetItemActorPassive_mutRange ({entry, opts, state}) {}
+	_pGetDocumentData_mutRange ({entry, opts, state}) {}
 
 	
-	_pGetItemActorPassive_mutTarget ({entry, opts, state}) {
+	_pGetDocumentData_mutTarget ({entry, opts, state}) {
 		if (!entry.entries?.length) return;
 		if (DocumentBuilderSharedUtil.isTextOnlyItemPlayer({entry})) return;
 
@@ -91174,7 +92221,7 @@ class DocumentBuilderItemPlayer extends DocumentBuilderItemBase {
 	}
 
 	
-	_pGetItemActorPassive_mutProperties ({entry, opts, state}) {
+	_pGetDocumentData_mutProperties ({entry, opts, state}) {
 		if (state.properties !== undefined || !entry.entries?.length) return;
 
 		if (DocumentBuilderSharedUtil.isTextOnlyItemPlayer({entry})) return;
@@ -91185,14 +92232,14 @@ class DocumentBuilderItemPlayer extends DocumentBuilderItemBase {
 			entry.entries,
 			{
 				string: [
-					this._pGetItemActorPassive_mutProperties_doSharedWalk.bind(this, {state}),
+					this._pGetDocumentData_mutProperties_doSharedWalk.bind(this, {state}),
 				],
 			},
 		);
 	}
 
 	
-	_pGetItemActorPassive_mutEffects ({entry, opts, state}) {
+	_pGetDocumentData_mutEffects ({entry, opts, state}) {
 		if (!entry.entries?.length) return;
 		if (DocumentBuilderSharedUtil.isTextOnlyItemPlayer({entry})) return;
 
@@ -91200,7 +92247,10 @@ class DocumentBuilderItemPlayer extends DocumentBuilderItemBase {
 	}
 
 	
-	_pGetItemActorPassive_mutFlags ({entry, opts, state}) {
+	_pGetDocumentData_mutCompat ({entry, opts, state}) {}
+
+	
+	_pGetDocumentData_mutFlags ({entry, opts, state}) {
 		if (!entry.entries?.length) return;
 		if (DocumentBuilderSharedUtil.isTextOnlyItemPlayer({entry})) return;
 
@@ -91208,7 +92258,7 @@ class DocumentBuilderItemPlayer extends DocumentBuilderItemBase {
 	}
 
 	
-	async _pGetSystemActivities_ ({entry, stateInitial, opts, systemBase}) {
+	async _pGetSystemActivities_ ({entry, stateInitial, opts, state, systemBase}) {
 		if (!entry.entries) return {activities: {}};
 		if (DocumentBuilderSharedUtil.isTextOnlyItemPlayer({entry})) return {activities: {}};
 
@@ -91233,9 +92283,56 @@ class DocumentBuilderItemPlayer extends DocumentBuilderItemBase {
 			],
 		});
 
+		const activities = await managerActivityBuilders.pGetActivityDatas({entry, parentStateInitial: stateInitial});
+
+																		if (
+			!Object.keys(activities).length
+			|| !state.hasUsesData()
+			|| Object.values(activities)
+				.some(activity => foundry.utils.getProperty(foundry.utils.expandObject(activity), "consumption.targets")?.length)
+		) return {activities};
+
+		Object.values(activities)
+			.forEach(activity => foundry.utils.setProperty(activity, "consumption.targets", [{target: "", value: "1", type: "itemUses"}]));
+
+		return {activities};
+	}
+}
+
+class UtilActivityBuilderConsumptionTargets {
+	static _getGeneratedAllActivityState ({entry}) {
+		const usesRecoveryInfo = UtilEntityGeneric.getUsesRecoveryInfo(entry.name);
+		if (usesRecoveryInfo == null) return null;
+
+		if (!usesRecoveryInfo?.consumptionTargets?.length) return null;
+
 		return {
-			activities: await managerActivityBuilders.pGetActivityDatas({entry, parentStateInitial: stateInitial}),
+			allActivities: {
+				consumptionTargets: usesRecoveryInfo.consumptionTargets,
+			},
 		};
+	}
+
+		static getMergedStateInitialActivity (
+		{
+			entry,
+			overrides = null,
+		},
+	) {
+		const fromGenerated = this._getGeneratedAllActivityState({entry});
+		const fromEntry = entry._foundryActivity;
+
+										const toMerge = [
+			fromGenerated,
+			fromEntry,
+			...(overrides || []),
+		]
+			.filter(Boolean);
+
+		if (!toMerge.length) return null;
+
+		return toMerge
+			.reduce((accum, nxt) => foundry.utils.mergeObject(accum, nxt), {});
 	}
 }
 
@@ -91615,9 +92712,12 @@ class DataConverterClassSubclassFeature extends DataConverterFeature {
 				typeSubtype,
 				img,
 				requirements: [feature.className, feature.level, feature.subclassShortName ? `(${feature.subclassShortName})` : ""].filter(Boolean).join(" "),
-				activity: foundry.utils.mergeObject(
-					{}, 					consumptionInfo.getActivityData(),
-				),
+				activity: UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({
+					entry: feature,
+					overrides: [
+						consumptionInfo.getActivityData(),
+					],
+				}),
 				foundryFlags: this._getClassSubclassFeatureFlags(feature, type, opts),
 				effects: UtilActiveEffects.getEffectsMutDedupeId(effectsSideTuples.map(it => it.effect)),
 			},
@@ -91880,6 +92980,7 @@ class DataConverterFeat extends DataConverterFeature {
 					},
 				),
 				prerequisitesLevel: UtilDataConverter.getPrerequisiteLevelNumber({prereqs: cpyFeat.prerequisite}),
+				activity: UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: feat}),
 				typeSubtype: this._getFeatTypeSubtype(cpyFeat),
 				foundryFlags: this._getFeatFlags(cpyFeat, opts),
 				effects: UtilActiveEffects.getEffectsMutDedupeId(effectsSideTuples.map(it => it.effect)),
@@ -92154,9 +93255,12 @@ class DataConverterOptionalfeature extends DataConverterFeature {
 				requirements: this._getRequirementsString(optFeature),
 				prerequisitesLevel: UtilDataConverter.getPrerequisiteLevelNumber({prereqs: optFeature.prerequisite}),
 
-				activity: foundry.utils.mergeObject(
-					{}, 					consumptionInfo.getActivityData(),
-				),
+				activity: UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({
+					entry: optFeature,
+					overrides: [
+						consumptionInfo.getActivityData(),
+					],
+				}),
 
 				foundryFlags: this._getOptionalFeatureFlags(optFeature, opts),
 				effects: UtilActiveEffects.getEffectsMutDedupeId(effectsSideTuples.map(it => it.effect)),
@@ -96094,70 +97198,6 @@ class _CompositeMutatorSaveBase extends CompositeMutatorBase {
 		state.saveDcCalculation = saveDcCalculation;
 		state.saveDcFormula = saveDcFormula;
 	}
-
-	
-	_DEFAULT_SAVING_THROW_DATA = {
-		saveAbility: undefined,
-		saveDcCalculation: undefined,
-		saveDcFormula: undefined,
-	};
-
-	_getSavingThrowActivityData (entries) {
-		const out = MiscUtil.copyFast(this._DEFAULT_SAVING_THROW_DATA);
-
-		if (!entries?.length) return out;
-
-		let isFoundParse = false;
-
-		const ptDcTag = /{@dc (?<dc>[^|}]+)(?:\|[^}]+)?}/.source;
-		const ptAbility = /(?<ability>Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma|str|dex|con|int|wis|cha)/.source;
-
-		const reDcActSave = new RegExp(`{@actSave (?<abilityAbv>str|dex|con|int|wis|cha)} ${ptDcTag}`, "i");
-		const reDcText = new RegExp(`(?:${ptDcTag}|DC\\s*(?<dcAlt>\\d+))\\s*${ptAbility}`, "i");
-
-		const reDcActSaveYourDc = new RegExp(`{@actSave (?<abilityAbv>str|dex|con|int|wis|cha)} DC equals your spell save DC`, "i");
-		const reDcTextYourDc = new RegExp(`${ptAbility} saving throw against your spell save DC`, "i");
-
-				UtilWalker.WALKER_READONLY_GENERIC_BOR.walk(entries, {string: str => {
-			const mActSave = reDcActSave.exec(str);
-			if (mActSave) {
-				out.saveAbility = mActSave.groups.abilityAbv.toLowerCase();
-				out.saveDcCalculation = SAVE_DC_CALCULATION_CUSTOM_FORMULA;
-				out.saveDcFormula = this._expressionTransformer.getTransformedExpression(mActSave.groups.dc);
-
-				return isFoundParse = true;
-			}
-
-			const mDc = reDcText.exec(str);
-			if (mDc) {
-				out.saveAbility = mDc.groups.ability.toLowerCase().substring(0, 3);
-				out.saveDcCalculation = SAVE_DC_CALCULATION_CUSTOM_FORMULA;
-				out.saveDcFormula = this._expressionTransformer.getTransformedExpression((mDc.groups.dc || mDc.groups.dcAlt));
-
-				return isFoundParse = true;
-			}
-
-			const mActSaveYourDc = reDcActSaveYourDc.exec(str);
-			if (mActSaveYourDc) {
-				out.saveAbility = mActSaveYourDc.groups.abilityAbv.toLowerCase();
-				out.saveDcCalculation = SAVE_DC_CALCULATION_CUSTOM_FORMULA;
-				out.saveDcFormula = `@${SharedConsts.MODULE_ID_FAKE}.userchar.spellSaveDc`;
-
-				return isFoundParse = true;
-			}
-
-			const mDcYourDc = reDcTextYourDc.exec(str);
-			if (mDcYourDc) {
-				out.saveAbility = mDcYourDc.groups.ability.toLowerCase().substring(0, 3);
-				out.saveDcCalculation = SAVE_DC_CALCULATION_CUSTOM_FORMULA;
-				out.saveDcFormula = `@${SharedConsts.MODULE_ID_FAKE}.userchar.spellSaveDc`;
-
-				return isFoundParse = true;
-			}
-		}});
-
-		return {isFoundParse, ...out};
-	}
 }
 
 class CompositeMutatorSaveCreature extends _CompositeMutatorSaveBase {
@@ -96176,7 +97216,10 @@ class CompositeMutatorSaveCreature extends _CompositeMutatorSaveBase {
 	_mutateState ({cpyEntry, state}) {
 		if (this._hasExistingState({state})) return;
 
-		const savingThrowActivityData = this._getSavingThrowActivityData(cpyEntry.entries);
+		const savingThrowActivityData = UtilActivityBuilder.getSavingThrowActivityData({
+			entries: cpyEntry.entries,
+			expressionTransformer: this._expressionTransformer,
+		});
 
 		if (!savingThrowActivityData.isFoundParse || !this._sheetPb) return this._mutApplySavingThrowActivityData({state, savingThrowActivityData});
 
@@ -96225,7 +97268,13 @@ class CompositeMutatorSaveVehicle extends _CompositeMutatorSaveBase {
 	_mutateState ({cpyEntry, state}) {
 		if (this._hasExistingState({state})) return;
 
-		this._mutApplySavingThrowActivityData({state, savingThrowActivityData: this._getSavingThrowActivityData(cpyEntry.entries)});
+		this._mutApplySavingThrowActivityData({
+			state,
+			savingThrowActivityData: UtilActivityBuilder.getSavingThrowActivityData({
+				entries: cpyEntry.entries,
+				expressionTransformer: this._expressionTransformer,
+			}),
+		});
 	}
 }
 
@@ -96528,254 +97577,6 @@ class CompositeMutatorAttackObject extends _CompositeMutatorNonPlayerAttackBase 
 	_PropNamespacer = UtilEntityObjectFeature;
 }
 
-class _TargetInfo {
-	constructor () {
-		this.targetTemplateType = "";
-		this.targetTemplateCount = "";
-		this.targetTemplateContiguous = false;
-		this.targetTemplateSize = "";
-		this.targetTemplateWidth = "";
-		this.targetTemplateHeight = "";
-		this.targetTemplateUnits = ""; 
-		this.targetAffectsType = "";
-		this.targetAffectsCount = "";
-		this.targetAffectsChoice = false;
-		this.targetAffectsSpecial = "";
-	}
-
-	hasAnyTargetTemplateData () {
-		return [
-			"targetTemplateType",
-			"targetTemplateCount",
-			"targetTemplateContiguous",
-			"targetTemplateSize",
-			"targetTemplateWidth",
-			"targetTemplateHeight",
-			"targetTemplateUnits",
-		]
-			.some(prop => !!this[prop]);
-	}
-
-	hasAnyTargetAffectsData () {
-		return [
-			"targetAffectsType",
-			"targetAffectsCount",
-			"targetAffectsChoice",
-			"targetAffectsSpecial",
-		]
-			.some(prop => !!this[prop]);
-	}
-}
-
-class UtilDocumentBuilderItemTarget {
-	static getApproximateTargetInfoMeta ({entry, fvttType = null}) {
-		const targetInfo = new _TargetInfo();
-
-		UtilWalker.WALKER_READONLY_GENERIC_BOR.walk(entry.entries, {string: (str) => {
-			const strStripped = Renderer.stripTags(str);
-
-			this._getApproximateTargetInfoMeta_spell({targetInfo, strStripped});
-			this._getApproximateTargetInfoMeta_creature({targetInfo, strStripped, fvttType});
-
-						if (targetInfo.hasAnyTargetTemplateData() && targetInfo.hasAnyTargetAffectsData()) return true;
-		}});
-
-		return {
-						isFound: targetInfo.hasAnyTargetTemplateData()
-				|| targetInfo.hasAnyTargetAffectsData(),
-			targetInfo,
-		};
-	}
-
-	
-	static _getApproximateTargetInfoMeta_spell_targetAffectsChoice ({targetInfo, strStripped}) {
-										const isChooseAffected = /up to \w+ (?:willing )?creatures/i.test(strStripped)
-			|| /Choose any number of (?:willing )?creatures/i.test(strStripped)
-			|| /Choose a number of (?:nonmagical )?objects/i.test(strStripped)
-			|| /\w+ (?:willing )?creatures? of your choice/i.test(strStripped);
-		if (isChooseAffected) targetInfo.targetAffectsChoice = true;
-	}
-
-	static _getApproximateTargetInfoMeta_spell_targetAffectsType ({targetInfo, strStripped}) {
-						const mAffectsTypeRaw = /\w+ (?:(?<isWillingCreature>willing) )?(?<typeRaw>creature)s?(?: or (?:an )?(?<typeRawAlt>object)s?)?\b/i.exec(strStripped)
-			|| /nonmagical (?<typeRaw>object)s?/i.exec(strStripped);
-		if (mAffectsTypeRaw) {
-			const {isWillingCreature, typeRaw, typeRawAlt} = mAffectsTypeRaw.groups;
-			const type = typeRaw.toLowerCase().trim();
-			const typeAlt = typeRawAlt ? typeRawAlt.toLowerCase().trim() : null;
-
-						if (isWillingCreature) {
-				targetInfo.targetAffectsType = "willing";
-				return;
-			}
-
-			if (type === "creature" && typeAlt === "object") {
-				targetInfo.targetAffectsType = "creatureOrObject";
-				return;
-			}
-
-			switch (type) {
-				case "creature": targetInfo.targetAffectsType = "creature"; return;
-				case "object": targetInfo.targetAffectsType = "object"; return;
-				default: throw new Error(`Unhandled affected target type "${type}"!`);
-			}
-		}
-
-								const mTargetGeneric = /\bat one target within range or at several\b/i.test(strStripped);
-		if (mTargetGeneric) {
-			targetInfo.targetAffectsType = "any";
-		}
-	}
-
-	static _getApproximateTargetInfoMeta_spell_targetAffectsCount ({targetInfo, strStripped}) {
-		const mAffectsCount = /\b(?<amountRaw>\w+|\d+) (?:or fewer )?(?:(?:willing|\w+) )?creatures?(?! or several)/i.exec(strStripped);
-		if (mAffectsCount) {
-			const {amountRaw} = mAffectsCount.groups;
-
-			const amount = !isNaN(amountRaw) ? amountRaw : Parser.textToNumber(amountRaw);
-			if (!isNaN(amount)) targetInfo.targetAffectsCount = amount;
-		}
-	}
-
-	static _getApproximateTargetInfoMeta_spell_targetAffects ({targetInfo, strStripped}) {
-		if (targetInfo.hasAnyTargetAffectsData()) return;
-
-		this._getApproximateTargetInfoMeta_spell_targetAffectsChoice({targetInfo, strStripped});
-		this._getApproximateTargetInfoMeta_spell_targetAffectsType({targetInfo, strStripped});
-		this._getApproximateTargetInfoMeta_spell_targetAffectsCount({targetInfo, strStripped});
-	}
-
-	
-	static _getApproximateTargetInfoMeta_spell_targetTemplate ({targetInfo, strStripped}) {
-		if (targetInfo.hasAnyTargetTemplateData()) return;
-
-				const mCube = /(?<size>\d+)[- ]foot cube/i.exec(strStripped);
-		if (mCube) {
-			targetInfo.targetTemplateSize = mCube.groups.size.trim();
-			targetInfo.targetTemplateType = "cube";
-			targetInfo.targetTemplateUnits = "ft";
-
-			return true;
-		}
-
-				const mCone = /(?<size>\d+)[- ]foot Cone/i.exec(strStripped);
-		if (mCone) {
-			targetInfo.targetTemplateSize = mCone.groups.size.trim();
-			targetInfo.targetTemplateType = "cone";
-			targetInfo.targetTemplateUnits = "ft";
-
-			return true;
-		}
-
-						const mCylinder = /Cylinder that is (?<sizeH>\d+) feet (?:high|tall) with a (?<sizeR>\d+)[- ]foot radius/i.exec(strStripped)
-			|| /(?<sizeR>\d+)[- ]foot[- ]radius,? (?<sizeH>\d+)[- ]foot[- ](?:high|tall) Cylinder/i.exec(strStripped);
-		if (mCylinder) {
-			targetInfo.targetTemplateSize = mCylinder.groups.sizeR.trim();
-			targetInfo.targetTemplateHeight = mCylinder.groups.sizeH.trim();
-			targetInfo.targetTemplateType = "cylinder";
-			targetInfo.targetTemplateUnits = "ft";
-
-			return true;
-		}
-
-				const mEmanation = /(?<size>\d+)[- ]foot (?:Emanation|radius)/i.exec(strStripped);
-		if (mEmanation) {
-			targetInfo.targetTemplateSize = mEmanation.groups.size.trim();
-			targetInfo.targetTemplateType = "radius";
-			targetInfo.targetTemplateUnits = "ft";
-
-			return true;
-		}
-
-				const mSphere = /(?<size>\d+)[- ]foot[- ]radius Sphere/i.exec(strStripped);
-		if (mSphere) {
-			targetInfo.targetTemplateSize = mSphere.groups.size.trim();
-			targetInfo.targetTemplateType = "sphere";
-			targetInfo.targetTemplateUnits = "ft";
-
-			return true;
-		}
-
-				const mSquare = /(?<size>\d+)[- ]foot square/i.exec(strStripped);
-		if (mSquare) {
-			targetInfo.targetTemplateSize = mSquare.groups.size.trim();
-			targetInfo.targetTemplateType = "square";
-			targetInfo.targetTemplateUnits = "ft";
-
-			return true;
-		}
-
-				const mLine = /(?<sizeL>\d+)[- ]foot[- ]long(?:,? (?<sizeW>\d+)[- ]foot[- ]wide)? Line/i.exec(strStripped);
-		if (mLine) {
-			targetInfo.targetTemplateSize = mLine.groups.sizeL.trim();
-			targetInfo.targetTemplateWidth = (mLine.groups.sizeW || "").trim();
-			targetInfo.targetTemplateType = "line";
-			targetInfo.targetTemplateUnits = "ft";
-
-			return true;
-		}
-
-				const mWall = /wall (?:up to )?(?<sizeL>\d+) feet long,? (?<sizeH>\d+) feet high, and (?<sizeW>\d+) feet thick/i.exec(strStripped);
-		if (mWall) {
-			targetInfo.targetTemplateSize = mWall.groups.sizeL.trim();
-			targetInfo.targetTemplateWidth = mWall.groups.sizeW.trim();
-			targetInfo.targetTemplateHeight = mWall.groups.sizeH.trim();
-			targetInfo.targetTemplateType = "wall";
-			targetInfo.targetTemplateUnits = "ft";
-			targetInfo.targetTemplateContiguous = true; 
-			return true;
-		}
-	}
-
-		static _getApproximateTargetInfoMeta_spell ({targetInfo, strStripped}) {
-		this._getApproximateTargetInfoMeta_spell_targetAffects({targetInfo, strStripped});
-		this._getApproximateTargetInfoMeta_spell_targetTemplate({targetInfo, strStripped});
-	}
-
-	
-		static _getApproximateTargetInfoMeta_creature ({targetInfo, strStripped, fvttType}) {
-		if (fvttType !== "weapon") return;
-		if (targetInfo.hasAnyTargetTemplateData() && targetInfo.hasAnyTargetAffectsData()) return;
-
-		const targetData = DocumentBuilderSharedUtil.getWeaponTargetDataDefault();
-
-		if (!targetInfo.hasAnyTargetTemplateData()) {
-			targetInfo.targetTemplateType = targetData.template?.type;
-			targetInfo.targetTemplateCount = targetData.template?.count;
-			targetInfo.targetTemplateContiguous = targetData.template?.contiguous;
-			targetInfo.targetTemplateSize = targetData.template?.size;
-			targetInfo.targetTemplateWidth = targetData.template?.width;
-			targetInfo.targetTemplateHeight = targetData.template?.height;
-			targetInfo.targetTemplateUnits = targetData.template?.units;
-		}
-
-		if (!targetInfo.hasAnyTargetAffectsData()) {
-			targetInfo.targetAffectsCount = targetData.affects?.count;
-			targetInfo.targetAffectsType = targetData.affects?.type;
-			targetInfo.targetAffectsChoice = targetData.affects?.choice;
-			targetInfo.targetAffectsSpecial = targetData.affects?.special;
-		}
-	}
-
-	
-	static mutTargetInfoMetaApplyMetric ({configGroup, targetInfo}) {
-		const originalTargetTemplateUnits = targetInfo.targetTemplateUnits;
-
-		if (targetInfo.targetTemplateUnits) targetInfo.targetTemplateUnits = Config.getMetricUnitDistance({configGroup, originalUnit: originalTargetTemplateUnits});
-
-		[
-			"targetTemplateSize",
-			"targetTemplateWidth",
-			"targetTemplateHeight",
-		]
-			.forEach(k => {
-				if (!targetInfo[k]) return;
-
-				targetInfo[k] = Config.getMetricNumberDistance({configGroup, originalValue: targetInfo[k], originalUnit: originalTargetTemplateUnits});
-			});
-	}
-}
-
 class _CompositeMutatorTargetBase extends CompositeMutatorBase {
 	_activityType = "save";
 
@@ -96811,7 +97612,7 @@ class DocumentBuilderItemCreature extends DocumentBuilderItemBase {
 	_configGroup = "importCreatureFeature";
 
 	
-	_pGetItemActorPassive_mutUses ({entry, opts, state, consumptionTargets}) {
+	_pGetDocumentData_mutUses ({entry, opts, state}) {
 				if (!entry.name) return;
 
 				const isLegendary = /legendary resistance/gi.test(state.name);
@@ -96926,24 +97727,24 @@ class DocumentBuilderItemCreature extends DocumentBuilderItemBase {
 	}
 
 	
-	_pGetItemActorPassive_mutDuration ({entry, opts, state}) {
+	_pGetDocumentData_mutDuration ({entry, opts, state}) {
 		if (!entry.entries) return;
 
 				return "stubbed";
 	}
 
 	
-	_pGetItemActorPassive_mutRange ({entry, opts, state}) {
+	_pGetDocumentData_mutRange ({entry, opts, state}) {
 		if (!entry.entries) return;
 
 				return "stubbed";
 	}
 
 	
-	_pGetItemActorPassive_mutTarget ({entry, opts, state}) {}
+	_pGetDocumentData_mutTarget ({entry, opts, state}) {}
 
 	
-	_pGetItemActorPassive_mutProperties ({entry, opts, state}) {
+	_pGetDocumentData_mutProperties ({entry, opts, state}) {
 		const isPredefined = state.properties !== undefined;
 
 		if (UtilEntityItem.isVersatile(opts.itemEntryWeapon)) {
@@ -96959,14 +97760,14 @@ class DocumentBuilderItemCreature extends DocumentBuilderItemBase {
 			entry.entries,
 			{
 				string: [
-					this._pGetItemActorPassive_mutProperties_doSharedWalk.bind(this, {state}),
+					this._pGetDocumentData_mutProperties_doSharedWalk.bind(this, {state}),
 				],
 			},
 		);
 	}
 
 	
-	_pGetItemActorPassive_mutEffects ({entry, opts, state}) {
+	_pGetDocumentData_mutEffects ({entry, opts, state}) {
 		if (!entry.entries?.length) return;
 
 				if (!UtilCompat.isPlutoniumAddonAutomationActive()) return;
@@ -96976,7 +97777,41 @@ class DocumentBuilderItemCreature extends DocumentBuilderItemBase {
 	}
 
 	
-	_pGetItemActorPassive_mutFlags ({entry, opts, state}) {
+	_pGetDocumentData_mutCompat ({entry, opts, state}) {
+		if (entry.__prop !== "monsterReaction") return;
+
+		if (!UtilCompat.isMidiQolActive()) return;
+
+				let firstEntry = entry.entries[0];
+		if (typeof firstEntry !== "string") return;
+
+		firstEntry
+			.replace(/\badds? (?<ac>\d+) to (its|their|his|her) AC\b/i, (...m) => {
+				const argsDuration = UtilCompat.isDaeActive()
+					? {flags: {[UtilCompat.MODULE_DAE]: {specialDuration: ["1Reaction"]}}}
+					: {durationTurns: 1};
+
+				state.effectsParsed.push(UtilActiveEffects.getGenericEffect({
+					...argsDuration,
+					key: `system.attributes.ac.bonus`,
+					value: UiUtil.intToBonus(Number(m.last().ac)),
+					mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+					name: `${entry.name}`,
+					icon: state.img,
+					disabled: false,
+					transfer: false,
+					priority: UtilActiveEffects.PRIORITY_BONUS,
+				}));
+
+				state.targetType = state.targetType || "self";
+
+				return "";
+			})
+		;
+	}
+
+	
+	_pGetDocumentData_mutFlags ({entry, opts, state}) {
 		if (!entry.entries?.length) return;
 
 				void 0;
@@ -97035,9 +97870,9 @@ class DocumentBuilderItemCreature extends DocumentBuilderItemBase {
 		const damageBlockAttackTemp = damageBlocksCategorized.getPeekNextBlock({activityType: "attack"});
 		const damageBlockVersatileTemp = damageBlocksCategorized.getPeekNextBlock({activityType: "attack", offset: 1});
 
-		if (!UtilActivityBuilder.isValidRootDamageBlock(damageBlockAttackTemp)) return out;
+		if (!UtilActivityBuilder$1.isValidRootDamageBlock(damageBlockAttackTemp)) return out;
 		if (!this._getWeaponRootDamageMeta_isTypesMatch({opts, damageBlock: damageBlockAttackTemp})) return out;
-		if (damageBlockVersatileTemp && !UtilActivityBuilder.isValidRootDamageBlock(damageBlockVersatileTemp)) return out;
+		if (damageBlockVersatileTemp && !UtilActivityBuilder$1.isValidRootDamageBlock(damageBlockVersatileTemp)) return out;
 		if (damageBlockVersatileTemp && !this._getWeaponRootDamageMeta_isTypesMatch({opts, damageBlock: damageBlockVersatileTemp})) return out;
 
 		if (!this._getWeaponRootDamageMeta_isDiceMatch({opts, damageBlock: damageBlockAttackTemp, propDmg: "dmg1"})) return out;
@@ -97046,8 +97881,8 @@ class DocumentBuilderItemCreature extends DocumentBuilderItemBase {
 		const damageBlockAttack = damageBlocksCategorized.getUseNextBlock({activityType: "attack"});
 		const damageBlockVersatile = damageBlocksCategorized.getUseNextBlock({activityType: "attack"});
 
-		UtilActivityBuilder.mutRootDamageBlock(damageBlockAttack);
-		if (damageBlockVersatile) UtilActivityBuilder.mutRootDamageBlock(damageBlockVersatile);
+		UtilActivityBuilder$1.mutRootDamageBlock(damageBlockAttack);
+		if (damageBlockVersatile) UtilActivityBuilder$1.mutRootDamageBlock(damageBlockVersatile);
 
 														return {
 			...out,
@@ -97059,7 +97894,7 @@ class DocumentBuilderItemCreature extends DocumentBuilderItemBase {
 		};
 	}
 
-	async _pGetSystemActivities_ ({entry, stateInitial, opts, systemBase}) {
+	async _pGetSystemActivities_ ({entry, stateInitial, opts, state, systemBase}) {
 		const {
 			blocklistActivityTypesDamage,
 			rootDamage,
@@ -97118,17 +97953,21 @@ class DocumentBuilderItemCreature extends DocumentBuilderItemBase {
 }
 
 class SideDataInterfaceItem extends SideDataInterfaceBase {
-	static _SIDE_LOAD_OPTS = {
-		propBrew: "foundryItem",
-		fnLoadJson: Vetools.pGetItemSideData,
-		propJson: "item",
-	};
+	static _getSideLoadOpts (item) {
+		if (item._plut_isFauxGeneric) {
+			return {
+				propBrew: "foundryMagicvariant",
+				fnLoadJson: Vetools.pGetItemSideData,
+				propJson: "magicvariant",
+			};
+		}
 
-	static _SIDE_LOAD_OPTS_MAGICVARIANT = {
-		propBrew: "foundryMagicvariant",
-		fnLoadJson: Vetools.pGetItemSideData,
-		propJson: "magicvariant",
-	};
+		return {
+			propBrew: "foundryItem",
+			fnLoadJson: Vetools.pGetItemSideData,
+			propJson: "item",
+		};
+	}
 
 	static async pGetSideLoadedType (item, opts = {}) {
 		return super.pGetSideLoadedType(item, {...opts, validTypes: UtilDocumentItem.TYPES_ITEM});
@@ -97139,7 +97978,7 @@ class SideDataInterfaceItem extends SideDataInterfaceBase {
 
 		if (!ent._variantName) return fromItem;
 
-		const fromVariant = await super.pGetRoot(UtilEntityItem.getFauxGeneric(ent), {...opts, propOpts: "_SIDE_LOAD_OPTS_MAGICVARIANT"});
+		const fromVariant = await super.pGetRoot(UtilEntityItem.getFauxGeneric(ent), opts);
 		if (!fromItem || !fromVariant) return fromVariant;
 
 				return {
@@ -97153,7 +97992,7 @@ class SideDataInterfaceItem extends SideDataInterfaceBase {
 
 		if (!ent._variantName) return fromItem;
 
-		const fromVariant = await super.pGetSystemSideLoaded(UtilEntityItem.getFauxGeneric(ent), {...opts, propOpts: "_SIDE_LOAD_OPTS_MAGICVARIANT"});
+		const fromVariant = await super.pGetSystemSideLoaded(UtilEntityItem.getFauxGeneric(ent), opts);
 		if (!fromItem || !fromVariant) return fromVariant;
 
 				return {
@@ -97167,7 +98006,7 @@ class SideDataInterfaceItem extends SideDataInterfaceBase {
 
 		if (!ent._variantName) return fromItem;
 
-		const fromVariant = await super.pGetFlagsSideLoaded(UtilEntityItem.getFauxGeneric(ent), {...opts, propOpts: "_SIDE_LOAD_OPTS_MAGICVARIANT"});
+		const fromVariant = await super.pGetFlagsSideLoaded(UtilEntityItem.getFauxGeneric(ent), opts);
 		if (!fromItem || !fromVariant) return fromVariant;
 
 				return {
@@ -97180,7 +98019,7 @@ class SideDataInterfaceItem extends SideDataInterfaceBase {
 		const fromItem = await super.pGetImgSideLoaded(ent, opts);
 		if (fromItem || !ent._variantName) return fromItem;
 
-		return super.pGetImgSideLoaded(UtilEntityItem.getFauxGeneric(ent), {...opts, propOpts: "_SIDE_LOAD_OPTS_MAGICVARIANT"});
+		return super.pGetImgSideLoaded(UtilEntityItem.getFauxGeneric(ent), opts);
 	}
 
 	static async pGetEffectsRawSideLoaded (ent, opts) {
@@ -97190,7 +98029,7 @@ class SideDataInterfaceItem extends SideDataInterfaceBase {
 
 		if (!ent._variantName) return fromItem;
 
-				const fromVariant = await super.pGetEffectsRawSideLoaded(UtilEntityItem.getFauxGeneric(ent), {...opts, propOpts: "_SIDE_LOAD_OPTS_MAGICVARIANT"});
+				const fromVariant = await super.pGetEffectsRawSideLoaded(UtilEntityItem.getFauxGeneric(ent), opts);
 
 		return fromVariant;
 	}
@@ -98656,9 +99495,9 @@ class DataConverterItem extends DataConverter {
 		if (damageBlocksCategorized.getCountBlocks({activityType: "attack"}) !== 1) return out;
 		if (damageBlocksCategorized.getCountBlocks({activityType: "plut_versatile"}) > 1) return out;
 
-				if (!UtilActivityBuilder.isValidRootDamageBlock(damageBlocksCategorized.getPeekNextBlock({activityType: "attack"}))) return out;
+				if (!UtilActivityBuilder$1.isValidRootDamageBlock(damageBlocksCategorized.getPeekNextBlock({activityType: "attack"}))) return out;
 		const peekDamageBlockVersatile = damageBlocksCategorized.getPeekNextBlock({activityType: "plut_versatile"});
-		if (peekDamageBlockVersatile && !UtilActivityBuilder.isValidRootDamageBlock(peekDamageBlockVersatile)) return out;
+		if (peekDamageBlockVersatile && !UtilActivityBuilder$1.isValidRootDamageBlock(peekDamageBlockVersatile)) return out;
 
 		const damageBlockAttack = damageBlocksCategorized.getUseNextBlock({activityType: "attack"});
 		const damageBlockVersatile = damageBlocksCategorized.getUseNextBlock({activityType: "plut_versatile"});
@@ -99044,7 +99883,7 @@ class DataConverterItem extends DataConverter {
 				if (damageBlocksCategorized.getCountAllBlocks() !== 1) return out;
 		if (damageBlocksCategorized.getCountBlocks({activityType: "damage"}) !== 1) return out;
 
-				if (!UtilActivityBuilder.isValidRootDamageBlock(damageBlocksCategorized.getPeekNextBlock({activityType: "damage"}))) return out;
+				if (!UtilActivityBuilder$1.isValidRootDamageBlock(damageBlocksCategorized.getPeekNextBlock({activityType: "damage"}))) return out;
 
 		const damageBlock = damageBlocksCategorized.getUseNextBlock({activityType: "damage"});
 
@@ -100281,9 +101120,15 @@ class DataConverterCreatureFeature extends DataConverterActor {
 			entry,
 			{
 				typeValue: "monster",
-				...foundry.utils.mergeObject(
-					dataOpts,
-					this._getFeatureActivitiesData_resourceConsumption(entry, opts),
+				...dataOpts,
+				activity: foundry.utils.mergeObject(
+					dataOpts.activity || {},
+					UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({
+						entry,
+						overrides: [
+							this._getFeatureActivitiesData_resourceConsumption(entry, opts),
+						],
+					}),
 				),
 				img,
 				foundryFlags,
@@ -100302,10 +101147,10 @@ class DataConverterCreatureFeature extends DataConverterActor {
 	}
 
 		static _getFeatureActivitiesData_resourceConsumption (entry, opts) {
-		if (!opts.resourceSheetItemMetas.length) return {};
-		if (!entry.name) return {};
+		if (!opts.resourceSheetItemMetas.length) return null;
+		if (!entry.name) return null;
 
-		const outCost = opts.resourceSheetItemMetas
+		return opts.resourceSheetItemMetas
 			.first(({name, foundryId}) => {
 								const nameSingle = Parser.getSingletonUnit(name);
 
@@ -100327,9 +101172,6 @@ class DataConverterCreatureFeature extends DataConverterActor {
 					},
 				};
 			});
-		if (outCost) return outCost;
-
-		return {};
 	}
 
 	
@@ -100587,8 +101429,9 @@ class UtilAdventureBook {
 			entryIdToName,
 			entry,
 			entryStack,
-			adventureBookName,
-			adventureBookType,
+			corpusName,
+			corpusId,
+			corpusType,
 			source,
 			chapterInfo,
 		},
@@ -100604,8 +101447,9 @@ class UtilAdventureBook {
 
 		mapEntry._url = url;
 
-		mapEntry.adventureBookName = adventureBookName;
-		mapEntry.adventureBookType = adventureBookType;
+		mapEntry.corpusName = corpusName;
+		mapEntry.corpusId = corpusId;
+		mapEntry.corpusType = corpusType;
 
 				mapEntry.source = mapEntry.source || source;
 
@@ -100647,7 +101491,7 @@ class UtilAdventureBook {
 	}
 }
 
-const getMapEntriesForAdvBook = ({head, body, adventureBookType}) => {
+const getMapEntriesForAdvBook = ({head, body, corpusType}) => {
 	const mapEntries = [];
 
 	const availableMaps = {}; 	const entryIdToMap = {};
@@ -100666,8 +101510,9 @@ const getMapEntriesForAdvBook = ({head, body, adventureBookType}) => {
 						entryIdToName,
 						entry: obj,
 						entryStack: stack,
-						adventureBookName: head.name,
-						adventureBookType,
+						corpusName: head.name,
+						corpusId: head.id,
+						corpusType,
 						source: head.source,
 						chapterInfo: head.contents?.[ixCh],
 					});
@@ -100709,7 +101554,7 @@ const getTuples = ({json}) => {
 					return {
 						head,
 						body,
-						adventureBookType: prop,
+						corpusType: prop,
 					};
 				})
 				.filter(Boolean);
@@ -100720,7 +101565,7 @@ const getTuples = ({json}) => {
 
 const getMapEntriesForJson = ({json}) => {
 	return getTuples({json})
-		.map(({head, body, adventureBookType}) => getMapEntriesForAdvBook({head, body, adventureBookType}))
+		.map(({head, body, corpusType}) => getMapEntriesForAdvBook({head, body, corpusType}))
 		.flat();
 };
 
@@ -101103,6 +101948,7 @@ class DataConverterRaceFeature extends DataConverterFeature {
 				fvttType: "feat",
 				typeValue: "race",
 				requirements: raceFeature.raceName,
+				activity: UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: raceFeature}),
 				foundryFlags: {
 					[SharedConsts.MODULE_ID]: {
 						page: "raceFeature",
@@ -105346,6 +106192,7 @@ class DataConverterBackgroundFeature extends DataConverterFeature {
 				fvttType: "feat",
 				typeValue: "background",
 				requirements: featureEntry.backgroundName,
+				activity: UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: featureEntry}),
 				foundryFlags: {
 					[SharedConsts.MODULE_ID]: {
 						page: "backgroundFeature",
@@ -105450,6 +106297,7 @@ class DataConverterCharCreationOption extends DataConverterFeature {
 				typeValue,
 				typeSubtype,
 				description: descriptionValue,
+				activity: UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: ent}),
 				foundryFlags: this._getCharCreationOptionFlags(ent, opts),
 				effects: UtilActiveEffects.getEffectsMutDedupeId(effectsSideTuples.map(it => it.effect)),
 			},
@@ -105583,6 +106431,7 @@ class DataConverterReward extends DataConverterFeature {
 				typeValue: "supernaturalGift",
 				typeSubtype: this._REWARD_TYPE_TO_FVTT_TYPE[reward.type],
 				description: descriptionValue,
+				activity: UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: reward}),
 				foundryFlags: this._getRewardFlags(reward, opts),
 				effects: UtilActiveEffects.getEffectsMutDedupeId(effectsSideTuples.map(it => it.effect)),
 			},
@@ -105665,28 +106514,31 @@ class DocumentBuilderItemVehicle extends DocumentBuilderItemBase {
 	_configGroup = "importVehicle";
 
 	
-	_pGetItemActorPassive_mutUses ({entry, opts, state}) {}
+	_pGetDocumentData_mutUses ({entry, opts, state}) {}
 
 	
-	_pGetItemActorPassive_mutRange ({entry, opts, state}) {}
+	_pGetDocumentData_mutRange ({entry, opts, state}) {}
 
 	
-	_pGetItemActorPassive_mutDuration ({entry, opts, state}) {}
+	_pGetDocumentData_mutDuration ({entry, opts, state}) {}
 
 	
-	_pGetItemActorPassive_mutTarget ({entry, opts, state}) {}
+	_pGetDocumentData_mutTarget ({entry, opts, state}) {}
 
 	
-	_pGetItemActorPassive_mutProperties ({entry, opts, state}) {}
+	_pGetDocumentData_mutProperties ({entry, opts, state}) {}
 
 	
-	_pGetItemActorPassive_mutEffects ({entry, opts, state}) {}
+	_pGetDocumentData_mutEffects ({entry, opts, state}) {}
 
 	
-	_pGetItemActorPassive_mutFlags ({entry, opts, state}) {}
+	_pGetDocumentData_mutCompat ({entry, opts, state}) {}
 
 	
-	async _pGetSystemActivities_ ({entry, stateInitial, opts, systemBase}) {
+	_pGetDocumentData_mutFlags ({entry, opts, state}) {}
+
+	
+	async _pGetSystemActivities_ ({entry, stateInitial, opts, state, systemBase}) {
 		const compositeMutators = [
 			new CompositeMutatorActivationVehicle(),
 			new CompositeMutatorAttackVehicle({
@@ -105794,6 +106646,7 @@ class DataConverterVehicleUpgrade extends DataConverterFeature {
 				fvttType,
 				typeValue,
 				description: descriptionValue,
+				activity: UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: vehUpgrade}),
 				foundryFlags: this._getVehicleUpgradeFlags(vehUpgrade, opts),
 				effects: UtilActiveEffects.getEffectsMutDedupeId(effectsSideTuples.map(it => it.effect)),
 			},
@@ -112977,7 +113830,9 @@ class ImporterActor extends ImporterBase {
 			if (url) return url;
 		}
 
-						const tokenInfo = await this.constructor._TokenFetcher.pGetTokenInfo(
+		const TokenFetcher = opts.TokenFetcher || this.constructor._TokenFetcher;
+
+						const tokenInfo = await TokenFetcher.pGetTokenInfo(
 			imp,
 			{
 				isPreferFoundryOverride: Config.get("import", "isPreferFoundryImages"),
@@ -112995,8 +113850,10 @@ class ImporterActor extends ImporterBase {
 	async _pImportEntry_pFillBase_pGetPortraitImagePath_fromFoundry (ent, opts) {
 		if (opts.isUseTokenImageAsPortrait) return null;
 
+		const TokenFetcher = opts.TokenFetcher || this.constructor._TokenFetcher;
+
 		const compendiumImage = await this._pImportEntry_pFillBase_pGetAdditionalDataImage(ent, opts);
-		const compendiumTokenInfo = await this.constructor._TokenFetcher.pGetCompendiumTokenInfo(ent, opts);
+		const compendiumTokenInfo = await TokenFetcher.pGetCompendiumTokenInfo(ent, opts);
 
 						if (compendiumImage === compendiumTokenInfo?.img) return null;
 		return compendiumImage;
@@ -113027,10 +113884,21 @@ class ImporterActor extends ImporterBase {
 		return null;
 	}
 	
-			async _pImportEntry_pFillToken ({importable, actorData, size = null, flags = null, isLinkToken = false, taskRunner = null}) {
+			async _pImportEntry_pFillToken (
+		{
+			importable,
+			actorData,
+			size = null,
+			flags = null,
+			isLinkToken = false,
+			TokenFetcher = null,
+			ThreeDiTokenAdapter = null,
+			taskRunner = null,
+		},
+	) {
 		const tokenBuilder = new ImportActorTokenBuilder({
-			TokenFetcher: this.constructor._TokenFetcher,
-			ThreeDiTokenAdapter: this.constructor._ThreeDiTokenAdapter,
+			TokenFetcher: TokenFetcher || this.constructor._TokenFetcher,
+			ThreeDiTokenAdapter: ThreeDiTokenAdapter || this.constructor._ThreeDiTokenAdapter,
 			SideDataInterface: this.constructor._SideDataInterface,
 			configGroup: this._configGroup,
 		});
@@ -113717,6 +114585,17 @@ class UtilEntitySpell extends UtilEntityBase {
 	static getListDisplayLevel (it) {
 		return `${Parser.spLevelToFull(it.level)}${it.meta && it.meta.ritual ? " (rit.)" : ""}${it.meta && it.meta.technomagic ? " (tec.)" : ""}`;
 	}
+
+	static getInnateScalingLevelDelta ({entry, castAtLevel, preparationMode}) {
+		const fromConfig = Config.get("importSpell", "debugInnateScalingLevelDelta");
+		if (fromConfig) return fromConfig;
+
+		if (
+			castAtLevel != null
+			&& castAtLevel > entry.level
+			&& preparationMode === "innate"
+		) return castAtLevel - entry.level;
+	}
 }
 
 class ImportCustomizerSpell extends ImportCustomizerBase {
@@ -113928,6 +114807,12 @@ class UtilDocumentItemSpell {
 					.forEach(activity => handleObj(activity));
 			});
 	}
+
+	
+	static async pSetSpellItemIsPrepared (item, isPrepared) {
+		if (!item) return;
+		await UtilDocuments.pUpdateDocument(item, {system: {preparation: {prepared: isPrepared}}});
+	}
 }
 
 class SideDataInterfaceSpell extends SideDataInterfaceBase {
@@ -114023,6 +114908,117 @@ class ImageFetcherSpell extends ImageFetcherBase {
 			case "N": return `icons/magic/unholy/hand-fire-skeleton-pink.webp`;
 			case "T": return `icons/magic/movement/abstract-ribbons-red-orange.webp`;
 		}
+	}
+}
+
+class ActivityBuilderSpellAttack extends ActivityBuilderSpellBase {
+	_activityType = "attack";
+	_ClsState = EntryParseStateActivityModelAttack;
+
+	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
+		const state = this._getActivityState({cpyEntry, stateInitial});
+
+		this._mutAttackType({cpyEntry, state});
+		if (state.attackTypeValue == null) return null;
+
+		return state;
+	}
+
+	
+	_mutAttackType ({cpyEntry, state}) {
+		if (state.attackTypeValue !== undefined) return;
+
+		state.attackTypeValue = this._mutAttackType_getValue({cpyEntry});
+	}
+
+	_mutAttackType_getValue ({cpyEntry}) {
+		if (this._isAttackMelee({cpyEntry})) return "melee";
+		if (this._isAttackRanged({cpyEntry})) return "ranged";
+
+		if (UtilActivityBuilderSpell.isHeal({spell: cpyEntry})) return null;
+		if (this._isSave({cpyEntry})) return null;
+		if (this._isSummon({cpyEntry})) return null;
+
+		if (this._isAttackMeleeFallback({cpyEntry})) return "melee";
+		if (this._isAttackRangedFallback({cpyEntry})) return "ranged";
+
+		return null;
+	}
+}
+
+class ActivityBuilderSpellSave extends ActivityBuilderSpellBase {
+	_activityType = "save";
+	_ClsState = EntryParseStateActivityModelSave;
+
+	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
+		const state = this._getActivityState({cpyEntry, stateInitial});
+
+		this._mutSaveAbility({cpyEntry, state});
+		if (state.saveAbility == null) return null;
+
+		state.saveDcCalculation = "spellcasting";
+
+		return state;
+	}
+
+	_mutSaveAbility ({cpyEntry, state}) {
+		if (!cpyEntry.savingThrow?.length) return;
+
+		state.saveAbility = cpyEntry.savingThrow[0].slice(0, 3).toLowerCase();
+	}
+}
+
+class ActivityBuilderSpellHeal extends ActivityBuilderSpellBase {
+	_activityType = "heal";
+	_ClsState = EntryParseStateActivityModelHeal;
+
+	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
+		const state = this._getActivityState({cpyEntry, stateInitial});
+
+		if (!UtilActivityBuilderSpell.isHeal({spell: cpyEntry})) return null;
+
+		return state;
+	}
+}
+
+class ActivityBuilderSpellSummon extends ActivityBuilderSpellBase {
+	_activityType = "summon";
+	_ClsState = EntryParseStateActivityModelSummon;
+
+	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
+		const state = this._getActivityState({cpyEntry, stateInitial});
+
+		if (!this._isSummon({cpyEntry})) return null;
+
+				
+		return state;
+	}
+}
+
+class ActivityBuilderSpellCheck extends ActivityBuilderSpellBase {
+	_activityType = "check";
+	_ClsState = EntryParseStateActivityModelCheck;
+
+	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
+		if (!this._isCheck({cpyEntry})) return null;
+		const state = this._getActivityState({cpyEntry, stateInitial});
+		if (!state.hasExistingRelevantState()) return null;
+		return state;
+	}
+}
+
+class ActivityBuilderSpellFauxCast extends ActivityBuilderBase {
+	_activityType = "utility";
+	_ClsState = EntryParseStateActivityModelUtility;
+
+	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
+				if (statesHitherto.length) return null;
+
+		const state = this._getActivityState({cpyEntry, stateInitial});
+
+		state.name = "Cast";
+
+		return state;
 	}
 }
 
@@ -114167,7 +115163,7 @@ class ManagerActivityBuildersSpell extends ManagerActivityBuildersBase {
 			entries: cpyEntry.entriesHigherLevel,
 			damageBlocksCategorized,
 						damageTypesApprox: [...new Set(cpyEntry.damageInflict || [])],
-			onSaveMode: UtilActivityBuilder.getWalkDamageOnSaveMode(cpyEntry.entries) || "none",
+			onSaveMode: UtilActivityBuilder$1.getWalkDamageOnSaveMode(cpyEntry.entries) || "none",
 			isRelaxedDamageAdding,
 		});
 	}
@@ -114289,222 +115285,89 @@ class ManagerActivityBuildersSpell extends ManagerActivityBuildersBase {
 	}
 }
 
-class ActivityBuilderSpellAttack extends ActivityBuilderSpellBase {
-	_activityType = "attack";
-	_ClsState = EntryParseStateActivityModelAttack;
-
-	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
-		const state = this._getActivityState({cpyEntry, stateInitial});
-
-		this._mutAttackType({cpyEntry, state});
-		if (state.attackTypeValue == null) return null;
-
-		return state;
-	}
-
-	
-	_mutAttackType ({cpyEntry, state}) {
-		if (state.attackTypeValue !== undefined) return;
-
-		state.attackTypeValue = this._mutAttackType_getValue({cpyEntry});
-	}
-
-	_mutAttackType_getValue ({cpyEntry}) {
-		if (this._isAttackMelee({cpyEntry})) return "melee";
-		if (this._isAttackRanged({cpyEntry})) return "ranged";
-
-		if (UtilActivityBuilderSpell.isHeal({spell: cpyEntry})) return null;
-		if (this._isSave({cpyEntry})) return null;
-		if (this._isSummon({cpyEntry})) return null;
-
-		if (this._isAttackMeleeFallback({cpyEntry})) return "melee";
-		if (this._isAttackRangedFallback({cpyEntry})) return "ranged";
-
-		return null;
-	}
-}
-
-class ActivityBuilderSpellSave extends ActivityBuilderSpellBase {
-	_activityType = "save";
-	_ClsState = EntryParseStateActivityModelSave;
-
-	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
-		const state = this._getActivityState({cpyEntry, stateInitial});
-
-		this._mutSaveAbility({cpyEntry, state});
-		if (state.saveAbility == null) return null;
-
-		state.saveDcCalculation = "spellcasting";
-
-		return state;
-	}
-
-	_mutSaveAbility ({cpyEntry, state}) {
-		if (!cpyEntry.savingThrow?.length) return;
-
-		state.saveAbility = cpyEntry.savingThrow[0].slice(0, 3).toLowerCase();
-	}
-}
-
-class ActivityBuilderSpellHeal extends ActivityBuilderSpellBase {
-	_activityType = "heal";
-	_ClsState = EntryParseStateActivityModelHeal;
-
-	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
-		const state = this._getActivityState({cpyEntry, stateInitial});
-
-		if (!UtilActivityBuilderSpell.isHeal({spell: cpyEntry})) return null;
-
-		return state;
-	}
-}
-
-class ActivityBuilderSpellCheck extends ActivityBuilderSpellBase {
-	_activityType = "check";
-	_ClsState = EntryParseStateActivityModelCheck;
-
-	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
-		if (!this._isCheck({cpyEntry})) return null;
-		const state = this._getActivityState({cpyEntry, stateInitial});
-		if (!state.hasExistingRelevantState()) return null;
-		return state;
-	}
-}
-
-class ActivityBuilderSpellSummon extends ActivityBuilderSpellBase {
-	_activityType = "summon";
-	_ClsState = EntryParseStateActivityModelSummon;
-
-	async _pGetActivityStateMutEntry ({cpyEntry, stateInitial, hasAnyDamage, hasAnyHealing, statesHitherto}) {
-		const state = this._getActivityState({cpyEntry, stateInitial});
-
-		if (!this._isSummon({cpyEntry})) return null;
-
-				
-		return state;
-	}
-}
-
-class DataConverterSpell extends DataConverter {
-	static _configGroup = "importSpell";
-
-	static _SideDataInterface = SideDataInterfaceSpell;
-	static _ImageFetcher = ImageFetcherSpell;
-
-	static _getConfigKeyIsSpellPoints ({isActorItemNpc, actor}) {
-		if (isActorItemNpc) return Config.getSpellPointsKey({actorType: "npc"});
-		return Config.getSpellPointsKey({actorType: actor?.type});
-	}
-
+class UtilDocumentBuilderSpellShared {
 	static isAllowSpellPoints ({spellLevel, consumptionTargets, vetConsumes, isActorItemNpc, actor}) {
 		return consumptionTargets == null
 			&& vetConsumes == null
 			&& spellLevel !== 0
-			&& Config.get("importSpell", this._getConfigKeyIsSpellPoints({isActorItemNpc, actor})) !== ConfigConsts.C_SPELL_POINTS_MODE__DISABLED;
+			&& Config.get("importSpell", this.getConfigKeyIsSpellPoints({isActorItemNpc, actor})) !== ConfigConsts.C_SPELL_POINTS_MODE__DISABLED;
 	}
 
-	static _PassiveEntryParseStateSpell = class extends EntryParseStateModel {
-		constructor ({entry}, stateInitial, opts) {
-			super({entry}, stateInitial, opts);
+	static getConfigKeyIsSpellPoints ({isActorItemNpc, actor}) {
+		if (isActorItemNpc) return Config.getSpellPointsKey({actorType: "npc"});
+		return Config.getSpellPointsKey({actorType: actor?.type});
+	}
+}
 
-			let {
-				activationType,
-				activationValue,
-				activationCondition,
+class _EntryParseStateModelSpell extends EntryParseStateModel {
+	constructor ({entry, ...rest}, stateInitial, opts) {
+		super({entry, ...rest}, stateInitial, opts);
 
-				ability,
+		let {
+			activationType,
+			activationValue,
+			activationCondition,
 
-				school,
-				materialsValue,
-				materialsConsumed,
-				materialsCost,
-				preparationMode,
-				isPrepared,
+			ability,
 
-				vetConsumes,
-			} = stateInitial;
+			school,
+			materialsValue,
+			materialsConsumed,
+			materialsCost,
+			preparationMode,
+			isPrepared,
+		} = stateInitial;
 
-			this.activationType = activationType;
-			this.activationValue = activationValue;
-			this.activationCondition = activationCondition;
+		this.activationType = activationType;
+		this.activationValue = activationValue;
+		this.activationCondition = activationCondition;
 
-			this.ability = ability;
+		this.ability = ability;
 
-			this.school = school;
-			this.materialsValue = materialsValue;
-			this.materialsConsumed = materialsConsumed;
-			this.materialsCost = materialsCost;
+		this.school = school;
+		this.materialsValue = materialsValue;
+		this.materialsConsumed = materialsConsumed;
+		this.materialsCost = materialsCost;
 
-			this.preparationMode = preparationMode;
-			this.isPrepared = isPrepared;
+		this.preparationMode = preparationMode;
+		this.isPrepared = isPrepared;
 
-			this.vetConsumes = vetConsumes;
-		}
-	};
+		this.level = this._getLevel({entry, opts});
+	}
 
-		static async pGetDocumentJson (spell, opts) {
-		opts ||= {};
-		opts.stateInitial ||= {};
+	_getLevel ({entry, opts}) {
+		const lvlBase = this.preparationMode === "innate" && opts.castAtLevel ? opts.castAtLevel : entry.level;
 
-		Renderer.get().setFirstSection(true).resetHeaderIndex();
+		if (!isNaN(lvlBase) && lvlBase >= 0 && lvlBase <= 9) return Math.round(lvlBase);
+		if (!isNaN(lvlBase)) return Math.clamp(Math.round(lvlBase), 0, 9);
 
-		const state = new this._PassiveEntryParseStateSpell(
-			{
-				entry: spell,
-				name: UtilApplications.getCleanEntityName(UtilEntityGeneric.getNameWithSourcePart(spell, {displayName: opts.displayName, isActorItem: opts.isActorItem})),
-			},
-			opts.stateInitial,
+		return 1;
+	}
+
+	
+	async pInit ({isSkipDescription = true, isSkipImg = true} = {}) {
+		await super.pInit({isSkipDescription, isSkipImg});
+	}
+}
+
+class DocumentBuilderItemSpell extends DocumentBuilderItemBase {
+	_configGroup = "importSpell";
+	_ClsParseStateModel = _EntryParseStateModelSpell;
+
+	
+		_pGetDocumentData_getSystemBase (
+		{
+			entry,
 			opts,
-		);
-		await state.pInit({isSkipDescription: true, isSkipImg: true});
-
-		const innateScalingLevelDelta = this._getInnateScalingLevelDelta({spell, opts, state});
-
-						const consumptionTargets = this._getConsumptionTargets({spell, opts, state});
-
-		MiscUtil.set(
-			opts.stateInitial,
-			"activity",
-			"allActivities",
-			"consumptionTargets",
-			consumptionTargets,
-		);
-
-				UtilActivityBuilder.mutStateInitialTargetPrompt({stateInitial: opts.stateInitial, configGroup: this._configGroup});
-		
-		const srdData = await CompendiumCache.pGetAdditionalDataDoc("spell", spell, {isSrdOnly: true, taskRunner: opts.taskRunner});
-
-		const {name: translatedName, description: translatedDescription, flags: translatedFlags} = IntegrationBabele.getTranslationMeta({
-			translationData: IntegrationBabele.getTranslationData({srdData}),
-			name: UtilApplications.getCleanEntityName(`${UtilEntityGeneric.getNameWithSourcePart(spell, {isActorItem: opts.isActorItem})}${opts.nameSuffix || ""}`),
-			description: await this._pGetDescription(spell),
-		});
-
-		this._pGetSpellItem_mutPreparationMode({spell, opts, state});
-		this._pGetSpellItem_mutSchool({spell, opts, state});
-		this._pGetSpellItem_mutMaterials({spell, opts, state});
-		this._pGetSpellItem_mutDuration({spell, opts, state});
-		this._pGetSpellItem_mutRange({spell, opts, state});
-		this._pGetSpellItem_mutTarget({spell, opts, state});
-		this._pGetSpellItem_mutActivation({spell, opts, state});
-		this._pGetSpellItem_mutProperties({spell, opts, state});
-
-		const img = await this._ImageFetcher.pGetSaveImagePath(
-			spell,
-			{
-				propCompendium: "spell",
-				isAllowCustom: !spell.srd || Config.get("importSpell", "isUseCustomSrdIcons"),
-				taskRunner: opts.taskRunner,
-			},
-		);
-
-		this._pGetSpellItem_mut_srdData({srdData, state, consumptionTargets, innateScalingLevelDelta});
-
-		const systemBase = {
-			source: UtilDocumentSource.getSourceObjectFromEntity(spell),
+			state,
+			translatedDescription,
+		},
+	) {
+		return {
+			source: this._pGetDocumentData_getSystemBase_getSource({entry, opts}),
 			description: {value: translatedDescription},
 
-			level: this._pGetSpellItem_getLevel({spell, opts, state}),
+			level: state.level,
 			school: state.school,
 			properties: state.properties,
 			ability: state.ability,
@@ -114552,101 +115415,16 @@ class DataConverterSpell extends DataConverter {
 
 			...(state.foundrySystem || {}),
 		};
-
-		const additionalSystem = await this._SideDataInterface.pGetSystemSideLoaded(
-			spell,
-			{
-				systemBase,
-
-				targetUnits: state.targetUnits,
-				consumptionTargets,
-				innateScalingLevelDelta,
-			},
-		);
-		const additionalFlags = await this._SideDataInterface.pGetFlagsSideLoaded(spell);
-
-		const systemActivities = await this._pGetSystemActivities({
-			spell,
-			srdData,
-			stateInitial: opts.stateInitial,
-			systemBase,
-			additionalSystem,
-			innateScalingLevelDelta,
-		});
-
-		const out = {
-			...UtilFoundryId.getIdObj({id: state.id}),
-			name: translatedName,
-			type: "spell",
-			system: foundry.utils.mergeObject(
-				foundry.utils.mergeObject(
-					systemBase,
-					systemActivities,
-				),
-				(additionalSystem || {}),
-			),
-			img,
-			ownership: {default: 0},
-			flags: foundry.utils.mergeObject(
-				{
-					...translatedFlags,
-					...this._getSpellFlags(spell, opts),
-					...(state.foundryFlags || {}),
-				},
-				additionalFlags,
-			),
-			effects: await this._pGetSpellEffects(spell, srdData, img),
-		};
-
-		this._mutApplyDocOwnership(out, opts);
-
-				const replacementMeta = await CompendiumCache.gGetReplacementDataDocMeta("spell", spell);
-		if (replacementMeta) {
-			return this._pGetDocumentJson_fromReplacement({
-				opts,
-				out,
-				replacementMeta,
-				consumptionTargets,
-				innateScalingLevelDelta,
-			});
-		}
-		
-		return out;
 	}
 
-	static _pGetSpellItem_mutPreparationMode ({spell, opts, state}) {
-				if (
-			Config.get("importSpell", this._getConfigKeyIsSpellPoints({isActorItemNpc: opts.isActorItemNpc, actor: opts.actor})) === ConfigConsts.C_SPELL_POINTS_MODE__ENABLED
-			&& spell.level !== 0
-			&& (!state.preparationMode || state.preparationMode === "prepared" || state.preparationMode === "always")
-		) {
-			state.preparationMode = "atwill";
-		}
+	
+	_pGetDocumentData_mutUses ({entry, opts, state}) {  }
 
-		if (state.preparationMode === undefined) state.preparationMode = "prepared";
-				if (spell.level === 0) state.preparationMode = "always";
-
-		if (state.isPrepared === undefined) state.isPrepared = spell.level === 0;
-	}
-
-	static _pGetSpellItem_mutSchool ({spell, opts, state}) {
-		state.school = UtilActors.VET_SPELL_SCHOOL_TO_ABV[spell.school] || "";
-	}
-
-	static _pGetSpellItem_mutMaterials ({spell, opts, state}) {
-		state.materialsValue = spell.components?.m
-			? spell.components.m !== true
-				? `${spell.components.m.text || spell.components.m}`
-				: ""
-			: "";
-		state.materialsConsumed = !!MiscUtil.get(spell, "components", "m", "consume");
-		state.materialsCost = Math.round((MiscUtil.get(spell, "components", "m", "cost") || 0) / 100);
-	}
-
-	static _pGetSpellItem_mutDuration ({spell, opts, state}) {
+	
+	_pGetDocumentData_mutDuration ({entry, opts, state}) {
 		let durationValue = 0;
 		let durationUnits = "";
-		const duration0 = spell.duration[0];
+		const duration0 = entry.duration[0];
 		switch (duration0.type) {
 			case "instant": durationUnits = "inst"; break;
 			case "timed": {
@@ -114671,10 +115449,15 @@ class DataConverterSpell extends DataConverter {
 	}
 
 	
-	static _getSpellRangeShort ({spell}) {
-		if (spell.range.type !== Parser.RNG_POINT) return 0;
+	_pGetDocumentData_mutRange ({entry, opts, state}) {
+		state.rangeShort = this._pGetDocumentData_mutRange_short({entry});
+		state.rangeUnits = this._pGetDocumentData_mutRange_units({entry});
+	}
 
-		const {amount, type} = spell.range.distance;
+	_pGetDocumentData_mutRange_short ({entry}) {
+		if (entry.range.type !== Parser.RNG_POINT) return 0;
+
+		const {amount, type} = entry.range.distance;
 		if (
 			![
 				Parser.UNT_YARDS,
@@ -114686,12 +115469,12 @@ class DataConverterSpell extends DataConverter {
 		return Config.getMetricNumberDistance({configGroup: "importSpell", originalValue: amount, originalUnit: type});
 	}
 
-	static _getSpellRangeUnits ({spell}) {
-		if (spell.range.type === Parser.RNG_SPECIAL) return "spec";
+	_pGetDocumentData_mutRange_units ({entry}) {
+		if (entry.range.type === Parser.RNG_SPECIAL) return "spec";
 
-		if (spell.range.type !== Parser.RNG_POINT) return "";
+		if (entry.range.type !== Parser.RNG_POINT) return "";
 
-		const dist = spell.range.distance;
+		const dist = entry.range.distance;
 		switch (dist.type) {
 			case Parser.RNG_SELF: return "self";
 			case Parser.RNG_UNLIMITED:
@@ -114713,34 +115496,8 @@ class DataConverterSpell extends DataConverter {
 		}
 	}
 
-	static _pGetSpellItem_mutRange ({spell, opts, state}) {
-		state.rangeShort = this._getSpellRangeShort({spell});
-		state.rangeUnits = this._getSpellRangeUnits({spell});
-	}
-
 	
-	static _getApproximateTargetInfo ({spell}) {
-		const {isFound, targetInfo: out} = UtilDocumentBuilderItemTarget.getApproximateTargetInfoMeta({entry: spell});
-		if (isFound) return out;
-
-		const isSingleTarget = spell?.areaTags?.includes("ST") || false;
-		const isMultipleTargets = spell?.areaTags?.includes("MT") || false;
-
-		if (!isSingleTarget && !isMultipleTargets) return out;
-
-		if (!out.targetAffectsType) {
-			const isObjectTarget = spell?.miscTags?.includes("OBJ") || false;
-			out.targetAffectsType = isObjectTarget ? "creatureOrObject" : "creature";
-		}
-
-		if (!out.targetAffectsCount) {
-						out.targetAffectsCount = isMultipleTargets ? 99 : isSingleTarget ? 1 : out.targetAffectsCount;
-		}
-
-		return out;
-	}
-
-	static _pGetSpellItem_mutTarget ({spell, opts, state}) {
+	_pGetDocumentData_mutTarget ({entry, opts, state}) {
 		let isApproximateTargetInfo = false;
 		const isApproximateTargetInfoKeys = {};
 
@@ -114759,16 +115516,20 @@ class DataConverterSpell extends DataConverter {
 			targetAffectsSpecial: "",
 		};
 
-		switch (spell.range.type) {
+		switch (entry.range.type) {
 			case Parser.RNG_SPECIAL: {
 				isApproximateTargetInfo = true;
 				break;
 			}
 			case Parser.RNG_POINT: {
-				const dist = spell.range.distance;
+				const dist = entry.range.distance;
 				switch (dist.type) {
 					case Parser.RNG_SELF: {
-						fromSpell.targetTemplateType = "self";
+																																				if (entry.areaTags?.includes("L")) {
+							isApproximateTargetInfo = true;
+						} else {
+							fromSpell.targetTemplateType = "self";
+						}
 						break;
 					}
 					case Parser.RNG_UNLIMITED:
@@ -114806,16 +115567,16 @@ class DataConverterSpell extends DataConverter {
 			case Parser.RNG_SPHERE:
 			case Parser.RNG_HEMISPHERE:
 			case Parser.RNG_CYLINDER: {
-				fromSpell.targetTemplateSize = Config.getMetricNumberDistance({configGroup: "importSpell", originalValue: spell.range.distance.amount, originalUnit: spell.range.distance.type});
+				fromSpell.targetTemplateSize = Config.getMetricNumberDistance({configGroup: "importSpell", originalValue: entry.range.distance.amount, originalUnit: entry.range.distance.type});
 
-				fromSpell.targetTemplateUnits = Config.getMetricUnitDistance({configGroup: "importSpell", originalUnit: spell.range.distance.type});
+				fromSpell.targetTemplateUnits = Config.getMetricUnitDistance({configGroup: "importSpell", originalUnit: entry.range.distance.type});
 
-				switch (spell.range.type) {
+				switch (entry.range.type) {
 					case Parser.RNG_HEMISPHERE: fromSpell.targetTemplateType = "sphere"; break;
 
 															case Parser.RNG_EMANATION: fromSpell.targetTemplateType = "radius"; break;
 
-					default: fromSpell.targetTemplateType = spell.range.type; 				}
+					default: fromSpell.targetTemplateType = entry.range.type; 				}
 
 				isApproximateTargetInfoKeys["targetAffectsCount"] = true;
 				isApproximateTargetInfoKeys["targetAffectsType"] = true;
@@ -114825,14 +115586,14 @@ class DataConverterSpell extends DataConverter {
 					[
 						Parser.RNG_LINE,
 					]
-						.includes(spell.range.type)
+						.includes(entry.range.type)
 				) {
 					isApproximateTargetInfoKeys["targetTemplateWidth"] = true;
 				}
 			}
 		}
 
-		const fromApprox = this._getApproximateTargetInfo({spell});
+		const fromApprox = this._pGetDocumentData_mutTarget_getApproximateTargetInfo({entry});
 		UtilDocumentBuilderItemTarget.mutTargetInfoMetaApplyMetric({configGroup: this._configGroup, targetInfo: fromApprox});
 
 		const keys = new Set([
@@ -114852,20 +115613,86 @@ class DataConverterSpell extends DataConverter {
 			});
 	}
 
-	
-	static _pGetSpellItem_getLevel ({spell, opts, state}) {
-		const lvlBase = state.preparationMode === "innate" && opts.castAtLevel ? opts.castAtLevel : spell.level;
+	_pGetDocumentData_mutTarget_getApproximateTargetInfo ({entry}) {
+		const {isFound, targetInfo: out} = UtilDocumentBuilderItemTarget.getApproximateTargetInfoMeta({entry});
+		if (isFound) return out;
 
-		if (!isNaN(lvlBase) && lvlBase >= 0 && lvlBase <= 9) return Math.round(lvlBase);
-		if (!isNaN(lvlBase)) return Math.clamp(Math.round(lvlBase), 0, 9);
+		const isSingleTarget = entry?.areaTags?.includes("ST") || false;
+		const isMultipleTargets = entry?.areaTags?.includes("MT") || false;
 
-		return 1;
+		if (!isSingleTarget && !isMultipleTargets) return out;
+
+		if (!out.targetAffectsType) {
+			const isObjectTarget = entry?.miscTags?.includes("OBJ") || false;
+			out.targetAffectsType = isObjectTarget ? "creatureOrObject" : "creature";
+		}
+
+		if (!out.targetAffectsCount) {
+						out.targetAffectsCount = isMultipleTargets ? 99 : isSingleTarget ? 1 : out.targetAffectsCount;
+		}
+
+		return out;
 	}
 
-	static _pGetSpellItem_mutActivation ({spell, opts, state}) {
-		state.activationType = state.activationType || spell.time[0]?.unit;
-		state.activationValue = state.activationValue || spell.time[0]?.number;
-		state.activationCondition = state.activationCondition || Renderer.stripTags(spell.time[0]?.condition || "");
+	
+	_pGetDocumentData_mutProperties ({entry, opts, state}) {
+		if (state.properties !== undefined) return;
+
+		state.properties = [];
+
+		if (entry.components && entry.components.v) state.properties.push("vocal");
+		if (entry.components && entry.components.s) state.properties.push("somatic");
+		if (entry.components && entry.components.m) state.properties.push("material");
+		if (entry.meta && entry.meta.ritual) state.properties.push("ritual");
+		if (MiscUtil.get(entry, "duration", "0", "concentration")) state.properties.push("concentration");
+	}
+
+	
+	_pGetDocumentData_mutOther ({entry, opts, state}) {
+		this._pGetDocumentData_mutOther_preparationMode({entry, opts, state});
+		this._pGetDocumentData_mutOther_school({entry, opts, state});
+		this._pGetDocumentData_mutOther_materials({entry, opts, state});
+		this._pGetDocumentData_mutOther_activation({entry, opts, state});
+		this._pGetDocumentData_mutOther_fromSrdData({entry, opts, state});
+	}
+
+	
+	_pGetDocumentData_mutOther_preparationMode ({entry, opts, state}) {
+				if (
+			Config.get("importSpell", UtilDocumentBuilderSpellShared.getConfigKeyIsSpellPoints({isActorItemNpc: opts.isActorItemNpc, actor: opts.actor})) === ConfigConsts.C_SPELL_POINTS_MODE__ENABLED
+			&& entry.level !== 0
+			&& (!state.preparationMode || state.preparationMode === "prepared" || state.preparationMode === "always")
+		) {
+			state.preparationMode = "atwill";
+		}
+
+		if (state.preparationMode === undefined) state.preparationMode = "prepared";
+				if (entry.level === 0) state.preparationMode = "always";
+
+		if (state.isPrepared === undefined) state.isPrepared = entry.level === 0;
+	}
+
+	
+	_pGetDocumentData_mutOther_school ({entry, opts, state}) {
+		state.school = UtilActors.VET_SPELL_SCHOOL_TO_ABV[entry.school] || "";
+	}
+
+	
+	_pGetDocumentData_mutOther_materials ({entry, opts, state}) {
+		state.materialsValue = entry.components?.m
+			? entry.components.m !== true
+				? `${entry.components.m.text || entry.components.m}`
+				: ""
+			: "";
+		state.materialsConsumed = !!MiscUtil.get(entry, "components", "m", "consume");
+		state.materialsCost = Math.round((MiscUtil.get(entry, "components", "m", "cost") || 0) / 100);
+	}
+
+	
+	_pGetDocumentData_mutOther_activation ({entry, opts, state}) {
+		state.activationType = state.activationType || entry.time[0]?.unit;
+		state.activationValue = state.activationValue || entry.time[0]?.number;
+		state.activationCondition = state.activationCondition || Renderer.stripTags(entry.time[0]?.condition || "");
 
 		if (!UtilCompat.isMidiQolActive() || state.activationType !== "reaction" || !state.activationCondition) return null;
 
@@ -114892,37 +115719,177 @@ class DataConverterSpell extends DataConverter {
 		;
 	}
 
-	static _pGetSpellItem_mutProperties ({spell, opts, state}) {
-		if (state.properties !== undefined) return;
+	
+		_pGetDocumentData_mutOther_fromSrdData ({entry, opts, state}) {
+		if (!opts.srdData) return;
 
-		state.properties = [];
+		UtilDocumentItemSpell.mutSystemApplyMetric({systemExpanded: opts.srdData.system, targetUnits: state.targetUnits});
+		UtilActivityBuilderSpell.mutApplyConsumption({
+			foundrySystem: opts.srdData.system,
+			consumptionTargets: MiscUtil.get(opts.stateInitial, "activity", "allActivities", "consumptionTargets"),
+		});
+		UtilActivityBuilderSpell.mutBakeScaling({
+			foundrySystem: opts.srdData.system,
+			levelDelta: UtilEntitySpell.getInnateScalingLevelDelta({
+				entry,
+				castAtLevel: opts.castAtLevel,
+				preparationMode: state.preparationMode,
+			}),
+		});
 
-		if (spell.components && spell.components.v) state.properties.push("vocal");
-		if (spell.components && spell.components.s) state.properties.push("somatic");
-		if (spell.components && spell.components.m) state.properties.push("material");
-		if (spell.meta && spell.meta.ritual) state.properties.push("ritual");
-		if (MiscUtil.get(spell, "duration", "0", "concentration")) state.properties.push("concentration");
+		state.targetTemplateCount = MiscUtil.get(opts.srdData, "system", "target", "template", "count");
+		state.targetTemplateContiguous = MiscUtil.get(opts.srdData, "system", "target", "template", "contiguous");
+		state.targetTemplateType = MiscUtil.get(opts.srdData, "system", "target", "template", "type");
+		state.targetTemplateSize = MiscUtil.get(opts.srdData, "system", "target", "template", "size");
+		state.targetTemplateWidth = MiscUtil.get(opts.srdData, "system", "target", "template", "width");
+		state.targetTemplateHeight = MiscUtil.get(opts.srdData, "system", "target", "template", "height");
+		state.targetTemplateUnits = MiscUtil.get(opts.srdData, "system", "target", "template", "units");
+
+		state.targetAffectsCount = MiscUtil.get(opts.srdData, "system", "target", "affects", "count");
+		state.targetAffectsType = MiscUtil.get(opts.srdData, "system", "target", "affects", "type");
+		state.targetAffectsChoice = MiscUtil.get(opts.srdData, "system", "target", "affects", "choice");
+		state.targetAffectsSpecial = MiscUtil.get(opts.srdData, "system", "target", "affects", "special");
 	}
 
-		static _pGetSpellItem_mut_srdData ({srdData, state, consumptionTargets, innateScalingLevelDelta}) {
-		if (!srdData) return;
+	
+	_pGetDocumentData_mutEffects ({entry, opts, state}) {  }
 
-		UtilDocumentItemSpell.mutSystemApplyMetric({systemExpanded: srdData.system, targetUnits: state.targetUnits});
-		UtilActivityBuilderSpell.mutApplyConsumption({foundrySystem: srdData.system, consumptionTargets});
-		UtilActivityBuilderSpell.mutBakeScaling({foundrySystem: srdData.system, levelDelta: innateScalingLevelDelta});
+	
+	_pGetDocumentData_mutCompat ({entry, opts, state}) {  }
 
-		state.targetTemplateCount = MiscUtil.get(srdData, "system", "target", "template", "count");
-		state.targetTemplateContiguous = MiscUtil.get(srdData, "system", "target", "template", "contiguous");
-		state.targetTemplateType = MiscUtil.get(srdData, "system", "target", "template", "type");
-		state.targetTemplateSize = MiscUtil.get(srdData, "system", "target", "template", "size");
-		state.targetTemplateWidth = MiscUtil.get(srdData, "system", "target", "template", "width");
-		state.targetTemplateHeight = MiscUtil.get(srdData, "system", "target", "template", "height");
-		state.targetTemplateUnits = MiscUtil.get(srdData, "system", "target", "template", "units");
+	
+	_pGetDocumentData_mutFlags ({entry, opts, state}) {  }
 
-		state.targetAffectsCount = MiscUtil.get(srdData, "system", "target", "affects", "count");
-		state.targetAffectsType = MiscUtil.get(srdData, "system", "target", "affects", "type");
-		state.targetAffectsChoice = MiscUtil.get(srdData, "system", "target", "affects", "choice");
-		state.targetAffectsSpecial = MiscUtil.get(srdData, "system", "target", "affects", "special");
+	
+	async _pGetSystemActivities_ ({entry, stateInitial, opts, state, systemBase}) {
+		if (opts.isUseSrdActivities) return {activities: opts.srdData.system.activities};
+
+				const compositeMutators = [
+			new CompositeMutatorCheckSpell(),
+		];
+
+		const managerActivityBuilders = new ManagerActivityBuildersSpell({
+			name: entry.name,
+			source: entry.source,
+			activityBuilders: [
+				new ActivityBuilderSpellAttack({compositeMutators}),
+				new ActivityBuilderSpellSave({compositeMutators}),
+				new ActivityBuilderSpellHeal({compositeMutators}),
+				new ActivityBuilderSpellSummon({compositeMutators}),
+				new ActivityBuilderSpellCheck({compositeMutators}),
+				new ActivityBuilderGenericDamage({compositeMutators}),
+				new ActivityBuilderGenericHeal({compositeMutators}),
+				new ActivityBuilderPlayerUtility({compositeMutators}),
+				new ActivityBuilderGenericUtility({compositeMutators}),
+				new ActivityBuilderSpellFauxCast({compositeMutators}),
+			],
+			innateScalingLevelDelta: UtilEntitySpell.getInnateScalingLevelDelta({entry, castAtLevel: opts.castAtLevel, preparationMode: state.preparationMode}),
+		});
+
+		return {
+			activities: await managerActivityBuilders.pGetActivityDatas({entry, parentStateInitial: stateInitial}),
+		};
+	}
+}
+
+class DataConverterSpell extends DataConverter {
+	static _configGroup = "importSpell";
+
+	static _SideDataInterface = SideDataInterfaceSpell;
+	static _ImageFetcher = ImageFetcherSpell;
+	static _ClsDocumentBuilderItem = DocumentBuilderItemSpell;
+
+		static async pGetDocumentJson (spell, opts) {
+		opts ||= {};
+		if (opts.actor) opts.isActorItem = true;
+
+		Renderer.get().setFirstSection(true).resetHeaderIndex();
+
+		const img = await this._ImageFetcher.pGetSaveImagePath(
+			spell,
+			{
+				propCompendium: "spell",
+				isAllowCustom: !spell.srd || Config.get("importSpell", "isUseCustomSrdIcons"),
+				taskRunner: opts.taskRunner,
+			},
+		);
+
+		const entFauxConsumes = {
+			name: spell.name,
+			source: spell.source,
+			consumes: opts.vetConsumes,
+		};
+
+						const {consumptionTargets, isAddMissingConsumes} = this._getConsumptionTargetsInfo({spell, entFauxConsumes, opts});
+
+		MiscUtil.set(
+			opts.stateInitial,
+			"activity",
+			"allActivities",
+			"consumptionTargets",
+			consumptionTargets,
+		);
+		
+		const srdData = await CompendiumCache.pGetAdditionalDataDoc("spell", spell, {isSrdOnly: true, taskRunner: opts.taskRunner});
+
+		const additionalFlags = await this._SideDataInterface.pGetFlagsSideLoaded(spell);
+
+		const effects = await this._pGetSpellEffects(spell, srdData, img);
+
+		const out = this._getDocumentBuilderItemInstance().pGetDocumentData(
+			spell,
+			{
+				...opts.stateInitial, 				img,
+				fvttType: "spell",
+				description: await this._pGetDescription(spell),
+				activity: UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: spell}),
+				foundryFlags: this._getSpellFlags(spell, opts),
+				effects,
+			},
+			{
+				...opts, 				isActorItem: !!opts.isActorItem,
+				source: spell.source,
+				pFnGetAdditionalSystem: async (entry, {opts, state, systemBase}) => {
+					return this._SideDataInterface.pGetSystemSideLoaded(
+						spell,
+						{
+							systemBase,
+
+							targetUnits: state.targetUnits,
+							consumptionTargets,
+							innateScalingLevelDelta: UtilEntitySpell.getInnateScalingLevelDelta({entry, castAtLevel: opts.castAtLevel, preparationMode: state.preparationMode}),
+						},
+					);
+				},
+				additionalFlags: additionalFlags,
+				srdData,
+				isUseSrdActivities: Object.keys(srdData?.system?.activities || {}).length
+					&& !await this._SideDataInterface.pIsIgnoreSrdActivitiesSideLoaded(spell),
+				translationData: IntegrationBabele.getTranslationData({srdData}),
+			},
+		);
+
+		this._mutApplyDocOwnership(out, opts);
+
+		if (isAddMissingConsumes) {
+			opts.actorMultiImportHelper?.addMissingConsumes({
+				ent: entFauxConsumes,
+				id: out.id,
+			});
+		}
+
+				const replacementMeta = await CompendiumCache.gGetReplacementDataDocMeta("spell", spell);
+		if (replacementMeta) {
+			return this._pGetDocumentJson_fromReplacement({
+				opts,
+				out,
+				replacementMeta,
+				consumptionTargets,
+				innateScalingLevelDelta: UtilEntitySpell.getInnateScalingLevelDelta({entry: spell, castAtLevel: opts.castAtLevel, preparationMode: opts.stateInitial?.preparationMode}),
+			});
+		}
+		
+		return out;
 	}
 
 	static _getSpellFlags (
@@ -114987,6 +115954,7 @@ class DataConverterSpell extends DataConverter {
 		return out;
 	}
 
+	
 	static async _pGetSpellEffects (spell, srdData, img) {
 		const out = [];
 
@@ -114995,8 +115963,8 @@ class DataConverterSpell extends DataConverter {
 		UtilActiveEffects.mutEffectsDisabledTransfer(effectsSrd, "importSpell", {hintTransfer: false, hintDisabled: false});
 		out.push(...effectsSrd);
 
-		if (await this.pHasSpellSideLoadedEffects(null, spell)) {
-			const effectsSideTuples = await this.pGetSpellItemEffectTuples(null, spell, null, {img});
+		if (await this._pHasSpellSideLoadedEffects(null, spell)) {
+			const effectsSideTuples = await this._pGetSpellItemEffectTuples(null, spell, null, {img});
 			effectsSideTuples.forEach(({effect, effectRaw}) => UtilActiveEffects.mutEffectDisabledTransfer(effect, "importSpell", UtilActiveEffects.getDisabledTransferHintsSideData(effectRaw)));
 			out.push(...effectsSideTuples.map(it => it.effect));
 		}
@@ -115006,11 +115974,21 @@ class DataConverterSpell extends DataConverter {
 		return UtilActiveEffects.getEffectsMutDedupeId(out);
 	}
 
+	static async _pHasSpellSideLoadedEffects (actor, spell) {
+		return (await this._SideDataInterface.pGetEffectsRawSideLoaded(spell))?.length > 0;
+	}
+
+	static async _pGetSpellItemEffectTuples (actor, spell, sheetItem, {img} = {}) {
+		const effectsRaw = await this._SideDataInterface.pGetEffectsRawSideLoaded(spell);
+		return UtilActiveEffects.getExpandedEffects(effectsRaw || [], {actor, sheetItem, parentName: spell.name, img}, {isTuples: true});
+	}
+
+	
 		static async _pGetSpellEffects_pMutAutomationFallback ({out, spell, img}) {
 		if (out.length || !UtilCompat.isPlutoniumAddonAutomationActive() || !spell.conditionInflict?.length) return;
 
-		const sideData = await this._SideDataInterface.pGetSideLoaded(spell);
-		if (sideData?.effects != null) return;
+		const effectsRaw = await this._SideDataInterface.pGetEffectsRawSideLoaded(spell);
+		if (!effectsRaw?.length) return;
 
 		out.push(
 			...spell.conditionInflict
@@ -115019,6 +115997,7 @@ class DataConverterSpell extends DataConverter {
 		);
 	}
 
+	
 	static _pGetDescription (spell) {
 		if (!Config.get("importSpell", "isImportDescription")) return "";
 
@@ -115042,84 +116021,15 @@ class DataConverterSpell extends DataConverter {
 		});
 	}
 
-	static getActorSpell (actor, name, source) {
-		if (!name || !source) return null;
-		return actor.items && actor.items.find(it =>
-			(it.name || "").toLowerCase() === name.toLowerCase()
-			&& (
-				!Config.get("import", "isStrictMatching")
-				|| (UtilDocumentSource.getDocumentSource(it).source || "").toLowerCase() === source.toLowerCase()
-			),
-		);
-	}
-
-	static async pSetSpellItemIsPrepared (item, isPrepared) {
-		if (!item) return;
-		await UtilDocuments.pUpdateDocument(item, {system: {preparation: {prepared: isPrepared}}});
-	}
-
-	static async pHasSpellSideLoadedEffects (actor, spell) {
-		return (await this._SideDataInterface.pGetEffectsRawSideLoaded(spell))?.length > 0;
-	}
-
-	static async pGetSpellItemEffectTuples (actor, spell, sheetItem, {img} = {}) {
-		const effectsRaw = await this._SideDataInterface.pGetEffectsRawSideLoaded(spell);
-		return UtilActiveEffects.getExpandedEffects(effectsRaw || [], {actor, sheetItem, parentName: spell.name, img}, {isTuples: true});
-	}
-
-	static async _pGetSystemActivities (
-		{
-			spell,
-			srdData,
-			stateInitial,
-			systemBase,
-			additionalSystem,
-			innateScalingLevelDelta,
-		},
-	) {
-		if (foundry.utils.getProperty(foundry.utils.expandObject(systemBase), "activities")) return {};
-		if (foundry.utils.getProperty(foundry.utils.expandObject(additionalSystem), "activities")) return {};
-
-		if (
-			Object.keys(srdData?.system?.activities || {}).length
-			&& !await this._SideDataInterface.pIsIgnoreSrdActivitiesSideLoaded(spell)
-		) return {activities: srdData.system.activities};
-
-				const compositeMutators = [
-			new CompositeMutatorCheckSpell(),
-		];
-
-		const managerActivityBuilders = new ManagerActivityBuildersSpell({
-			name: spell.name,
-			source: spell.source,
-			activityBuilders: [
-				new ActivityBuilderSpellAttack({compositeMutators}),
-				new ActivityBuilderSpellSave({compositeMutators}),
-				new ActivityBuilderSpellHeal({compositeMutators}),
-				new ActivityBuilderSpellSummon({compositeMutators}),
-				new ActivityBuilderSpellCheck({compositeMutators}),
-				new ActivityBuilderGenericDamage({compositeMutators}),
-				new ActivityBuilderGenericHeal({compositeMutators}),
-				new ActivityBuilderPlayerUtility({compositeMutators}),
-				new ActivityBuilderGenericUtility({compositeMutators}),
-			],
-			innateScalingLevelDelta,
-		});
-
-		return {
-			activities: await managerActivityBuilders.pGetActivityDatas({entry: spell, parentStateInitial: stateInitial}),
-		};
-	}
-
 	
 	static _SCALING_FORMULA_SPELL_POINTS = `(@item.level + 1 + floor(@item.level / 3)) - ((@item.level - @scaling.increase) + 1 + floor((@item.level - @scaling.increase) / 3))`;
 
-		static _getConsumptionInfo_generic ({spell, opts, state}) {
+		static _getConsumptionInfo_generic ({spell, opts}) {
 		if (
-			!this.isAllowSpellPoints({
+			!UtilDocumentBuilderSpellShared.isAllowSpellPoints({
 				spellLevel: spell.level,
 				consumptionTargets: opts.stateInitial?.activity?.allActivities?.consumptionTargets,
-				vetConsumes: state.vetConsumes,
+				vetConsumes: opts.vetConsumes,
 				isActorItemNpc: opts.isActorItemNpc,
 				actor: opts.actor,
 			})
@@ -115151,81 +116061,58 @@ class DataConverterSpell extends DataConverter {
 		});
 	}
 
-	static _getConsumptionInfo_vetConsumes ({spell, opts, state}) {
-		if (!state.vetConsumes) return null;
-
-		const entFaux = {
-			name: spell.name,
-			source: spell.source,
-			consumes: state.vetConsumes,
-		};
+	static _getConsumptionInfo_vetConsumes ({entFauxConsumes, opts}) {
+		if (!opts.vetConsumes) return null;
 
 		const consumptionInfo = ImportItemConsumptionManager.getConsumptionInfo({
-			ent: entFaux,
+			ent: entFauxConsumes,
 			actor: opts.actor,
 		});
 
 		if (
 			!consumptionInfo.isConsumes 			|| consumptionInfo.isFound
-		) return consumptionInfo;
+		) return {consumptionInfo, isAddMissingConsumes: false};
 
-		opts.actorMultiImportHelper?.addMissingConsumes({
-			ent: entFaux,
-			id: state.id,
-		});
-
-		return consumptionInfo;
+		return {consumptionInfo, isAddMissingConsumes: true};
 	}
 
 	static _getConsumptionInfo (
 		{
 			spell,
+			entFauxConsumes,
 			opts,
-			state,
 		},
 	) {
-		const fromVetConsumes = this._getConsumptionInfo_vetConsumes({spell, opts, state});
+		const fromVetConsumes = this._getConsumptionInfo_vetConsumes({entFauxConsumes, opts});
 		if (fromVetConsumes) return fromVetConsumes;
 
-		return this._getConsumptionInfo_generic({spell, opts, state});
+		return {consumptionInfo: this._getConsumptionInfo_generic({spell, opts}), isAddMissingConsumes: false};
 	}
 
-	static _getConsumptionTargets (
+	static _getConsumptionTargetsInfo (
 		{
 			spell,
 			opts,
-			state,
 		},
 	) {
 		if (opts.stateInitial?.activity?.allActivities?.consumptionTargets) {
-			return opts.stateInitial.activity.allActivities.consumptionTargets;
+			return {consumptionTargets: opts.stateInitial.activity.allActivities.consumptionTargets, isAddMissingConsumes: false};
 		}
 
-		const consumptionInfo = this._getConsumptionInfo({spell, opts, state});
+		const {consumptionInfo, isAddMissingConsumes} = this._getConsumptionInfo({spell, opts});
 
 		if (
 			!consumptionInfo.isConsumes
-			|| !consumptionInfo.isFound 		) return null;
+			|| !consumptionInfo.isFound 		) return {consumptionTargets: null, isAddMissingConsumes: false};
 
-		return [
-			{
-				...consumptionInfo.consumptionTarget,
-			},
-		];
-	}
-
-	
-		static _getInnateScalingLevelDelta ({spell, opts, state}) {
-		const fromConfig = Config.get(this._configGroup, "debugInnateScalingLevelDelta");
-		if (fromConfig) return fromConfig;
-
-		if (
-			opts.castAtLevel != null
-			&& opts.castAtLevel > spell.level
-			&& state.preparationMode === "innate"
-		) return opts.castAtLevel - spell.level;
-
-		return null;
+		return {
+			consumptionTargets: [
+				{
+					...consumptionInfo.consumptionTarget,
+				},
+			],
+			isAddMissingConsumes,
+		};
 	}
 
 	
@@ -115375,10 +116262,10 @@ class ImporterSpell extends ImporterBase {
 	_isAllowSpellPoints ({spell, importOpts, isScrollImport}) {
 		if (isScrollImport) return false;
 
-		return DataConverterSpell.isAllowSpellPoints({
+		return UtilDocumentBuilderSpellShared.isAllowSpellPoints({
 			spellLevel: spell.level,
 			consumptionTargets: importOpts?.opts_pGetSpellItem?.stateInitial?.activity?.allActivities?.consumptionTargets,
-			vetConsumes: importOpts?.opts_pGetSpellItem?.stateInitial?.vetConsumes,
+			vetConsumes: importOpts?.opts_pGetSpellItem?.vetConsumes,
 			actor: importOpts.actor,
 		});
 	}
@@ -116529,7 +117416,17 @@ class ImporterCreature extends ImporterActor {
 		});
 		await dataBuilderOpts.pInit();
 
-		await this._pImportEntry_pFillBase(mon, act, dataBuilderOpts.fluff, {isUseTokenImageAsPortrait: Config.get(this._configGroup, "isUseTokenImageAsPortrait"), taskRunner: importOpts.taskRunner});
+		await this._pImportEntry_pFillBase(
+			mon,
+			act,
+			dataBuilderOpts.fluff,
+			{
+				isUseTokenImageAsPortrait: Config.get(this._configGroup, "isUseTokenImageAsPortrait"),
+				TokenFetcher: dataOpts.TokenFetcher,
+				ThreeDiTokenAdapter: dataOpts.ThreeDiTokenAdapter,
+				taskRunner: importOpts.taskRunner,
+			},
+		);
 
 		act.system = {};
 
@@ -116551,7 +117448,15 @@ class ImporterCreature extends ImporterActor {
 		const additionalSystem = await this.constructor._SideDataInterface.pGetSystemSideLoaded(mon);
 		foundry.utils.mergeObject(act.system, additionalSystem);
 
-		await this._pImportEntry_pFillToken({importable: mon, actorData: act, flags: this._getTokenFlags({mon}), isLinkToken: mon.isNpc, taskRunner: importOpts.taskRunner});
+		await this._pImportEntry_pFillToken({
+			importable: mon,
+			actorData: act,
+			flags: this._getTokenFlags({mon}),
+			isLinkToken: mon.isNpc,
+			TokenFetcher: dataOpts.TokenFetcher,
+			ThreeDiTokenAdapter: dataOpts.ThreeDiTokenAdapter,
+			taskRunner: importOpts.taskRunner,
+		});
 
 		await this._pImportEntry_pFillFlags(mon, act, dataBuilderOpts);
 
@@ -116907,18 +117812,56 @@ class ImporterCreature extends ImporterActor {
 
 		out.source = UtilDocumentSource.getSourceObjectFromEntity(mon);
 
-				out.habitat = {
-			value: (mon.environment || [])
-				.map(env => ({type: env})),
-			custom: "",
-		};
+		out.habitat = this._pImportEntry_pFillData_Details_habitat(mon, sys, monOpts);
 
 						out.treasure = {
 			value: (mon.treasure || [])
-				.filter(val => CONFIG.DND5E.treasure[val]),
+				.filter(val => CONFIG.DND5E.treasure?.[val]),
 		};
 
 		sys.details = out;
+	}
+
+	_pImportEntry_pFillData_Details_habitat (mon, sys, monOpts) {
+		if (!UtilVersions.getSystemVersion().isVersionFourThreePlus) {
+			return {
+				value: [],
+				custom: (mon.environment || [])
+					.map(env => Parser.getEnvironmentDisplayName(env))
+					.join("; "),
+			};
+		}
+
+		if (!mon.environment?.length) return {value: [], custom: ""};
+
+		const envsCustom = [];
+		const envsLookupFoundry = [];
+
+		mon.environment
+			.forEach(env => {
+				if (CONFIG.DND5E.habitats?.[env]) return envsLookupFoundry[env] = {subtypes: []};
+
+				if (env.startsWith("planar, ")) {
+					const planeSubtype = Parser.getEnvironmentDisplayName(env)
+						.replace(/^Planar/i, "")
+						.trim()
+						.replace(/^\(/, "")
+						.replace(/\)$/, "");
+
+					return (envsLookupFoundry["planar"] ||= {subtypes: []}).subtypes.push(planeSubtype);
+				}
+
+				envsCustom.push(Parser.getEnvironmentDisplayName(env));
+			});
+
+		return {
+			value: Object.entries(envsLookupFoundry)
+				.map(([env, info]) => {
+					if (!info.subtypes.length) return {type: env};
+					return {type: env, subtype: info.subtypes.join("; ")};
+				}),
+			custom: envsCustom.join("; "),
+		};
 	}
 
 	
@@ -121126,18 +122069,26 @@ class Charactermancer_Spell_SlotLevelSelect extends BaseComponent {
 }
 
 class SideDataInterfaceClass extends SideDataInterfaceBase {
-	static _SIDE_LOAD_OPTS = {
-		propBrew: "foundryClass",
-		fnLoadJson: async () => this.pPreloadSideData(),
-		propJson: "class",
-	};
+	static _getSideLoadOpts (ent) {
+		if (ent.__prop === "subclass") {
+			return {
+				propBrew: "foundrySubclass",
+				fnLoadJson: async () => this.pPreloadSideData(),
+				propJson: ent.__prop,
+				propsMatch: ["classSource", "className", "source", "name"],
+			};
+		}
 
-	static _SIDE_LOAD_OPTS_SUBCLASS = {
-		propBrew: "foundrySubclass",
-		fnLoadJson: async () => this.pPreloadSideData(),
-		propJson: "subclass",
-		propsMatch: ["classSource", "className", "source", "name"],
-	};
+		if (ent.__prop === "class") {
+			return {
+				propBrew: "foundryClass",
+				fnLoadJson: async () => this.pPreloadSideData(),
+				propJson: ent.__prop,
+			};
+		}
+
+		throw new Error(`Unhandled "__prop" for class/subclass: "${ent.__prop}"!`);
+	}
 
 	static async pPreloadSideData () {
 		return Vetools.pGetClassSubclassSideData();
@@ -121502,8 +122453,15 @@ class DataConverterClass extends DataConverter {
 
 		const ptFluff = await this._pGetDescriptionRenderedFluff({entity: clsDereferenced, fluff});
 
+		const styleHint = VetoolsConfig.get("styleSwitcher", "style");
+
 		const ptFeatures = isIncludeFeatures
-			? await DescriptionRenderer.pGetWithDescriptionPlugins(() => Renderer.get().setFirstSection(true).render({type: "section", entries: clsDereferenced.classFeatures.flat()}))
+			? await DescriptionRenderer.pGetWithDescriptionPlugins(() => Renderer.get().setFirstSection(true).render({
+				type: "section",
+				entries: clsDereferenced.classFeatures
+					.flat()
+					.map(cf => Renderer.class.getDisplayNamedClassFeatureEntry(cf, {styleHint})),
+			}))
 			: "";
 
 				if (!Config.get("importClass", "isImportDescription")) return `<div class="mb-2 ve-flex-col">${ptDoNotUse}${ptTable}</div>`;
@@ -121717,10 +122675,10 @@ class DataConverterClass extends DataConverter {
 			: await this._ImageFetcher.pGetSaveImagePathMeta(cls, {propCompendium: "class", fluff: await Renderer.class.pGetFluff(cls), taskRunner: opts.taskRunner});
 
 		const img = (imgMetaSc && !imgMetaSc.isFallback) ? imgMetaSc.img : imgMetaCls && !imgMetaCls.isFallback ? imgMetaCls.img : (imgMetaSc?.img || imgMetaCls.img);
-		const additionalFlags = await this._SideDataInterface.pGetFlagsSideLoaded(sc, {propOpts: "_SIDE_LOAD_OPTS_SUBCLASS"});
-		const additionalAdvancement = await this._SideDataInterface._pGetAdvancementSideLoaded(sc, {propOpts: "_SIDE_LOAD_OPTS_SUBCLASS"});
+		const additionalFlags = await this._SideDataInterface.pGetFlagsSideLoaded(sc);
+		const additionalAdvancement = await this._SideDataInterface._pGetAdvancementSideLoaded(sc);
 
-		const effectsSideTuples = await this._SideDataInterface.pGetEffectsSideLoadedTuples({ent: sc, img, actor: opts.actor}, {propOpts: "_SIDE_LOAD_OPTS_SUBCLASS"});
+		const effectsSideTuples = await this._SideDataInterface.pGetEffectsSideLoadedTuples({ent: sc, img, actor: opts.actor});
 		effectsSideTuples.forEach(({effect, effectRaw}) => UtilActiveEffects.mutEffectDisabledTransfer(effect, "importClass", UtilActiveEffects.getDisabledTransferHintsSideData(effectRaw)));
 
 		const systemBase = {
@@ -121739,7 +122697,7 @@ class DataConverterClass extends DataConverter {
 			],
 		};
 
-		const additionalSystem = await this._SideDataInterface.pGetSystemSideLoaded(sc, {propOpts: "_SIDE_LOAD_OPTS_SUBCLASS", systemBase});
+		const additionalSystem = await this._SideDataInterface.pGetSystemSideLoaded(sc, {systemBase});
 
 		const out = {
 			id: itemId,
@@ -121793,7 +122751,33 @@ class DataConverterClass extends DataConverter {
 
 		const ptFluff = await this._pGetDescriptionRenderedFluff({entity: scDereferenced, fluff});
 
-				const fauxFluff = MiscUtil.copyFast(Renderer.findEntry(scDereferenced.subclassFeatures || {}));
+		const ptFauxFluff = this._pGetSubclassDescription_getFakeFluff({scDereferenced, isIncludeFeatures});
+
+		const styleHint = VetoolsConfig.get("styleSwitcher", "style");
+		const isEditionMismatch = cls.edition && sc.edition && cls.edition !== sc.edition;
+
+		const ptFeatures = isIncludeFeatures
+			? await DescriptionRenderer.pGetWithDescriptionPlugins(() => Renderer.get().setFirstSection(true).render({
+				type: "section",
+				entries: scDereferenced.subclassFeatures
+					.flat()
+					.map(scf => Renderer.class.getDisplayNamedSubclassFeatureEntry(scf, {styleHint, isEditionMismatch})),
+			}))
+			: "";
+
+				if (!Config.get("importClass", "isImportDescription")) return `<div class="mb-2 ve-flex-col">${ptDoNotUse}</div>`;
+
+		return `<div class="mb-2 ve-flex-col">${ptDoNotUse}${ptFluff || ptFauxFluff}${ptFeatures}</div>`;
+	}
+
+	static _pGetSubclassDescription_getFakeFluff ({scDereferenced, isIncludeFeatures}) {
+				if (!isIncludeFeatures) return "";
+
+		const fauxFluff = MiscUtil.copyFast(Renderer.findEntry(scDereferenced.subclassFeatures || {}));
+		if (!fauxFluff?.entries?.length) {
+			console.warn(...LGT, `Failed to find any feature entries in subclass "${scDereferenced.name}" (${scDereferenced.source})! This should never occur!`);
+			return "";
+		}
 
 		const cleanEntries = MiscUtil.getWalker({keyBlocklist: MiscUtil.GENERIC_WALKER_ENTRIES_KEY_BLOCKLIST})
 			.walk(
@@ -121805,17 +122789,7 @@ class DataConverterClass extends DataConverter {
 				},
 			);
 
-				const ptFauxFluff = !isIncludeFeatures
-			? Renderer.get().setFirstSection(true).render({type: "entries", entries: cleanEntries})
-			: "";
-		
-		const ptFeatures = isIncludeFeatures
-			? await DescriptionRenderer.pGetWithDescriptionPlugins(() => Renderer.get().setFirstSection(true).render({type: "section", entries: scDereferenced.subclassFeatures.flat()}))
-			: "";
-
-				if (!Config.get("importClass", "isImportDescription")) return `<div class="mb-2 ve-flex-col">${ptDoNotUse}</div>`;
-
-		return `<div class="mb-2 ve-flex-col">${ptDoNotUse}${ptFluff || ptFauxFluff}${ptFeatures}</div>`;
+		return Renderer.get().setFirstSection(true).render({type: "entries", entries: cleanEntries});
 	}
 
 	
@@ -122049,7 +123023,7 @@ class DataConverterClass extends DataConverter {
 	static async _pGetDescriptionClass ({cls, opts}) {
 		if (!opts.isActorItem) return cls;
 
-		const clsCooked = await DataLoader.pCacheAndGet("class", cls.source, UrlUtil.URL_TO_HASH_BUILDER["class"](cls), {isCopy: true});
+		const clsCooked = await DataLoader.pCacheAndGet("class", cls.source, UrlUtil.URL_TO_HASH_BUILDER["class"](cls));
 
 		if (opts.pageFilter?.filterBox && opts.filterValues) {
 									const cpyClsCooked = MiscUtil.copy(clsCooked);
@@ -122067,7 +123041,7 @@ class DataConverterClass extends DataConverter {
 	static async _pGetDescriptionSubclass ({sc, opts}) {
 		if (!opts.isActorItem) return sc;
 
-		const scCooked = await DataLoader.pCacheAndGet("subclass", sc.source, UrlUtil.URL_TO_HASH_BUILDER["subclass"](sc), {isCopy: true});
+		const scCooked = await DataLoader.pCacheAndGet("subclass", sc.source, UrlUtil.URL_TO_HASH_BUILDER["subclass"](sc));
 
 		if (opts.pageFilter?.filterBox && opts.filterValues) {
 									const cpyScCooked = MiscUtil.copy(scCooked);
@@ -123135,7 +124109,7 @@ class Charactermancer_Spell extends BaseComponent {
 			} = spells[i];
 
 			if (isUpdateOnly && existingItemId) {
-				await DataConverterSpell.pSetSpellItemIsPrepared(actor.items.get(existingItemId), isPrepared);
+				await UtilDocumentItemSpell.pSetSpellItemIsPrepared(actor.items.get(existingItemId), isPrepared);
 				continue;
 			}
 
@@ -125661,7 +126635,7 @@ class ImporterClass extends ImporterCharacter {
 		await importerSpell.pInit();
 
 		for (const spell of spellsToImport) {
-			const existingSpell = DataConverterSpell.getActorSpell(importOpts.actor, spell.name, spell.source);
+			const existingSpell = UtilActors.getActorSpell(importOpts.actor, spell.name, spell.source);
 			if (existingSpell) continue;
 
 			await importerSpell.pImportEntry(
@@ -128019,25 +128993,35 @@ class ImportListRollableTable extends ImportList {
 }
 
 class SideDataInterfacePsionic extends SideDataInterfaceBase {
-	static _SIDE_LOAD_OPTS = {
-		propBrew: "foundryPsionic",
-		fnLoadJson: Vetools.pGetPsionicsSideData,
-		propJson: "psionic",
-	};
+	static _getSideLoadOpts (ent) {
+				if (ent._plut_isFauxDisciplineFocus) {
+			return {
+				propBrew: "foundryPsionicDisciplineFocus",
+				fnLoadJson: Vetools.pGetPsionicsSideData,
+				propJson: "psionicDisciplineFocus",
+			};
+		}
 
-		static _SIDE_DATA_DISCIPLINE_FOCUS_OPTS = {
-		propBrew: "foundryPsionicDisciplineFocus",
-		fnLoadJson: Vetools.pGetPsionicsSideData,
-		propJson: "psionicDisciplineFocus",
-	};
+				if (ent._plut_isFauxDisciplineActive) {
+			return {
+				propBrew: "foundryPsionicDisciplineActive",
+				fnLoadJson: Vetools.pGetPsionicsSideData,
+				propJson: "psionicDisciplineActive",
+				propsMatch: ["psionicSource", "psionicName", "source", "name"],
+			};
+		}
 
-	static _SIDE_DATA_DISCIPLINE_ACTIVE_OPTS = {
-		propBrew: "foundryPsionicDisciplineActive",
-		fnLoadJson: Vetools.pGetPsionicsSideData,
-		propJson: "psionicDisciplineActive",
-		propsMatch: ["psionicSource", "psionicName", "source", "name"],
-	};
+		if (ent.__prop === "psionic") {
+			return {
+				propBrew: "foundryPsionic",
+				fnLoadJson: Vetools.pGetPsionicsSideData,
+				propJson: "psionic",
+			};
+		}
+
+		throw new Error(`Unhandled "__prop" for psionic: "${ent.__prop}"!`);
 	}
+}
 
 var SideDataInterfacePsionic$1 = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -128166,7 +129150,7 @@ class ManagerActivityBuildersPsionic extends ManagerActivityBuildersBase {
 	_getDamageBlocksCategorized_discipline ({cpyEntry}) {
 		const damageBlocksCategorized = new DamageBlocksCategorized();
 
-		const onSaveMode = UtilActivityBuilder.getWalkDamageOnSaveMode(cpyEntry.entries) || "none";
+		const onSaveMode = UtilActivityBuilder$1.getWalkDamageOnSaveMode(cpyEntry.entries) || "none";
 
 				const isFoundScaling = UtilActivityBuilderSpell.mutDamageInfosScaling({
 			entries: cpyEntry.entries,
@@ -128245,7 +129229,7 @@ class ManagerActivityBuildersPsionic extends ManagerActivityBuildersBase {
 class DocumentBuilderItemPsionic extends DocumentBuilderItemPlayer {
 	_configGroup = "importPsionic";
 
-	async _pGetSystemActivities_ ({entry, stateInitial, opts, systemBase}) {
+	async _pGetSystemActivities_ ({entry, stateInitial, opts, state, systemBase}) {
 		const compositeMutators = [
 			new CompositeMutatorActivationPlayer(),
 			new CompositeMutatorCheckPlayer(),
@@ -128269,6 +129253,26 @@ class DocumentBuilderItemPsionic extends DocumentBuilderItemPlayer {
 
 		return {
 			activities: await managerActivityBuilders.pGetActivityDatas({entry, parentStateInitial: stateInitial}),
+		};
+	}
+}
+
+class UtilEntityPsionic extends UtilEntityBase {
+	static getFauxDisciplineFocus (ent) {
+		return {
+			name: ent.name,
+			source: ent.source,
+			_plut_isFauxDisciplineFocus: true,
+		};
+	}
+
+	static getFauxDisciplineActive (psi, psiMode) {
+		return {
+			name: psiMode.name,
+			source: psi.source,
+			psionicName: psi.name,
+			psionicSource: psi.source,
+			_plut_isFauxDisciplineActive: true,
 		};
 	}
 }
@@ -128314,10 +129318,13 @@ class DataConverterPsionic extends DataConverter {
 				additionalFlags,
 				description,
 				ability: "int",
-				activity: {
-					attack: {attackAbility: "int"},
-					save: {saveDcCalculation: "int"},
-				},
+				activity: foundry.utils.mergeObject(
+					{
+						attack: {attackAbility: "int"},
+						save: {saveDcCalculation: "int"},
+					},
+					UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: psi}),
+				),
 				foundryFlags: this._getPsionicFlags(psi, opts),
 				effects: UtilActiveEffects.getEffectsMutDedupeId(effectsSideTuples.map(it => it.effect)),
 			},
@@ -128356,9 +129363,11 @@ class DataConverterPsionic extends DataConverter {
 			? await DescriptionRenderer.pGetWithDescriptionPlugins(() => `<div>${Renderer.get().setFirstSection(true).render({entries: [psi.focus]})}</div>`)
 			: "";
 
-		const additionalFlags = await this._SideDataInterface.pGetFlagsSideLoaded(psi, {propOpts: "_SIDE_DATA_DISCIPLINE_FOCUS_OPTS"});
+		const entFauxSideData = UtilEntityPsionic.getFauxDisciplineFocus(psi);
 
-		const effectsSideTuples = await this._SideDataInterface.pGetEffectsSideLoadedTuples({ent: psi, img, actor: opts.actor}, {propOpts: "_SIDE_DATA_DISCIPLINE_FOCUS_OPTS"});
+		const additionalFlags = await this._SideDataInterface.pGetFlagsSideLoaded(entFauxSideData);
+
+		const effectsSideTuples = await this._SideDataInterface.pGetEffectsSideLoadedTuples({ent: entFauxSideData, img, actor: opts.actor});
 		effectsSideTuples.forEach(({effect, effectRaw}) => UtilActiveEffects.mutEffectDisabledTransfer(effect, "importPsionic", UtilActiveEffects.getDisabledTransferHintsSideData(effectRaw)));
 
 		const out = await this._getDocumentBuilderItemInstance().pGetDocumentData(
@@ -128366,13 +129375,16 @@ class DataConverterPsionic extends DataConverter {
 			{
 				img,
 				description,
-				activity: {
-					allActivities: {
-						activationType: "bonus",
-						activationValue: 1,
-						activationCondition: "Only one focus may be active at a time",
+				activity: foundry.utils.mergeObject(
+					{
+						allActivities: {
+							activationType: "bonus",
+							activationValue: 1,
+							activationCondition: "Only one focus may be active at a time",
+						},
 					},
-				},
+					UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: psi}),
+				),
 				effects: UtilActiveEffects.getEffectsMutDedupeId(effectsSideTuples.map(it => it.effect)),
 				foundryFlags: this._getPsionicFlags(psi, opts),
 			},
@@ -128380,7 +129392,7 @@ class DataConverterPsionic extends DataConverter {
 				isActorItem: opts.isActorItem,
 				displayName: `${psi.name} - Focus`,
 				actor: opts.actor,
-				pFnGetAdditionalSystem: async (entry, {systemBase}) => this._SideDataInterface.pGetSystemSideLoaded(entry, {propOpts: "_SIDE_DATA_DISCIPLINE_FOCUS_OPTS", systemBase}),
+				pFnGetAdditionalSystem: async (entry, {systemBase}) => this._SideDataInterface.pGetSystemSideLoaded(entFauxSideData, {systemBase}),
 				additionalFlags,
 			},
 		);
@@ -128475,7 +129487,7 @@ class DataConverterPsionic extends DataConverter {
 		const durationUnits = (psiMode.concentration ? DataConverterPsionic._PSI_DURATION_MAP[psiMode.concentration.unit] : "") || "";
 
 		const displayName = `${psi.name} - ${parentModeName ? `${parentModeName}; ` : ""}${psiMode.name}`;
-		const entFauxSideData = {name: psiMode.name, source: psi.source, psionicName: psi.name, psionicSource: psi.source};
+		const entFauxSideData = UtilEntityPsionic.getFauxDisciplineActive(psi, psiMode);
 
 		const isScalable = psiMode.cost?.min != null
 			&& psiMode.cost?.max != null
@@ -128483,9 +129495,9 @@ class DataConverterPsionic extends DataConverter {
 
 		const img = await this._ImageFetcher.pGetSaveImagePath(psi, {taskRunner: opts.taskRunner});
 
-		const additionalFlags = await this._SideDataInterface.pGetFlagsSideLoaded(entFauxSideData, {propOpts: "_SIDE_DATA_DISCIPLINE_ACTIVE_OPTS"});
+		const additionalFlags = await this._SideDataInterface.pGetFlagsSideLoaded(entFauxSideData);
 
-		const effectsSideTuples = await this._SideDataInterface.pGetEffectsSideLoadedTuples({ent: psi, img, actor: opts.actor}, {propOpts: "_SIDE_DATA_DISCIPLINE_ACTIVE_OPTS"});
+		const effectsSideTuples = await this._SideDataInterface.pGetEffectsSideLoadedTuples({ent: entFauxSideData, img, actor: opts.actor});
 		effectsSideTuples.forEach(({effect, effectRaw}) => UtilActiveEffects.mutEffectDisabledTransfer(effect, "importPsionic", UtilActiveEffects.getDisabledTransferHintsSideData(effectRaw)));
 
 		const out = await this._getDocumentBuilderItemInstance().pGetDocumentData(
@@ -128495,17 +129507,26 @@ class DataConverterPsionic extends DataConverter {
 				description,
 				durationValue,
 				durationUnits,
-				activity: {
-					attack: {attackAbility: "int"},
-					save: {saveDcCalculation: "int"},
-					allActivities: foundry.utils.mergeObject(
-						{
-							consumptionScalingAllowed: isScalable,
-							consumptionTargets: this._getConsumptionTargets({isScalable, opts, level}),
-						},
-						parentAllActivities || {},
-					),
-				},
+				activity: foundry.utils.mergeObject(
+					{
+						attack: {attackAbility: "int"},
+						save: {saveDcCalculation: "int"},
+						allActivities: parentAllActivities || {},
+					},
+					UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({
+						entry: psi,
+						overrides: [
+							{
+								allActivities: foundry.utils.mergeObject(
+									{
+										consumptionScalingAllowed: isScalable,
+										consumptionTargets: this._getConsumptionTargets({isScalable, opts, level}),
+									},
+								),
+							},
+						],
+					}),
+				),
 				effects: UtilActiveEffects.getEffectsMutDedupeId(effectsSideTuples.map(it => it.effect)),
 				foundryFlags: this._getPsionicFlags(psi, opts),
 			},
@@ -128515,7 +129536,7 @@ class DataConverterPsionic extends DataConverter {
 				page: psi.page,
 				source: psi.source,
 				actor: opts.actor,
-				pFnGetAdditionalSystem: async (entry, {systemBase}) => this._SideDataInterface.pGetSystemSideLoaded(entry, {propOpts: "_SIDE_DATA_DISCIPLINE_ACTIVE_OPTS", systemBase}),
+				pFnGetAdditionalSystem: async (entry, {systemBase}) => this._SideDataInterface.pGetSystemSideLoaded(entFauxSideData, {systemBase}),
 				additionalFlags,
 			},
 		);
@@ -128910,11 +129931,20 @@ class ImportListOptionalfeature extends ImportListFeature {
 ImportListOptionalfeature.UserChoose = class extends MixinUserChooseImporter(ImportListOptionalfeature) {};
 
 class SideDataInterfaceConditionDisease extends SideDataInterfaceBase {
-	static _getSideLoadOpts (conDis) {
+	static _getPropBrew (ent) {
+		switch (ent.__prop) {
+			case "condition": return "foundryCondition";
+			case "disease": return "foundryDisease";
+			case "status": return "foundryStatus";
+		}
+		throw new Error(`Unhandled prop: "${ent.__prop}"`);
+	}
+
+	static _getSideLoadOpts (ent) {
 		return {
-			propBrew: conDis.__prop === "disease" ? "foundryDisease" : "foundryCondition",
+			propBrew: this._getPropBrew(ent),
 			fnLoadJson: Vetools.pGetConditionDiseaseSideData,
-			propJson: conDis.__prop,
+			propJson: ent.__prop,
 		};
 	}
 }
@@ -129079,9 +130109,17 @@ class ImportListConditionDisease extends ImportList {
 }
 
 class SideDataInterfaceCultBoon extends SideDataInterfaceBase {
+	static _getPropBrew (ent) {
+		switch (ent.__prop) {
+			case "cult": return "foundryCult";
+			case "boon": return "foundryBoon";
+		}
+		throw new Error(`Unhandled prop: "${ent.__prop}"`);
+	}
+
 	static _getSideLoadOpts (ent) {
 		return {
-			propBrew: ent.__prop === "cult" ? "foundryCult" : "foundryBoon",
+			propBrew: this._getPropBrew(ent),
 			fnLoadJson: Vetools.pGetCultBoonSideData,
 			propJson: ent.__prop,
 		};
@@ -129549,10 +130587,23 @@ class TokenInfoGetterEntityVehicle extends TokenInfoGetterEntity {
 	}
 }
 
+class SubjectInfoGetterVehicleIntegration extends SubjectInfoGetterBase {
+	_configGroup = "importVehicle";
+	_moduleFilePath = `foundry-integration-token-subjects-vehicles.json`;
+}
+
 class TokenFetcherVehicle extends TokenFetcherBase {
 	static get _PROPS () { return ["vehicle"]; }
 
 	static _getTokenInfoGetterEntityClazz () { return TokenInfoGetterEntityVehicle; }
+
+	static _getSubjectInfoGettersAdditional () {
+		return [
+			...Config.get("importVehicle", "isEnableDynamicRing")
+				? [SubjectInfoGetterVehicleIntegration]
+				: [],
+		];
+	}
 }
 
 class ImportEntryOptsVehicle extends ImportEntryOptsActor {
@@ -130129,6 +131180,10 @@ class DataConverterVehicleFeature extends DataConverterActor {
 			ent,
 			{
 				...dataOpts,
+				activity: foundry.utils.mergeObject(
+					dataOpts.activity || {},
+					UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: ent}),
+				),
 				img,
 				foundryFlags,
 			},
@@ -130232,7 +131287,7 @@ class ImageFetcherObjectFeature extends ImageFetcherBase {
 class DocumentBuilderItemObject extends DocumentBuilderItemCreature {
 	_configGroup = "importObjectFeature";
 
-	async _pGetSystemActivities_ ({entry, stateInitial, opts, systemBase}) {
+	async _pGetSystemActivities_ ({entry, stateInitial, opts, state, systemBase}) {
 		const {
 			blocklistActivityTypesDamage,
 			rootDamage,
@@ -130375,16 +131430,19 @@ class DataConverterObjectFeature extends DataConverterActor {
 					: undefined,
 				properties: [],
 				img,
-				activity: {
-					attack: {
-						attackTypeValue: action._featureExtras?.attackTypeValue,
-						attackTypeClassification: action._featureExtras?.attackTypeClassification,
+				activity: foundry.utils.mergeObject(
+					{
+						attack: {
+							attackTypeValue: action._featureExtras?.attackTypeValue,
+							attackTypeClassification: action._featureExtras?.attackTypeClassification,
+						},
+						allActivities: {
+							activationType: "action",
+							activationValue: 1,
+						},
 					},
-					allActivities: {
-						activationType: "action",
-						activationValue: 1,
-					},
-				},
+					UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: action}),
+				),
 				foundryFlags: this._getObjectFeatureFlags(action, opts),
 			},
 			{
@@ -130461,7 +131519,17 @@ class ImporterObject extends ImporterActor {
 
 		const dataBuilderOpts = new ImportEntryOptsObject({actor, entity: obj, fluff});
 
-		await this._pImportEntry_pFillBase(obj, act, dataBuilderOpts.fluff, {isUseTokenImageAsPortrait: Config.get(this._configGroup, "isUseTokenImageAsPortrait"), taskRunner: importOpts.taskRunner});
+		await this._pImportEntry_pFillBase(
+			obj,
+			act,
+			dataBuilderOpts.fluff,
+			{
+				isUseTokenImageAsPortrait: Config.get(this._configGroup, "isUseTokenImageAsPortrait"),
+				TokenFetcher: dataOpts.TokenFetcher,
+				ThreeDiTokenAdapter: dataOpts.ThreeDiTokenAdapter,
+				taskRunner: importOpts.taskRunner,
+			},
+		);
 
 		act.system = {};
 
@@ -130481,7 +131549,14 @@ class ImporterObject extends ImporterActor {
 		const additionalSystem = await this.constructor._SideDataInterface.pGetSystemSideLoaded(obj);
 		foundry.utils.mergeObject(act.system, additionalSystem);
 
-		await this._pImportEntry_pFillToken({importable: obj, actorData: act, flags: this._getTokenFlags({obj}), taskRunner: importOpts.taskRunner});
+		await this._pImportEntry_pFillToken({
+			importable: obj,
+			actorData: act,
+			flags: this._getTokenFlags({obj}),
+			TokenFetcher: dataOpts.TokenFetcher,
+			ThreeDiTokenAdapter: dataOpts.ThreeDiTokenAdapter,
+			taskRunner: importOpts.taskRunner,
+		});
 
 		await this._pImportEntry_pFillFlags(obj, act, dataBuilderOpts);
 
@@ -130648,7 +131723,17 @@ class ImporterVehicle extends ImporterActor {
 
 		const dataBuilderOpts = new ImportEntryOptsVehicle({actor, entity: veh, fluff});
 
-		await this._pImportEntry_pFillBase(veh, act, dataBuilderOpts.fluff, {isUseTokenImageAsPortrait: Config.get(this._configGroup, "isUseTokenImageAsPortrait"), taskRunner: importOpts.taskRunner});
+		await this._pImportEntry_pFillBase(
+			veh,
+			act,
+			dataBuilderOpts.fluff,
+			{
+				isUseTokenImageAsPortrait: Config.get(this._configGroup, "isUseTokenImageAsPortrait"),
+				TokenFetcher: dataOpts.TokenFetcher,
+				ThreeDiTokenAdapter: dataOpts.ThreeDiTokenAdapter,
+				taskRunner: importOpts.taskRunner,
+			},
+		);
 
 		act.system = {};
 
@@ -130670,7 +131755,15 @@ class ImporterVehicle extends ImporterActor {
 		const additionalSystem = await this.constructor._SideDataInterface.pGetSystemSideLoaded(veh);
 		foundry.utils.mergeObject(act.system, additionalSystem);
 
-		await this._pImportEntry_pFillToken({importable: veh, actorData: act, size: this._getSize(veh), flags: this._getTokenFlags({veh}), taskRunner: importOpts.taskRunner});
+		await this._pImportEntry_pFillToken({
+			importable: veh,
+			actorData: act,
+			size: this._getSize(veh),
+			flags: this._getTokenFlags({veh}),
+			TokenFetcher: dataOpts.TokenFetcher,
+			ThreeDiTokenAdapter: dataOpts.ThreeDiTokenAdapter,
+			taskRunner: importOpts.taskRunner,
+		});
 
 		await this._pImportEntry_pFillFlags(veh, act, dataBuilderOpts);
 
@@ -130699,19 +131792,34 @@ class ImporterVehicle extends ImporterActor {
 
 		async _pImportEntry (veh, importOpts, dataOpts) {
 		importOpts ||= new ImportOpts();
+		dataOpts ||= {};
 
 						if (veh.vehicleType === "CREATURE") {
 			const importerCreature = new ImporterCreature();
 			await importerCreature.pInit();
 									veh = MiscUtil.copyFast(veh);
-			veh.tokenUrl = await Vetools.pGetTokenUrl("vehicle", veh);
-			return importerCreature._pImportEntry(veh, importOpts, dataOpts);
+			return importerCreature._pImportEntry(
+				veh,
+				importOpts,
+				{
+					...dataOpts,
+					TokenFetcher: this.constructor._TokenFetcher,
+					ThreeDiTokenAdapter: this.constructor._ThreeDiTokenAdapter,
+				},
+			);
 		} else if (veh.vehicleType === "OBJECT") {
 			const objectImporter = new ImporterObject();
 			await objectImporter.pInit();
 									veh = MiscUtil.copyFast(veh);
-			veh.tokenUrl = await Vetools.pGetTokenUrl("vehicle", veh);
-			return objectImporter._pImportEntry(veh, importOpts, dataOpts);
+			return objectImporter._pImportEntry(
+				veh,
+				importOpts,
+				{
+					...dataOpts,
+					TokenFetcher: this.constructor._TokenFetcher,
+					ThreeDiTokenAdapter: this.constructor._ThreeDiTokenAdapter,
+				},
+			);
 		}
 
 		return super._pImportEntry(veh, importOpts, dataOpts);
@@ -131782,14 +132890,12 @@ class ImportableTag {
 	get fnGetInlineData () { return this._fnGetInlineData; }
 	get fnGetInlineHash () { return this._fnGetInlineHash; }
 
-	pLoadHash (hash, {taskRunner} = {}) {
-		return this._pLoadGenericHash({hash, taskRunner});
+	pLoadHash (hash, {taskRunner, isAllowRedirect = false} = {}) {
+		return this._pLoadGenericHash({hash, taskRunner, isAllowRedirect});
 	}
 
-	async _pLoadGenericHash ({hash, taskRunner}) {
-		const [, source] = hash.split(HASH_LIST_SEP);
-
-				const entity = await DataLoader.pCacheAndGet(this._page, source, hash, {isRequired: true});
+	async _pLoadGenericHash ({hash, taskRunner, isAllowRedirect}) {
+		const entity = await this._pGetImportableEntityFromHash({hash, isAllowRedirect});
 
 		await this._importer.pInit();
 		const importSummary = await this._importer.pImportEntry(entity, new ImportOpts({taskRunner}));
@@ -131800,6 +132906,24 @@ class ImportableTag {
 			id: importSummary.imported?.[0]?.document?.id,
 			hash,
 		};
+	}
+
+	async _pGetImportableEntityFromHash ({hash, isAllowRedirect}) {
+		const entInfoRedirect = isAllowRedirect && Config.get("text", "isAllowRedirectImports") && VetoolsConfig$1.get("styleSwitcher", "style") === SITE_STYLE__ONE
+			? await Renderer.redirect.pGetRedirectByHash(this._page, hash)
+			: null;
+
+		if (
+			entInfoRedirect
+						&& entInfoRedirect.page === this._page
+		) {
+			const entityFromRedirect = await DataLoader.pCacheAndGet(this._page, entInfoRedirect.source, entInfoRedirect.hash);
+			if (entityFromRedirect) return entityFromRedirect;
+		}
+
+		const [, source] = hash.split(HASH_LIST_SEP);
+
+				return DataLoader.pCacheAndGet(this._page, source, hash, {isRequired: true});
 	}
 
 	static _getExtractedGenericTag (page, defaultSource, tag) {
@@ -132004,8 +133128,9 @@ class ImportListAdventureBook extends ImportList {
 						entryIdToName: corpusMeta.entryIdToName,
 						entry: obj,
 						entryStack: stack,
-						adventureBookName: head.name,
-						adventureBookType: this._propContents,
+						corpusName: head.name,
+						corpusId: head.id,
+						corpusType: this._propContents,
 						source,
 						chapterInfo: head.contents?.[ixChapter],
 					});
@@ -132054,17 +133179,18 @@ class ImportListAdventureBook extends ImportList {
 					continue;
 				}
 
-				const tgt = MiscUtil.get(
+				const tgt = MiscUtil.getOrSet(
 					corpusMeta.availableEntities,
 					tag,
 					extractedTag.source.toLowerCase(),
-				) || MiscUtil.set(
-					corpusMeta.availableEntities,
-					tag,
-					extractedTag.source.toLowerCase(),
-					new Set(),
+					{},
 				);
-				tgt.add(extractedTag.hash);
+								if (!tgt[extractedTag.hash]) {
+					const unpacked = DataUtil.generic.unpackUid(text, tag);
+					tgt[extractedTag.hash] = {
+						isAllowRedirect: unpacked.isAllowRedirect,
+					};
+				}
 
 				recurse(text);
 			}
@@ -132104,19 +133230,17 @@ class ImportListAdventureBook extends ImportList {
 
 						const atTag = `@${tag}`;
 
-						const tgt = MiscUtil.get(
+						const tgt = MiscUtil.getOrSet(
 							corpusMeta.availableEntities,
 							atTag,
 							source.toLowerCase(),
-						) || MiscUtil.set(
-							corpusMeta.availableEntities,
-							tuple.id,
-							"availableEntities",
-							atTag,
-							source.toLowerCase(),
-							new Set(),
+							{},
 						);
-						tgt.add(hash);
+												if (!tgt[hash]) {
+							tgt[hash] = {
+								isAllowRedirect: false,
+							};
+						}
 
 						return obj;
 					},
@@ -132135,17 +133259,18 @@ class ImportListAdventureBook extends ImportList {
 				if (!additionalContent?.length) return;
 
 				additionalContent.forEach(({source, hash}) => {
-					const tgt = MiscUtil.get(
+					const tgt = MiscUtil.getOrSet(
 						corpusMeta.availableEntities,
 						importableTag.tag,
 						source.toLowerCase(),
-					) || MiscUtil.set(
-						corpusMeta.availableEntities,
-						importableTag.tag,
-						source.toLowerCase(),
-						new Set(),
+						{},
 					);
-					tgt.add(hash);
+
+					if (tgt[hash]) return;
+
+					tgt[hash] = {
+						isAllowRedirect: false,
+					};
 				});
 			});
 	}
@@ -132168,14 +133293,14 @@ class ImportListAdventureBook extends ImportList {
 				if (sourceMetas) {
 					out.sources.push(
 						...Object.entries(sourceMetas)
-							.map(([src, set]) => {
+							.map(([src, hashToMeta]) => {
 								return {
 									sourceLong: Parser.sourceJsonToFull(src),
 									sourceShort: Parser.sourceJsonToAbv(src),
 									sourceClassName: Parser.sourceJsonToSourceClassname(src),
 									sourceStyle: Parser.sourceJsonToStylePart(src),
 									source: Parser.sourceJsonToJson(src),
-									count: set.size,
+									count: Object.keys(hashToMeta).length,
 								};
 							}),
 					);
@@ -132457,10 +133582,12 @@ class ImportListAdventureBook extends ImportList {
 			const importableTag = ImportableTagRegistry.getRegistered(tag);
 
 			for (const source of sources) {
-								const hashes = new Set([...(MiscUtil.get(corpusMeta.availableEntities, tag, source.toLowerCase()) || [])]);
-				for (const hash of hashes) {
+								const hashToInfo = MiscUtil.get(corpusMeta.availableEntities, tag, source.toLowerCase()) || {};
+
+				for (const [hash, info] of Object.entries(hashToInfo)) {
+					const {isAllowRedirect} = info;
 					taskList.push(new TaskClosure({
-						fnGetPromise: ({taskRunner}) => this._pHandleRunButtonClick_pDoTagImport({importableTag, hash, taskRunner, loaded, tag}),
+						fnGetPromise: ({taskRunner}) => this._pHandleRunButtonClick_pDoTagImport({importableTag, hash, taskRunner, loaded, tag, isAllowRedirect}),
 					}));
 				}
 			}
@@ -132476,8 +133603,8 @@ class ImportListAdventureBook extends ImportList {
 		return taskList;
 	}
 
-	async _pHandleRunButtonClick_pDoTagImport ({importableTag, hash, taskRunner, loaded, tag}) {
-		const {folderType, id: importedId, importSummary} = await importableTag.pLoadHash(hash, {taskRunner});
+	async _pHandleRunButtonClick_pDoTagImport ({importableTag, hash, taskRunner, loaded, tag, isAllowRedirect}) {
+		const {folderType, id: importedId, importSummary} = await importableTag.pLoadHash(hash, {taskRunner, isAllowRedirect});
 		(loaded[tag] = loaded[tag] || {})[hash] = {folderType, importedId, uuidPart: importSummary?.getPrimaryDocument()?.uuid};
 		return importSummary;
 	}
@@ -133854,10 +134981,10 @@ class SideDataInterfaceMap extends SideDataInterfaceBase {
 				return {map: []};
 			}
 
-			if (!indexJson[ent.source]) return {map: []};
+			if (!indexJson[ent.corpusId]) return {map: []};
 
 			try {
-				return (await DataUtil.loadJSON(`${baseUrl}data/${indexJson[ent.source]}`));
+				return (await DataUtil.loadJSON(`${baseUrl}data/${indexJson[ent.corpusId]}`));
 			} catch (e) {
 				UtilNotifications.notifyOnce({type: "error", message: `Failed to load supplementary map data! ${VeCt.STR_SEE_CONSOLE}`});
 				console.error(...LGT, e);
@@ -134162,7 +135289,7 @@ class DataConverterMap extends DataConverter {
 				source: entry.source,
 				hash: UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_MAPS](entry),
 
-				adventureBookType: entry.adventureBookType,
+				corpusType: entry.corpusType,
 
 																								dedupeKey: (new URL(Vetools.getImageUrl(entry), document.baseURI)).pathname.split("/").slice(-3).join(""),
 			},
@@ -134395,9 +135522,9 @@ class ImporterMap extends ImporterBase {
 	getFolderPathMeta () {
 		return {
 			...super.getFolderPathMeta(),
-			adventureBookName: new FolderPathMeta({
+			corpusName: new FolderPathMeta({
 				label: "Adventure/Book Name",
-				getter: it => it.adventureBookName || "(Unnamed Adventure/Book)",
+				getter: it => it.corpusName || "(Unnamed Adventure/Book)",
 			}),
 			chapterName: new FolderPathMeta({
 				label: "Chapter Name",
@@ -134665,13 +135792,11 @@ class ImportListMap extends ImportList {
 }
 
 class SideDataInterfaceFacility extends SideDataInterfaceBase {
-	static _getSideLoadOpts (ent) {
-		return {
-			propBrew: `${ent.__prop}Fluff`,
-			fnLoadJson: Vetools.pGetBastionSideData,
-			propJson: ent.__prop,
-		};
-	}
+	static _SIDE_LOAD_OPTS = {
+		propBrew: "foundryFacility",
+		fnLoadJson: Vetools.pGetBastionSideData,
+		propJson: "facility",
+	};
 }
 
 var SideDataInterfaceFacility$1 = /*#__PURE__*/Object.freeze({
@@ -135891,6 +137016,10 @@ class DataConverterTrapFeature extends DataConverterActor {
 			ent,
 			{
 				...dataOpts,
+				activity: foundry.utils.mergeObject(
+					dataOpts.activity || {},
+					UtilActivityBuilderConsumptionTargets.getMergedStateInitialActivity({entry: ent}),
+				),
 				img,
 				foundryFlags,
 			},
@@ -135971,7 +137100,16 @@ class ImporterTrap extends ImporterActor {
 
 		const dataBuilderOpts = new ImportEntryOptsTrap({actor, entity: trap, fluff});
 
-		await this._pImportEntry_pFillBase(trap, act, dataBuilderOpts.fluff, {taskRunner: importOpts.taskRunner});
+		await this._pImportEntry_pFillBase(
+			trap,
+			act,
+			dataBuilderOpts.fluff,
+			{
+				TokenFetcher: dataOpts.TokenFetcher,
+				ThreeDiTokenAdapter: dataOpts.ThreeDiTokenAdapter,
+				taskRunner: importOpts.taskRunner,
+			},
+		);
 
 		act.system = {};
 
@@ -135994,7 +137132,14 @@ class ImporterTrap extends ImporterActor {
 		const additionalSystem = await this.constructor._SideDataInterface.pGetSystemSideLoaded(trap);
 		foundry.utils.mergeObject(act.system, additionalSystem);
 
-		await this._pImportEntry_pFillToken({importable: trap, actorData: act, flags: this._getTokenFlags({trap}), taskRunner: importOpts.taskRunner});
+		await this._pImportEntry_pFillToken({
+			importable: trap,
+			actorData: act,
+			flags: this._getTokenFlags({trap}),
+			TokenFetcher: dataOpts.TokenFetcher,
+			ThreeDiTokenAdapter: dataOpts.ThreeDiTokenAdapter,
+			taskRunner: importOpts.taskRunner,
+		});
 
 		await this._pImportEntry_pFillFlags(trap, act, dataBuilderOpts);
 
@@ -139472,7 +140617,7 @@ class ActorSpellPreparedToggler extends Application {
 						const getNextState = () => nxtState.prepared;
 
 						const pCommitState = async () => {
-							await DataConverterSpell.pSetSpellItemIsPrepared(it, nxtState.prepared);
+							await UtilDocumentItemSpell.pSetSpellItemIsPrepared(it, nxtState.prepared);
 							handleNextState();
 						};
 
@@ -140656,8 +141801,7 @@ class StylerCompatibility extends StylerBase {
 	}
 
 	static applyStaticStyles () {
-		this._doApplySessionStaticStyles_compatibilityTokenActionHud();
-	}
+			}
 
 	static _handleConfigUpdate_compatibilityPermissionViewer () {
 		this._handleGenericCssMod({
@@ -140680,13 +141824,6 @@ class StylerCompatibility extends StylerBase {
 				return _UI_CONFIG_KEYS_COMPACT_DIRECTORY.some(it => Config.get("ui", it));
 			},
 			file: `css/optional-compatibility-permission-viewer.css`,
-		});
-	}
-
-	static _doApplySessionStaticStyles_compatibilityTokenActionHud () {
-		this._handleGenericCssMod({
-			condition: () => UtilCompat.isTokenActionHudActive(),
-			file: `css/optional-compatibility-token-action-hud.css`,
 		});
 	}
 }
@@ -142769,6 +143906,11 @@ class Dnd5eUtil {
 	static isDnd5e () {
 		const {system} = UtilVersions.getSystemVersion();
 		return system === SharedConsts.SYSTEM_ID_DND5E;
+	}
+
+	
+	static isXpTrackingDisabled () {
+		return UtilGameSettings.getSafe(game.system.id, "levelingMode") === "noxp";
 	}
 }
 
@@ -148261,7 +149403,7 @@ class SheetAdapterActorSheet5eCharacter2 extends SheetAdapterBase {
 	}
 
 	static _addButton_xpEnabled ({form, $btn}) {
-		if (UtilGameSettings.getSafe(game.system.id, "levelingMode") === "noxp") return;
+		if (Dnd5eUtil.isXpTrackingDisabled()) return;
 
 		if (!this._INDEX_PATH_XP_ENABLED) {
 			const $ele = $(form).find(`.sheet-header .xp-label`);
@@ -148276,7 +149418,7 @@ class SheetAdapterActorSheet5eCharacter2 extends SheetAdapterBase {
 	}
 
 	static _addButton_xpDisabled ({form, $btn}) {
-		if (UtilGameSettings.getSafe(game.system.id, "levelingMode") !== "noxp") return;
+		if (!Dnd5eUtil.isXpTrackingDisabled()) return;
 
 		if (!this._INDEX_PATH_XP_DISABLED) {
 			const $ele = $(form).find(`.sheet-header .sheet-header-buttons`).parent();
@@ -148442,8 +149584,8 @@ class SheetLevelUpButtonManager {
 	}
 
 	static _mutBtnLevelUp ({$btn, actor, availableClassesMetas}) {
-		const isLevelUp = !UtilGameSettings.getSafe(game.system.id, "disableExperienceTracking") && UtilActors.isLevelUp(actor);
-		const isDisabled = !UtilGameSettings.getSafe(game.system.id, "disableExperienceTracking") && !UtilActors.isLevelUp(actor) && Config.get("importClass", "isLevelUpButtonDisabledUntilEnoughExperience");
+		const isLevelUp = !Dnd5eUtil.isXpTrackingDisabled() && UtilActors.isLevelUp(actor);
+		const isDisabled = !Dnd5eUtil.isXpTrackingDisabled() && !UtilActors.isLevelUp(actor) && Config.get("importClass", "isLevelUpButtonDisabledUntilEnoughExperience");
 
 		return $btn
 			.toggleClass("ve-btn-pulse", !!isLevelUp)
@@ -148765,7 +149907,7 @@ class NamedTokenCreator {
 	}
 
 	static _pCreateToken ({name, url, xScene, yScene, width, height, scale}) {
-		return TokenDocument.create(
+				return TokenDocument.create(
 			{
 				name,
 				x: xScene,
@@ -149014,7 +150156,7 @@ class CreateTokenFromUrl extends ModuleMacroBase {
 
 				const {dimensions = 1, scale = 1} = UtilTokens.getTokenDimensionsAndScale(size);
 
-				await TokenDocument.create(
+								await TokenDocument.create(
 					{
 						name: "-",
 						x: x,
@@ -149079,6 +150221,7 @@ class Api {
 				pCreatePuckImageGetUrl: NoteImageCreator.pCreateImageGetUrl.bind(NoteImageCreator),
 			},
 			ActorMultiImportHelper: ActorMultiImportHelper,
+			ImportOpts: ImportOpts,
 		},
 		token: {
 			pCreateToken: NamedTokenCreator.pCreateToken.bind(NamedTokenCreator),
@@ -149090,6 +150233,7 @@ class Api {
 				$getAppElement: UtilApplications.$getAppElement.bind(UtilApplications),
 				pAwaitAppClose: UtilApplications.pAwaitAppClose.bind(UtilApplications),
 				getOpenAppsSortedByZindex: UtilApplications.getOpenAppsSortedByZindex.bind(UtilApplications),
+				pGetShowApplicationModal: UtilApplications.pGetShowApplicationModal.bind(UtilApplications),
 			},
 			actors: {
 				isImporterTempActor: UtilActors.isImporterTempActor.bind(UtilActors),

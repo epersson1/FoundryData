@@ -30,17 +30,15 @@ export class ValidSpec {
         this._options = options;
     }
     static createValidMods() {
-        //@ts-ignore
         this.actorSpecs = {};
-        //@ts-ignore
         const ACTIVE_EFFECT_MODES = CONST.ACTIVE_EFFECT_MODES;
-        //@ts-ignore
+        // @ts-expect-error
         const system = globalThis.CONFIG.DAE.systemClass;
         // for (let specKey of Object.keys(game.system.model.Actor)) {
-        //@ts-expect-error dataModels
         for (let specKey of Object.keys(CONFIG.Actor.dataModels)) {
             this.actorSpecs[specKey] = { allSpecs: [], allSpecsObj: {}, baseSpecs: [], baseSpecsObj: {}, derivedSpecsObj: {}, derivedSpecs: [] };
-            _characterSpec["system"] = game.system.model ? foundry.utils.duplicate(game.system.model.Actor[specKey] ?? {}) : {};
+            // @ts-expect-error
+            _characterSpec["system"] = game.system?.model ? foundry.utils.duplicate(game.system.model.Actor[specKey] ?? {}) : {};
             let baseValues = foundry.utils.flattenObject(_characterSpec);
             for (let prop in baseValues) {
                 baseValues[prop] = [baseValues[prop], -1];
@@ -63,16 +61,17 @@ export class ValidSpec {
                 }
                 if (baseValue[0] instanceof Array) {
                     console.warn("wrong baseValue", key, baseValue[0]);
+                    // @ts-expect-error
                     baseValue[0] = new ArrayField({ initial: baseValues[0] });
                 }
             }
             // baseValues["items"] = ""; // TODO one day work this out.
-            if (game.modules.get("gm-notes")?.active) {
+            if (game.modules?.get("gm-notes")?.active) {
                 baseValues["flags.gm-notes.notes"] = [new StringField(), -1];
+                baseValues["name"] = [new StringField(), -1];
                 baseValues["system.att"];
             }
             var specials = {};
-            //@ts-ignore
             specials["macro.CUB"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
             specials["macro.CLT"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
             specials["macro.CE"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
@@ -98,6 +97,7 @@ export class ValidSpec {
                 }
                 if (special[0] instanceof Array) {
                     console.warn("wrong special", key, special[0]);
+                    // @ts-expect-error
                     special[0] = new ArrayField({ initial: specials[0] });
                 }
             }
@@ -120,8 +120,7 @@ export class ValidSpec {
                 this.actorSpecs[specKey].baseSpecsObj[spec] = validSpec;
                 return validSpec;
             });
-            //@ts-ignore
-            if (game.modules.get("tokenmagic")?.active) {
+            if (game.modules?.get("tokenmagic")?.active) {
                 specials["macro.tokenMagic"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
             }
             daeSystemClass.modifyDerivedSpecs(specKey, this.actorSpecs[specKey].derivedSpecs, _characterSpec);
@@ -133,7 +132,7 @@ export class ValidSpec {
             });
             this.actorSpecs[specKey].allSpecs = this.actorSpecs[specKey].baseSpecs.concat(this.actorSpecs[specKey].derivedSpecs);
             // TDO come back and clean this up
-            if (["dnd5e", "sw5e"].includes(game.system.id)) {
+            if (["dnd5e", "sw5e"].includes(game.system?.id ?? "")) {
                 // Special case for armor/hp which can depend on derived attributes - like dexterity mod or constituion mod
                 // and initiative bonus depends on advantage on initiative
                 this.actorSpecs[specKey].allSpecs.forEach(m => {
@@ -152,7 +151,6 @@ export class ValidSpec {
         let allSpecsObj = {};
         let baseSpecsObj = {};
         let derivedSpecsObj = {};
-        //@ts-expect-error
         for (let specKey of Object.keys(CONFIG.Actor.dataModels)) {
             Object.keys(this.actorSpecs[specKey].allSpecsObj).forEach(key => allSpecsObj[key] = this.actorSpecs[specKey].allSpecsObj[key]);
             Object.keys(this.actorSpecs[specKey].baseSpecsObj).forEach(key => baseSpecsObj[key] = this.actorSpecs[specKey].baseSpecsObj[key]);
@@ -176,21 +174,20 @@ export class ValidSpec {
         }
         ;
         if (!ValidSpec.actorSpecs) {
-            ui.notifications.error("DAE | Initialisation failed - no specs defined");
+            ui.notifications?.error("DAE | Initialisation failed - no specs defined");
             return;
         }
-        //@ts-expect-error dataModels
         for (let specKey of Object.keys(CONFIG.Actor.dataModels)) {
             if (!this.actorSpecs[specKey])
                 continue; // not all of the actor types are defined in the system
-            const fieldStart = `flags.${game.system.id}.`;
+            const fieldStart = `flags.${game.system?.id}.`;
             this.actorSpecs[specKey].allSpecs = this.actorSpecs[specKey].allSpecs.map(m => {
                 // Turns out the dnd5e field labels are not all that good.
                 if (false && (m.fieldType?.label ?? "") !== "")
                     m._label = i18n(m.fieldType.label);
                 else {
-                    m._label = m._label.replace("data.", "").replace("system.", "").replace(`{game.system.id}.`, "").replace(".value", "").split(".").map(str => game.i18n.localize(`dae.${str}`).replaceAll("dae.", "")).join(" ");
-                    if (m.fieldSpec.includes(`flags.${game.system.id}`)) {
+                    m._label = m._label.replace("data.", "").replace("system.", "").replace(`{game.system.id}.`, "").replace(".value", "").split(".").map(str => i18n(`dae.${str}`).replaceAll("dae.", "")).join(" ");
+                    if (m.fieldSpec.includes(`flags.${game.system?.id}`)) {
                         const fieldId = m.fieldSpec.replace(fieldStart, "");
                         //@ts-expect-error
                         const characterFlags = game.system.config?.characterFlags ?? {};
@@ -221,16 +218,16 @@ export class ValidSpec {
         }
         for (let specKey of Object.keys(this.itemSpecs)) {
             for (let m of this.itemSpecs[specKey].allSpecs) {
-                const fieldStart = `flags.${game.system.id}.`;
+                const fieldStart = `flags.${game.system?.id}.`;
                 // Turns out the dnd5e field labels are not all that good.
                 if ((m.fieldType?.label ?? "") !== "")
                     m.label = i18n(m.fieldType.label);
                 else {
-                    m.label = m.label.replace("data.", "").replace("system.", "").replace(`{game.system.id}.`, "").replace(".value", "").split(".").map(str => game.i18n.localize(`dae.${str}`).replaceAll("dae.", "")).join(" ");
-                    if (m.fieldSpec.includes(`flags.${game.system.id}`)) {
+                    m.label = m.label.replace("data.", "").replace("system.", "").replace(`{game.system.id}.`, "").replace(".value", "").split(".").map(str => i18n(`dae.${str}`).replaceAll("dae.", "")).join(" ");
+                    if (m.fieldSpec.includes(`flags.${game.system?.id}`)) {
                         const fieldId = m.fieldSpec.replace(fieldStart, "");
-                        //@ts-expect-error
-                        const characterFlags = game.system.config?.characterFlags ?? {};
+                        // @ts-expect-error
+                        const characterFlags = game.system?.config?.characterFlags ?? {};
                         const localizedString = i18n(characterFlags[fieldId]?.name) ?? i18n(`dae.${fieldId}`);
                         m.label = `Flags ${localizedString}`;
                     }
@@ -281,7 +278,6 @@ export class DAESystem {
         return game.system.config;
     }
     static getActorDataModelFields(actorType) {
-        //@ts-expect-error
         return CONFIG.Actor.dataModels[actorType]?.schema?.fields;
         /*
         const dataModels: any = game.system.dataModels;
@@ -310,9 +306,7 @@ export class DAESystem {
     // Configure any lookp lists that might be required by getOptionsForSpec.
     static configureLists(daeConfig) {
         this.detectionModeList = {};
-        //@ts-expect-error detectionModes
         Object.values(CONFIG.Canvas.detectionModes).forEach(dm => {
-            //@ts-expect-error .id .label
             this.detectionModeList[dm.id] = i18n(`${dm.label}`);
         });
     }
@@ -323,7 +317,6 @@ export class DAESystem {
     }
     ;
     static modifySpecials(actorType, specials, characterSpec) {
-        //@ts-ignore
         const ACTIVE_EFFECT_MODES = CONST.ACTIVE_EFFECT_MODES;
         specials["macro.execute"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
         specials["macro.execute.local"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
@@ -404,7 +397,6 @@ export class DAESystem {
         this.daeActionTypeKeys = [];
     }
     static addDAEMetaData(activeEffectData, item, options) {
-        //@ts-expect-error
         if (!fromUuidSync(item.uuid))
             foundry.utils.setProperty(activeEffectData, "flags.dae.itemData", item.toObject(false));
         foundry.utils.setProperty(activeEffectData, "flags.dae.transfer", false);
@@ -443,13 +435,12 @@ export class DAESystem {
             const src = 'with (sandbox) { return ' + expression + '}';
             const evl = new Function('sandbox', src);
             sandbox = foundry.utils.mergeObject(sandbox, { Roll });
-            //@ts-expect-error
             sandbox = foundry.utils.mergeObject(sandbox, { fromUuidSync, getToken, getAttributeValue: this.getAttributeValue, MidiQOL: globalThis.MidiDAEEval ?? {} });
             if (!DAEReadyComplete && typeof expression === "string" && (expression.includes("fromUuidSync") || expression.includes("MidiQOL"))) {
                 throw new Error(preSetupError);
             }
             const sandboxProxy = new Proxy(sandbox, {
-                has: () => true,
+                has: () => true, // Include everything
                 get: (t, k) => k === Symbol.unscopables ? undefined : (t[k] ?? Math[k]),
                 //@ts-expect-error
                 set: () => console.error("You may not set properties of the sandbox environment") // No-op
@@ -516,16 +507,8 @@ export class DAESystem {
                     stack.push(`${this.safeEval(this.safeEvalExpression(temp, context, depth + 1), context)}`);
                 else if (funcName === "dae.roll") {
                     try {
-                        //@ts-expect-error
-                        if (game.release.generation > 11) {
-                            error(`%c dae.roll in ${input} is not supported in expression ${input} in foundry version 12 and has been discarded`, "color: red", context.name, context.actorUuid);
-                            stack.push(this.safeEval("0", context)); // v12 does not support synchronous dice rolling)
-                        }
-                        else {
-                            console.warn(`%c dae.roll in ${input} is not supported in foundry version 12 and will be discarded`, "color: red", context.name, context.actorUuid);
-                            const rollExpression = `new Roll(${temp}).evaluate({async: false}).total`;
-                            stack.push(this.safeEval(rollExpression, context));
-                        }
+                        error(`%c dae.roll in ${input} is not supported in expression ${input} in foundry version 12 and has been discarded`, "color: red", context.name, context.actorUuid);
+                        stack.push(this.safeEval("0", context)); // v12 does not support synchronous dice rolling)
                     }
                     catch (err) {
                         console.warn(`dae | dae.roll bad dice expression ${temp}`, err);
@@ -592,9 +575,10 @@ export class DAESystem {
     }
     static setupActions() {
     }
-    static get applyBaseEffects() {
-        return applyBaseActiveEffects;
-    }
+}
+// this function replaces applyActiveEffects in Actor
+function applyBaseActiveEffects() {
+    applyDaeEffects.bind(this)({ specList: ValidSpec.actorSpecs[this.type].baseSpecsObj, excludeSpecs: ValidSpec.actorSpecs[this.type].derivedSpecsObj, allowAllSpecs: true, wildCardsInclude: wildcardEffects, wildCardsExclude: [], doStatusEffects: true });
 }
 /*
 * replace the default actor prepareData
@@ -608,46 +592,35 @@ function prepareData(wrapped) {
     this.statuses ??= new Set();
     // Identify which special statuses had been active
     const specialStatuses = new Map();
-    if (foundry.utils.isNewerVersion(game.version, "11.293")) {
-        //@ts-expect-error specialStatusEffects
-        for (const statusId of Object.values(CONFIG.specialStatusEffects)) {
-            specialStatuses.set(statusId, this.statuses.has(statusId));
-        }
-        this.statuses.clear(); // need to do this here since core foundry does this in applyActiveEffects, but we do multiple calls to applyEffects
+    for (const statusId of Object.values(CONFIG.specialStatusEffects)) {
+        specialStatuses.set(statusId, this.statuses.has(statusId));
     }
+    this.statuses.clear(); // need to do this here since core foundry does this in applyActiveEffects, but we do multiple calls to applyEffects
     foundry.utils.setProperty(this, "flags.dae.onUpdateTarget", foundry.utils.getProperty(this._source, "flags.dae.onUpdateTarget"));
     debug("prepare data: before passes", this.name, this._source);
     this.overrides = {};
     wrapped();
     // Add an extra pass after prepareData has completed for "specials" to be applied
-    applyDaeEffects.bind(this)({ specList: ValidSpec.actorSpecs[this.type].derivedSpecsObj, completedSpecs: ValidSpec.actorSpecs[this.type].baseSpecsObj, allowAllSpecs: true, wildCardsInclude: [], wildCardsExclude: wildcardEffects, doStatusEffects: true });
-    if (foundry.utils.isNewerVersion(game.version, "11.293")) {
-        // Apply special statuses that changed to active tokens
-        let tokens;
-        for (const [statusId, wasActive] of specialStatuses) {
-            const isActive = this.statuses.has(statusId);
-            if (isActive === wasActive)
-                continue;
-            if (!tokens)
-                tokens = this.getActiveTokens();
-            for (const token of tokens)
-                token._onApplyStatusEffect(statusId, isActive);
-        }
+    applyDaeEffects.bind(this)({ specList: ValidSpec.actorSpecs[this.type].derivedSpecsObj, excludeSpecs: ValidSpec.actorSpecs[this.type].baseSpecsObj, allowAllSpecs: true, wildCardsInclude: [], wildCardsExclude: wildcardEffects, doStatusEffects: true });
+    let tokens;
+    for (const [statusId, wasActive] of specialStatuses) {
+        const isActive = this.statuses.has(statusId);
+        if (isActive === wasActive)
+            continue;
+        if (!tokens)
+            tokens = this.getActiveTokens();
+        for (const token of tokens)
+            token._onApplyStatusEffect(statusId, isActive);
     }
     //TODO find another way to tdo this
     // this._prepareOwnedItems(this.items)
     debug("prepare data: after passes", this);
 }
-// this function replaces applyActiveEffects in Actor
-function applyBaseActiveEffects() {
-    applyDaeEffects.bind(this)({ specList: ValidSpec.actorSpecs[this.type].baseSpecsObj, completedSpecs: {}, allowAllSpecs: false, wildCardsInclude: wildcardEffects, wildCardsExclude: [], doStatusEffects: true });
-}
 foundry.utils.setProperty(globalThis, "CONFIG.DAE.systemClass", DAESystem);
 Hooks.on("dae.modifySpecials", (specKey, specials, characterSpec) => {
     // Prelim support for ATE v10 - need some more detail.
-    //@ts-ignore
     const ACTIVE_EFFECT_MODES = CONST.ACTIVE_EFFECT_MODES;
-    if (game.modules.get("ATL")?.active) {
+    if (game.modules?.get("ATL")?.active) {
         for (let label of ["dimSight", "brightSight"]) {
             specials[`ATL.${label}`] = [new NumberField(), -1];
         }
@@ -689,10 +662,9 @@ Hooks.on("dae.modifySpecials", (specKey, specials, characterSpec) => {
         specials["ATL.sight.saturation"] = [new NumberField(), -1];
         specials["ATL.sight.color"] = [new StringField(), 0 - 1];
     }
-    else if (game.modules.get("ATL")?.active) {
+    else if (game.modules?.get("ATL")?.active) {
         // support new version of ATL
-        //@ts-expect-error .version
-        if (foundry.utils.isNewerVersion("0.3.04", game.modules.get("ATL")?.version)) {
+        if (foundry.utils.isNewerVersion("0.3.04", game.modules?.get("ATL")?.version)) {
             for (let label of ["dimLight", "brightLight", "dimSight", "brightSight", "sightAngle", "lightColor", "lightAnimation", "lightAlpha", "lightAngle"]) {
                 specials[`ATL.${label}`] = [new NumberField(), -1];
             }

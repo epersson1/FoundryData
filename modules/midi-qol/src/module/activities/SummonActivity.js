@@ -24,14 +24,9 @@ let defineMidiSummonSheetClass = (baseClass) => {
 	};
 };
 let defineMidiSummonActivityClass = (ActivityClass) => {
-	var _a, _b;
-	return _a = class MidiSummonActivity extends (_b = MidiActivityMixin(ActivityClass)) {
-			get possibleOtherActivity() {
-				return false;
-			}
-		},
-		_a.LOCALIZATION_PREFIXES = [...Reflect.get(_b, "LOCALIZATION_PREFIXES", _a), "midi-qol.SUMMON"],
-		_a.metadata = foundry.utils.mergeObject(Reflect.get(_b, "metadata", _a), {
+	return class MidiSummonActivity extends MidiActivityMixin(ActivityClass) {
+		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.SUMMON"];
+		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.SUMMON.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
 			sheetClass: MidiSummonSheet,
@@ -39,6 +34,9 @@ let defineMidiSummonActivityClass = (ActivityClass) => {
 				chatCard: "modules/midi-qol/templates/activity-card.hbs",
 				dialog: ActivityClass.metadata.usage.dialog,
 			},
-		}, { inplace: false, insertKeys: true, insertValues: true }),
-		_a;
+		}, { inplace: false, insertKeys: true, insertValues: true });
+		get possibleOtherActivity() {
+			return false;
+		}
+	};
 };

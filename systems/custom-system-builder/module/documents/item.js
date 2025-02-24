@@ -49,7 +49,9 @@ export class CustomItem extends Item {
         if (this.isEmbedded) {
             baseCollection = this.parent.items;
         }
-        return new Collection(baseCollection.filter((item) => item.system.container === this.id).map((item) => [item.id, item]));
+        return new Collection(baseCollection
+            .filter((item) => item.system.container && this.id && item.system.container === this.id)
+            .map((item) => [item.id, item]));
     }
     getItems() {
         return this.items;
@@ -148,6 +150,15 @@ export class CustomItem extends Item {
                 }
             }
         }
+    }
+    async clone(data = {}, options = {}) {
+        const newItem = await super.clone(data, options);
+        const allCloning = [];
+        for (const subItem of this.items ?? []) {
+            allCloning.push(subItem.clone({ system: { container: newItem.id } }, { ...options, folder: CustomItem.getEmbeddedItemsFolder() }));
+        }
+        await Promise.allSettled(allCloning);
+        return newItem;
     }
     static async create(data, options) {
         const newItem = await super.create(data, options);

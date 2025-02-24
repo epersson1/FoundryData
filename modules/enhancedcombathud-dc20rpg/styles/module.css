@@ -1,4 +1,31 @@
  
+  .resources {    
+    position: absolute;
+    right: 10px;
+    transform: translateY(-10%);
+    display: grid;
+    direction: rtl;
+    align-items: center;
+    overflow: auto;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(5, auto);
+    column-gap: 10px;
+    
+  }
+
+  .resource-text {
+    display: block;
+  }
+
+  .resource-contrainer:hover .resource-text {
+    opacity: 1; /* Fades in the text */
+    display: block;
+  }
+
+  .resources img {
+    height: 30px;
+    border: 0;
+  }
   .icon-container-point {
     position: absolute;
     /*top: 50%;*/
@@ -7,7 +34,7 @@
     display: flex;
     align-items: center;
   }
-  
+    
   .icon-point {
     /*font-size: 24px;*/
     width: 32px;

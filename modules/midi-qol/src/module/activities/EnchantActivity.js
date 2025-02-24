@@ -20,16 +20,9 @@ export function setupEnchantActivity() {
 	}
 }
 let defineMidiEnchantActivityClass = (ActivityClass) => {
-	var _a, _b;
-	return _a = class MidiEnchantActivity extends (_b = MidiActivityMixin(ActivityClass)) {
-			get possibleOtherActivity() {
-				return false;
-			}
-			async _triggerSubsequentActions(config, results) {
-			}
-		},
-		_a.LOCALIZATION_PREFIXES = [...Reflect.get(_b, "LOCALIZATION_PREFIXES", _a), "midi-qol.ENCHANT"],
-		_a.metadata = foundry.utils.mergeObject(Reflect.get(_b, "metadata", _a), {
+	return class MidiEnchantActivity extends MidiActivityMixin(ActivityClass) {
+		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.ENCHANT"];
+		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.ENCHANT.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
 			sheetClass: MidiEnchantSheet,
@@ -37,21 +30,24 @@ let defineMidiEnchantActivityClass = (ActivityClass) => {
 				// chatCard: "modules/midi-qol/templates/activity-card.hbs",
 				dialog: ActivityClass.metadata.usage.dialog,
 			},
-		}, { inplace: false, insertKeys: true, insertValues: true }),
-		_a;
+		}, { inplace: false, insertKeys: true, insertValues: true });
+		get possibleOtherActivity() {
+			return false;
+		}
+		async _triggerSubsequentActions(config, results) {
+		}
+	};
 };
 export function defineMidiEnchantSheetClass(baseClass) {
-	var _a, _b;
-	return _a = class MidiEnchantSheet extends (_b = MidiActivityMixinSheet(baseClass)) {
-		},
-		_a.PARTS = {
-			...Reflect.get(_b, "PARTS", _a),
+	return class MidiEnchantSheet extends MidiActivityMixinSheet(baseClass) {
+		static PARTS = {
+			...super.PARTS,
 			effect: {
 				template: "modules/midi-qol/templates/activity/enchant-effect.hbs",
 				templates: [
-					...Reflect.get(_b, "PARTS", _a).effect.templates
+					...super.PARTS.effect.templates
 				]
 			}
-		},
-		_a;
+		};
+	};
 }

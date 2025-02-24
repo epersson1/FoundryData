@@ -1,38 +1,25 @@
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-	if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-	if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-	return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-	if (kind === "m") throw new TypeError("Private method is not writable");
-	if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-	if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-	return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var _FormBuilder_instances, _FormBuilder_tabs, _FormBuilder_fields, _FormBuilder_buttons, _FormBuilder_options, _FormBuilder_currentTab, _FormBuilder_currentFieldset, _FormBuilder_object, _FormBuilder_app, _FormBuilder_addField, _FormHelper_instances, _a, _FormHelper_fields, _FormHelper_buttons, _FormHelper_info, _FormHelper_getTabs, _FormHelper_onSubmit;
 const MODULE_ID = "midi-qol";
 const PARTIAL_KEY = "6uy8g1tXqHlhlp65dhiL-genericFormHelper-" + MODULE_ID;
 export class FormBuilder {
 	constructor() {
-		_FormBuilder_instances.add(this);
-		_FormBuilder_tabs.set(this, []);
-		_FormBuilder_fields.set(this, []);
-		_FormBuilder_buttons.set(this, []);
-		_FormBuilder_options.set(this, {
-			position: {
-				width: 560,
-				height: "auto",
-			},
-			window: {},
-		});
-		_FormBuilder_currentTab.set(this, null);
-		_FormBuilder_currentFieldset.set(this, null);
-		_FormBuilder_object.set(this, null);
-		_FormBuilder_app.set(this, null);
 		this.submitButton();
 	}
+	#tabs = [];
+	#fields = [];
+	#buttons = [];
+	#options = {
+		position: {
+			width: 560,
+			height: "auto",
+		},
+		window: {},
+	};
+	#currentTab = null;
+	#currentFieldset = null;
+	#object = null;
+	#app = null;
 	get app() {
-		return __classPrivateFieldGet(this, _FormBuilder_app, "f");
+		return this.#app;
 	}
 	async render() {
 		const app = this.form();
@@ -40,10 +27,10 @@ export class FormBuilder {
 		return app.promise;
 	}
 	form() {
-		if (__classPrivateFieldGet(this, _FormBuilder_app, "f"))
-			return __classPrivateFieldGet(this, _FormBuilder_app, "f");
-		const app = new FormHelper({ tabs: __classPrivateFieldGet(this, _FormBuilder_tabs, "f"), fields: __classPrivateFieldGet(this, _FormBuilder_fields, "f"), buttons: __classPrivateFieldGet(this, _FormBuilder_buttons, "f"), options: __classPrivateFieldGet(this, _FormBuilder_options, "f") });
-		__classPrivateFieldSet(this, _FormBuilder_app, app, "f");
+		if (this.#app)
+			return this.#app;
+		const app = new FormHelper({ tabs: this.#tabs, fields: this.#fields, buttons: this.#buttons, options: this.#options });
+		this.#app = app;
 		return app;
 	}
 	getHTML() {
@@ -53,7 +40,7 @@ export class FormBuilder {
 		return renderTemplate(PARTIAL_KEY, data);
 	}
 	getAsClass(options) {
-		const classData = { ...options, tabs: __classPrivateFieldGet(this, _FormBuilder_tabs, "f"), fields: __classPrivateFieldGet(this, _FormBuilder_fields, "f"), buttons: __classPrivateFieldGet(this, _FormBuilder_buttons, "f"), options: __classPrivateFieldGet(this, _FormBuilder_options, "f") };
+		const classData = { ...options, tabs: this.#tabs, fields: this.#fields, buttons: this.#buttons, options: this.#options };
 		return class extends FormHelper {
 			constructor(data = {}) {
 				super({ ...classData, ...data });
@@ -61,15 +48,15 @@ export class FormBuilder {
 		};
 	}
 	registerAsMenu({ moduleId, key, name, label, icon, hint, scope, restricted, defaultValue, onChange, requiresReload } = {}) {
-		moduleId ?? (moduleId = MODULE_ID);
-		scope ?? (scope = "world");
-		restricted ?? (restricted = true);
-		defaultValue ?? (defaultValue = {});
-		key ?? (key = "settings");
-		icon ?? (icon = "fas fa-cogs");
-		label ?? (label = "Configure");
-		name ?? (name = "Configuration Menu");
-		hint ?? (hint = "Configure the module settings");
+		moduleId ??= MODULE_ID;
+		scope ??= "world";
+		restricted ??= true;
+		defaultValue ??= {};
+		key ??= "settings";
+		icon ??= "fas fa-cogs";
+		label ??= "Configure";
+		name ??= "Configuration Menu";
+		hint ??= "Configure the module settings";
 		const menuOptions = {
 			settingsMenu: {
 				requiresReload,
@@ -112,24 +99,36 @@ export class FormBuilder {
 		el.insertAdjacentElement(insertion, insertionEl);
 		return insertionEl;
 	}
+	#addField(field) {
+		if (this.#object && field.name) {
+			const objectValue = foundry.utils.getProperty(this.#object, field.name);
+			if (objectValue !== undefined)
+				field.value = objectValue;
+		}
+		if (this.#currentFieldset)
+			return this.#currentFieldset.fields.push(field);
+		if (this.#currentTab)
+			return this.#currentTab.fields.push(field);
+		return this.#fields.push(field);
+	}
 	title(title) {
-		__classPrivateFieldGet(this, _FormBuilder_options, "f").window.title = title;
+		this.#options.window.title = title;
 		return this;
 	}
 	resizable(resizable = true) {
-		__classPrivateFieldGet(this, _FormBuilder_options, "f").window.resizable = resizable;
+		this.#options.window.resizable = resizable;
 		return this;
 	}
 	info(info) {
-		__classPrivateFieldGet(this, _FormBuilder_options, "f").info = info;
+		this.#options.info = info;
 		return this;
 	}
 	object(object) {
-		__classPrivateFieldSet(this, _FormBuilder_object, object, "f");
+		this.#object = object;
 		return this;
 	}
 	size({ width, height }) {
-		__classPrivateFieldGet(this, _FormBuilder_options, "f").position = {
+		this.#options.position = {
 			width: width ?? 560,
 			height: height ?? "auto",
 		};
@@ -143,15 +142,15 @@ export class FormBuilder {
 			label,
 		};
 		if (!enabled)
-			__classPrivateFieldSet(this, _FormBuilder_buttons, __classPrivateFieldGet(this, _FormBuilder_buttons, "f").filter((b) => b.action !== "submit"), "f");
+			this.#buttons = this.#buttons.filter((b) => b.action !== "submit");
 		else
-			__classPrivateFieldGet(this, _FormBuilder_buttons, "f").push(submitButton);
+			this.#buttons.push(submitButton);
 		return this;
 	}
 	tab({ id, group = "sheet", icon, label, active = false } = {}) {
-		group ?? (group = "sheet");
-		if (!id && __classPrivateFieldGet(this, _FormBuilder_currentTab, "f")) {
-			__classPrivateFieldSet(this, _FormBuilder_currentTab, null, "f");
+		group ??= "sheet";
+		if (!id && this.#currentTab) {
+			this.#currentTab = null;
 			return this;
 		}
 		if (!id)
@@ -164,13 +163,13 @@ export class FormBuilder {
 			active,
 			fields: [],
 		};
-		__classPrivateFieldGet(this, _FormBuilder_tabs, "f").push(tab);
-		__classPrivateFieldSet(this, _FormBuilder_currentTab, tab, "f");
+		this.#tabs.push(tab);
+		this.#currentTab = tab;
 		return this;
 	}
 	fieldset({ legend } = {}) {
-		if (!legend && __classPrivateFieldGet(this, _FormBuilder_currentFieldset, "f")) {
-			__classPrivateFieldSet(this, _FormBuilder_currentFieldset, null, "f");
+		if (!legend && this.#currentFieldset) {
+			this.#currentFieldset = null;
 			return this;
 		}
 		if (!legend)
@@ -180,15 +179,15 @@ export class FormBuilder {
 			fieldset: true,
 			fields: [],
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, fieldset);
-		__classPrivateFieldSet(this, _FormBuilder_currentFieldset, fieldset, "f");
+		this.#addField(fieldset);
+		this.#currentFieldset = fieldset;
 		return this;
 	}
 	html(html) {
 		const field = {
 			html,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	text({ name, label, hint, value }) {
@@ -199,7 +198,7 @@ export class FormBuilder {
 			hint,
 			value,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	number({ name, label, hint, value, min, max, step }) {
@@ -213,7 +212,7 @@ export class FormBuilder {
 			max,
 			step,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	checkbox({ name, label, hint, value }) {
@@ -224,7 +223,7 @@ export class FormBuilder {
 			hint,
 			value,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	color({ name, label, hint, value }) {
@@ -235,11 +234,11 @@ export class FormBuilder {
 			hint,
 			value,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	file({ name, type = "imagevideo", label, hint, value }) {
-		type ?? (type = "imagevideo");
+		type ??= "imagevideo";
 		const types = FILE_PICKER_TYPES[type];
 		const dataField = new foundry.data.fields.FilePathField({ categories: types });
 		dataField.categories = [type];
@@ -251,7 +250,7 @@ export class FormBuilder {
 			type,
 			value,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	select({ name, label, hint, value, options }) {
@@ -264,7 +263,7 @@ export class FormBuilder {
 			value,
 			options,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	multiSelect({ name, label, hint, value, options }) {
@@ -278,7 +277,7 @@ export class FormBuilder {
 			value,
 			options,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	editor({ name, label, hint, value }) {
@@ -289,7 +288,7 @@ export class FormBuilder {
 			hint,
 			value,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	textArea({ name, label, hint, value }) {
@@ -301,11 +300,11 @@ export class FormBuilder {
 			value,
 			stacked: true,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_instances, "m", _FormBuilder_addField).call(this, field);
+		this.#addField(field);
 		return this;
 	}
 	button({ label, action = "submit", icon, callback }) {
-		action ?? (action = foundry.utils.randomID());
+		action ??= foundry.utils.randomID();
 		const button = {
 			action,
 			type: "button",
@@ -313,22 +312,10 @@ export class FormBuilder {
 			label,
 			callback,
 		};
-		__classPrivateFieldGet(this, _FormBuilder_buttons, "f").push(button);
+		this.#buttons.push(button);
 		return this;
 	}
 }
-_FormBuilder_tabs = new WeakMap(), _FormBuilder_fields = new WeakMap(), _FormBuilder_buttons = new WeakMap(), _FormBuilder_options = new WeakMap(), _FormBuilder_currentTab = new WeakMap(), _FormBuilder_currentFieldset = new WeakMap(), _FormBuilder_object = new WeakMap(), _FormBuilder_app = new WeakMap(), _FormBuilder_instances = new WeakSet(), _FormBuilder_addField = function _FormBuilder_addField(field) {
-	if (__classPrivateFieldGet(this, _FormBuilder_object, "f") && field.name) {
-		const objectValue = foundry.utils.getProperty(__classPrivateFieldGet(this, _FormBuilder_object, "f"), field.name);
-		if (objectValue !== undefined)
-			field.value = objectValue;
-	}
-	if (__classPrivateFieldGet(this, _FormBuilder_currentFieldset, "f"))
-		return __classPrivateFieldGet(this, _FormBuilder_currentFieldset, "f").fields.push(field);
-	if (__classPrivateFieldGet(this, _FormBuilder_currentTab, "f"))
-		return __classPrivateFieldGet(this, _FormBuilder_currentTab, "f").fields.push(field);
-	return __classPrivateFieldGet(this, _FormBuilder_fields, "f").push(field);
-};
 const FILE_PICKER_TYPES = {
 	imagevideo: ["IMAGE", "VIDEO"],
 	image: ["IMAGE"],
@@ -357,10 +344,6 @@ export class FormHelper extends foundry.applications.api.HandlebarsApplicationMi
 		const actions = {};
 		data.buttons.forEach((b) => (actions[b.action] = b.callback));
 		super({ actions, ...data.options });
-		_FormHelper_instances.add(this);
-		_FormHelper_fields.set(this, void 0);
-		_FormHelper_buttons.set(this, void 0);
-		_FormHelper_info.set(this, void 0);
 		FormHelper.registerPartial();
 		this.menu = data.settingsMenu;
 		this.resolve;
@@ -369,9 +352,40 @@ export class FormHelper extends foundry.applications.api.HandlebarsApplicationMi
 			this.resolve = resolve;
 			this.reject = reject;
 		});
-		__classPrivateFieldSet(this, _FormHelper_info, data.options.info, "f");
+		this.#info = data.options.info;
 		this.processFormStructure(data);
 	}
+	#fields;
+	#buttons;
+	#info;
+	static DEFAULT_OPTIONS = {
+		classes: ["form-helper"],
+		tag: "form",
+		window: {
+			contentClasses: ["standard-form"],
+		},
+		position: {
+			width: 560,
+			height: "auto",
+		},
+		form: {
+			handler: this.#onSubmit,
+			closeOnSubmit: true,
+		},
+		actions: {},
+	};
+	static PARTS = {
+		tabs: {
+			template: "templates/generic/tab-navigation.hbs",
+		},
+		genericForm: {
+			template: PARTIAL_KEY,
+			classes: ["standard-form"],
+		},
+		footer: {
+			template: "templates/generic/form-footer.hbs",
+		},
+	};
 	static registerPartial() {
 		if (Handlebars.partials[PARTIAL_KEY])
 			return;
@@ -413,8 +427,8 @@ export class FormHelper extends foundry.applications.api.HandlebarsApplicationMi
 					field.value = settingValue;
 			}
 		}
-		__classPrivateFieldSet(this, _FormHelper_fields, data.fields ?? [], "f");
-		__classPrivateFieldSet(this, _FormHelper_buttons, data.buttons ?? [], "f");
+		this.#fields = data.fields ?? [];
+		this.#buttons = data.buttons ?? [];
 	}
 	_onClose(options) {
 		super._onClose(options);
@@ -423,10 +437,10 @@ export class FormHelper extends foundry.applications.api.HandlebarsApplicationMi
 	}
 	_prepareContext(options) {
 		return {
-			tabs: __classPrivateFieldGet(this, _FormHelper_instances, "m", _FormHelper_getTabs).call(this),
-			fields: __classPrivateFieldGet(this, _FormHelper_fields, "f"),
-			info: __classPrivateFieldGet(this, _FormHelper_info, "f"),
-			buttons: [...__classPrivateFieldGet(this, _FormHelper_buttons, "f").filter((b) => b.type !== "submit"), ...__classPrivateFieldGet(this, _FormHelper_buttons, "f").filter((b) => b.type === "submit")],
+			tabs: this.#getTabs(),
+			fields: this.#fields,
+			info: this.#info,
+			buttons: [...this.#buttons.filter((b) => b.type !== "submit"), ...this.#buttons.filter((b) => b.type === "submit")],
 		};
 	}
 	_onRender(context, options) {
@@ -434,6 +448,15 @@ export class FormHelper extends foundry.applications.api.HandlebarsApplicationMi
 		if (!this.__tabs) {
 			this.element.querySelector("nav").classList.add("hidden");
 		}
+	}
+	#getTabs() {
+		const tabs = this.__tabs ?? {};
+		for (const v of Object.values(tabs)) {
+			v.cssClass = v.active ? "active" : "";
+			if (v.active)
+				break;
+		}
+		return tabs;
 	}
 	changeTab(...args) {
 		super.changeTab(...args);
@@ -446,54 +469,18 @@ export class FormHelper extends foundry.applications.api.HandlebarsApplicationMi
 		const formData = new FormDataExtended(this.element);
 		return foundry.utils.expandObject(formData.object);
 	}
+	static async #onSubmit(event, form, formData) {
+		const data = foundry.utils.expandObject(formData.object);
+		this.resolve(data);
+		if (this.menu) {
+			if (this.menu.requiresReload)
+				SettingsConfig.reloadConfirm();
+			if (this.menu.onChange)
+				this.menu.onChange(data);
+			return game.settings.set(this.menu.moduleId, this.menu.key, data);
+		}
+	}
 }
-_a = FormHelper, _FormHelper_fields = new WeakMap(), _FormHelper_buttons = new WeakMap(), _FormHelper_info = new WeakMap(), _FormHelper_instances = new WeakSet(), _FormHelper_getTabs = function _FormHelper_getTabs() {
-	const tabs = this.__tabs ?? {};
-	for (const v of Object.values(tabs)) {
-		v.cssClass = v.active ? "active" : "";
-		if (v.active)
-			break;
-	}
-	return tabs;
-}, _FormHelper_onSubmit = async function _FormHelper_onSubmit(event, form, formData) {
-	const data = foundry.utils.expandObject(formData.object);
-	this.resolve(data);
-	if (this.menu) {
-		if (this.menu.requiresReload)
-			SettingsConfig.reloadConfirm();
-		if (this.menu.onChange)
-			this.menu.onChange(data);
-		return game.settings.set(this.menu.moduleId, this.menu.key, data);
-	}
-};
-FormHelper.DEFAULT_OPTIONS = {
-	classes: ["form-helper"],
-	tag: "form",
-	window: {
-		contentClasses: ["standard-form"],
-	},
-	position: {
-		width: 560,
-		height: "auto",
-	},
-	form: {
-		handler: __classPrivateFieldGet(_a, _a, "m", _FormHelper_onSubmit),
-		closeOnSubmit: true,
-	},
-	actions: {},
-};
-FormHelper.PARTS = {
-	tabs: {
-		template: "templates/generic/tab-navigation.hbs",
-	},
-	genericForm: {
-		template: PARTIAL_KEY,
-		classes: ["standard-form"],
-	},
-	footer: {
-		template: "templates/generic/form-footer.hbs",
-	},
-};
 const FIELD_INNER_HBS = `
 	{{#if field.fieldset}}
 	<fieldset>

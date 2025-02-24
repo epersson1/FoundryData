@@ -29,7 +29,6 @@ export var DIMETitleBar;
 export var daeColorTitleBar;
 export var daeNoTitleText;
 export var libWrapper;
-export var needStringNumericValues;
 export var actionQueue;
 export var linkedTokens;
 export var CECustomEffectsItemUuid;
@@ -48,8 +47,8 @@ export var macroDestination = {
     "macro.activityMacro": "mixed"
 };
 export function geti18nOptions(key, moduleId) {
-    const translations = game.i18n.translations[moduleId] ?? {};
-    //@ts-ignore _fallback not accessible
+    const translations = game.i18n?.translations[moduleId] ?? {};
+    // @ts-expect-error protected
     const fallback = game.i18n._fallback[moduleId] ?? {};
     let translation = foundry.utils.mergeObject(fallback[key] ?? {}, translations[key] ?? {}, { overwrite: true, inplace: false });
     return translation;
@@ -62,7 +61,7 @@ if (!globalThis.daeSystems)
 export var showInline = false;
 let debugLog = true;
 function flagChangeKeys(actor, change) {
-    if (!(["dnd5e", "sw5e"].includes(game.system.id)))
+    if (!(["dnd5e", "sw5e"].includes(game.system?.id ?? "")))
         return;
     const hasSaveBonus = change.key.startsWith("data.abilities.") && change.key.endsWith(".save") && !change.key.endsWith(".bonuses.save");
     if (hasSaveBonus) {
@@ -108,7 +107,7 @@ function flagChangeKeys(actor, change) {
 /*
  * Replace default appplyAffects to do value lookups
  */
-export function applyDaeEffects({ specList = [], completedSpecs = {}, allowAllSpecs = false, wildCardsInclude = [], wildCardsExclude = [], doStatusEffects = true }) {
+export function applyDaeEffects({ specList = {}, excludeSpecs = {}, allowAllSpecs = false, wildCardsInclude = [], wildCardsExclude = [], doStatusEffects = false }) {
     if (disableEffects)
         return;
     const overrides = {};
@@ -148,7 +147,7 @@ export function applyDaeEffects({ specList = [], completedSpecs = {}, allowAllSp
                     c.key = daeSystemClass.fieldMappings[c.key];
                 }
             }
-            return !completedSpecs[c.key]
+            return !excludeSpecs[c.key]
                 && (allowAllSpecs || specList[c.key] !== undefined || wildCardsInclude.some(re => c.key.match(re) !== null))
                 && (!wildCardsExclude.some(re => c.key.match(re) !== null))
                 && !c.key.startsWith("ATL.");
@@ -236,22 +235,11 @@ export function applyDaeEffects({ specList = [], completedSpecs = {}, allowAllSp
                     catch (err) { // safeEval failed try a roll
                         try {
                             let roll = new Roll(c.value, rollData);
-                            //@ts-expect-error
-                            if (game.release.generation < 12) {
-                                if (!roll.isDeterministic) {
-                                    console.warn("%c dae | you are using dice expressions in a numeric field. This will be disabled in foundry version 12", "color: red; font-size:14px;");
-                                    console.warn(`%c Actor ${this.name} ${this.uuid} Change is ${c.key}: ${c.value}`, "color: red; font-size:14px;");
-                                }
-                                c.value = `${roll.evaluate({ async: false }).total}`;
+                            if (!roll.isDeterministic) {
+                                console.error(`%c dae | you are using dice expressions in a numeric field which is not supported in ${game.version} dice terms ignored`, "color: red;");
+                                console.error(`Actor ${this.name} ${this.uuid} Change is ${c.key}: ${c.value}`);
                             }
-                            else {
-                                if (!roll.isDeterministic) {
-                                    console.error(`%c dae | you are using dice expressions in a numeric field which is not supported in ${game.version} dice terms ignored`, "color: red;");
-                                    console.error(`Actor ${this.name} ${this.uuid} Change is ${c.key}: ${c.value}`);
-                                }
-                                //@ts-expect-error evaluateSync
-                                c.value = `${new Roll(value).evaluateSync({ strict: false }).total}`;
-                            }
+                            c.value = `${new Roll(value).evaluateSync({ strict: false }).total}`;
                         }
                         catch (err) {
                             console.warn("dae | change value calculation failed for", err, this, c);
@@ -344,8 +332,6 @@ export async function removeTokenMagicChange(actor, change, tokens, context = {}
 }
 async function myRemoveCEEffect(effectName, uuid, origin, isToken, metaData) {
     let interval = 1;
-    if (foundry.utils.isNewerVersion("11.294", game.version))
-        interval = isToken ? 250 : 1;
     await delay(interval); // let all of the stuff settle down
     return await ceInterface?.removeEffect({ effectName, uuid, origin, metaData });
 }
@@ -359,12 +345,10 @@ async function myAddCEEffectWith(effectData, uuid, origin, overlay, isToken) {
     if (!ceInterface)
         return;
     let interval = 1;
-    if (foundry.utils.isNewerVersion("11.294", game.version))
-        interval = isToken ? 250 : 0;
     if (interval)
         await delay(interval);
     //@ts-expect-error
-    if (foundry.utils.isNewerVersion("6.9", game.modules.get("dfreds-convenientEfgfects")?.version)) {
+    if (foundry.utils.isNewerVersion("6.9", game.modules?.get("dfreds-convenientEfgfects")?.version)) {
         return await ceInterface.addEffectWith({ effectData, uuid, origin, overlay: false });
     }
     else {
@@ -484,7 +468,6 @@ export async function expireEffects(actor, effects, context) {
         //@ts-expect-error
         if (!fromUuidSync(effect.uuid))
             continue;
-        //@ts-expect-error
         if (effect.transfer)
             effectsToDisable.push(effect);
         else if (effect.parent instanceof Actor)
@@ -669,6 +652,9 @@ async function _preCreateActiveEffectRemoveExisting(...args) {
         return result;
     }
 }
+async function _preCreateEnchantmentEffect(data, options, user) {
+    // There will be something needed here eventuall.
+}
 async function _preCreateActiveEffectIncrement(data, options, user) {
     if (debugEnabled > 0)
         warn("_preCreateActiveEffect", this, data, options, user);
@@ -700,7 +686,6 @@ async function _preCreateActiveEffectIncrement(data, options, user) {
             if (CONFIG.statusEffects.find(se => se._id === this.id))
                 existingEffect = parent.effects.find(ef => ef.id === this.id);
             else {
-                //@ts-expect-error
                 existingEffect = parent.effects.find(ef => ef.origin === this.origin && effectBaseName(ef) === effectBaseName(this));
             }
             if (["count", "countDeleteDecrement"].includes(this.flags?.dae?.stackable)) {
@@ -728,7 +713,6 @@ async function _preCreateActiveEffectIncrement(data, options, user) {
             if (this.flags?.dae?.durationExpression && parent instanceof Actor) {
                 let sourceActor = parent;
                 if (!data.transfer) { // for non-transfer effects we might be pointing to a different actor
-                    //@ts-expect-error
                     const thing = fromUuidSync(this.origin);
                     if (thing?.actor)
                         sourceActor = thing.actor;
@@ -781,7 +765,6 @@ async function _preCreateActiveEffectIncrement(data, options, user) {
                     newChanges.push(newChange);
                 }
                 else if (change.key.startsWith("macro.itemMacro")) {
-                    //@ts-expect-error
                     const item = fromUuidSync(this.origin);
                     if (item instanceof Item) {
                         let macroCommand = foundry.utils.getProperty(item, "flags.dae.macro.command") ?? foundry.utils.getProperty(item, "flags.itemacro.macro.command") ?? foundry.utils.getProperty(item, "flags.itemacro.macro.data.command");
@@ -789,7 +772,6 @@ async function _preCreateActiveEffectIncrement(data, options, user) {
                     }
                 }
                 else if (change.key.startsWith("macro.activityMacro") && this.activity) {
-                    //@ts-expect-error
                     const activity = fromUuidSync(this.activity);
                     foundry.utils.setProperty(updates, "flags.dae.activityMacro", activity.macro?.command);
                 }
@@ -814,7 +796,7 @@ async function evalInline(expression, actor, effect, silent) {
         expression = expression.replaceAll("@data.", "@");
         const roll = await (new Roll(expression, actor?.getRollData())).evaluate();
         if (showInline && !silent) {
-            roll.toMessage({ speaker: ChatMessage.getSpeaker({ actor }), flavor: `${effect.name} ${expression}`, chatMessage: true });
+            roll.toMessage({ speaker: ChatMessage.getSpeaker({ actor }), flavor: `${effect.name} ${expression}` });
         }
         return `${roll.total}`;
     }
@@ -1087,7 +1069,6 @@ async function _preDeleteActiveEffectDecrement(...args) {
     debug("decrementing complete", this.name, stacks);
     if (this.getDependents())
         for (let dependent of this.getDependents()) {
-            //@ts-expect-error
             if (fromUuidSync(dependent.uuid))
                 await dependent.delete(options);
         }
@@ -1113,7 +1094,6 @@ async function _preDeleteActiveEffectBeta(wrapped, ...args) {
     debug("decrementing complete", this.name, stacks);
     if (this.getDependents())
         for (let dependent of this.getDependents()) {
-            //@ts-expect-error
             if (fromUuidSync(dependent.uuid))
                 await dependent.delete(...args);
         }
@@ -1150,7 +1130,7 @@ export function deleteActiveEffectHook(...args) {
                     if (["macro.createItem", "macro.createItemRunMacro"].includes(change.key)) {
                         await removeCreateItemChange(change.value, actor, effect, context);
                     }
-                    if (change.key === "macro.StatusEffect") {
+                    if (change.key === "macro.StatusEffect" || change.key === "StatusEffect") {
                         await removeConditionChange(actor, change, token, effect, context); // TODO this is not right
                     }
                     if (ceInterface && change.key === "macro.CE") {
@@ -1207,7 +1187,7 @@ export function getSelfTarget(actor) {
         return actor.token.object;
     const speaker = ChatMessage.getSpeaker({ actor });
     if (speaker.token) {
-        const token = canvas.tokens?.get(speaker.token);
+        const token = canvas?.tokens?.get(speaker.token);
         if (token)
             return token;
     }
@@ -1226,7 +1206,6 @@ export async function daeMacro(action, actor, effectData, lastArgOptions = {}) {
     if (!effectData.changes)
         return effectData;
     if (effectData instanceof ActiveEffect) {
-        //@ts-expect-error
         if (effectData.transfer && effectData.parent instanceof Item)
             theItem = effectData.parent;
         effectData = effectData.toObject(false);
@@ -1238,7 +1217,11 @@ export async function daeMacro(action, actor, effectData, lastArgOptions = {}) {
         let count;
         for (count = 0; count < 10 && source instanceof ActiveEffect; count++) {
             //@ts-expect-error
-            source = await fromUuid(source.origin);
+            const newSource = await fromUuid(source.origin);
+            if (!newSource)
+                source = source.parent;
+            else
+                source = newSource;
         }
         if (count === 10) {
             console.warn("dae | daeMacro | too many levels of origin", effectData);
@@ -1247,7 +1230,6 @@ export async function daeMacro(action, actor, effectData, lastArgOptions = {}) {
             theItem = source;
     }
     if (!theItem && effectData.flags.dae?.itemUuid) {
-        //@ts-expect-error fromUuidSync
         theItem = fromUuidSync(effectData.flags.dae.itemUuid);
     }
     if (!theItem && effectData.flags?.dae?.itemData) {
@@ -1339,12 +1321,12 @@ export async function daeMacro(action, actor, effectData, lastArgOptions = {}) {
                 if (!macro) {
                     //TODO localize this
                     if (action !== "off") {
-                        ui.notifications.warn(`macro.execute/macro.itemMacro | No macro ${args[0]} found`);
+                        ui.notifications?.warn(`macro.execute/macro.itemMacro | No macro ${args[0]} found`);
                         warn(`macro.execute/macro.itemMacro | No macro ${args[0]} found`);
                         continue;
                     }
                 }
-                //@ts-expect-error - doing this refetch to try and make sure the actor has not been deleted
+                // doing this refetch to try and make sure the actor has not been deleted
                 if (!fromUuidSync(actor.uuid)) {
                     error("actor vanished", actor.name, actor.uuid);
                     return;
@@ -1366,7 +1348,6 @@ export async function daeMacro(action, actor, effectData, lastArgOptions = {}) {
                 let macroArgs = [action];
                 macroArgs = macroArgs.concat(args).concat(lastArg);
                 const macroActivity = await fromUuid(activityUuid);
-                //@ts-expect-error
                 const effect = fromUuidSync(lastArgOptions.effectUuid);
                 const scope = { actor, token: selfTarget, lastArgValue: lastArg, item: theItem, macroItem: theItem, macroActivity, effect };
                 scope.args = macroArgs.filter(arg => {
@@ -1391,7 +1372,7 @@ export async function daeMacro(action, actor, effectData, lastArgOptions = {}) {
                     tokenId: selfTarget.id,
                     tokenUuid,
                 }, { overwrite: false, insertKeys: true, insertValues: true, inplace: false });
-                //@ts-expect-error try and make sure the actor has not vanished
+                // try and make sure the actor has not vanished
                 if (!fromUuidSync(actor.uuid)) {
                     error("actor vanished", actor.name, actor.uuid);
                 }
@@ -1418,7 +1399,7 @@ export async function evalArgs({ effectData, item, context, actor, change, spell
         return change; // nothing to do
     const returnChange = foundry.utils.duplicate(change);
     let contextToUse = foundry.utils.mergeObject({
-        scene: canvas.scene?.id,
+        scene: canvas?.scene?.id,
         token: ChatMessage.getSpeaker({ actor }).token,
         target: "@target",
         targetUuid: "@targetUuid",
@@ -1473,6 +1454,7 @@ export async function evalArgs({ effectData, item, context, actor, change, spell
             case "macro.CUB":
             case "macro.CLT":
             case "macro.StatusEffect":
+            case "StatusEffect":
             case "macro.tokenMagic":
             case "macro.createItem":
             case "macro.createItemRunMacro":
@@ -1483,16 +1465,8 @@ export async function evalArgs({ effectData, item, context, actor, change, spell
                 if (doRolls && typeof (currentValue ?? ValidSpec.actorSpecs[actor.type].allSpecsObj[change.key]?.fieldType) === "number") {
                     const roll = new Roll(returnChange.value, contextToUse);
                     if (!roll.isDeterministic) {
-                        //@ts-expect-error v12 has evaluateSync
-                        if (roll.evaluateSync) {
-                            error("evalargs: expression is not deterministic dice terms ignored", actor.name, actor.uuid, returnChange.value);
-                            //@ts-expect-error v12 has evaluateSync
-                            returnChange.value = roll.evaluateSync({ strict: false }).total;
-                        }
-                        else {
-                            console.warn("dae | %c evalargs: expression is not deterministic and dice terms will be ignored in foundry version 12", "color: red", actor.name, actor.uuid, returnChange.value);
-                        }
-                        returnChange.value = roll.evaluate({ async: false }).total;
+                        error("evalargs: expression is not deterministic dice terms ignored", actor.name, actor.uuid, returnChange.value);
+                        returnChange.value = roll.evaluateSync({ strict: false }).total;
                     }
                 }
                 ;
@@ -1551,12 +1525,10 @@ export async function getMacro({ change, name }, item, effectData) {
                 macroCommand = foundry.utils.getProperty(itemData, "flags.itemacro.macro.data.command");
             if (!macroCommand && !item) { // we never got an item do a last ditch attempt
                 warn("eval args: fetching item from effectData/origin ", effectData?.origin);
-                //@ts-expect-error fromUuidSync
                 const itemOrEffect = fromUuidSync(effectData.origin);
                 if (itemOrEffect instanceof CONFIG.Item.documentClass)
                     item = itemOrEffect;
                 if (!item) {
-                    //@ts-expect-error
                     const activity = fromUuidSync(foundry.utils.getProperty(effectData, "flags.dae.activity"));
                     if (activity)
                         item = activity.item;
@@ -1580,15 +1552,13 @@ export async function getMacro({ change, name }, item, effectData) {
             macroCommand = `if (!args || args[0] === "on") {ui.notifications.warn("macro.itemMacro | No macro found for item ${item?.name}");}`;
             warn(`No macro found for item ${item?.name}`);
         }
-        //@ ts-expect-error displaySheet
         return new CONFIG.Macro.documentClass({
             name: "DAE-Item-Macro",
             type: "script",
             img: null,
             command: macroCommand,
             author: game.user?.id,
-            //@ts-expect-error ownership v12 DOCUMENT_PERMISSION_LEVELS -> DOCUMENT_OWNERSHIP_LEVELS
-            ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? CONST.DOCUMENT_PERMISSION_LEVELS.OWNER },
+            ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS?.OWNER },
             // TODO see if this should change.
             flags: { "dnd5e.itemMacro": true }
         }, { displaySheet: false, temporary: true });
@@ -1655,7 +1625,7 @@ export async function applyActivityEffects(activity, activate, targets, activity
         }
         ;
         activeEffectData.origin = options.origin ?? activityEffects[aeIndex].uuid;
-        activeEffectData.duration.startTime = game.time.worldTime;
+        activeEffectData.duration.startTime = game.time?.worldTime;
         daeSystemClass.addDAEMetaData(activeEffectData, activity.item, options);
         activityEffects[aeIndex] = activeEffectData;
     }
@@ -1745,7 +1715,7 @@ export async function applyNonTransferEffects(item, activate, targets, options =
         }
         ;
         activeEffectData.origin = options.origin ?? item.uuid;
-        activeEffectData.duration.startTime = game.time.worldTime;
+        activeEffectData.duration.startTime = game.time?.worldTime;
         daeSystemClass.addDAEMetaData(activeEffectData, item, options);
         appliedEffects[aeIndex] = activeEffectData;
     }
@@ -2043,21 +2013,19 @@ export function preUpdateActorHook(candidate, updates, options, user) {
             }
             if (foundry.utils.getProperty(updates, onUpdate.filter) === undefined)
                 continue;
-            //@ts-expect-error fromUuidSync
             const originObject = fromUuidSync(onUpdate.origin);
-            //@ts-expect-error fromUuidSync
             const sourceTokenDocument = fromUuidSync(onUpdate.sourceTokenUuid);
-            //@ts-expect-error fromUuidSync
             const targetTokenDocument = fromUuidSync(onUpdate.targetTokenUuid);
             const sourceActor = actorFromUuid(onUpdate.sourceActorUuid);
             const sourceToken = sourceTokenDocument?.object;
             const targetActor = targetTokenDocument?.actor;
             const targetToken = targetTokenDocument?.object;
             let originItem = (originObject instanceof Item) ? originObject : undefined;
+            if (!originItem && originObject instanceof ActiveEffect)
+                originItem = originObject.parent;
             if (!originItem) {
                 const theEffect = targetActor.appliedEffects.find(ef => ef.origin === onUpdate.origin);
                 if (foundry.utils.getProperty(theEffect, "flags.dae.itemUuid")) {
-                    //@ts-expect-error fromUUid type error
                     originItem = fromUuidSync(foundry.utils.getProperty(theEffect, "flags.dae.itemUuid"));
                 }
             }
@@ -2084,7 +2052,7 @@ export function preUpdateActorHook(candidate, updates, options, user) {
             let macroText;
             if (onUpdate.macroName.startsWith("ItemMacro")) { // TODO Come back and make sure this is tagged to the effect
                 if (onUpdate.macroName === "ItemMacro") {
-                    macroText = foundry.utils.getProperty(originObject, "flags.dae.macro.command") ?? foundry.utils.getProperty(originObject, "flags.itemacro.macro.command") ?? foundry.utils.getProperty(originObject, "flags.itemacro.macro.data.command");
+                    macroText = foundry.utils.getProperty(originItem ?? {}, "flags.dae.macro.command") ?? foundry.utils.getProperty(originObject, "flags.itemacro.macro.command") ?? foundry.utils.getProperty(originItem ?? {}, "flags.itemacro.macro.data.command");
                 }
                 else if (onUpdate.macroName.startsWith("ItemMacro.")) {
                     let macroObject = sourceActor?.items.getName(onUpdate.macroName.split(".")[1]);
@@ -2094,7 +2062,7 @@ export function preUpdateActorHook(candidate, updates, options, user) {
                         macroText = foundry.utils.getProperty(macroObject, "flags.dae.macro.command") ?? foundry.utils.getProperty(macroObject, "flags.itemacro.macro.command") ?? foundry.utils.getProperty(macroObject, "flags.itemacro.macro.data.command");
                 }
             }
-            if (onUpdate.macroName.trim().startsWith("function.")) {
+            else if (onUpdate.macroName.trim().startsWith("function.")) {
                 macroText = `return await ${onUpdate.macroName.trim().replace("function.", "").trim()}(speaker, actor, token, character, scope)`;
             }
             else {
@@ -2103,12 +2071,10 @@ export function preUpdateActorHook(candidate, updates, options, user) {
                     console.warn(`dae | onUpdateActor no macro found for actor ${candidate.name} macro ${onUpdate.macroName}`);
                     continue;
                 }
-                //@ts-expect-error type v10
                 if (theMacro?.type === "chat") {
                     theMacro.execute(); // use the core foundry processing for chat macros
                     continue;
                 }
-                //@ts-expect-error
                 macroText = theMacro?.command;
             }
             try { // TODO make an actual macro and then call macro.execute....
@@ -2130,8 +2096,8 @@ export function preUpdateActorHook(candidate, updates, options, user) {
                 const argNames = Object.keys(scope);
                 const argValues = Object.values(scope);
                 //@ts-expect-error
-                const fn = new AsyncFunction("speaker", "actor", "token", "character", "scope", ...argNames, macroText);
-                fn.call(this, speaker, candidate, targetTokenDocument?.object, character, scope, ...argValues);
+                const fn = new AsyncFunction("speaker", "actor", "token", "character", "item", "macroItem", "scope", ...argNames, macroText);
+                fn.call(this, speaker, candidate, targetTokenDocument?.object, character, scope.item, scope.macroItem, scope, ...argValues);
             }
             catch (err) {
                 ui.notifications?.error(`There was an error running your macro. See the console (F12) for details`);
@@ -2150,20 +2116,21 @@ export function preUpdateActorHook(candidate, updates, options, user) {
 export function daeReadyActions() {
     DAEReadyComplete = true;
     //@ts-expect-error 
-    ceInterface = game.modules.get("dfreds-convenient-effects")?.active ? game.dfreds.effectInterface : undefined;
+    ceInterface = game.modules?.get("dfreds-convenient-effects")?.active ? game.dfreds.effectInterface : undefined;
     ValidSpec.localizeSpecs();
     // initSheetTab();
-    if (game.settings.get("dae", "disableEffects")) {
+    // @ts-expect-error
+    if (game.settings?.get("dae", "disableEffects")) {
         ui?.notifications?.warn("DAE effects disabled no DAE effect processing");
         console.warn("dae disabled - no active effects");
     }
     daeSystemClass.readyActions();
-    aboutTimeInstalled = game.modules.get("about-time")?.active ?? false;
-    simpleCalendarInstalled = game.modules.get("foundryvtt-simple-calendar")?.active ?? false;
-    timesUpInstalled = game.modules.get("times-up")?.active ?? false;
-    //@ts-expect-error
-    if (game.modules.get("dfreds-convenient-effects")?.active && foundry.utils.isNewerVersion("6.9.9", game.modules.get("dfreds-convenient-effects")?.version)) {
-        const ceItemId = game.settings.get("dfreds-convenient-effects", "customEffectsItemId") ?? "";
+    aboutTimeInstalled = game.modules?.get("about-time")?.active ?? false;
+    simpleCalendarInstalled = game.modules?.get("foundryvtt-simple-calendar")?.active ?? false;
+    timesUpInstalled = game.modules?.get("times-up")?.active ?? false;
+    if (game.modules?.get("dfreds-convenient-effects")?.active && foundry.utils.isNewerVersion("6.9.9", game.modules?.get("dfreds-convenient-effects")?.version)) {
+        // @ts-expect-error
+        const ceItemId = game.settings?.get("dfreds-convenient-effects", "customEffectsItemId") ?? "";
         CECustomEffectsItemUuid = game.items?.get(ceItemId)?.uuid;
     }
     else
@@ -2174,7 +2141,7 @@ export function daeReadyActions() {
 }
 export function localDeleteFilters(tokenId, filterName) {
     let tokenMagic = globalThis.TokenMagic;
-    let token = canvas.tokens?.get(tokenId);
+    let token = canvas?.tokens?.get(tokenId);
     if (token)
         tokenMagic?.deleteFilters(token, filterName);
 }
@@ -2241,22 +2208,22 @@ Hooks.on("spotlightOmnisearch.indexBuilt", async (index, promises) => {
 export function daeInitActions() {
     Hooks.once("dfreds-convenient-effects.createEffects", () => {
         //@ts-expect-error 
-        ceInterface = game.modules.get("dfreds-convenient-effects")?.active ? game.dfreds.effectInterface : undefined;
+        ceInterface = game.modules?.get("dfreds-convenient-effects")?.active ? game.dfreds.effectInterface : undefined;
     });
     // Default systtem class is setup, this oeverrides with system specific calss
     const dnd5esystem = DAESystemDND5E; // force reference so they are installed?
     const sw5eSystem = DAESystemSW5E;
     libWrapper = globalThis.libWrapper;
-    if (foundry.utils.getProperty(globalThis.daeSystems, game.system.id))
-        daeSystemClass = foundry.utils.getProperty(globalThis.daeSystems, game.system.id);
+    if (foundry.utils.getProperty(globalThis.daeSystems, game.system?.id ?? ""))
+        daeSystemClass = foundry.utils.getProperty(globalThis.daeSystems, game.system?.id ?? "");
     else
         //@ts-expect-error
         daeSystemClass = globalThis.CONFIG.DAE.systemClass;
     daeSystemClass.initActions();
     daeSystemClass.initSystemData();
-    needStringNumericValues = foundry.utils.isNewerVersion("9.250", game.version);
-    if (game.settings.get("dae", "disableEffects")) {
-        ui?.notifications?.warn("DAE effects disabled no DAE effect processing");
+    // @ts-expect-error
+    if (game.settings?.get("dae", "disableEffects")) {
+        ui.notifications?.warn("DAE effects disabled no DAE effect processing");
         console.warn("dae | All active effects disabled.");
         return;
     }
@@ -2288,6 +2255,7 @@ export function daeInitActions() {
         let result = await _preCreateActiveEffectRemoveExisting.bind(this)(data, context, user);
         if (result)
             result = await _preCreateActiveEffectIncrement.bind(this)(data, context, user);
+        await _preCreateEnchantmentEffect.bind(this)(data, context, user);
         if (this.active && dependentConditions && !this.flags?.dae?.autoCreated) {
             if (debugEnabled > 0)
                 warn("_preCreateActiveEffect", this, context);
@@ -2394,7 +2362,7 @@ async function updateStatusEffects(doc, options, userId) {
     let newStatuses = new Set; // actor.statuses;
     for (let effect of actor.allApplicableEffects()) {
         if (effect.flags?.dae?.autoCreated) { // even if disabled auto created effects should be included in current statuses
-            //@ts-expect-error
+            //@ts-ignore .union
             currentStatuses = currentStatuses.union(effect.statuses);
             continue;
         }
@@ -2404,7 +2372,7 @@ async function updateStatusEffects(doc, options, userId) {
             continue;
         if (effect.flags?.["dfreds-convenient-effects"])
             continue;
-        //@ts-expect-error
+        //@ts-ignore .union
         newStatuses = newStatuses.union(effect.statuses);
     }
     await applyStatusEffectChagnes(actor, doc, currentStatuses, newStatuses, true);
@@ -2435,13 +2403,12 @@ async function applyStatusEffects(theEffect, includeEffect, context = {}) {
             continue;
         if (effect.uuid === theEffect.uuid)
             continue; // skip existing effect it will be added in if needed
-        //@ts-expect-error
+        //@ts-ignore .union
         newStatuses = newStatuses.union(effect.statuses);
     }
     if (includeEffect && theEffect instanceof ActiveEffect) {
-        //@ts-expect-error
         const docStatuses = context.statuses ?? theEffect.statuses;
-        //@ts-expect-error
+        //@ts-ignore .union
         newStatuses = newStatuses.union(docStatuses);
     }
     const doc_id = theEffect._id;
@@ -2454,7 +2421,6 @@ async function applyStatusEffects(theEffect, includeEffect, context = {}) {
 async function applyStatusEffectChagnes(actor, effect, currentStatuses, newStatuses, includeEffect) {
     if (currentStatuses.size === 0 && newStatuses.size === 0)
         return;
-    //@ts-expect-error
     for (let status of newStatuses.difference(currentStatuses)) {
         if (["concentrating", "bonusaction", "reaction", "encumbered", "heavilyEncumbered", "exceedingCarryingCapacity"].includes(status))
             continue;
@@ -2472,7 +2438,6 @@ async function applyStatusEffectChagnes(actor, effect, currentStatuses, newStatu
         // statuses not present on the actor that should be
         await toggleActorStatusEffect(actor, status, { active: true, flags: { dae: { autoCreated: true } } });
     }
-    //@ts-expect-error
     for (let status of currentStatuses.difference(newStatuses)) {
         if (["concentrating", "bonusaction", "reaction", "encumbered", "heavilyEncumbered", "exceedingCarryingCapacity"].includes(status))
             continue;
@@ -2494,7 +2459,7 @@ async function applyStatusEffectChagnes(actor, effect, currentStatuses, newStatu
 function attachActorSheetHeaderButton(app, buttons) {
     if (!daeTitleBar)
         return;
-    const title = game.i18n.localize('dae.ActiveEffectName');
+    const title = i18n('dae.ActiveEffectName');
     const titleText = daeNoTitleText ? "" : title;
     buttons.unshift({
         label: titleText,
@@ -2506,7 +2471,7 @@ function attachActorSheetHeaderButton(app, buttons) {
 // This does not seem to work.
 function attachActivitySheetHeaderButton(app, buttons) {
     if (DIMETitleBar) {
-        const DIMtitle = game.i18n.localize('dae.DIMEditor.Name');
+        const DIMtitle = i18n('dae.DIMEditor.Name');
         const DIMtitleText = daeNoTitleText ? "" : DIMtitle;
         buttons.unshift({
             label: DIMtitleText,
@@ -2539,7 +2504,7 @@ Hooks.once("tidy5e-sheet.ready", api => {
 });
 function attachItemSheetHeaderButton(app, buttons) {
     if (daeTitleBar) {
-        const title = game.i18n.localize('dae.ActiveEffectName');
+        const title = i18n('dae.ActiveEffectName');
         const titleText = daeNoTitleText ? "" : title;
         buttons.unshift({
             label: titleText,
@@ -2549,7 +2514,7 @@ function attachItemSheetHeaderButton(app, buttons) {
         });
     }
     if (DIMETitleBar) {
-        const DIMtitle = game.i18n.localize('dae.DIMEditor.Name');
+        const DIMtitle = i18n('dae.DIMEditor.Name');
         const DIMtitleText = daeNoTitleText ? "" : DIMtitle;
         buttons.unshift({
             label: DIMtitleText,
@@ -2584,39 +2549,46 @@ function updateSheetHeaderButton(app, [elem], options) {
     }
 }
 export function daeSetupActions() {
-    cltActive = game.modules.get("condition-lab-triggler")?.active;
-    //@ts-expect-error .version
-    debug("Condition Lab Triggle Active ", cltActive, " and clt version is ", game.modules.get("condition-lab-triggler")?.version);
-    atlActive = game.modules.get("ATL")?.active;
-    //@ts-expect-error .version
-    if (cltActive && !foundry.utils.isNewerVersion(game.modules.get("condition-lab-triggler")?.version, "1.4.0")) {
-        ui.notifications.warn("Condition Lab Triggler needs to be version 1.4.0 or later - conditions disabled");
+    cltActive = game.modules?.get("condition-lab-triggler")?.active;
+    debug("Condition Lab Triggle Active ", cltActive, " and clt version is ", game.modules?.get("condition-lab-triggler")?.version);
+    atlActive = game.modules?.get("ATL")?.active;
+    if (cltActive && !foundry.utils.isNewerVersion(game.modules?.get("condition-lab-triggler")?.version ?? "", "1.4.0")) {
+        ui.notifications?.warn("Condition Lab Triggler needs to be version 1.4.0 or later - conditions disabled");
         console.warn("Condition Lab Triggler needs to be version 1.4.0 or later - conditions disabled");
         cltActive = false;
     }
     else if (cltActive) {
         debug("dae | Combat Utility Belt active and conditions enabled");
     }
-    itemacroActive = game.modules.get("itemacro")?.active;
-    furnaceActive = game.modules.get("furnace")?.active || game.modules.get("advanced-macros")?.active;
-    midiActive = game.modules.get("midi-qol")?.active;
-    statusCounterActive = game.modules.get("statuscounter")?.active;
+    itemacroActive = game.modules?.get("itemacro")?.active;
+    furnaceActive = game.modules?.get("furnace")?.active || game.modules?.get("advanced-macros")?.active;
+    midiActive = game.modules?.get("midi-qol")?.active;
+    statusCounterActive = game.modules?.get("statuscounter")?.active;
     daeSystemClass.setupActions();
 }
 export function fetchParams() {
     //@ts-expect-error type string
-    setDebugLevel(game.settings.get("dae", "ZZDebug"));
-    // useAbilitySave = game.settings.get("dae", "useAbilitySave") disabled as of 0.8.74
-    noDupDamageMacro = game.settings.get("dae", "noDupDamageMacro");
-    disableEffects = game.settings.get("dae", "disableEffects");
-    daeTitleBar = game.settings.get("dae", "DAETitleBar");
-    DIMETitleBar = game.settings.get("dae", "DIMETitleBar");
-    daeColorTitleBar = game.settings.get("dae", "DAEColorTitleBar");
-    daeNoTitleText = game.settings.get("dae", "DAENoTitleText");
-    expireRealTime = game.settings.get("dae", "expireRealTime");
-    // showDeprecation = game.settings.get("dae", "showDeprecation") ?? true;
-    showInline = game.settings.get("dae", "showInline") ?? false;
-    dependentConditions = game.settings.get("dae", "DependentConditions") ?? false;
+    setDebugLevel(game.settings?.get("dae", "ZZDebug"));
+    // useAbilitySave = game.settings?.get("dae", "useAbilitySave") disabled as of 0.8.74
+    // @ts-expect-error
+    noDupDamageMacro = game.settings?.get("dae", "noDupDamageMacro");
+    // @ts-expect-error
+    disableEffects = game.settings?.get("dae", "disableEffects");
+    // @ts-expect-error
+    daeTitleBar = game.settings?.get("dae", "DAETitleBar");
+    // @ts-expect-error
+    DIMETitleBar = game.settings?.get("dae", "DIMETitleBar");
+    // @ts-expect-error
+    daeColorTitleBar = game.settings?.get("dae", "DAEColorTitleBar");
+    // @ts-expect-error
+    daeNoTitleText = game.settings?.get("dae", "DAENoTitleText");
+    // @ts-expect-error
+    expireRealTime = game.settings?.get("dae", "expireRealTime");
+    // showDeprecation = game.settings?.get("dae", "showDeprecation") ?? true;
+    // @ts-expect-error
+    showInline = game.settings?.get("dae", "showInline") ?? false;
+    // @ts-expect-error
+    dependentConditions = game.settings?.get("dae", "DependentConditions") ?? false;
     Hooks.callAll("dae.settingsChanged");
 }
 export function getTokenDocument(tokenRef) {
@@ -2631,7 +2603,7 @@ export function getTokenDocument(tokenRef) {
             if (entity.isToken)
                 return entity.token ?? undefined;
             else
-                return entity.getActiveTokens()[0]?.document;
+                return entity.getActiveTokens(false, true)[0];
         }
         return undefined;
     }
@@ -2644,7 +2616,7 @@ export function getTokenDocument(tokenRef) {
         if (tokenRef.isToken)
             return tokenRef.token ?? undefined;
         else
-            return tokenRef.getActiveTokens()[0]?.document;
+            return tokenRef.getActiveTokens(false, true)[0];
     }
 }
 export function getToken(tokenRef) {
@@ -2652,7 +2624,6 @@ export function getToken(tokenRef) {
         return undefined;
     if (tokenRef instanceof Token)
         return tokenRef;
-    //@ts-expect-error return cast
     if (tokenRef instanceof TokenDocument)
         return tokenRef.object ?? undefined;
     let entity = tokenRef;
@@ -2662,7 +2633,6 @@ export function getToken(tokenRef) {
     }
     if (entity instanceof Token)
         return entity;
-    //@ts-expect-error return cast
     if (entity instanceof TokenDocument)
         return entity.object ?? undefined;
     if (entity instanceof Actor)
@@ -2676,12 +2646,13 @@ export function getToken(tokenRef) {
     return undefined;
 }
 export function actorFromUuid(uuid) {
-    //@ts-expect-error fromUuidSync
     let doc = fromUuidSync(uuid);
     if (doc instanceof CONFIG.Token.documentClass)
         doc = doc.actor;
     if (doc instanceof CONFIG.Actor.documentClass)
         return doc;
+    if (doc instanceof CONFIG.Item.documentClass)
+        return doc.parent;
     return null;
 }
 // Allow limited recursion of the formula replace function for things like
@@ -2718,10 +2689,10 @@ export function tokensForActor(actorRef) {
         return [actor.token.object];
     if (!(actor instanceof Actor))
         return undefined;
+    // @ts-expect-error types gets mixed up
     const tokens = actor.getActiveTokens();
     if (!tokens.length)
         return undefined;
-    //@ts-expect-error .controlled
     const controlled = tokens.filter(t => t.controlled);
     return controlled.length ? controlled : tokens;
 }
@@ -2744,8 +2715,9 @@ export async function delay(interval) {
     await new Promise(resolve => setTimeout(resolve, interval));
 }
 export function safeGetGameSetting(moduleName, settingName) {
-    if (game.settings.settings.get(`${moduleName}.${settingName}`))
-        return game.settings.get(moduleName, settingName);
+    // @ts-expect-error
+    if (game.settings?.settings.get(`${moduleName}.${settingName}`))
+        return game.settings?.get(moduleName, settingName);
     else
         return undefined;
 }
@@ -2801,7 +2773,6 @@ export async function toggleActorStatusEffect(actor, statusId, { active = false,
     // If no static _id, find all single-status effects that have actor status
     else {
         for (const effect of actor.effects) {
-            //@ts-expect-error
             const statuses = effect.statuses;
             if ((statuses.size === 1) && statuses.has(status.id))
                 existing.push(effect);
@@ -2819,22 +2790,21 @@ export async function toggleActorStatusEffect(actor, statusId, { active = false,
     // Create a new effect unless the status effect is forced inactive
     if (!active && active !== undefined)
         return false;
-    //@ts-expect-error
     const effect = await ActiveEffect.implementation.fromStatusEffect(statusId);
     if (origin)
         effect.updateSource({ origin });
+    // @ts-expect-error
     if (enableCondition?.length)
         effect.updateSource({ "flags.dae.enableCondition": enableCondition });
+    // @ts-expect-error
     if (overlay)
         effect.updateSource({ "flags.core.overlay": true });
     flags = foundry.utils.mergeObject(effect.flags ?? {}, flags ?? {}, { inplace: false });
     effect.updateSource({ flags });
-    //@ts-expect-error
     const returnEffect = await ActiveEffect.implementation.create(effect, { parent: actor, keepId: true });
     return returnEffect ? [returnEffect] : false;
 }
 export async function processConditionalEffects(actorRef, updates, user, options) {
-    //@ts-expect-error
     if (!game.users?.activeGM?.isSelf)
         return;
     let actor;
@@ -2852,22 +2822,13 @@ export async function processConditionalEffects(actorRef, updates, user, options
     if (!actor || !["character", "npc"].includes(actor.type))
         return;
     const token = tokenDocument?.object;
-    //@ts-expect-error - need to wait for the animation of any token movement to complete else the token x/y will be an intermediate state.
-    if (game.release.generation >= 12) {
-        while (token?.animationContexts?.get(token.animationName)?.to)
-            await delay(100);
-        //@ts-expect-error
-    }
-    else if (game.release.generation === 11) {
-        while (token?._animation)
-            await delay(100);
-    }
+    while (token?.animationContexts?.get(token.animationName)?.to)
+        await delay(100);
     const rollData = actor.getRollData();
     const effectItem = game.items?.getName(i18n("dae.ConditionalEffectsItem"));
     if (effectItem) {
         for (let conditionalEffect of effectItem.effects) {
             let enableCondition = foundry.utils.getProperty(conditionalEffect, "flags.dae.enableCondition");
-            //@ts-expect-error
             if (!enableCondition || conditionalEffect.disabled)
                 continue;
             const ceData = conditionalEffect.toObject(false);
@@ -2911,7 +2872,6 @@ export async function processConditionalEffects(actorRef, updates, user, options
             rollData.time = game.time;
             rollData.effect = effect.toObject();
             const expression = Roll.replaceFormulaData(condition, rollData);
-            //@ ts-expect-error
             // rollData.origin = fromUuidSync(effect.origin);
             const result = daeSystemClass.safeEval(expression, rollData);
             if (!result) {
@@ -2926,8 +2886,7 @@ export async function processConditionalEffects(actorRef, updates, user, options
         if (typeof disableCondition === "string" && disableCondition.trim() !== "") {
             const rollData = effect.parent.getRollData();
             rollData.effect = effect.toObject();
-            //@ts-expect-error
-            let value = Roll.replaceFormulaData(disableCondition, rollData, { missing: 0, warn: false });
+            let value = Roll.replaceFormulaData(disableCondition, rollData, { missing: "0", warn: false });
             try { // Roll parser no longer accepts some expressions it used to so we will try and avoid using it
                 let disabled;
                 if (value.includes("dae.eval(") || value.includes("dae.roll(")) {

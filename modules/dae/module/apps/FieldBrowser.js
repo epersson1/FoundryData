@@ -1,4 +1,4 @@
-import { log, debug, error } from "../../dae.js";
+import { log, debug, error, i18n } from "../../dae.js";
 import { daeSystemClass } from "../dae.js";
 export class DAEFieldBrowser {
     static knownFieldData = {};
@@ -66,8 +66,8 @@ export class DAEFieldBrowser {
             let localisationPrefix = `dae.${category ?? ""}.fieldData`;
             const nameLocalizationPath = `${localisationPrefix}.${key}.name`;
             const descriptionLocalizationPath = `${localisationPrefix}.${key}.description`;
-            const localizedName = game.i18n.localize(nameLocalizationPath);
-            const localizedDescription = game.i18n.localize(descriptionLocalizationPath);
+            const localizedName = i18n(nameLocalizationPath);
+            const localizedDescription = i18n(descriptionLocalizationPath);
             const finalName = 
             // If the field already has a name, use it, otherwise attempt to localize or use the key itself
             // Logic looks a bit weird because DAE already sets the value of the validFields kvp to its key if missing.
@@ -94,12 +94,12 @@ export class DAEFieldBrowser {
             this.browserElement.style.display = 'block';
         }
         this.browserElement.classList.toggle('dae-fb-full-browser', DAEFieldBrowser.isFullBrowser);
-        debug(`DaeFieldBrowser | Updating browser with query: ${this.currentInput.value}`);
-        this.filteredFields = this.memoizedFilterFields(this.currentInput.value, this.currentTab);
+        debug(`DaeFieldBrowser | Updating browser with query: ${this.currentInput?.value}`);
+        this.filteredFields = this.memoizedFilterFields(this.currentInput?.value ?? "", this.currentTab);
         this.renderFields();
         this.selectField(0);
         this.positionBrowser();
-        this.currentInput.focus();
+        this.currentInput?.focus();
     }
     createBrowser() {
         if (this.browserElement)
@@ -137,7 +137,7 @@ export class DAEFieldBrowser {
                 button.className = 'dae-fb-tab-button';
                 button.dataset.action = 'switch-tab';
                 button.dataset.tab = tab;
-                button.textContent = game.i18n.localize(`dae.fieldData.fieldCategories.${tab}`);
+                button.textContent = i18n(`dae.fieldData.fieldCategories.${tab}`);
                 fragment.appendChild(button);
             });
             tabsContainer.appendChild(fragment);
@@ -186,7 +186,7 @@ export class DAEFieldBrowser {
    * Positions the browser element based on selected input field and browser settings.
    */
     positionBrowser() {
-        const rect = this.currentInput.getBoundingClientRect();
+        const rect = this.currentInput?.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         let maxBrowserWidth = DAEFieldBrowser.isFullBrowser ? 880 : 400;
@@ -195,15 +195,15 @@ export class DAEFieldBrowser {
         //   maxBrowserWidth += 200;
         //   maxContentHeight += 200;
         // }
-        const browserWidth = Math.min(maxBrowserWidth, viewportWidth - rect.left - 10);
-        const contentHeight = Math.min(maxContentHeight, viewportHeight - rect.bottom - 100);
+        const browserWidth = Math.min(maxBrowserWidth, viewportWidth - (rect?.left ?? 0) - 10);
+        const contentHeight = Math.min(maxContentHeight, viewportHeight - (rect?.bottom ?? 0) - 100);
         const contentElement = this.browserElement.querySelector('.dae-fb-content');
         if (contentElement) {
             contentElement.style.maxHeight = `${contentHeight}px`;
         }
         this.browserElement.style.width = `${browserWidth}px`;
-        this.browserElement.style.left = `${rect.left}px`;
-        this.browserElement.style.top = `${rect.bottom + window.scrollY}px`;
+        this.browserElement.style.left = `${rect?.left ?? 0}px`;
+        this.browserElement.style.top = `${(rect?.bottom ?? 0) + window.scrollY}px`;
     }
     setupEventListeners() {
         debug("DaeFieldBrowser | Setting up event listeners");
@@ -251,7 +251,7 @@ export class DAEFieldBrowser {
                 // Do nothing for unhandled actions
                 break;
         }
-        this.currentInput.focus();
+        this.currentInput?.focus();
     }
     /**
      * Handles document click events to close the browser if clicking outside.
@@ -261,7 +261,7 @@ export class DAEFieldBrowser {
         if (this.browserElement &&
             !this.browserElement.contains(event.target) &&
             event.target !== this.currentInput &&
-            !(this.currentInput.classList.contains('keyinput') && event.target === this.currentInput)) {
+            !(this.currentInput?.classList.contains('keyinput') && event.target === this.currentInput)) {
             this.hideBrowser();
         }
     }
@@ -343,7 +343,7 @@ export class DAEFieldBrowser {
                 return cache.get(key);
             const result = fn(...args);
             if (cache.size >= maxSize)
-                cache.delete(cache.keys().next().value);
+                cache.delete(cache.keys().next().value ?? "");
             return cache.set(key, result).get(key);
         });
     }

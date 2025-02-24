@@ -43,6 +43,19 @@ import { MODULE_ID } from "../../midi-qol.js";
 * @property {string} SELF - The current user.
 */
 export class Socket {
+	static __$callbacks = {};
+	static __$stores = {};
+	static __$promises = {};
+	static __$socket;
+	static USERS = {
+		GMS: "gms",
+		PLAYERS: "players",
+		ALL: "all",
+		OTHERS: "others",
+		FIRSTGM: "firstGM",
+		SELF: "self",
+	};
+	static __$reserved = ["__$eventName", "__$response", "__$onMessage", "__$parseUsers", "register", "USERS"];
 	static async __$onMessage(data) {
 		const options = data.__$socketOptions;
 		if (options.__$storeName) {
@@ -179,19 +192,12 @@ export class Socket {
 		return this.__$stores[storeName];
 	}
 }
-Socket.__$callbacks = {};
-Socket.__$stores = {};
-Socket.__$promises = {};
-Socket.USERS = {
-	GMS: "gms",
-	PLAYERS: "players",
-	ALL: "all",
-	OTHERS: "others",
-	FIRSTGM: "firstGM",
-	SELF: "self",
-};
-Socket.__$reserved = ["__$eventName", "__$response", "__$onMessage", "__$parseUsers", "register", "USERS"];
 class SynchronizedStore {
+	_storeName;
+	_onChange;
+	_data;
+	_timestamp;
+	_isLive;
 	constructor(storeName, initialValue, callback) {
 		this._storeName = storeName;
 		this._onChange = callback;

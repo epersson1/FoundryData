@@ -58,7 +58,7 @@
     "DICESONICE.useHighDPI": "Unterstützung von UHD-Auflösungen (4K, Retina...)",
     "DICESONICE.showOthersSFX": "Zeige Spezialeffekte von anderen Spielern",
     "DICESONICE.animateRollTable": "3D Würfel Roll Tables einschalten",
-    "DICESONICE.animateRollTableHint": "Wenn möglich, zeige 3D Würfel wenn auf einen Roll Table gewürfelt wird. Stelle sicher, dass 'Animiere Roll Tables' in den Grundeinstellungen deaktiviert ist.",
+    "DICESONICE.animateRollTableHint": "Zeige 3D Würfel wenn auf einen Roll Table gewürfelt wird. 'Animiere Roll Tables' muss in den Grundeinstellungen deaktiviert ist.",
     "DICESONICE.hideNpcRolls": "3D Würfel bei Würfen von NPC's ausschalten",
     "DICESONICE.hideNpcRollsHint": "Zeige keine 3D-Würfel, wenn Würfe von NPCs stammen.",
     "DICESONICE.animateInlineRoll": "Schalte 3D Würfel für Inline Würfe ein",
@@ -264,5 +264,18 @@
     "DICESONICE.TourMainContentEndTour": "Falls du mehr Informationen benötigst, kannst du unsere Hilfeseite im Modulverwaltungsfenster besuchen. Frohes Würfeln!",
     "DICESONICE.WelcomeTitle": "Dice So Nice - Deine 3D-Würfel",
     "DICESONICE.sfxOptionsMuteSound": "Audio stummschalten",
-    "DICESONICE.PlayAnimationOutline": "Animation: Umriss"
+    "DICESONICE.PlayAnimationOutline": "Animation: Umriss",
+    "DICESONICE.onlyShowMyDice": "Zeige nur meine Würfel",
+    "DICESONICE.resetWelcomeMessageHint": "Dadurch wird die Willkommensnachricht für alle Spieler zurückgesetzt. Sie sehen die Willkommensnachricht erneut, wenn sie das nächste Mal dieser Welt beitreten.",
+    "DICESONICE.SystemOptions": "Systemeinstellungen",
+    "DICESONICE.forceCharacterOwnerAppearanceForInitiativeHint": "Wenn aktiviert, wird beim Würfeln der Initiative aus dem Kampftracker das Aussehen des Würfels des Charakters verwendet, unabhängig vom Autor des Wurfs (z.B. Spielleiter).",
+    "DICESONICE.forceCharacterOwnerAppearanceForInitiative": "Nutze die Würfel des Besitzers für die Initiative",
+    "DICESONICE.openDiceEditorLabel": "Öffne Würfeleditor",
+    "DICESONICE.openDiceEditorButton": "Würfeleditor",
+    "DICESONICE.resetWelcomeMessage": "Willkommensnachricht zurücksetzen",
+    "DICESONICE.ghostDiceDisabled": "Geisterwürfel deaktivieren",
+    "DICESONICE.ChatCommandCompletionDescription": "Trage eine Würfel Formel ein.",
+    "DICESONICE.ChatCommandDescription": "Würfle 3D Würfel ohne Chat Nachricht",
+    "DICESONICE.hide3dDiceOnSecretRolls": "Verberge 3D Würfel bei GM/versteckten Würfen",
+    "DICESONICE.hide3dDiceOnSecretRollsHint": "Zeige anderen Spielern keine 3D Würfel beim GM/versteckten Wurf."
 }

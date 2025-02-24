@@ -2,7 +2,7 @@
   "id": "tidy5e-sheet",
   "title": "Tidy 5e Sheets",
   "description": "D&D 5e sheet layouts for Foundry VTT, focused on a clean UI, user ergonomics, and extensibility.",
-  "version": "8.1.1",
+  "version": "9.0.0",
   "authors": [
     {
       "id": "kgar",
@@ -113,9 +113,9 @@
       {
         "id": "dnd5e",
         "compatibility": {
-          "minimum": "4.2.0",
-          "verified": "4.2.0",
-          "maximum": "4.2.x"
+          "minimum": "4.3.0",
+          "verified": "4.3.0",
+          "maximum": "4.3.x"
         }
       }
     ],
@@ -123,7 +123,7 @@
     "conflicts": []
   },
   "url": "https://github.com/kgar/foundry-vtt-tidy-5e-sheets",
-  "download": "https://github.com/kgar/foundry-vtt-tidy-5e-sheets/releases/download/v8.1.1/module.zip",
+  "download": "https://github.com/kgar/foundry-vtt-tidy-5e-sheets/releases/download/v9.0.0/module.zip",
   "manifest": "https://github.com/kgar/foundry-vtt-tidy-5e-sheets/releases/latest/download/module.json",
   "readme": "https://github.com/kgar/foundry-vtt-tidy-5e-sheets/blob/main/README.md",
   "bugs": "https://github.com/kgar/foundry-vtt-tidy-5e-sheets/issues",

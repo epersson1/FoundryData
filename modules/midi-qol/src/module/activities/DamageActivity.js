@@ -20,43 +20,38 @@ export function setupDamageActivity() {
 	}
 }
 let defineMidiDamageActivityClass = (ActivityClass) => {
-	var _a, _b;
-	return _a = class MidiDamageActivity extends (_b = MidiActivityMixin(ActivityClass)) {
-			get possibleOtherActivity() {
-				return true;
-			}
-			async rollDamage(config, dialog, message) {
-				var _a;
-				config.midiOptions ?? (config.midiOptions = {});
-				(_a = config.midiOptions).fastForwardDamage ?? (_a.fastForwardDamage = game.user?.isGM ? configSettings.gmAutoFastForwardDamage : ["all", "damage"].includes(configSettings.autoFastForward));
-				return super.rollDamage(config, dialog, message);
-			}
-			async _triggerSubsequentActions(config, results) {
-			}
-		},
-		_a.LOCALIZATION_PREFIXES = [...Reflect.get(_b, "LOCALIZATION_PREFIXES", _a), "midi-qol.DAMAGE"],
-		_a.metadata = foundry.utils.mergeObject(Reflect.get(_b, "metadata", _a), {
+	return class MidiDamageActivity extends MidiActivityMixin(ActivityClass) {
+		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.DAMAGE"];
+		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.DAMAGE.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
 			sheetClass: MidiDamageSheet,
 			usage: {
 				chatCard: "modules/midi-qol/templates/activity-card.hbs",
 			},
-		}, { inplace: false, insertKeys: true, insertValues: true }),
-		_a;
+		}, { inplace: false, insertKeys: true, insertValues: true });
+		get possibleOtherActivity() {
+			return true;
+		}
+		async rollDamage(config, dialog, message) {
+			config.midiOptions ??= {};
+			config.midiOptions.fastForwardDamage ??= game.user?.isGM ? configSettings.gmAutoFastForwardDamage : ["all", "damage"].includes(configSettings.autoFastForward);
+			return super.rollDamage(config, dialog, message);
+		}
+		async _triggerSubsequentActions(config, results) {
+		}
+	};
 };
 export function defineMidiDamageSheetClass(baseClass) {
-	var _a, _b;
-	return _a = class MidiDamageSheet extends (_b = MidiActivityMixinSheet(baseClass)) {
-		},
-		_a.PARTS = {
-			...Reflect.get(_b, "PARTS", _a),
+	return class MidiDamageSheet extends MidiActivityMixinSheet(baseClass) {
+		static PARTS = {
+			...super.PARTS,
 			effect: {
 				template: "modules/midi-qol/templates/activity/damage-effect.hbs",
 				templates: [
-					...Reflect.get(_b, "PARTS", _a).effect.templates
+					...super.PARTS.effect.templates
 				]
 			}
-		},
-		_a;
+		};
+	};
 }

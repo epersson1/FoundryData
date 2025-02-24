@@ -1,4 +1,5 @@
 export class OnUseMacros {
+	items;
 	constructor(onUseMacros = null) {
 		if (typeof onUseMacros === "string") {
 			this.items = onUseMacros?.split(',')?.filter((value) => value.trim().length > 0)?.map((macro) => new OnUseMacro(macro));
@@ -13,7 +14,7 @@ export class OnUseMacros {
 		return macros;
 	}
 	getMacros(currentOption) {
-		return this.items.filter(x => x.macroName?.length > 0 && (x.option.toLocaleLowerCase() === currentOption.toLocaleLowerCase() || x.option === "all")).map(x => x.macroName).toString();
+		return this.items.filter(x => x.macroName?.length > 0 && (x.option.toLocaleLowerCase() === (currentOption ?? "").toLocaleLowerCase() || x.option === "all")).map(x => x.macroName).toString();
 	}
 	toString() {
 		return this.items.map(m => m.toString()).join(',');
@@ -23,6 +24,8 @@ export class OnUseMacros {
 	}
 }
 export class OnUseMacro {
+	macroName;
+	option;
 	constructor(macro = undefined) {
 		if (macro === undefined) {
 			this.macroName = "ItemMacro";
@@ -33,8 +36,7 @@ export class OnUseMacro {
 			this.macroName = data["macroName"].trim();
 			this.option = data["option"];
 		}
-		if (this.option === undefined)
-			this.option = "postActiveEffects";
+		this.option ??= "postActiveEffects";
 	}
 	static parsePart(parts) {
 		const m = new OnUseMacro();
@@ -58,6 +60,7 @@ export class OnUseMacro {
 	}
 }
 export class OnUseMacroOptions {
+	static options;
 	static setOptions(options) {
 		this.options = [];
 		for (let option of Object.keys(options)) {
@@ -84,7 +87,6 @@ export function activateMacroListeners(app, html) {
 }
 async function _onDrop(ev) {
 	ev.preventDefault();
-	//@ts-ignore
 	const data = TextEditor.getDragEventData(ev);
 	if (data.uuid) {
 		const entity = await fromUuid(data.uuid);

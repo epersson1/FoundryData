@@ -2,24 +2,21 @@ import { debug, i18n, GameSystemConfig } from "../midi-qol.js";
 import { configSettings, midiSoundSettings } from "./settings.js";
 import { dice3dEnabled } from "./setupModules.js";
 export class MidiSounds {
+	static midiSoundSpecs;
+	static weaponBaseTypes;
 	static getSound(playListName, soundName) {
 		const playlist = game.playlists?.getName(playListName);
-		//@ts-ignore
 		return { playlist, sound: playlist?.sounds.getName(soundName) };
 	}
 	static async playSound(playListName, soundName) {
 		const { playlist, sound } = this.getSound(playListName, soundName);
-		//@ts-ignore
-		if (playlist && sound) { // TODO check this v10
-			//@ts-expect-error v12 AudioHelper moved to foundry.audio.AudioHelper
-			const faAudioHelper = foundry.audio?.AudioHelper;
-			if (faAudioHelper)
-				return faAudioHelper.play({ src: sound.path, volume: sound.volume, autoplay: true, loop: false }, true);
-			return AudioHelper.play({ src: sound.path, volume: sound.volume, autoplay: true, loop: false }, true);
+		if (playlist && sound) {
+			return foundry.audio.AudioHelper.play({ src: sound.path, volume: sound.volume, autoplay: true, loop: false }, true);
 		}
+		return null;
 	}
 	static ActionTypes() {
-		const systemId = game.system.id.toUpperCase();
+		const systemId = game.system?.id.toUpperCase() ?? "dnd5e";
 		let damageEntries = {};
 		Object.keys(GameSystemConfig.damageTypes).forEach(key => damageEntries[key] = `${i18n(`${systemId}.Damage`)}: ${GameSystemConfig.damageTypes[key].label}`);
 		let itemActionEntries = {};
@@ -47,10 +44,10 @@ export class MidiSounds {
 			miss: `${i18n(`${systemId}.Attack`)}: ${i18n("midi-qol.Misses")}`,
 			abil: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes["abil"]}`,
 			heal: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes["heal"]}`,
-			msak: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes[`${game.system.id === "sw5e" ? "mpak" : "msak"}`]}`,
+			msak: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes[`${game.system?.id === "sw5e" ? "mpak" : "msak"}`]}`,
 			mwak: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes["mwak"]}`,
 			other: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes["other"]}`,
-			rsak: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes[`${game.system.id === "sw5e" ? "rpak" : "rsak"}`]}`,
+			rsak: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes[`${game.system?.id === "sw5e" ? "rpak" : "rsak"}`]}`,
 			rwak: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes["rwak"]}`,
 			save: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes["save"]}`,
 			util: `${i18n(`${systemId}.Action`)}: ${GameSystemConfig.itemActionTypes["util"]}`,
@@ -79,8 +76,9 @@ export class MidiSounds {
 			const soundIndex = Math.floor(Math.random() * sounds.contents.length);
 			//@ts-ignore
 			const sound = playlist.sounds.contents[soundIndex];
-			return AudioHelper.play({ src: sound.path, volume: sound.volume, autoplay: true, loop: false }, true);
+			return foundry.audio.AudioHelper.play({ src: sound.path, volume: sound.volume, autoplay: true, loop: false }, true);
 		}
+		return null;
 	}
 	static getSubtype(item) {
 		if (!item.type)
@@ -112,12 +110,12 @@ export class MidiSounds {
 		const config = CONFIG;
 		const packname = GameSystemConfig.sourcePacks.ITEMS;
 		if (packname) {
-			const packObject = game.packs.get(packname);
+			const packObject = game.packs?.get(packname);
 			// TODO check this for v10 compendia
 			//@ts-ignore getindex 0 params
 			await packObject?.getIndex({ fields: ["system.armor.type", "system.toolType", "system.weaponType", "img"] });
 			const weaponTypes = Object.keys(GameSystemConfig.weaponTypes);
-			const sheetClass = config.Item.sheetClasses.weapon[`${game.system.id}.ItemSheet5e2`].cls;
+			const sheetClass = config.Item.sheetClasses.weapon[`${game.system?.id}.ItemSheet5e2`].cls;
 			for (let wt of weaponTypes) {
 				const baseTypes = await MidiSounds.getItemBaseTypes("weapon", wt);
 				MidiSounds.weaponBaseTypes = foundry.utils.mergeObject(MidiSounds.weaponBaseTypes, baseTypes);
@@ -442,8 +440,9 @@ export class MidiSounds {
 				}
 			}
 		};
+		//@ts-expect-error
 		if (game.user?.can("SETTINGS_MODIFY"))
-			await game.settings.set("midi-qol", "MidiSoundSettings", soundSettings);
+			await game.settings?.set("midi-qol", "MidiSoundSettings", soundSettings);
 	}
 	static async setupFullSounds() {
 		const soundSettings = {
@@ -573,8 +572,9 @@ export class MidiSounds {
 				}
 			}
 		};
+		//@ts-expect-error
 		if (game.user?.can("SETTINGS_MODIFY"))
-			await game.settings.set("midi-qol", "MidiSoundSettings", soundSettings);
+			await game.settings?.set("midi-qol", "MidiSoundSettings", soundSettings);
 	}
 	static async setupBasicSounds() {
 		const soundSettings = {
@@ -626,13 +626,14 @@ export class MidiSounds {
 				}
 			}
 		};
-		if (game.system.id === "sw5e") {
+		if (game.system?.id === "sw5e") {
 			soundSettings.rpak = soundSettings.rsak;
 			soundSettings.mpak = soundSettings.msak;
 			delete soundSettings.rsak;
 			delete soundSettings.msak;
 		}
+		//@ts-expect-error
 		if (game.user?.can("SETTINGS_MODIFY"))
-			await game.settings.set("midi-qol", "MidiSoundSettings", soundSettings);
+			await game.settings?.set("midi-qol", "MidiSoundSettings", soundSettings);
 	}
 }

@@ -67,6 +67,7 @@ export async function initConfig() {
         Hooks.callAll("enhanced-combat-hud.dc20prg.initConfig", { actionTypes, itemTypes, ECHItems });*/
 
         async function getTooltipDetails(item, type) {
+            const all_skills_journal = {...CONFIG.DC20RPG.SYSTEM_CONSTANTS.JOURNAL_UUID.skillsJournal, ...CONFIG.DC20RPG.SYSTEM_CONSTANTS.JOURNAL_UUID.tradeSkillsJournal}
             let title, description, itemType, subtitle, costs, range, dt;
             let damageTypes = [];
             let properties = [];
@@ -76,16 +77,16 @@ export async function initConfig() {
                 return { title, description, subtitle, details: {}, properties, footerText: null };
             }
             if (type == "skill") {
-                const page = await fromUuid(CONFIG.DC20RPG.skillsJournalUuid[item]);
+                const page = await fromUuid(all_skills_journal[item]);
                 title = page.name;
                 description = page.text.content;
             } else if (type == "tradeSkill") {
-                const page = await fromUuid(CONFIG.DC20RPG.tradeSkillsJournalUuid[item]);
+                const page = await fromUuid(all_skills_journal[item]);
                 title = page.name;
                 description = page.text.content;
             } else if (type == "save") {
-                title = CONFIG.DC20RPG.attributes[item];
-                description = CONFIG.DC20RPG.attributes[item]; //game.i18n.localize(`enhancedcombathud-dc20rpg.abilities.${item}.tooltip`);
+                title = CONFIG.DC20RPG.TRANSLATION_LABELS.attributes[item];
+                description = CONFIG.DC20RPG.TRANSLATION_LABELS.attributes[item]; //game.i18n.localize(`enhancedcombathud-dc20rpg.abilities.${item}.tooltip`);
             } else if (type == "condition") {
                 title = item.name;
                 description = item.name;
@@ -105,8 +106,8 @@ export async function initConfig() {
 
                 switch (itemType) {
                     case "weapon":
-                        subtitle = CONFIG.DC20RPG.weaponTypes[item.system.weaponType];
-                        properties.push(CONFIG.DC20RPG.actionTypes[getActionType(item)]);
+                        subtitle = CONFIG.DC20RPG.DROPDOWN_DATA.weaponTypes[item.system.weaponType];
+                        properties.push(CONFIG.DC20RPG.DROPDOWN_DATA.actionTypes[getActionType(item)]);
                         for (let [key, value] of Object.entries(item.system.properties)) {
                            if (value["active"]) {
                             properties.push(value.label);
@@ -125,7 +126,7 @@ export async function initConfig() {
                         if (item.labels.materials) materialComponents = item.labels.materials;*/
                         break;
                     case "consumable":
-                        subtitle = CONFIG.DC20RPG.consumableTypes[item.system.consumableType];
+                        subtitle = CONFIG.DC20RPG.DROPDOWN_DATA.consumableTypes[item.system.consumableType];
                         // properties.push(CONFIG.DND5E.itemActionTypes[getActionType(item)]);
                         break;
                     case "feat":
@@ -304,7 +305,7 @@ export async function initConfig() {
 
             async getData() {
                 const immunities = [];
-                for (let [key, condition] of Object.entries(this.actor.system.conditions)) {
+                for (let [key, condition] of Object.entries(CONFIG.statusEffects)) {
                     if (condition.immunity) {
                         immunities.push(condition.label);
                     }
@@ -345,8 +346,44 @@ export async function initConfig() {
                     }
 
                 }
+                // TODO support to custom resources
+                // TODO move all resources to one array
+                const custom_resources = this.actor.system.resources.custom;
+                const resources = []
+                for (const key in this.actor.system.resources) {
+                    if (['health','custom', 'restPoints'].includes(key)) continue;
+                    if (this.actor.system.resources[key].max == 0) continue;
+                    let img = "";
+                    if (key == 'grit') {
+                        img = "systems/dc20rpg/images/sheet/header/grit.svg";
+                    } else if (key == 'mana') {
+                        img = "systems/dc20rpg/images/sheet/header/mana.svg";
+                    } else if (key == 'ap') {
+                        img = "modules/token-action-hud-dc20rpg/assets/ap.svg";
+                    } else if (key == 'stamina') {
+                        img = "systems/dc20rpg/images/sheet/header/stamina.svg";
+                    }
+                    resources.push({
+                        current: this.actor.system.resources[key].value,
+                        max: this.actor.system.resources[key].max,
+                        label: this.actor.system.resources[key].name || game.i18n.localize(`dc20rpg.resource.${key}`),
+                        img: img == "" ? this.actor.system.resources[key].img : img,
+                    })
+                }
+                
+                for (const key in custom_resources) {
+                    if (custom_resources[key].max == 0) continue;
+                    resources.push({
+                        current: custom_resources[key].value,
+                        max: custom_resources[key].max,
+                        label: custom_resources[key].name,
+                        img: custom_resources[key].img,
+                    })
+                }
+                
                 const data = {
                     resistences: resistence,
+                    resources: resources,
                     immunities: {
                         exists: immunities.length > 0 ? true : false,
                         label: "Immunities to: " + immunities.join(", ")
@@ -369,6 +406,7 @@ export async function initConfig() {
                         max: this.actor.system.resources?.grit?.max ?? 0
                     }
                 }
+                
                 const merged = Object.assign({}, await super.getData(), data);
                 return merged;
             }
@@ -1291,32 +1329,12 @@ export async function initConfig() {
             prePrepareSpells() {
                 if (this.type !== "spell") return;
                 const level = this.actor.system.details.level;
-                const classItem = this.actor.items.find(el=>el.id == this.actor.system.details.class.id);
-                const cantripsKnown = classItem.system.scaling.cantripsKnown.values[level];
-                const spellsKnow = classItem.system.scaling.spellsKnown.values[level];
+                const cantripsKnown = this.items.filter((item) => item.type == "spell" && item.system.spellType == "cantrip");
+                const spellsKnow = this.items.filter((item) => item.type == "spell" && item.system.spellType != "cantrip");
 
-                const magicSchools = CONFIG.DC20RPG.magicSchools;
+                const magicSchools = CONFIG.DC20RPG.DROPDOWN_DATA.magicSchools;
                 const itemsToIgnore = [];
-                if (game.modules.get("items-with-spells-5e")?.active) {
-                    const IWSAPI = game.modules.get("items-with-spells-5e").api;
-                    const actionType = this.items[0].system.activation?.type;
-                    const spellItems = this.actor.items.filter((item) => item.flags["items-with-spells-5e"]?.["item-spells"]?.length);
-                    for (const item of spellItems) {
-                        const spellData = item.flags["items-with-spells-5e"]["item-spells"];
-                        const itemsInSpell = spellData.map((spell) => this.actor.items.get(spell.id)).filter((item) => item && getActivationType(item) === actionType);
-                        if (!itemsInSpell.length) continue;
-                        itemsToIgnore.push(...itemsInSpell);
-                        if (!IWSAPI.isUsableItem(item)) continue;
-                        this.itemsWithSpells.push({
-                            label: item.name,
-                            buttons: itemsInSpell.map((item) => new DC20ItemButton({ item })),
-                            uses: () => {
-                                return { max: item.system.uses?.max, value: item.system.uses?.value };
-                            },
-                        });
-                    }
-                    this.items = this.items.filter((item) => !itemsToIgnore.includes(item));
-                }
+                
                 if (this.showPreparedOnly) {
                     const allowIfNotPrepared = ["atwill", "innate", "pact", "always"];
                     this.items = this.items.filter((item) => {
@@ -1327,37 +1345,27 @@ export async function initConfig() {
                 }
                 const spells = [
                     ...this.itemsWithSpells,
-                    /*{
-                        label: "DND5E.SpellPrepAtWill",
-                        buttons: this.items.filter((item) => item.system.preparation.mode === "atwill").map((item) => new DC20ItemButton({ item })),
-                        uses: { max: Infinity, value: Infinity },
-                    },
-                    {
-                        label: "DND5E.SpellPrepInnate",
-                        buttons: this.items.filter((item) => item.system.preparation.mode === "innate").map((item) => new DC20ItemButton({ item })),
-                        uses: { max: Infinity, value: Infinity },
-                    },*/
                     {
                         label: "Cantrips",
-                        buttons: this.items.filter((item) => item.system.spellType == "cantrip").map((item) => new DC20ItemButton({ item })),
-                        uses: { max: cantripsKnown, value: cantripsKnown },//{ max: Infinity, value: Infinity },
+                        buttons: cantripsKnown.map((item) => new DC20ItemButton({ item })),
+                        uses: { 
+                            max: this.actor.system.resources.ap.value, 
+                            value: this.actor.system.resources.ap.max
+                        },//{ max: Infinity, value: Infinity },
                     },
-                    /*{
-                        label: "DND5E.PactMagic",
-                        buttons: this.items.filter((item) => item.system.preparation.mode === "pact").map((item) => new DC20ItemButton({ item })),
-                        uses: () => {
-                            return this.actor.system.spells.pact;
-                        },
-                    },*/
                 ];
+
                 for (const [magicSchool, label] of Object.entries(magicSchools)) {
-                    const magicSchoolSpells = this.items.filter((item) => item.type == "spell" && item.system.magicSchool == magicSchool && item.prepared && item.system.spellType != "cantrip");
+                    const magicSchoolSpells = spellsKnow.filter((item) => item.type == "spell" && item.system.magicSchool == magicSchool && item.prepared && item.system.spellType != "cantrip");
                     if (!magicSchool.length || level == 0) continue;
                     spells.push({
                         label,
                         buttons: magicSchoolSpells.map((item) => new DC20ItemButton({ item })),
                         uses: () => {
-                            return { max: cantripsKnown, value: cantripsKnown };
+                            return { 
+                                max: this.actor.system.resources.ap.value, 
+                                value: this.actor.system.resources.ap.max
+                            };
                         },
                     });
                 }
@@ -1520,8 +1528,13 @@ export async function initConfig() {
                         onClick: (event) => { 
                             const points = ["ap", "grit", "mana", "stamina"];
                             points.forEach(point => {
-                                this.actor.update({[`system.resources.${point}.value`] : this.actor.system.resources[point].max});
+                                if (this.actor.system.resources[point]) {
+                                    this.actor.update({[`system.resources.${point}.value`] : this.actor.system.resources[point].max});
+                                }
                             })
+
+                            // TODO regain custom resources
+                            // this.actor.system.resources.custom
                         },
                         icon: "fa-solid fa-rotate",
                     },
@@ -1612,980 +1625,8 @@ export async function initConfig() {
         CoreHUD.defineButtonHud(DC20ButtonHud);
         CoreHUD.defineWeaponSets(DC20WeaponSets);
         CoreHUD.defineTooltip(DC20Tooltip);
-        CoreHUD.defineSupportedActorTypes(["character", "npc"]);
+        CoreHUD.defineSupportedActorTypes(["character", "npc", "companion"]);
     });
 }
 
-async function registerItems() {
-    const DC20RPG = CONFIG.DC20RPG;
-    let offactions = ["attack","disarm", "grapple", "shove", "tackle"];
-    let defactions = ["hide", "disengage","fullDisengage", "dodge", "fullDodge"];
-    let reactions = ["attackOfOpportunity", "spellDuel"];
-    const details = {
-        "attackOfOpportunity": {
-              name: DC20RPG.actions.attackOfOpportunity,
-              description: DC20RPG.actionsJournalUuid.attackOfOpportunity,
-              label: DC20RPG.checks.att,
-              formula: "d20+@attackMod.value.martial",
-              img: "icons/svg/sword.svg",
-              type: "attackCheck",
-              checkKey: "att",
-              apCost: 1,
-              reaction: true
-            },
-        "spellDuel": {
-              name: DC20RPG.actions.spellDuel,
-              description: DC20RPG.actionsJournalUuid.spellDuel,
-              label: DC20RPG.checks.spe,
-              formula: "d20+@attackMod.value.spell",
-              img: "icons/svg/explosion.svg",
-              type: "spellCheck",
-              checkKey: "spe",
-              apCost: 2,
-              reaction: true
-        },
-        "disengage": {
-            name: DC20RPG.actions.disengage,
-            description: DC20RPG.actionsJournalUuid.disengage,
-            label: DC20RPG.actions.disengage,
-            formula: "",
-            img: "icons/svg/combat.svg",
-            type: "",
-            apCost: 1,
-            reaction: false,
-            applyEffect: {
-              name: DC20RPG.actions.disengage,
-              label: DC20RPG.actions.disengage,
-              img: "icons/svg/combat.svg",
-              description: `@UUID[${DC20RPG.actionsJournalUuid.disengage}]{${DC20RPG.actions.disengage}}`,
-              "duration.rounds": 1,
-              changes: [
-                {
-                  key: "system.rollLevel.againstYou.martial.melee",
-                  value: '"value": 1, "type": "dis", "label": "Disengage"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.rollLevel.againstYou.martial.ranged",
-                  value: '"value": 1, "type": "dis", "label": "Disengage"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.rollLevel.againstYou.spell.melee",
-                  value: '"value": 1, "type": "dis", "label": "Disengage"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.rollLevel.againstYou.spell.ranged",
-                  value: '"value": 1, "type": "dis", "label": "Disengage"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.events",
-                  value: '"eventType": "basic", "trigger": "turnStart", "postTrigger":"delete", "effectName": "Disengage"',
-                  mode: 2,
-                  priority: null
-                },
-              ]
-            }
-          },
-        "fullDisengage": {
-            name: DC20RPG.actions.fullDisengage,
-            description: DC20RPG.actionsJournalUuid.fullDisengage,
-            label: DC20RPG.actions.fullDisengage,
-            formula: "",
-            img: "icons/svg/combat.svg",
-            type: "",
-            apCost: 2,
-            reaction: false,
-            applyEffect: {
-              name: DC20RPG.actions.fullDisengage,
-              label: DC20RPG.actions.fullDisengage,
-              img: "icons/svg/combat.svg",
-              description: `@UUID[${DC20RPG.actionsJournalUuid.fullDisengage}]{${DC20RPG.actions.fullDisengage}}`,
-              "duration.rounds": 1,
-              changes: [
-                {
-                  key: "system.events",
-                  value: '"eventType": "basic", "trigger": "turnStart", "postTrigger":"delete", "effectName": "Full Disengage"',
-                  mode: 2,
-                  priority: null
-                },
-              ]
-            }
-          },
-        "dodge": {
-            name: DC20RPG.actions.dodge,
-            description: DC20RPG.actionsJournalUuid.dodge,
-            label: DC20RPG.actions.dodge,
-            formula: "",
-            img: "icons/svg/invisible.svg",
-            type: "",
-            apCost: 1,
-            reaction: false,
-            applyEffect: {
-              name: DC20RPG.actions.dodge,
-              label: DC20RPG.actions.dodge,
-              img: "icons/svg/invisible.svg",
-              description: `@UUID[${DC20RPG.actionsJournalUuid.dodge}]{${DC20RPG.actions.dodge}}`,
-              "duration.rounds": 1,
-              changes: [
-                {
-                  key: "system.rollLevel.againstYou.martial.melee",
-                  value: '"value": 1, "type": "dis", "label": "Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.rollLevel.againstYou.martial.ranged",
-                  value: '"value": 1, "type": "dis", "label": "Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.rollLevel.againstYou.spell.melee",
-                  value: '"value": 1, "type": "dis", "label": "Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.rollLevel.againstYou.spell.ranged",
-                  value: '"value": 1, "type": "dis", "label": "Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.conditions.grapple.advantage",
-                  value: 1,
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.events",
-                  value: '"eventType": "basic", "trigger": "turnStart", "postTrigger":"delete", "effectName": "Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-              ]
-            }
-          },
-        "fullDodge": {
-            name: DC20RPG.actions.fullDodge,
-            description: DC20RPG.actionsJournalUuid.fullDodge,
-            label: DC20RPG.actions.fullDodge,
-            formula: "",
-            img: "icons/svg/invisible.svg",
-            type: "",
-            apCost: 2,
-            reaction: false,
-            applyEffect: {
-              name: DC20RPG.actions.fullDodge,
-              label: DC20RPG.actions.fullDodge,
-              img: "icons/svg/invisible.svg",
-              description: `@UUID[${DC20RPG.actionsJournalUuid.fullDodge}]{${DC20RPG.actions.fullDodge}}`,
-              "duration.rounds": 1,
-              changes: [
-                {
-                  key: "system.rollLevel.againstYou.martial.melee",
-                  value: '"value": 1, "type": "dis", "label": "Full Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.rollLevel.againstYou.martial.ranged",
-                  value: '"value": 1, "type": "dis", "label": "Full Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.rollLevel.againstYou.spell.melee",
-                  value: '"value": 1, "type": "dis", "label": "Full Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.rollLevel.againstYou.spell.ranged",
-                  value: '"value": 1, "type": "dis", "label": "Full Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.conditions.grapple.advantage",
-                  value: 1,
-                  mode: 2,
-                  priority: null
-                },
-                {
-                  key: "system.events",
-                  value: '"eventType": "basic", "trigger": "turnStart", "postTrigger":"delete", "effectName": "Full Dodge"',
-                  mode: 2,
-                  priority: null
-                },
-              ]
-            }
-          },
-        "hide": {
-            name: DC20RPG.actions.hide,
-            description: DC20RPG.actionsJournalUuid.hide,
-            label: DC20RPG.checks.ste,
-            formula: "d20+@skills.ste.modifier",
-            img: "icons/svg/cowled.svg",
-            type: "skillCheck",
-            checkKey: "ste",
-            apCost: 1,
-            reaction: false
-          },
-        "attack": {
-            name: CONFIG.DC20RPG.actions.attack,
-            description: CONFIG.DC20RPG.actionsJournalUuid.attack,
-            label: CONFIG.DC20RPG.checks.att,
-            formula: "d20+@attackMod.value.martial",
-            img: "icons/svg/sword.svg",
-            type: "attackCheck",
-            checkKey: "att",
-            apCost: 1,
-            reaction: false
-        },
-        "disarm": {
-            name: CONFIG.DC20RPG.actions.disarm,
-            description: CONFIG.DC20RPG.actionsJournalUuid.disarm,
-            label: CONFIG.DC20RPG.checks.att,
-            formula: "d20+@attackMod.value.martial",
-            img: "icons/svg/lever.svg",
-            type: "attackCheck",
-            checkKey: "att",
-            apCost: 1,
-            reaction: false
-        },
-        "grapple": {
-            name: CONFIG.DC20RPG.actions.grapple,
-            description: CONFIG.DC20RPG.actionsJournalUuid.grapple,
-            label: CONFIG.DC20RPG.checks.ath,
-            formula: "d20+@skills.ath.modifier",
-            img: "icons/svg/trap.svg",
-            type: "skillCheck",
-            checkKey: "att",
-            apCost: 1,
-            reaction: false
-        },
-        "shove": {
-            name: CONFIG.DC20RPG.actions.shove,
-            description: CONFIG.DC20RPG.actionsJournalUuid.shove,
-            label: CONFIG.DC20RPG.checks.ath,
-            formula: "d20+@skills.ath.modifier",
-            img: "icons/svg/thrust.svg",
-            type: "skillCheck",
-            checkKey: "ath",
-            apCost: 1,
-            reaction: false
-        },
-        "tackle": {
-            name: CONFIG.DC20RPG.actions.tackle,
-            description: CONFIG.DC20RPG.actionsJournalUuid.tackle,
-            label: CONFIG.DC20RPG.checks.ath,
-            formula: "d20+@skills.ath.modifier",
-            img: "icons/svg/falling.svg",
-            type: "skillCheck",
-            checkKey: "ath",
-            apCost: 1,
-            reaction: false
-        }
-    }
-
-    for (let action of offactions) {
-        const page = await fromUuid(CONFIG.DC20RPG.actionsJournalUuid[action]);
-
-        OFFENSIVEItems[CONFIG.DC20RPG.actions[action]] = {
-            name: details[action].name,
-            details: details[action],
-            type: "technique",
-            img: details[action].img,
-            system: {
-                type: {
-                    value: "",
-                    subtype: "",
-                },
-                description: page.text.content,
-                source: "",
-                quantity: 1,
-                weight: 0,
-                price: 0,
-                attuned: false,
-                attunement: 0,
-                equipped: false,
-                rarity: "",
-                costs: {
-                    resources: {
-                        actionPoint: details[action].apCost
-                    }
-                },
-                identified: true,
-                activation: {
-                    type: "action",
-                    cost: 1,
-                    condition: "",
-                },
-                duration: {
-                    value: 1,
-                    units: "turn",
-                },
-                target: {
-                    value: null,
-                    width: null,
-                    units: "",
-                    type: "self",
-                },
-                range: {
-                    value: null,
-                    long: null,
-                    units: "",
-                },
-                consume: {
-                    type: "",
-                    target: "",
-                    amount: null,
-                },
-                ability: "",
-                actionType: "util",
-                attackBonus: 0,
-                chatFlavor: "",
-                critical: null,
-                damage: {
-                    parts: [],
-                    versatile: "",
-                },
-                formula: "",
-                save: {
-                    ability: "",
-                    dc: null,
-                    scaling: "spell",
-                },
-            },
-            sort: 0,
-            flags: {
-                core: {
-                    sourceId: "Item.wyQkeuZkttllAFB1",
-                },
-
-                "midi-qol": {
-                    onUseMacroName: "",
-                },
-            },
-        };
-    }
-
-    for (let action of reactions) {
-        const page = await fromUuid(CONFIG.DC20RPG.actionsJournalUuid[action]);
-
-        REACTIONItems[CONFIG.DC20RPG.actions[action]] = {
-            name: details[action].name,
-            details: details[action],
-            type: "technique",
-            img: details[action].img,
-            system: {
-                type: {
-                    value: "",
-                    subtype: "",
-                },
-                description: page.text.content,
-                costs: {
-                    resources: {
-                        actionPoint: details[action].apCost
-                    }
-                },
-                source: "",
-                quantity: 1,
-                weight: 0,
-                price: 0,
-                attuned: false,
-                attunement: 0,
-                equipped: false,
-                rarity: "",
-                identified: true,
-                activation: {
-                    type: "action",
-                    cost: 1,
-                    condition: "",
-                },
-                duration: {
-                    value: 1,
-                    units: "turn",
-                },
-                target: {
-                    value: null,
-                    width: null,
-                    units: "",
-                    type: "self",
-                },
-                range: {
-                    value: null,
-                    long: null,
-                    units: "",
-                },
-                consume: {
-                    type: "",
-                    target: "",
-                    amount: null,
-                },
-                ability: "",
-                actionType: "util",
-                attackBonus: 0,
-                chatFlavor: "",
-                critical: null,
-                damage: {
-                    parts: [],
-                    versatile: "",
-                },
-                formula: "",
-                save: {
-                    ability: "",
-                    dc: null,
-                    scaling: "spell",
-                },
-            },
-            sort: 0,
-            flags: {
-                core: {
-                    sourceId: "Item.wyQkeuZkttllAFB1",
-                },
-
-                "midi-qol": {
-                    onUseMacroName: "",
-                },
-            },
-        };
-    }
-
-    for (let action of defactions) {
-        const page = await fromUuid(CONFIG.DC20RPG.actionsJournalUuid[action]);
-
-        DEFENSIVEItems[CONFIG.DC20RPG.actions[action]] = {
-            name: details[action].name,
-            details: details[action],
-            type: "technique",
-            img: details[action].img,
-            system: {
-                type: {
-                    value: "",
-                    subtype: "",
-                },
-                description: page.text.content,
-                costs: {
-                    resources: {
-                        actionPoint: details[action].apCost
-                    }
-                },
-                source: "",
-                quantity: 1,
-                weight: 0,
-                price: 0,
-                attuned: false,
-                attunement: 0,
-                equipped: false,
-                rarity: "",
-                identified: true,
-                activation: {
-                    type: "action",
-                    cost: 1,
-                    condition: "",
-                },
-                duration: {
-                    value: 1,
-                    units: "turn",
-                },
-                target: {
-                    value: null,
-                    width: null,
-                    units: "",
-                    type: "self",
-                },
-                range: {
-                    value: null,
-                    long: null,
-                    units: "",
-                },
-                consume: {
-                    type: "",
-                    target: "",
-                    amount: null,
-                },
-                ability: "",
-                actionType: "util",
-                attackBonus: 0,
-                chatFlavor: "",
-                critical: null,
-                damage: {
-                    parts: [],
-                    versatile: "",
-                },
-                formula: "",
-                save: {
-                    ability: "",
-                    dc: null,
-                    scaling: "spell",
-                },
-            },
-            sort: 0,
-            flags: {
-                core: {
-                    sourceId: "Item.wyQkeuZkttllAFB1",
-                },
-
-                "midi-qol": {
-                    onUseMacroName: "",
-                },
-            },
-        };
-    }
-
-    ECHItems[game.i18n.localize("enhancedcombathud-dc20rpg.items.disengage.name")] = {
-        name: game.i18n.localize("enhancedcombathud-dc20rpg.items.disengage.name"),
-        type: "feat",
-        img: "modules/enhancedcombathud/icons/journey.webp",
-        system: {
-            type: {
-                value: "",
-                subtype: "",
-            },
-            description: {
-                value: game.i18n.localize("enhancedcombathud-dc20rpg.items.disengage.desc"),
-                chat: "",
-                unidentified: "",
-            },
-            source: "",
-            quantity: 1,
-            weight: 0,
-            price: 0,
-            attuned: false,
-            attunement: 0,
-            equipped: false,
-            rarity: "",
-            identified: true,
-            activation: {
-                type: "action",
-                cost: 1,
-                condition: "",
-            },
-            duration: {
-                value: 1,
-                units: "turn",
-            },
-            target: {
-                value: null,
-                width: null,
-                units: "",
-                type: "self",
-            },
-            range: {
-                value: null,
-                long: null,
-                units: "",
-            },
-            consume: {
-                type: "",
-                target: "",
-                amount: null,
-            },
-            ability: "",
-            actionType: "util",
-            attackBonus: 0,
-            chatFlavor: "",
-            critical: null,
-            damage: {
-                parts: [],
-                versatile: "",
-            },
-            formula: "",
-            save: {
-                ability: "",
-                dc: null,
-                scaling: "spell",
-            },
-        },
-        sort: 0,
-        flags: {
-            core: {
-                sourceId: "Item.wyQkeuZkttllAFB1",
-            },
-
-            "midi-qol": {
-                onUseMacroName: "",
-            },
-        },
-    };
-    ECHItems[game.i18n.localize("enhancedcombathud-dc20rpg.items.dodge.name")] = {
-        name: game.i18n.localize("enhancedcombathud-dc20rpg.items.dodge.name"),
-        type: "feat",
-        img: "modules/enhancedcombathud/icons/armor-upgrade.webp",
-        system: {
-            type: {
-                value: "",
-                subtype: "",
-            },
-            description: {
-                value: game.i18n.localize("enhancedcombathud-dc20rpg.items.dodge.desc"),
-                chat: "",
-                unidentified: "",
-            },
-            source: "",
-            quantity: 1,
-            weight: 0,
-            price: 0,
-            attuned: false,
-            attunement: 0,
-            equipped: false,
-            rarity: "",
-            identified: true,
-            activation: {
-                type: "action",
-                cost: 1,
-                condition: "",
-            },
-            duration: {
-                value: 1,
-                units: "round",
-            },
-            target: {
-                value: null,
-                width: null,
-                units: "",
-                type: "self",
-            },
-            range: {
-                value: null,
-                long: null,
-                units: "",
-            },
-
-            consume: {
-                type: "",
-                target: "",
-                amount: null,
-            },
-            ability: "",
-            actionType: "util",
-            attackBonus: 0,
-            chatFlavor: "",
-            critical: null,
-            damage: {
-                parts: [],
-                versatile: "",
-            },
-            formula: "",
-            save: {
-                ability: "",
-                dc: null,
-                scaling: "spell",
-            },
-            consumableType: "trinket",
-        },
-        sort: 0,
-        flags: {
-            "midi-qol": {
-                onUseMacroName: "",
-            },
-        },
-    };
-    ECHItems[game.i18n.localize("enhancedcombathud-dc20rpg.items.ready.name")] = {
-        name: game.i18n.localize("enhancedcombathud-dc20rpg.items.ready.name"),
-        type: "feat",
-        img: "modules/enhancedcombathud/icons/clockwork.webp",
-        system: {
-            type: {
-                value: "",
-                subtype: "",
-            },
-            description: {
-                value: game.i18n.localize("enhancedcombathud-dc20rpg.items.ready.desc"),
-                chat: "",
-                unidentified: "",
-            },
-            source: "",
-            quantity: 1,
-            weight: 0,
-            price: 0,
-            attuned: false,
-            attunement: 0,
-            equipped: false,
-            rarity: "",
-            identified: true,
-            activation: {
-                type: "action",
-                cost: 1,
-                condition: "",
-            },
-            duration: {
-                value: null,
-                units: "",
-            },
-            target: {
-                value: null,
-                width: null,
-                units: "",
-                type: "self",
-            },
-            range: {
-                value: null,
-                long: null,
-                units: "",
-            },
-
-            consume: {
-                type: "",
-                target: "",
-                amount: null,
-            },
-            ability: "",
-            actionType: "util",
-            attackBonus: 0,
-            chatFlavor: "",
-            critical: null,
-            damage: {
-                parts: [],
-                versatile: "",
-            },
-            formula: "",
-            save: {
-                ability: "",
-                dc: null,
-                scaling: "spell",
-            },
-            consumableType: "trinket",
-        },
-        sort: 0,
-        flags: {
-            "midi-qol": {
-                onUseMacroName: "",
-            },
-        },
-    };
-    ECHItems[game.i18n.localize("enhancedcombathud-dc20rpg.items.hide.name")] = {
-        name: game.i18n.localize("enhancedcombathud-dc20rpg.items.hide.name"),
-        type: "feat",
-        img: "modules/enhancedcombathud/icons/cloak-dagger.webp",
-        system: {
-            type: {
-                value: "",
-                subtype: "",
-            },
-            description: {
-                value: game.i18n.localize("enhancedcombathud-dc20rpg.items.hide.desc"),
-                chat: "",
-                unidentified: "",
-            },
-            source: "",
-            quantity: 1,
-            weight: 0,
-            price: 0,
-            attuned: false,
-            attunement: 0,
-            equipped: false,
-            rarity: "",
-            identified: true,
-            activation: {
-                type: "action",
-                cost: 1,
-                condition: "",
-            },
-            duration: {
-                value: null,
-                units: "",
-            },
-            target: {
-                value: null,
-                width: null,
-                units: "",
-                type: "self",
-            },
-            range: {
-                value: null,
-                long: null,
-                units: "",
-            },
-
-            consume: {
-                type: "",
-                target: "",
-                amount: null,
-            },
-            recharge: {
-                value: null,
-                charged: false,
-            },
-            ability: "",
-            actionType: "util",
-            attackBonus: 0,
-            chatFlavor: "",
-            critical: null,
-            damage: {
-                parts: [],
-                versatile: "",
-            },
-            formula: "",
-            save: {
-                ability: "",
-                dc: null,
-                scaling: "spell",
-            },
-            consumableType: "trinket",
-        },
-        sort: 0,
-        flags: {
-            "midi-qol": {
-                onUseMacroName: "",
-            },
-        },
-    };
-    ECHItems[game.i18n.localize("enhancedcombathud-dc20rpg.items.dash.name")] = {
-        name: game.i18n.localize("enhancedcombathud-dc20rpg.items.dash.name"),
-        type: "feat",
-        img: "modules/enhancedcombathud/icons/walking-boot.webp",
-        system: {
-            type: {
-                value: "",
-                subtype: "",
-            },
-            description: {
-                value: game.i18n.localize("enhancedcombathud-dc20rpg.items.dash.desc"),
-                chat: "",
-                unidentified: "",
-            },
-            source: "",
-            quantity: 1,
-            weight: 0,
-            price: 0,
-            attuned: false,
-            attunement: 0,
-            equipped: false,
-            rarity: "",
-            identified: true,
-            activation: {
-                type: "action",
-                cost: 1,
-                condition: "",
-            },
-            duration: {
-                value: null,
-                units: "",
-            },
-            target: {
-                value: null,
-                width: null,
-                units: "",
-                type: "self",
-            },
-            range: {
-                value: null,
-                long: null,
-                units: "",
-            },
-
-            consume: {
-                type: "",
-                target: "",
-                amount: null,
-            },
-            ability: "",
-            actionType: "util",
-            attackBonus: 0,
-            chatFlavor: "",
-            critical: null,
-            damage: {
-                parts: [],
-                versatile: "",
-            },
-            formula: "",
-            save: {
-                ability: "",
-                dc: null,
-                scaling: "spell",
-            },
-            consumableType: "trinket",
-        },
-        sort: 0,
-        flags: {
-            "midi-qol": {
-                onUseMacroName: "",
-            },
-        },
-    };
-    ECHItems[game.i18n.localize("enhancedcombathud-dc20rpg.items.shove.name")] = {
-        name: game.i18n.localize("enhancedcombathud-dc20rpg.items.shove.name"),
-        type: "feat",
-        img: "modules/enhancedcombathud/icons/shield-bash.webp",
-        system: {
-            type: {
-                value: "",
-                subtype: "",
-            },
-            description: {
-                value: game.i18n.localize("enhancedcombathud-dc20rpg.items.shove.desc"),
-                chat: "",
-                unidentified: "",
-            },
-            source: "",
-            quantity: 1,
-            weight: 0,
-            price: 0,
-            attuned: false,
-            attunement: 0,
-            equipped: false,
-            rarity: "",
-            identified: true,
-            activation: {
-                type: "action",
-                cost: 1,
-                condition: "",
-            },
-            duration: {
-                value: null,
-                units: "",
-            },
-            target: {
-                value: 1,
-                width: null,
-                units: "",
-                type: "creature",
-            },
-            range: {
-                value: null,
-                long: null,
-                units: "touch",
-            },
-
-            consume: {
-                type: "",
-                target: "",
-                amount: null,
-            },
-            ability: "",
-            actionType: "util",
-            attackBonus: 0,
-            chatFlavor: "",
-            critical: null,
-            damage: {
-                parts: [],
-                versatile: "",
-            },
-            formula: "",
-            save: {
-                ability: "",
-                dc: null,
-                scaling: "spell",
-            },
-            consumableType: "trinket",
-        },
-        sort: 0,
-        flags: {
-            "midi-qol": {
-                onUseMacroName: "",
-            },
-        },
-    };
-
-}
 

@@ -24,20 +24,18 @@ let defineMidiForwardSheetClass = (baseClass) => {
 	};
 };
 let defineMidiForwardActivityClass = (ActivityClass) => {
-	var _a, _b;
-	return _a = class MidiForwardActivity extends (_b = MidiActivityMixin(ActivityClass)) {
-			get possibleOtherActivity() {
-				return false;
-			}
-		},
-		_a.LOCALIZATION_PREFIXES = [...Reflect.get(_b, "LOCALIZATION_PREFIXES", _a), "midi-qol.FORWARD"],
-		_a.metadata = foundry.utils.mergeObject(Reflect.get(_b, "metadata", _a), {
+	return class MidiForwardActivity extends MidiActivityMixin(ActivityClass) {
+		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.FORWARD"];
+		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.FORWARD.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
 			sheetClass: MidiForwardSheet,
 			usage: {
 				chatCard: "modules/midi-qol/templates/activity-card.hbs",
 			},
-		}, { inplace: false, insertKeys: true, insertValues: true }),
-		_a;
+		}, { inplace: false, insertKeys: true, insertValues: true });
+		get possibleOtherActivity() {
+			return false;
+		}
+	};
 };

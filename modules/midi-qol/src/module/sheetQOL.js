@@ -49,7 +49,7 @@ let enableSheetQOL = (app, html, data) => {
 	</a>
 	</div>`);
 			html.find(".midiqol-onuse-macros").click(ev => {
-				new ActorOnUseMacrosConfig(app.object, {}).render(true);
+				new ActorOnUseMacrosConfig({ document: app.object }).render({ force: true });
 			});
 		}
 	}
@@ -166,8 +166,7 @@ function addTidy5eItemSheetButtons(app, html, data) {
 	let actor = app.object;
 	$('.tidy5e-sheet .inventory-list:not(favorites) .item').each(function () {
 		let buttonContainer;
-		//@ts-ignore version v10
-		if (foundry.utils.isNewerVersion(game.modules.get("tidy5e-sheet")?.version ?? "", "0.4.17"))
+		if (foundry.utils.isNewerVersion(game.modules?.get("tidy5e-sheet")?.version ?? "", "0.4.17"))
 			buttonContainer = $(this).find(".mod-roll-buttons");
 		else
 			buttonContainer = $(this).find(".item-controls");

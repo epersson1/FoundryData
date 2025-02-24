@@ -1,9 +1,10 @@
 import { MODULE_ID, debugEnabled, warn } from "../../midi-qol.js";
 import { Workflow } from "../Workflow.js";
 import { TargetConfirmationDialog } from "../apps/TargetConfirmation.js";
-import { configSettings, targetConfirmation } from "../settings.js";
+import { configSettings, safeGetGameSetting, targetConfirmation } from "../settings.js";
 import { installedModules } from "../setupModules.js";
 import { getFlankingEffect, CERemoveEffect, sumRolls, computeTemplateShapeDistance, getToken, MQfromUuidSync, checkActivityRange, checkDefeated, checkIncapacitated, computeCoverBonus, getSpeaker, hasWallBlockingCondition, isTargetable, tokenForActor, getActivityAutoTargetAction, getAoETargetType, doReactions, getUnitDist } from "../utils.js";
+const { DialogV2 } = foundry.applications.api;
 export async function confirmWorkflow(existingWorkflow) {
 	const validStates = [existingWorkflow.WorkflowState_Completed, existingWorkflow.WorkflowState_Start, existingWorkflow.WorkflowState_RollFinished];
 	if (existingWorkflow.currentAction === existingWorkflow.WorkflowState_NoAction)
@@ -19,20 +20,19 @@ export async function confirmWorkflow(existingWorkflow) {
 			await existingWorkflow.performState(existingWorkflow.WorkflowState_Cleanup);
 		}
 		else {
-			//@ts-expect-error
-			switch (await Dialog.wait({
-				title: game.i18n.format("midi-qol.WaitingForexistingWorkflow", { name: existingWorkflow.activity.name }),
-				default: "cancel",
-				content: "Choose what to do with the previous roll",
+			switch (await DialogV2.wait({
+				// @ts-expect-error types needs to make window partial
+				window: { title: game.i18n?.format("midi-qol.WaitingForPreviousWorkflow", { name: existingWorkflow.activity.name }) },
+				content: game.i18n?.localize("midi-qol.ResolvePreviousWorkflow"),
 				rejectClose: false,
 				close: () => { return false; },
-				buttons: {
-					complete: { icon: `<i class="fas fa-check"></i>`, label: "Complete previous", callback: () => { return "complete"; } },
-					discard: { icon: `<i class="fas fa-trash"></i>`, label: "Discard previous", callback: () => { return "discard"; } },
-					undo: { icon: `<i class="fas fa-undo"></i>`, label: "Undo until previous", callback: () => { return "undo"; } },
-					cancel: { icon: `<i class="fas fa-times"></i>`, label: "Cancel New", callback: () => { return "cancel"; } },
-				}
-			}, { width: 700 })) {
+				buttons: [
+					{ action: "complete", label: `<i class="fas fa-check"></i> Complete previous`, callback: () => { return "complete"; } },
+					{ action: "discard", label: `<i class="fas fa-trash"></i> Discard previous`, callback: () => { return "discard"; } },
+					{ action: "undo", label: `<i class="fas fa-undo"></i> Undo until previous`, callback: () => { return "undo"; } },
+					{ action: "cancel", default: true, label: `<i class="fas fa-times"></i> Cancel New`, callback: () => { return "cancel"; } }
+				],
+			})) {
 				case "complete":
 					await existingWorkflow.performState(existingWorkflow.WorkflowState_Cleanup);
 					await Workflow.removeWorkflow(existingWorkflow.uuid);
@@ -58,18 +58,15 @@ export async function removeFlanking(actor) {
 	if (CEFlanking && CEFlanking.name)
 		await CERemoveEffect({ effectName: CEFlanking.name, uuid: actor.uuid });
 }
+//
 export function setDamageRollMinTerms(rolls) {
-	//@ts-expect-error
 	const Die = foundry.dice.terms.Die;
 	if (rolls && sumRolls(rolls)) {
 		for (let roll of rolls) {
 			for (let term of roll.terms) {
 				// I don't like the default display and it does not look good for dice so nice - fiddle the results for maximised rolls
-				//@ts-expect-error
 				if (term instanceof Die && term.modifiers.includes(`min${term.faces}`)) {
-					//@ts-expect-error
 					for (let result of term.results) {
-						//@ts-expect-error
 						result.result = term.faces;
 					}
 				}
@@ -131,6 +128,8 @@ export function requiresTargetConfirmation(activity, options) {
 		return false;
 	if (options.workflowOptions?.targetConfirmation === "always")
 		return true;
+	if (["enchant", "summon"].includes(activity.type))
+		return false;
 	// check lateTargeting as well - legacy.
 	// For old version of dnd5e-scriptlets
 	if (options.workflowdialogOptions?.lateTargeting === "none")
@@ -173,7 +172,6 @@ export function requiresTargetConfirmation(activity, options) {
 			return true;
 		}
 		if (targetConfirmation.allies && token && numTargets > 0 && activity.target?.affects.type !== "self") {
-			//@ts-expect-error find disposition
 			if (game.user?.targets.some(t => t.document.disposition == token.document.disposition)) {
 				if (debugEnabled > 0)
 					warn("target confirmation triggered from targetConfirmation.allies");
@@ -184,7 +182,7 @@ export function requiresTargetConfirmation(activity, options) {
 			let tokenToUse = token;
 			/*
 			if (tokenToUse && game.user?.targets) {
-			const { result, attackingToken } = checkActivityRange(activity, tokenToUse, new Set(game.user.targets))
+			const { result, attackingToken } = checkActivityRange(activity, tokenToUse, new Set(game.user?.targets))
 			if (speaker.token && result === "fail")
 				tokenToUse = undefined;
 			else tokenToUse = attackingToken;
@@ -199,7 +197,6 @@ export function requiresTargetConfirmation(activity, options) {
 		if (targetConfirmation.mixedDispositiion && numTargets > 0 && game.user?.targets) {
 			const dispositions = new Set();
 			for (let target of game.user?.targets) {
-				//@ts-expect-error
 				if (target)
 					dispositions.add(target.document.disposition);
 			}
@@ -209,10 +206,10 @@ export function requiresTargetConfirmation(activity, options) {
 				return true;
 			}
 		}
-		if (targetConfirmation.longRange && game?.user?.targets && numTargets > 0 &&
+		if (targetConfirmation.longRange && game.user?.targets && numTargets > 0 &&
 			(["ft", "m"].includes(activity.item.system.range?.units) || activity.item.system.range.type === "touch")) {
 			if (token) {
-				for (let target of game.user.targets) {
+				for (let target of game.user?.targets) {
 					const { result, attackingToken } = checkActivityRange(activity, token, new Set([target]));
 					if (result !== "normal") {
 						if (debugEnabled > 0)
@@ -224,7 +221,7 @@ export function requiresTargetConfirmation(activity, options) {
 		}
 		if (targetConfirmation.inCover && numTargets > 0 && token && game.user?.targets) {
 			const isRangeTargeting = ["ft", "m"].includes(activity.target?.affects.count) && ["creature", "ally", "enemy"].includes(activity.target?.affects.type);
-			if (!activity.target?.template?.type && !isRangeTargeting) {
+			if (!activity.target?.template?.type && !isRangeTargeting && token) {
 				for (let target of game.user?.targets) {
 					if (computeCoverBonus(token, target, activity.item) > 0) {
 						if (debugEnabled > 0)
@@ -267,8 +264,8 @@ export async function postTemplateConfirmTargets(activity, options, workflow) {
 		let result = true;
 		result = await resolveTargetConfirmation(activity, options);
 		if (result && game.user?.targets) {
-			workflow.setTargets(game.user.targets);
-			activity.targets = new Set(game.user.targets);
+			workflow.setTargets(game.user?.targets);
+			activity.targets = new Set(game.user?.targets);
 		}
 		return result === true;
 	}
@@ -291,13 +288,13 @@ export async function resolveTargetConfirmation(activity, options = {}) {
 		// no timeout since there is a dialog to close
 		// create target dialog which updates the target display
 		options = foundry.utils.mergeObject(options, { callback: resolve });
-		let targetConfirmation = new TargetConfirmationDialog(activity.actor, activity, game.user, options).render(true);
+		let targetConfirmation = new TargetConfirmationDialog(activity.actor, activity, game.user, options).render({ force: true });
 	});
 	let shouldContinue = await targets;
+	// @ts-expect-error
 	if (savedActiveLayer)
 		await savedActiveLayer.activate();
 	if (savedSettings.control && savedSettings.tool)
-		//@ts-ignore savedSettings.tool is really a string
 		ui.controls?.initialize(savedSettings);
 	if (wasMaximized)
 		await activity.actor.sheet.maximize();
@@ -342,16 +339,9 @@ export async function showItemInfo() {
 			"core": { "canPopout": true }
 		}
 	};
-	//@ts-expect-error
-	if (game.release.generation < 12) {
-		chatData.type = CONST.CHAT_MESSAGE_TYPES.OTHER;
-	}
-	else {
-		//@ts-expect-error
-		chatData.style = CONST.CHAT_MESSAGE_STYLES.OTHER;
-	}
+	chatData.style = CONST.CHAT_MESSAGE_STYLES.OTHER;
 	// Toggle default roll mode
-	let rollMode = game.settings.get("core", "rollMode");
+	let rollMode = safeGetGameSetting("core", "rollMode") ?? "public";
 	if (["gmroll", "blindroll"].includes(rollMode))
 		chatData["whisper"] = ChatMessage.getWhisperRecipients("GM").filter(u => u.active);
 	if (rollMode === "blindroll")
@@ -366,7 +356,6 @@ function isTokenInside(template, token, wallsBlockTargeting) {
 	const grid = canvas?.scene?.grid;
 	if (!grid)
 		return false;
-	//@ts-expect-error
 	const templatePos = template.document ? { x: template.document.x, y: template.document.y } : { x: template.x, y: template.y };
 	if (configSettings.optionalRules.wallsBlockRange !== "none" && hasWallBlockingCondition(token))
 		return false;
@@ -419,7 +408,6 @@ function isTokenInside(template, token, wallsBlockTargeting) {
 					contains = contains && !CONFIG.Levels?.API?.testCollision(p1, p2, "collision");
 				}
 				else if (!installedModules.get("levelsvolumetrictemplates")) {
-					//@ts-expect-error polygonBackends
 					contains = !CONFIG.Canvas.polygonBackends.sight.testCollision({ x: tx, y: ty }, { x: currGrid.x + templatePos.x, y: currGrid.y + templatePos.y }, { mode: "any", type: "move" });
 				}
 			}
@@ -441,7 +429,6 @@ export function isAoETargetable(targetToken, options = { ignoreSelf: false, AoET
 		return false;
 	if (targetToken === selfToken && options.ignoreSelf)
 		return false;
-	//@ts-expect-error .disposition
 	const selfDisposition = selfToken?.document.disposition ?? 1;
 	switch (options.AoETargetType) {
 		case "any":
@@ -451,10 +438,8 @@ export function isAoETargetable(targetToken, options = { ignoreSelf: false, AoET
 		case "notAlly":
 			return targetToken.document.disposition !== selfDisposition;
 		case "enemy":
-			//@ts-expect-error
 			return targetToken.document.disposition === -selfDisposition || targetToken.document.disposition == CONST.TOKEN_DISPOSITIONS.SECRET;
 		case "notEnemy":
-			//@ts-expect-error
 			return targetToken.document.disposition !== -selfDisposition && targetToken.document.disposition !== CONST.TOKEN_DISPOSITIONS.SECRET;
 		case "neutral":
 			return targetToken.document.disposition === CONST.TOKEN_DISPOSITIONS.NEUTRAL;
@@ -465,10 +450,8 @@ export function isAoETargetable(targetToken, options = { ignoreSelf: false, AoET
 		case "notFriendly":
 			return targetToken.document.disposition !== CONST.TOKEN_DISPOSITIONS.FRIENDLY;
 		case "hostile":
-			//@ts-expect-error
 			return targetToken.document.disposition === CONST.TOKEN_DISPOSITIONS.HOSTILE || targetToken.document.disposition == CONST.TOKEN_DISPOSITIONS.SECRET;
 		case "notHostile":
-			//@ts-expect-error
 			return targetToken.document.disposition !== CONST.TOKEN_DISPOSITIONS.HOSTILE && targetToken.document.disposition !== CONST.TOKEN_DISPOSITIONS.SECRET;
 		default: return true;
 	}
@@ -477,7 +460,6 @@ export function templateTokens(templateDetails, selfTokenRef = "", ignoreSelf = 
 	if (!autoTarget)
 		autoTarget = configSettings.autoTarget;
 	// deprecated if (!autoTarget) autoTarget = getAutoTarget(templateDetails.item);
-	console.error(templateDetails);
 	if ((autoTarget) === "none")
 		return [];
 	const wallsBlockTargeting = ["wallsBlock", "wallsBlockIgnoreDefeated", "wallsBlockIgnoreIncapacitated"].includes(autoTarget);
@@ -486,7 +468,7 @@ export function templateTokens(templateDetails, selfTokenRef = "", ignoreSelf = 
 	let targetIds = [];
 	let targetTokens = [];
 	game.user?.updateTokenTargets([]);
-	if (autoTarget === "walledtemplates" && game.modules.get("walledtemplates")?.active) {
+	if (autoTarget === "walledtemplates" && game.modules?.get("walledtemplates")?.active) {
 		//@ts-expect-error
 		if (foundry.utils.getProperty(templateDetails?.item, "flags.walledtemplates.noAutotarget"))
 			return targetTokens;

@@ -17,18 +17,15 @@ export let colorChatMessageHandler = (message, html, data) => {
 		user = playerForActor(actor);
 	if (!user)
 		return true;
-	//@ts-expect-error .color not defined
 	html[0].style.borderColor = user.color;
 	const sender = html.find('.message-sender')[0];
 	if (!sender)
 		return;
 	if (coloredBorders === "borderNamesBackground") {
 		sender.style["text-shadow"] = `1px 1px 1px #FFFFFF`;
-		//@ts-expect-error .color not defined
 		sender.style.backgroundColor = user.color;
 	}
 	else if (coloredBorders === "borderNamesText") {
-		//@ts-expect-error .color not defined
 		sender.style.color = user.color;
 		sender.style["text-shadow"] = `1px 1px 1px ${sender.style.color}`;
 	}
@@ -62,7 +59,6 @@ export function checkOverTimeSaves(message, data, options, user) {
 	}
 	try {
 		let func = async (actor, rollFlags, roll) => {
-			//@ts-expect-error .changes v10
 			for (let effect of actor.effects.filter(ef => ef.changes.some(change => change.key === "flags.midi-qol.OverTime"))) {
 				await doOverTimeEffect(actor, effect, true, { saveToUse: roll, rollFlags: data.flags?.dnd5e?.roll, isActionSave: true });
 			}
@@ -122,8 +118,7 @@ let _onTargetSelect = (event) => {
 	event.preventDefault();
 	if (!canvas?.scene?.active)
 		return;
-	const token = canvas.tokens?.get(event.currentTarget.dataset.id);
-	//@ts-expect-error
+	const token = canvas?.tokens?.get(event.currentTarget.dataset.id);
 	if (token?.controlled)
 		token?.release();
 	else if (token && token?.isVisible && game.user && token.actor?.testUserPermission(game.user, "OWNER")) {
@@ -136,7 +131,7 @@ function _onTargetShow(event) {
 	event.preventDefault();
 	if (!canvas?.scene?.active)
 		return;
-	const token = canvas.tokens?.get(event.currentTarget.dataset.id);
+	const token = canvas?.tokens?.get(event.currentTarget.dataset.id);
 	if (game.user && token?.actor?.testUserPermission(game.user, "OWNER")) {
 		token.actor.sheet?.render(true);
 	}
@@ -235,7 +230,7 @@ export let hideStuffHandler = (message, html, data) => {
 			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("critical");
 			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("fumble");
 		}
-		//@ts-expect-error
+		// @ts-expect-error protected - but this isn't doing anything, is it?
 		ui.chat.scrollBottom;
 		return;
 	}
@@ -324,8 +319,8 @@ export let hideStuffHandler = (message, html, data) => {
 			html.find(".midi-qol-gmTokenName").remove();
 		}
 	}
-	//@ts-expect-error
-	setTimeout(() => ui.chat.scrollBottom(), 0);
+	// @ts-expect-error protected
+	setTimeout(() => ui.chat?.scrollBottom(), 0);
 	return true;
 };
 export function processItemCardCreation(message, user) {
@@ -366,7 +361,7 @@ export function ddbglPendingFired(data) {
 		player = playerFor(token);
 	}
 	else {
-		player = game.users?.players.find(p => p.active && actor?.permission[p.id ?? ""] === CONST.ENTITY_PERMISSIONS.OWNER);
+		player = game.users?.players.find(p => p.active && actor?.testUserPermission(p, "OWNER"));
 	}
 	if (!player || !player.active)
 		player = ChatMessage.getWhisperRecipients("GM").find(u => u.active);
@@ -383,7 +378,7 @@ export function ddbglPendingFired(data) {
 			Workflow.removeWorkflow(item.uuid);
 		workflow = undefined;
 	}
-	//@ts-expect-error .hasAttack
+	// @ts-expect-error no dnd5e-types
 	if (["damage", "heal"].includes(actionType) && item.hasAttack && !workflow) {
 		warn(` ddb-game-log damage roll without workflow being started ${actor.name} using ${item.name}`);
 		return;
@@ -395,9 +390,8 @@ export function ddbglPendingFired(data) {
 			actor: actorId,
 			alias: token?.name ?? actor.name
 		};
-		//@ts-expect-error
-		workflow = new DDBGameLogWorkflow(actor, item, speaker, game.user.targets, {});
-		//@ts-expect-error .displayCard
+		workflow = new DDBGameLogWorkflow(actor, item, speaker, Array.from(game.user?.targets ?? new Set()), {});
+		// @ts-expect-error no dnd5e-types
 		item.displayCard({ showFullCard: false, workflow, createMessage: false, defaultCard: true });
 		// showItemCard.bind(item)(false, workflow, false, true);
 		return;
@@ -411,7 +405,6 @@ export function ddbglPendingHook(data) {
 export function processCreateDDBGLMessages(message, options, user) {
 	if (!configSettings.optionalRules.enableddbGL)
 		return;
-	//@ts-expect-error flags v10
 	const flags = message.flags;
 	if (!flags || !flags["ddb-game-log"] || !game.user)
 		return;
@@ -426,9 +419,7 @@ export function processCreateDDBGLMessages(message, options, user) {
 		error("Could not find item for fulfilled roll");
 		return;
 	}
-	//@ts-expect-error speaker v10
 	const token = MQfromUuidSync(`Scene.${message.speaker.scene}.Token.${message.speaker.token}`);
-	//@ts-expect-error speaker v10
 	const actor = token.actor ?? game.actors?.get(message.speaker.actor ?? "");
 	if (!actor) {
 		error("ddb-game-log could not find actor for roll");
@@ -440,9 +431,8 @@ export function processCreateDDBGLMessages(message, options, user) {
 		player = playerFor(token);
 	}
 	else {
-		player = game.users?.players.find(p => p.active && actor?.permission[p.id ?? ""] === CONST.ENTITY_PERMISSIONS.OWNER);
+		player = game.users?.players.find(p => p.active && actor?.testUserPermission(p, "OWNER"));
 	}
-	//@ts-expect-error
 	if (!player || !player.active)
 		player = game.users?.activeGM;
 	if (player?.id !== game.user?.id)
@@ -468,7 +458,6 @@ export function processCreateDDBGLMessages(message, options, user) {
 		untimedExecuteAsGM("updateUndoChatCardUuids", workflow.undoData);
 	}
 	if (flags.dnd5e.roll.type === "attack") {
-		//@ts-expect-error
 		let rolls = message.rolls;
 		if (!(rolls instanceof Array))
 			rolls = [rolls];
@@ -476,7 +465,6 @@ export function processCreateDDBGLMessages(message, options, user) {
 		workflow.attackRoll = rolls[0] ?? undefined;
 		workflow.attackTotal = rolls[0]?.total ?? 0;
 		workflow.needsDamage = workflow.item.hasDamage;
-		//@ts-expect-error content v10
 		workflow.attackRollHTML = message.content;
 		workflow.attackRolled = true;
 		if (workflow.currentAction === workflow.WorkflowState_WaitForAttackRoll) {
@@ -486,7 +474,6 @@ export function processCreateDDBGLMessages(message, options, user) {
 		}
 	}
 	if (["damage", "heal"].includes(flags.dnd5e.roll.type)) {
-		//@ts-expect-error
 		let rolls = message.rolls;
 		if (!rolls)
 			return;

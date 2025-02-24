@@ -1,7 +1,6 @@
-import { applyDaeEffects, daeSystemClass } from "../dae.js";
+import { daeSystemClass } from "../dae.js";
 import { DAESystemDND5E } from "./DAEdnd5e.js";
-import { ValidSpec, wildcardEffects } from "./DAESystem.js";
-//@ts-ignore
+// @ts-expect-error
 const CONFIG = globalThis.CONFIG;
 const SW5ESystemFlags = [
     "flags.sw5e.advantage.all",
@@ -181,7 +180,6 @@ export class DAESystemSW5E extends DAESystemDND5E {
     }
     static modifySpecials(actorType, specials, characterSpec) {
         super.modifySpecials(actorType, specials, characterSpec);
-        //@ts-ignore
         const ACTIVE_EFFECT_MODES = CONST.ACTIVE_EFFECT_MODES;
         specials["system.traits.sdi.all"] = [false, ACTIVE_EFFECT_MODES.CUSTOM];
         specials["system.traits.sdi.value"] = ["", -1];
@@ -212,9 +210,9 @@ export class DAESystemSW5E extends DAESystemDND5E {
         });
     }
     static async editConfig() {
-        if (game.system.id === "sw5e") {
+        if (game.system?.id === "sw5e") {
             try {
-                const armorPack = game.packs.get("sw5e.armor");
+                const armorPack = game.packs?.get("sw5e.armor");
                 let pack;
                 const profs = [
                     { type: "tool", list: this.toolProfList },
@@ -227,6 +225,7 @@ export class DAESystemSW5E extends DAESystemDND5E {
                     if (ids !== undefined) {
                         const typeProperty = (type !== "armor") ? `${type}Type` : `armor.type`;
                         for (const [key, id] of Object.entries(ids)) {
+                            // @ts-expect-error
                             const item = await fromUuid(`Compendium.${id}`);
                             list[key] = item?.name;
                         }
@@ -273,9 +272,6 @@ export class DAESystemSW5E extends DAESystemDND5E {
             });
         }
     }
-    static get applyBaseEffectsFunc() {
-        return applyBaseActiveEffectssw5e;
-    }
     static getOptionsForSpec(spec) {
         if (!spec.key)
             return undefined;
@@ -297,17 +293,6 @@ export class DAESystemSW5E extends DAESystemDND5E {
     static initActions() {
         super.initActions();
     }
-}
-// this function replaces applyActiveEffects in Actor
-function applyBaseActiveEffectssw5e() {
-    if (this._prepareScaleValues)
-        this._prepareScaleValues();
-    if (this.system?.prepareEmbeddedData instanceof Function)
-        this.system.prepareEmbeddedData();
-    // The Active Effects do not have access to their parent at preparation time, so we wait until this stage to
-    // determine whether they are suppressed or not.
-    this.effects.forEach(e => e.determineSuppression());
-    applyDaeEffects.bind(this)({ specList: ValidSpec.actorSpecs[this.type].baseSpecsObj, completedSpecs: {}, allowAllSpes: false, wildCardsInclude: wildcardEffects, wildCardsExclude: [], doStatusEffects: true });
 }
 if (!globalThis.daeSystems)
     globalThis.daeSystems = {};

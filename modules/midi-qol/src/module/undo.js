@@ -2,7 +2,7 @@ import { debug, debugEnabled, error, log, warn } from "../midi-qol.js";
 import { socketlibSocket, untimedExecuteAsGM } from "./GMAction.js";
 import { configSettings } from "./settings.js";
 import { busyWait } from "./tests/setupTest.js";
-import { MQfromUuidSync, getConcentrationEffect, isReactionItem } from "./utils.js";
+import { MQfromUuidSync, getConcentrationEffect, getTokenDocument, isReactionItem } from "./utils.js";
 var dae;
 Hooks.once("DAE.setupComplete", () => {
 	dae = globalThis.DAE;
@@ -32,7 +32,7 @@ export function _queueUndoDataDirect(undoDataDef) {
 	undoData.itemName = undoDataDef.itemName;
 	undoData.userName = undoDataDef.userName;
 	undoData.allTargets = undoDataDef.targets ?? new Collection();
-	undoData.serverTime = game.time.serverTime;
+	undoData.serverTime = game.time?.serverTime;
 	undoData.templateUuids = undoDataDef.templateUuids ?? [];
 	undoData.isReaction = undoDataDef.isReaction;
 	if (undoData.targets) {
@@ -96,7 +96,7 @@ export function startUndoWorkflow(undoData) {
 	undoData.allTargets = new Collection; // every token referenced by the workflow
 	const concentrationEffect = getConcentrationEffect(actor, undoData.itemUuid);
 	if (concentrationEffect) {
-		//@ts-expect-error
+		// @ts-expect-error no dnd5e-types
 		for (let dependent of concentrationEffect.getDependents()) {
 			let token;
 			if (dependent instanceof ActiveEffect)
@@ -141,12 +141,12 @@ export function updateUndoChatCardUuids(data) {
 export async function saveTargetsUndoData(workflow) {
 	workflow.undoData.targets = [];
 	workflow.targets.forEach(t => {
-		let tokendoc = (t instanceof TokenDocument) ? t : t.document;
-		if (tokendoc.actor?.uuid === workflow.actor.uuid)
+		let tokendoc = getTokenDocument(t);
+		if (tokendoc?.actor?.uuid === workflow.actor.uuid)
 			return;
-		workflow.undoData.targets.push({ tokenUuid: tokendoc.uuid, actorUuid: tokendoc.actor?.uuid });
+		workflow.undoData.targets.push({ tokenUuid: tokendoc?.uuid, actorUuid: tokendoc?.actor?.uuid });
 	});
-	workflow.undoData.serverTime = game.time.serverTime;
+	workflow.undoData.serverTime = game.time?.serverTime;
 	workflow.undoData.itemCardId = workflow.itemCardId;
 	workflow.undoData.itemCardUuid = workflow.itemCardUuid;
 	if (workflow.templateUuid)
@@ -453,7 +453,6 @@ async function undoSingleTokenActor({ tokenUuid, actorUuid, actorData, tokenData
 	actorChanges = actorData ? getChanges(actor.toObject(true), actorData) : {};
 	if (debugEnabled > 0)
 		warn("undoSingleTokenActor | Actor data ", actor.name, actorData, actorChanges);
-	//@ts-expect-error isEmpty
 	if (!foundry.utils.isEmpty(actorChanges)) {
 		delete actorChanges.items;
 		delete actorChanges.effects;
@@ -463,14 +462,12 @@ async function undoSingleTokenActor({ tokenUuid, actorUuid, actorData, tokenData
 		tokenChanges = tokenData ? getChanges(tokendoc.toObject(true), tokenData) : {};
 		delete tokenChanges.actorData;
 		delete tokenChanges.delta;
-		//@ts-expect-error isEmpty
 		if (!foundry.utils.isEmpty(tokenChanges)) {
 			await tokendoc.update(tokenChanges, { noConcentrationCheck: true });
 		}
 	}
 }
 export async function removeChatCard(chatCard) {
-	//@ts-expect-error
 	if (!chatCard || !chatCard.content)
 		return;
 	const shouldDelete = configSettings.undoChatColor === "Delete";
@@ -479,7 +476,6 @@ export async function removeChatCard(chatCard) {
 			debug("Deleting chat card ", chatCard.id, chatCard.uuid);
 		return await chatCard.delete();
 	}
-	//@ts-expect-error
 	return await chatCard.update({ content: `<div style="background-color: ${configSettings.undoChatColor};"> ${chatCard.content}</div>` });
 }
 export async function undoWorkflow(undoData) {
