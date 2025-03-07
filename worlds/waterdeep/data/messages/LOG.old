@@ -1,7 +1,5 @@
-2025/02/22-19:01:47.514 1cb8 Recovering log #182
-2025/02/22-19:01:47.561 1cb8 Delete type=0 #182
-2025/02/22-19:01:47.561 1cb8 Delete type=3 #179
-2025/02/22-19:06:42.682 1790 Level-0 table #188: started
-2025/02/22-19:06:42.682 1790 Level-0 table #188: 0 bytes OK
-2025/02/22-19:06:42.707 1790 Delete type=0 #186
-2025/02/22-19:06:42.808 1790 Manual compaction at level-0 from '!messages!0RuoWGytuqjRYvHX' @ 72057594037927935 : 1 .. '!messages!zz3TP66kHIHqCahd' @ 0 : 0; will stop at (end)
+2025/03/02-10:21:58.265 3570 Recovering log #193
+2025/03/02-10:21:58.266 3570 Level-0 table #196: started
+2025/03/02-10:21:58.303 3570 Level-0 table #196: 56412 bytes OK
+2025/03/02-10:21:58.335 3570 Delete type=0 #193
+2025/03/02-10:21:58.343 3570 Delete type=3 #191
