@@ -57,8 +57,7 @@
     ],
     "scripts": [
         "lib/math.js",
-        "lib/deep-diff.min.js",
-        "scripts/chat-enhancements.js"
+        "lib/deep-diff.min.js"
     ],
     "styles": [
         "css/actor/character-display.css",
@@ -78,6 +77,6 @@
     },
     "url": "https://gitlab.com/custom-system-builder/custom-system-builder/",
     "manifest": "https://gitlab.com/custom-system-builder/custom-system-builder/-/releases/permalink/latest/downloads/system.json",
-    "download": "https://gitlab.com/custom-system-builder/custom-system-builder/-/releases/4.3.2/downloads/custom-system-builder.zip",
-    "version": "4.3.2"
+    "download": "https://gitlab.com/custom-system-builder/custom-system-builder/-/releases/4.4.2/downloads/custom-system-builder.zip",
+    "version": "4.4.2"
 }

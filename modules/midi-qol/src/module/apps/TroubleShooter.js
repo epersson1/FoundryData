@@ -474,7 +474,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 			const modules = game.modules?.filter(m => !!m.id.match(matcher)) ?? [];
 			if (modules.length > 0) {
 				modules.forEach(module => {
-					foundry.utils.setProperty(tempModules, module.id, { title: module.title, active: module.active, ibstalled: true, moduleVersion: module.version, foundryVersion: module.compatibility?.verified });
+					foundry.utils.setProperty(tempModules, module.id, { title: module.title, active: module.active, installed: true, moduleVersion: module.version, foundryVersion: module.compatibility?.verified });
 				});
 			}
 			else {
@@ -488,7 +488,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 			const modules = game.modules?.filter(m => m.authors.find(au => au.name.toLocaleLowerCase().match(matcher))) ?? [];
 			if (modules.length > 0) {
 				modules.forEach(module => {
-					foundry.utils.setProperty(tempModules, module.id, { title: module.title, active: module.active, ibstalled: true, moduleVersion: module.version, foundryVersion: module.compatibility?.verified });
+					foundry.utils.setProperty(tempModules, module.id, { title: module.title, active: module.active, installed: true, moduleVersion: module.version, foundryVersion: module.compatibility?.verified });
 				});
 			}
 		});
@@ -500,7 +500,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		const moduleData = game.modules.get(moduleId);
 		if (moduleData)
 			//@ts-expect-error .version
-			foundry.utils.setProperty(data.summary.knownModules, moduleId, { title: moduleData.title, active: moduleData?.active, ibstalled: true, moduleVersion: moduleData?.version, foundryVersion: moduleData.compatibility?.verified });
+			foundry.utils.setProperty(data.summary.knownModules, moduleId, { title: moduleData.title, active: moduleData?.active, installed: true, moduleVersion: moduleData?.version, foundryVersion: moduleData.compatibility?.verified });
 		else
 			foundry.utils.setProperty(data.summary.knownModules, moduleId, { title: "Not installed", active: false, installed: false, moduleVersion: ``, foundryVersion: `` });
 		});

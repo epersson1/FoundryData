@@ -256,6 +256,7 @@ class Meter extends InputComponent {
             optimum: json.optimum,
             textOption: json.textOption ?? textOptionDefault,
             size: json.size,
+            customSize: json.customSize,
             cssClass: json.cssClass,
             role: json.role,
             permission: json.permission,
@@ -293,6 +294,24 @@ class Meter extends InputComponent {
         }));
         return mainElt;
     }
+    /** Attaches event-listeners to the html of the config-form */
+    static attachListenersToConfigForm(html) {
+        $(html)
+            .find('#meterSize')
+            .on('change', (event) => {
+            const target = $(event.currentTarget);
+            const customSizeBlock = $('.custom-system-size-custom');
+            const slideValue = 200;
+            switch (target.val()) {
+                case 'custom':
+                    customSizeBlock.slideDown(slideValue);
+                    break;
+                default:
+                    customSizeBlock.slideUp(slideValue);
+                    break;
+            }
+        });
+    }
     /**
      * Extracts configuration from submitted HTML form
      * @override
@@ -301,7 +320,7 @@ class Meter extends InputComponent {
      * @throws {Error} If configuration is not correct
      */
     static extractConfig(html) {
-        return {
+        const fieldData = {
             ...super.extractConfig(html),
             type: 'meter',
             label: html.find('#meterLabel').val()?.toString() ?? '',
@@ -314,6 +333,11 @@ class Meter extends InputComponent {
             optimum: html.find('#meterOptimum').val()?.toString() ?? '',
             textOption: html.find('#meterTextOption').val()?.toString() ?? textOptionDefault
         };
+        if (fieldData.size === 'custom') {
+            fieldData.customSize = parseInt(String(html.find('#meterCustomSize').val()));
+        }
+        this.validateConfig(fieldData);
+        return fieldData;
     }
     static validateConfig(json) {
         super.validateConfig(json);

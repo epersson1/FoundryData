@@ -408,7 +408,7 @@ class Component {
         const droppedComponent = droppedData?.component;
         if (droppedComponent) {
             let isMovement = false;
-            if (sourceId === entity.uuid && !event.ctrlKey) {
+            if (sourceId === entity.uuid && !event.ctrlKey && !event.metaKey) {
                 await droppedComponent.delete(entity, false);
                 isMovement = true;
             }

@@ -143,6 +143,7 @@ class TextField extends InputComponent {
             label: json.label,
             defaultValue: json.defaultValue,
             size: json.size,
+            customSize: json.customSize,
             cssClass: json.cssClass,
             role: json.role,
             permission: json.permission,
@@ -178,6 +179,24 @@ class TextField extends InputComponent {
         }));
         return mainElt;
     }
+    /** Attaches event-listeners to the html of the config-form */
+    static attachListenersToConfigForm(html) {
+        $(html)
+            .find('#textFieldSize')
+            .on('change', (event) => {
+            const target = $(event.currentTarget);
+            const customSizeBlock = $('.custom-system-size-custom');
+            const slideValue = 200;
+            switch (target.val()) {
+                case 'custom':
+                    customSizeBlock.slideDown(slideValue);
+                    break;
+                default:
+                    customSizeBlock.slideUp(slideValue);
+                    break;
+            }
+        });
+    }
     /**
      * Extracts configuration from submitted HTML form
      * @param html The submitted form
@@ -195,6 +214,9 @@ class TextField extends InputComponent {
             maxLength: maxLengthString ? parseInt(maxLengthString) : undefined,
             autocomplete: html.find('#textFieldAutocomplete').val()?.toString()
         };
+        if (fieldData.size === 'custom') {
+            fieldData.customSize = parseInt(String(html.find('#textFieldCustomSize').val()));
+        }
         this.validateConfig(fieldData);
         return fieldData;
     }

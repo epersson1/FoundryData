@@ -1,7 +1,7 @@
 {
     "title": "Levels",
     "description": "Add multiple vertical levels to maps",
-    "version": "5.3.15",
+    "version": "5.5.1",
     "authors": [
         {
             "name": "theripper93",
@@ -84,7 +84,7 @@
     ],
     "url": "https://github.com/theripper93/Levels",
     "manifest": "https://github.com/theripper93/Levels/releases/latest/download/module.json",
-    "download": "https://github.com/theripper93/Levels/releases/download/5.3.15/module.zip",
+    "download": "https://github.com/theripper93/Levels/releases/download/5.5.1/module.zip",
     "id": "levels",
     "relationships": {
         "requires": [

@@ -1,4 +1,4 @@
-import { timesUpInstalled, simpleCalendarInstalled, allMacroEffects, getMacro, tokenForActor, actorFromUuid, getTokenDocument, getToken, ceInterface } from "./dae.js";
+import { timesUpInstalled, simpleCalendarInstalled, allMacroEffects, getMacro, tokenForActor, actorFromUuid, getTokenDocument, getToken, ceInterface, maxShortDuration } from "./dae.js";
 import { warn, debug, error, debugEnabled, i18nFormat, i18n } from "../dae.js";
 export class GMActionMessage {
     action;
@@ -314,6 +314,8 @@ export async function applyActiveEffects({ activate = true, activityUuid = undef
                 effectData.transfer = false;
                 if (effectData.flags?.dae?.transfer !== undefined)
                     delete effectData.flags.dae.transfer;
+                // New effect so remove the source effects dependents
+                foundry.utils.setProperty(effectData, "flags.dnd5e.dependents", []);
                 effectData.changes.forEach(change => { if (change.key === "StatusEffect")
                     change.key = "macro.StatusEffect"; });
             });
@@ -365,7 +367,7 @@ export async function applyActiveEffects({ activate = true, activityUuid = undef
                         };
                     }
                     else
-                        convertedDuration = convertDuration({ value: aeData.duration.seconds, units: "second" }, inCombat);
+                        convertedDuration = convertDuration({ value: aeData.duration.seconds, units: "second" }, inCombat, maxShortDuration);
                     if (aeData.duration.seconds === -1) { // special case duration of -1 seconds
                         delete convertedDuration.rounds;
                         delete convertedDuration.turns;
@@ -385,8 +387,8 @@ export async function applyActiveEffects({ activate = true, activityUuid = undef
                 }
                 else { // no specific duration on effect use spell duration
                     const inCombat = targetActor.inCombat;
-                    const convertedDuration = convertDuration(effectDuration, inCombat);
-                    debug("converted duration ", convertedDuration, inCombat, effectDuration);
+                    const convertedDuration = convertDuration(effectDuration, inCombat, maxShortDuration);
+                    debug("converted duration ", convertedDuration, inCombat, effectDuration, maxShortDuration);
                     if (convertedDuration.type === "seconds") {
                         aeData.duration.seconds = convertedDuration.seconds;
                         aeData.duration.startTime = game.time?.worldTime;
@@ -439,8 +441,10 @@ export async function applyActiveEffects({ activate = true, activityUuid = undef
                                 for (let effect of effects) {
                                     const origin = fromUuidSync(effect.origin);
                                     //@ts-expect-error no dnd5e-types
-                                    if (origin instanceof ActiveEffect && origin.addDependent)
+                                    if (origin instanceof ActiveEffect && origin.addDependent) {
+                                        //@ts-expect-error no dnd5e-types
                                         await origin.addDependent(effect);
+                                    }
                                 }
                         }
                         // if (["macro.execute", "macro.itemMacro", "roll", "macro.actorUpdate"].includes(change.key)) {
@@ -478,17 +482,20 @@ export async function applyActiveEffects({ activate = true, activityUuid = undef
                 let createdEffects = await targetActor.createEmbeddedDocuments("ActiveEffect", dupEffects, { toggleEffect, metaData });
                 for (let effect of createdEffects) {
                     const origin = fromUuidSync(effect.origin);
-                    if (origin?.addDependent)
+                    if (origin?.addDependent) {
                         await origin.addDependent(effect);
+                    }
                 }
             }
         }
     }
     ;
 }
-export function convertDuration(durationData, inCombat) {
-    // TODO rewrite this abomination
-    const useTurns = inCombat && timesUpInstalled;
+export function convertDuration(durationData, inCombat, maxSecondsToConvert = Number.POSITIVE_INFINITY) {
+    // TODO rewrite this abomination - for v13 look at default calendar
+    let useTurns = inCombat && timesUpInstalled;
+    if (durationData.units === "second" && durationData.value > maxSecondsToConvert)
+        useTurns = false;
     if (!durationData || (durationData.units === "second" && durationData.value < CONFIG.time.roundTime)) { // no duration or very short (less than 1 round)
         if (useTurns)
             return { type: "turns", seconds: 0, rounds: 0, turns: 1 };

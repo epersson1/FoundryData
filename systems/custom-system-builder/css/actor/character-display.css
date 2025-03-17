@@ -55,6 +55,16 @@
     flex: none;
 }
 
+.sheet .custom-system-actor header.sheet-header h1 input {
+    margin: 8px;
+    width: 100%;
+}
+
+.sheet .custom-system-actor header.sheet-header h1 {
+    display: flex;
+    align-items: center;
+}
+
 .custom-system-actor .tab {
     height: 100%;
 }
@@ -116,18 +126,21 @@
     margin-bottom: 8px;
 }
 
-.custom-system-template-select > select {
+.custom-system-sheet-actions select {
     width: auto !important;
     min-width: 200px;
     margin-left: 16px;
 }
 
-.custom-system-template-select > a {
+.custom-system-sheet-button {
     background: rgba(187, 187, 187, 0.75);
     border: 1px solid var(--color-border-dark-1);
     border-radius: 4px;
     padding: 2px;
     box-shadow: 0 0 1px var(--color-shadow-dark);
+}
+
+.custom-system-sheet-actions a {
     margin-left: 8px;
 }
 

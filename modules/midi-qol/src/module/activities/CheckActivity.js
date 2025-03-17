@@ -1,7 +1,9 @@
-import { debugEnabled, i18n, warn } from "../../midi-qol.js";
+import { debugEnabled, geti18nOptions, i18n, warn } from "../../midi-qol.js";
+import { Workflow } from "../Workflow.js";
 import { ReplaceDefaultActivities, configSettings } from "../settings.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
 import { MidiSaveActivity } from "./SaveActivity.js";
+import { getSceneTargets } from "./activityHelpers.js";
 export var MidiCheckActivity;
 export var MidiCheckSheet;
 var CheckActivity;
@@ -22,16 +24,6 @@ export function setupCheckActivity() {
 		GameSystemConfig.activityTypes["midiCheck"] = { documentClass: MidiCheckActivity };
 	}
 }
-function getSceneTargets() {
-	if (!canvas?.tokens)
-		return [];
-	const controlledTokens = canvas?.tokens?.controlled;
-	let targets = controlledTokens?.filter(t => t.actor);
-	//@ts-expect-error getActiveTokens should actually be an array of tokens - not just linked and not document
-	if (!targets?.length && game.user?.character)
-		targets = game.user?.character?.getActiveTokens(false, false);
-	return targets;
-}
 let defineMidiCheckActivityClass = (ActivityClass) => {
 	return class MidiCheckActivity extends MidiActivityMixin(ActivityClass) {
 		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "DND5E.SAVE", "DND5E.CHECK", "midi-qol.CHECK"];
@@ -43,8 +35,9 @@ let defineMidiCheckActivityClass = (ActivityClass) => {
 			usage: {
 				chatCard: "modules/midi-qol/templates/activity-card.hbs",
 				actions: {
-					// rollCheck: this.#rollCheck, // CheckActivity.metadata.usage.actions.rollCheck,
-					rollDamage: MidiSaveActivity.metadata.usage.actions.rollDamage
+					// rollCheck: MidiCheckActivity.#rollCheck, Having this means having to track CheckActivity.#rollCheck code changes
+					// Currently not needed as there is no workflow activity
+					rollDamage: MidiSaveActivity.metadata.usage.actions.rollDamage,
 				}
 			},
 		}, { inplace: false, insertKeys: true, invsertValues: true });
@@ -59,54 +52,58 @@ let defineMidiCheckActivityClass = (ActivityClass) => {
 					onSave: new StringField({ name: "onSave", initial: "half" }),
 					parts: new ArrayField(new DamageField())
 				}),
+				// WIP
+				// saveDisplay: new StringField({initial: "default"}),
 			};
 			return schema;
 		}
 		static async #rollCheck(event, target, message) {
+			let workflow = message ? Workflow.getWorkflow(message._uuid) : null;
+			// return ActivityClass.#rollCheck return ActivityClass.#rollCheck.bind(this)(event, target);
+			// Can't do this as it's private
 			const targets = getSceneTargets();
-			if (!targets?.length)
+			if (!targets.length && game.user?.character)
+				targets.push(game.user?.character);
+			if (!targets.length)
 				ui.notifications?.warn("DND5E.ActionWarningNoToken", { localize: true });
 			let { ability, dc, skill, tool } = target.dataset;
 			dc = parseInt(dc);
-			//@ts-expect-error
-			let item = this.item;
-			//@ts-expect-error
-			let check = this.check;
-			const data = { event, targetValue: Number.isFinite(dc) ? dc : check.dc.value };
-			if (targets)
-				for (const token of targets) {
-					data.speaker = ChatMessage.getSpeaker({ scene: canvas?.scene ?? undefined, token: token.document });
-					if (skill) {
-						const actor = token.actor;
-						if (!actor)
-							return;
-						// @ts-expect-error no dnd5e-types
-						await actor.rollSkill(skill, { ...data, ability });
+			//@ts-expect-error this is bound to an activity instance. There are no dnd5e types so make it any
+			const check = this.check;
+			//@ts-expect-error this is bound to an activity instance. There are no dnd5e types so make it any
+			const item = this.item;
+			const rollData = { event, target: Number.isFinite(dc) ? dc : check.dc.value };
+			if (ability in globalThis.dnd5e.config.abilities)
+				rollData.ability = ability;
+			for (const token of targets) {
+				const actor = token instanceof Actor ? token : token.actor;
+				const speaker = ChatMessage.getSpeaker({ actor, scene: canvas?.scene, token: token instanceof Token ? token.document : null });
+				const messageData = { data: { speaker } };
+				if (!actor)
+					continue;
+				//@ts-expect-error no dnd5e types
+				if (skill)
+					await actor.rollSkill({ ...rollData, skill }, {}, messageData);
+				else if (tool) {
+					rollData.tool = tool;
+					if ((item.type === "tool") && !check.associated.size) {
+						rollData.bonus = item.system.bonus;
+						rollData.prof = item.system.prof;
+						rollData.item = item;
 					}
-					else if (tool) {
-						const checkData = { ...data, ability };
-						if ((item.type === "tool") && !check.associated.size) {
-							checkData.bonus = item.system.bonus;
-							checkData.prof = item.system.prof;
-							checkData.item = item;
-						}
-						const actor = token.actor;
-						if (!actor)
-							return;
-						// @ts-expect-error no dnd5e-types
-						await actor.rollToolCheck(tool, checkData);
-					}
-					else {
-						const actor = token.actor;
-						if (!actor)
-							return;
-						// @ts-expect-error no dnd5e-types
-						await actor.rollAbilityTest(ability, data);
-					}
+					//@ts-expect-error no dnd5e types
+					await actor.rollToolCheck(rollData, {}, messageData);
 				}
+				// @ts-expect-error no dnd5e types
+				else
+					await actor.rollAbilityCheck(rollData, {}, messageData);
+			}
 		}
 		get possibleOtherActivity() {
 			return true;
+		}
+		get isSelfTriggerableOnly() {
+			return false;
 		}
 		async rollDamage(config = {}, dialog = {}, message = {}) {
 			message = foundry.utils.mergeObject({
@@ -154,6 +151,13 @@ export function defineMidiCheckSheetClass(baseClass) {
 				{ value: "half", label: i18n("DND5E.SAVE.FIELDS.damage.onSave.Half") },
 				{ value: "full", label: i18n("DND5E.SAVE.FIELDS.damage.onSave.Full") }
 			];
+			// WIP
+			let autoCheckOptions = foundry.utils.duplicate(geti18nOptions("autoCheckSavesOptions"));
+			delete autoCheckOptions["none"];
+			context.SaveDisplayOptions = Object.keys(autoCheckOptions).reduce((acc, key) => {
+				acc.push({ value: key, label: autoCheckOptions[key] });
+				return acc;
+			}, [{ value: "default", label: i18n("Default") }]);
 			return context;
 		}
 	};

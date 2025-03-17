@@ -1,15 +1,13 @@
 import { geti18nOptions, i18n } from "../../midi-qol.js";
 import { MidiSounds } from "../midi-sounds.js";
-import { configSettings, midiSoundSettings } from "../settings.js";
+import { midiSoundSettings } from "../settings.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 export class SoundConfigPanel extends HandlebarsApplicationMixin(ApplicationV2) {
 	static defaultPlaylist;
 	static defaultSound;
+	canSave = true;
 	constructor(options) {
 		super(options);
-		if (!configSettings.useCustomSounds) {
-			ui.notifications?.warn("Use Custom Sounds Not enabled - changes will have no effect", { permanent: true });
-		}
 	}
 	get title() {
 		return i18n("midi-qol.ConfigTitle") ?? "Sound Config";
@@ -26,24 +24,27 @@ export class SoundConfigPanel extends HandlebarsApplicationMixin(ApplicationV2) 
 		},
 		actions: {
 			add: this.#onAdd,
-			delete: this.#onDelete
+			delete: this.#onDelete,
+			save: this.#onSave
 		},
 		form: {
-			submitOnChange: true,
-			handler: this.#onSubmit
+			submitOnChange: false,
+			closeOnSubmit: true,
 		},
 		tag: "form"
 	}, { inplace: false });
 	static PARTS = {
 		tabs: { template: "templates/generic/tab-navigation.hbs" },
 		sounds: { template: "modules/midi-qol/templates/sounds/sounds.hbs" },
-		quick: { template: "modules/midi-qol/templates/sounds/quick.hbs" }
+		quick: { template: "modules/midi-qol/templates/sounds/quick.hbs" },
+		footer: { template: "templates/generic/form-footer.hbs" }
 	};
 	tabGroups = {
 		sheet: "sounds"
 	};
 	async _prepareContext(options) {
 		const context = await super._prepareContext(options);
+		this.canSave = true;
 		// @ts-expect-error
 		const systemConfig = (game.system?.id === "dnd5e") ? CONFIG.DND5E : CONFIG.SW5E;
 		const consumableSubtypesData = Object.keys(systemConfig.consumableTypes).reduce((obj, key) => { obj[key] = systemConfig.consumableTypes[key].label; return obj; }, {});
@@ -88,7 +89,42 @@ export class SoundConfigPanel extends HandlebarsApplicationMixin(ApplicationV2) 
 		context.actionTypes = MidiSounds.ActionTypes();
 		context.tabs = this.#getTabs();
 		SoundConfigPanel.defaultPlaylist = Object.keys(context.playlists ?? {})[0];
-		SoundConfigPanel.defaultSound = Object.keys(context.playlists[SoundConfigPanel.defaultPlaylist])[0];
+		SoundConfigPanel.defaultSound = Object.keys(context.playlists[SoundConfigPanel.defaultPlaylist] ?? {})[0] ?? "";
+		context.buttons = [{
+				icon: "fas fa-save",
+				action: "save",
+				label: "Save Changes",
+				type: "button",
+			}];
+		const requiredPlayLists = {};
+		for (let [cek, ce] of Object.entries(context.midiSoundSettings)) {
+			if (cek === "version")
+				continue; // skip the version entry
+			for (let [tek, te] of Object.entries(ce)) {
+				for (let [stek, ste] of Object.entries(te)) {
+					for (let [eek, ee] of Object.entries(ste)) {
+						if (!requiredPlayLists[ee.playlistName]) {
+							requiredPlayLists[ee.playlistName] = new Set();
+						}
+						requiredPlayLists[ee.playlistName].add(ee.soundName);
+					}
+				}
+			}
+		}
+		context.missingPlaylists = [];
+		for (let playlistName of Object.keys(requiredPlayLists)) {
+			if (!context.playlists[playlistName]) {
+				context.playlists[playlistName] = {};
+				context.missingPlaylists.push(playlistName);
+				this.canSave = false;
+			}
+			for (let soundName of Array.from(requiredPlayLists[playlistName])) {
+				if (!context.playlists[playlistName][soundName]) {
+					context.playlists[playlistName][soundName] = `${soundName} missing`;
+					this.canSave = false;
+				}
+			}
+		}
 		return context;
 	}
 	#getTabs() {
@@ -121,32 +157,31 @@ export class SoundConfigPanel extends HandlebarsApplicationMixin(ApplicationV2) 
 			else
 				formData[key].push(SoundConfigPanel.defaultPlaylist);
 		}
-		const settings = {};
+		/*
+		const settings: any = {};
 		if (formData.chartype) {
-			if (typeof formData.chartype === "string") {
-				for (let key of ["chartype", "action", "category", "playlistName", "soundName", "subtype"]) {
-					formData[key] = [formData[key]];
-				}
+		if (typeof formData.chartype === "string") {
+			for (let key of ["chartype", "action", "category", "playlistName", "soundName", "subtype"]) {
+			formData[key] = [formData[key]];
 			}
-			for (let i = 0; i < (formData.chartype?.length ?? 0); i++) {
-				const chartype = formData.chartype[i];
-				const category = formData.category[i];
-				const subtype = formData.subtype[i];
-				const action = formData.action[i];
-				const playlistName = formData.playlistName[i];
-				const soundName = formData.soundName[i];
-				if (!settings[chartype])
-					settings[chartype] = {};
-				if (!settings[chartype][category])
-					settings[chartype][category] = {};
-				if (!settings[chartype][category][subtype])
-					settings[chartype][category][subtype] = {};
-				settings[chartype][category][subtype][action] = { playlistName, soundName };
-			}
+		}
+		for (let i = 0; i < (formData.chartype?.length ?? 0); i++) {
+			const chartype = formData.chartype[i];
+			const category = formData.category[i];
+			const subtype = formData.subtype[i];
+			const action = formData.action[i];
+			const playlistName = formData.playlistName[i];
+			const soundName = formData.soundName[i];
+			if (!settings[chartype]) settings[chartype] = {};
+			if (!settings[chartype][category]) settings[chartype][category] = {};
+			if (!settings[chartype][category][subtype]) settings[chartype][category][subtype] = {};
+			settings[chartype][category][subtype][action] = { playlistName, soundName };
+		}
 		}
 		settings.version = "0.9.48";
 		// @ts-expect-error
 		await game.settings?.set("midi-qol", "MidiSoundSettings", settings);
+		*/
 		// @ts-expect-error
 		this.render({ force: true });
 	}
@@ -154,14 +189,24 @@ export class SoundConfigPanel extends HandlebarsApplicationMixin(ApplicationV2) 
 		event.preventDefault();
 		const rowTarget = target.closest("tr");
 		rowTarget.remove();
-		event.currentTarget.requestSubmit();
+		// event.currentTarget.requestSubmit();
+	}
+	static async #onSave(event, target) {
+		//@ts-expect-error
+		if (this.canSave === false) {
+			ui.notifications?.error("Midi Sound Configuration: cannot save. Some referenced sounds are missing");
+			return;
+		}
+		const form = event.currentTarget;
+		const formData = new FormDataExtended(form);
+		SoundConfigPanel.#onSubmit.bind(this)(event, form, formData);
 	}
 	static async #onSubmit(event, form, formDataIn) {
 		if (!game.user?.can("SETTINGS_MODIFY"))
 			return;
-		const formData = formDataIn.object;
 		if (!game.user?.can("SETTINGS_MODIFY"))
 			return;
+		const formData = formDataIn.object;
 		const settings = {};
 		if (formData.chartype) {
 			if (typeof formData.chartype === "string") {

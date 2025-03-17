@@ -1,12 +1,12 @@
-import { registerSettings, fetchParams, configSettings, checkRule, enableWorkflow, midiSoundSettings, fetchSoundSettings, midiSoundSettingsBackup, disableWorkflowAutomation, readySettingsSetup, collectSettingData, safeGetGameSetting } from './module/settings.js';
+import { registerSettings, fetchParams, configSettings, checkRule, enableWorkflow, fetchSoundSettings, midiSoundSettingsBackup, disableWorkflowAutomation, readySettingsSetup, collectSettingData, safeGetGameSetting } from './module/settings.js';
 import { preloadTemplates } from './module/preloadTemplates.js';
 import { checkModules, installedModules, setupModules } from './module/setupModules.js';
 import { itemPatching, visionPatching, actorAbilityRollPatching, readyPatching, initPatching, addDiceTermModifiers } from './module/patching.js';
 import { initHooks, readyHooks, setupHooks } from './module/Hooks.js';
-import { SaferSocket, initGMActionSetup, setupSocket, socketlibSocket, untimedExecuteAsGM } from './module/GMAction.js';
+import { SaferSocket, initGMActionSetup, setupSocket, socketlibSocket, unTimedExecuteAsGM } from './module/GMAction.js';
 import { setupSheetQol } from './module/sheetQOL.js';
 import { TrapWorkflow, DamageOnlyWorkflow, Workflow, DummyWorkflow, DDBGameLogWorkflow, UserWorkflow } from './module/Workflow.js';
-import { addConcentrationDependent, addRollTo, applyTokenDamage, canSee, canSense, canSenseModes, checkDistance, checkIncapacitated, checkNearby, checkRange, chooseEffect, completeItemUse, computeCoverBonus, contestedRoll, createConditionData, debouncedUpdate, displayDSNForRoll, doConcentrationCheck, doOverTimeEffect, evalAllConditions, evalCondition, findNearby, findNearbyCount, getCachedDocument, getChanges, getConcentrationEffect, getTokenDocument, getTokenForActor, getTokenForActorAsSet, getTokenPlayerName, getTraitMult, hasCondition, hasUsedBonusAction, hasUsedReaction, isTargetable, midiRenderAttackRoll, midiRenderBonusDamageRoll, midiRenderDamageRoll, midiRenderOtherDamageRoll, midiRenderRoll, fromActorUuid, playerFor, playerForActor, raceOrType, reactionDialog, removeHiddenCondition, removeInvisibleCondition, removeReactionUsed, reportMidiCriticalFlags, setBonusActionUsed, setReactionUsed, tokenForActor, typeOrRace, validRollAbility, MQfromUuidSync, actorFromUuid, createDamageDetail, removeActionUsed, removeBonusActionUsed, getCheckRollModeFor, getSaveRollModeFor, completeActivityUse, completeItemUseV2, checkActivityRange, modifyDamageBy, computeDistance, addDependent } from './module/utils.js';
+import { addConcentrationDependent, addRollTo, applyTokenDamage, canSee, canSense, canSenseModes, checkDistance, checkIncapacitated, checkNearby, checkRange, chooseEffect, completeItemUse, computeCoverBonus, contestedRoll, createConditionData, debouncedUpdate, displayDSNForRoll, doConcentrationCheck, doOverTimeEffect, evalAllConditions, evalCondition, findNearby, findNearbyCount, getCachedDocument, getChanges, getConcentrationEffect, getTokenDocument, getTokenForActor, getTokenForActorAsSet, getTokenPlayerName, getTraitMult, hasCondition, hasUsedBonusAction, hasUsedReaction, isValidTarget, midiRenderAttackRoll, midiRenderBonusDamageRoll, midiRenderDamageRoll, midiRenderOtherDamageRoll, midiRenderRoll, fromActorUuid, playerFor, playerForActor, raceOrType, reactionDialog, removeHiddenCondition, removeInvisibleCondition, removeReactionUsed, reportMidiCriticalFlags, setBonusActionUsed, setReactionUsed, tokenForActor, typeOrRace, validRollAbility, MQfromUuidSync, actorFromUuid, createDamageDetail, removeActionUsed, removeBonusActionUsed, getCheckRollModeFor, getSaveRollModeFor, completeActivityUse, completeItemUseV2, checkActivityRange, modifyDamageBy, computeDistance, addDependent, cleanCPRFlanked, updatesCache } from './module/utils.js';
 import { ConfigPanel } from './module/apps/ConfigPanel.js';
 import { RollStats } from './module/RollStats.js';
 import { OnUseMacroOptions } from './module/apps/Item.js';
@@ -46,7 +46,7 @@ export const BooleanField = foundry.data.fields.BooleanField;
 export const NumberField = foundry.data.fields.NumberField;
 export const StringField = foundry.data.fields.StringField;
 export const SchemaField = foundry.data.fields.SchemaField;
-export var isdndv4 = false;
+export var isDnD = false;
 export let i18n = (key) => {
 	return getGame()?.i18n?.localize(key) ?? key;
 };
@@ -103,12 +103,15 @@ export let SystemString;
 export let systemConcentrationId;
 export let midiReactionEffect;
 export let midiBonusActionEffect;
+export let midiFlankingEffect;
+export let midiFlankedEffect;
 export const NumericTerm = foundry.dice.terms.NumericTerm;
-export const MESSAGETYPES = {
+export const MESSAGE_TYPES = {
 	HITS: 1,
 	SAVES: 2,
 	ATTACK: 3,
 	DAMAGE: 4,
+	OTHER: 5,
 	ITEM: 0
 };
 export let cleanSpellName = (name) => {
@@ -138,7 +141,7 @@ function setupActvities() {
 	setupDamageActivity();
 	globalThis.MidiQOL.activityTypes["damage"] = { documentClass: MidiDamageActivity };
 	setupCastActivity();
-	globalThis.MidiQOL.activityTypes["cast"] = { documentClass: MidiDamageActivity };
+	globalThis.MidiQOL.activityTypes["cast"] = { documentClass: MidiCastActivity };
 	setupSaveActivity();
 	globalThis.MidiQOL.activityTypes["save"] = { documentClass: MidiSaveActivity };
 	setupCheckActivity(); // must happen after setupSaveActivity
@@ -289,7 +292,13 @@ Hooks.on("dae.modifySpecials", (specKey, specials, _characterSpec) => {
 	specials[`system.traits.idm.value`] = [new StringField(), -1];
 	daeFieldBrowserFields.push(`system.traits.idm.value`);
 });
+Hooks.on("dae.modifyBaseValues", (specKey, baseValues, _characterSpec) => {
+	baseValues[`flags.${MODULE_ID}.ActivityOverTime`] = [new StringField({ initial: "" }), -1];
+});
 Hooks.on("dae.addFieldMappings", (fieldMappings) => {
+	let allAttackTypes = ["rwak", "mwak", "rsak", "msak"];
+	if (game.system?.id === "sw5e")
+		allAttackTypes = ["rwak", "mwak", "rpak", "mpak"];
 	registerSettings();
 	fetchParams();
 	//@ts-expect-error
@@ -322,6 +331,11 @@ Hooks.on("dae.addFieldMappings", (fieldMappings) => {
 	for (let attackType of allAttackTypes) {
 		fieldMappings[`flags.${MODULE_ID}.fail.critical.${attackType}`] = `flags.${MODULE_ID}.grants.noCritical.${attackType}`;
 	}
+	let attackTypes = allAttackTypes.concat(["save", "check", "skill", "tool"]);
+	attackTypes.forEach(attackType => {
+		fieldMappings[`flags.${MODULE_ID}.grants.fail.advantage.attack.${attackType}`] = `flags.${MODULE_ID}.grants.noAdvantage.attack.${attackType}`;
+		fieldMappings[`flags.${MODULE_ID}.grants.fail.disadvantage.attack.${attackType}`] = `flags.${MODULE_ID}.grants.noDisadvantage.attack.${attackType}`;
+	});
 	//@ts-expect-error
 	if (game.system.config.skills)
 		for (let skill of Object.keys(game.system.config.skills)) {
@@ -331,6 +345,9 @@ Hooks.on("dae.addFieldMappings", (fieldMappings) => {
 	fieldMappings[`flags.${MODULE_ID}.max.ability.save.concentration`] = `system.attributes.concentration.roll.max`;
 	fieldMappings[`flags.${MODULE_ID}.min.ability.save.concentration`] = `system.attributes.concentration.roll.min`;
 	fieldMappings[`flags.${MODULE_ID}.concentrationSaveBonus`] = `system.attributes.concentration.bonuses.save`;
+	fieldMappings[`flags.${MODULE_ID}.sharpShooter`] = `flags.dnd5e.sharpShooter`;
+	fieldMappings[`flags.${MODULE_ID}.grants.fail.advantage.attack.all`] = `flags.${MODULE_ID}.grants.noAdvantage.attack.all`;
+	fieldMappings[`flags.${MODULE_ID}.grants.fail.disadvantage.attack.all`] = `flags.${MODULE_ID}.grants.noDisadvantage.attack.all`;
 	if (debugEnabled > 0)
 		warn("fieldMappings", fieldMappings);
 });
@@ -416,7 +433,7 @@ Hooks.on("dae.setFieldData", (fieldData) => {
 Hooks.once('setup', function () {
 	// Do anything after initialization but before
 	//@ts-expect-error
-	isdndv4 = game.system.id === "dnd5e" && foundry.utils.isNewerVersion(game.system.version, "3.3.99");
+	isDnD = game.system.id === "dnd5e" && foundry.utils.isNewerVersion(game.system.version, "3.3.99");
 	setupModules();
 	setupMidiFlags();
 	setupSocket();
@@ -499,12 +516,6 @@ function addConfigOptions() {
 		//@ts-expect-error
 		config = CONFIG.SW5E;
 		config.midiProperties = {};
-		config.midiProperties["nodam"] = i18n("midi-qol.noDamageSaveProp");
-		config.midiProperties["fulldam"] = i18n("midi-qol.fullDamageSaveProp");
-		config.midiProperties["halfdam"] = i18n("midi-qol.halfDamageSaveProp");
-		config.midiProperties["saveDamage"] = "Save Damage";
-		config.midiProperties["bonusSaveDamage"] = "Bonus Damage Save";
-		config.midiProperties["otherSaveDamage"] = "Other Damage Save";
 		config.damageTypes["midi-none"] = i18n("midi-qol.midi-none");
 		config.abilityActivationTypes["reactiondamage"] = `${i18n("DND5E.Reaction")} ${i18n("midi-qol.reactionDamaged")}`;
 		config.abilityActivationTypes["reactionmanual"] = `${i18n("DND5E.Reaction")} ${i18n("midi-qol.reactionManual")}`;
@@ -516,21 +527,44 @@ function addConfigOptions() {
 			"physical": i18n("midi-qol.NonMagicalPhysical")
 		};
 	}
-	if (configSettings.allowUseMacro) {
-		config.characterFlags["DamageBonusMacro"] = {
-			hint: i18n("midi-qol.DamageMacro.Hint"),
-			name: i18n("midi-qol.DamageMacro.Name"),
-			placeholder: "",
-			section: i18n("midi-qol.DAEMidiQOL"),
-			type: String
+	if (game.system?.id === "dnd5e") {
+		globalThis.dnd5e.config.characterFlags["DamageBonusMacro"] = {
+			type: String,
+			name: "Damage Bonus Macro",
+			hint: "Macro to use for damage bonus",
+			section: "Midi QOL"
+		};
+		globalThis.dnd5e.config.characterFlags["initiativeHalfProficiency"] = {
+			type: Boolean,
+			name: "Half Proficiency for Initiative",
+			hint: "add 1/2 proficiency to initiative",
+			section: "Midi QOL"
+		};
+		globalThis.dnd5e.config.characterFlags["initiativeDisadv"] = {
+			type: Boolean,
+			name: "Disadvantage on Initiative",
+			hint: "Provided by fears or magical items",
+			section: "Midi QOL"
+		};
+		globalThis.dnd5e.config.characterFlags["spellSniper"] = {
+			type: Boolean,
+			name: "Spell Sniper",
+			hint: "Provided by feats or magical items",
+			section: "Midi QOL"
+		};
+		globalThis.dnd5e.config.characterFlags["sharpShooter"] = {
+			type: Boolean,
+			name: "Sharp Shooter",
+			hint: "Provided by feats or magical items",
+			section: "Midi QOL"
 		};
 	}
-	;
 }
 /* ------------------------------------ */
 /* When ready							*/
 /* ------------------------------------ */
 Hooks.once('ready', function () {
+	cleanCPRFlanked();
 	//@ts-expect-error
 	const config = game.system.config;
 	addConfigOptions();
@@ -588,15 +622,7 @@ Hooks.once('ready', function () {
 	globalThis.MidiQOL.MQOnUseOptions = MQOnUseOptions;
 	MidiSounds.midiSoundsReadyHooks();
 	if (game.system && game.system?.id === "dnd5e") {
-		//@ts-expect-error
-		game.system.config.characterFlags["spellSniper"] = {
-			name: "Spell Sniper",
-			hint: "Spell Sniper",
-			section: i18n("DND5E.Feats"),
-			type: Boolean
-		};
-		//@ts-expect-error
-		game.system.config.areaTargetTypes["emanationNoTemplate"] = {
+		globalThis.dnd5e.config.areaTargetTypes["emanationNoTemplate"] = {
 			label: i18n("midi-qol.emanationNoTemplate"),
 			template: "rect",
 			standard: true,
@@ -622,15 +648,6 @@ Hooks.once('ready', function () {
 			readySettingsSetup();
 		}
 		Hooks.callAll("midi-qol.ready");
-	}
-	if (game.user?.isGM) {
-		// if (installedModules.get("levelsautocover") && configSettings.optionalRules.coverCalculation === "levelsautocover" && !game.settings.get("levelsautocover", "apiMode")) {
-		// I think this is no longer required game.settings.set("levelsautocover", "apiMode", true)
-		//  if (game.user?.isGM)
-		//    ui.notifications?.warn("midi-qol | setting levels auto cover to api mode", { permanent: true })
-		// } else if (installedModules.get("levelsautocover") && configSettings.optionalRules.coverCalculation !== "levelsautocover" && game.settings.get("levelsautocover", "apiMode")) {
-		//  ui.notifications?.warn("midi-qol | Levels Auto Cover is in API mode but midi is not using levels auto cover - you may wish to disable api mode", { permanent: true })
-		// }
 	}
 	const noDamageSavesText = i18n("midi-qol.noDamageonSaveSpellsv9") ?? "No Damaage Save";
 	noDamageSaves = noDamageSavesText.split(",")?.map(s => s.trim()).map(s => cleanSpellName(s));
@@ -689,13 +706,13 @@ import { MidiSaveActivity, setupSaveActivity } from './module/activities/SaveAct
 import { MidiUtilityActivity, setupUtilityActivity } from './module/activities/UtilityActivity.js';
 import { MidiSummonActivity, setupSummonActivity } from './module/activities/SummonActivity.js';
 import { MidiDamageActivity, setupDamageActivity } from './module/activities/DamageActivity.js';
+import { MidiCastActivity, setupCastActivity } from './module/activities/CastActivity.js';
 import { MidiCheckActivity, setupCheckActivity } from './module/activities/CheckActivity.js';
 import { MidiHealActivity, setupHealActivity } from './module/activities/HealActivity.js';
 import { resolveTargetConfirmation, showItemInfo, templateTokens } from './module/activities/activityHelpers.js';
 import { MidiActivityMixin, setupMidiActivityMixin } from './module/activities/MidiActivityMixin.js';
 import { MidiForwardActivity, setupForwardActivity } from './module/activities/ForwardActivity.js';
 import { MidiEnchantActivity, setupEnchantActivity } from './module/activities/EnchantActivity.js';
-import { setupCastActivity } from './module/activities/CastActivity.js';
 Hooks.once("midi-qol.midiReady", () => {
 	setupMidiTests();
 });
@@ -765,7 +782,6 @@ const MidiQOL = {
 	midiRenderDamageRoll: function midiRenderDamageRoll(roll, options);
 	midiRenderBonusDamageRoll: function midiRenderBonusDamageRoll(roll, options);
 	midiRenderOtherDamageRoll: function midiRenderOtherDamageRoll(roll, options);
-	midiSoundSettings: function(): any,
 	modifyDamageBy: function modifyDamageBy({damageItem = {}, value, multiplier = 1, type = "none", reason}), 
 	MQfromActorUuid: function MQfromActorUuid(actorUuid: string): Actor | undefined,
 	MQfromUuid: function MQfromUuid(uuid: string): Actor | Item | TokenDocument | undefined,
@@ -882,7 +898,7 @@ function setupMidiQOLApi() {
 		humanoid,
 		incapacitatedConditions: ["incapacitated", "Convenient Effect: Incapacitated", "stunned", "Convenient Effect: Stunned", "paralyzed", "paralysis", "Convenient Effect: Paralyzed", "unconscious", "Convenient Effect: Unconscious", "dead", "Convenient Effect: Dead", "petrified", "Convenient Effect: Petrified"],
 		InvisibleDisadvantageVisionModes,
-		isTargetable,
+		isTargetable: isValidTarget,
 		TargetConfirmationDialog,
 		log,
 		midiFlags,
@@ -891,7 +907,9 @@ function setupMidiQOLApi() {
 		midiRenderDamageRoll,
 		midiRenderBonusDamageRoll,
 		midiRenderOtherDamageRoll,
-		midiSoundSettings: () => { return midiSoundSettings; },
+		//@ts-expect-error
+		get midiSoundSettings() { return game.settings?.get("midi-qol", "MidiSoundSettings"); },
+		MidiSounds,
 		modifyDamageBy,
 		MQfromActorUuid: fromActorUuid,
 		actorFromUuid,
@@ -934,12 +952,12 @@ function setupMidiQOLApi() {
 		moveToken: async (tokenRef, newCenter, animate = true) => {
 			const tokenUuid = getTokenDocument(tokenRef)?.uuid;
 			if (tokenUuid)
-				return untimedExecuteAsGM("moveToken", { tokenUuid, newCenter, animate });
+				return unTimedExecuteAsGM("moveToken", { tokenUuid, newCenter, animate });
 		},
 		moveTokenAwayFromPoint: async (targetRef, distance, point, animate = true, checkCollision = false) => {
 			const targetUuid = getTokenDocument(targetRef)?.uuid;
 			if (point && targetUuid && distance)
-				return untimedExecuteAsGM("moveTokenAwayFromPoint", { targetUuid, distance, point, animate, checkCollision });
+				return unTimedExecuteAsGM("moveTokenAwayFromPoint", { targetUuid, distance, point, animate, checkCollision });
 		},
 		createEffects: async (data) => {
 			const { actorUuid, effects, options } = data;
@@ -948,7 +966,7 @@ function setupMidiQOLApi() {
 				return false;
 			}
 			if (effects?.length)
-				return untimedExecuteAsGM("createEffects", { actorUuid, effects, options });
+				return unTimedExecuteAsGM("createEffects", { actorUuid, effects, options });
 			else {
 				console.error("Midi-QOL createEffects failed with missing data, which should include {actorUuid, effects: [], options: {}} but got", data);
 				return false;
@@ -971,16 +989,17 @@ function setupMidiQOLApi() {
 					data.effects[i] = getStaticID(statusId);
 				}
 			}
-			return untimedExecuteAsGM("removeEffects", data);
+			return unTimedExecuteAsGM("removeEffects", data);
 		},
 		updateEffects: async (data) => {
 			if (data.actorUuid && data.updates?.length)
-				return untimedExecuteAsGM("updateEffects", data);
+				return unTimedExecuteAsGM("updateEffects", data);
 			else {
 				console.error("Midi-QOL updateEffects failed missing data which should include {actorUuid, updates: []} but got", data);
 				return false;
 			}
-		}
+		},
+		get updatesCache() { return updatesCache; }
 	});
 	globalThis.MidiDAEEval = {
 		testfunc,
@@ -1006,7 +1025,7 @@ function setupMidiQOLApi() {
 		hasUsedBonusAction,
 		hasUsedReaction,
 		humanoid,
-		isTargetable,
+		isTargetable: isValidTarget,
 		raceOrType,
 		typeOrRace,
 		safeGetGameSetting,
@@ -1016,8 +1035,8 @@ function setupMidiQOLApi() {
 	globalThis.MidiQOL.actionQueue = new foundry.utils.Semaphore();
 	Hooks.callAll("midi-qol.setup", globalThis.MidiQOL);
 }
-export function testfunc(scope) {
-	console.warn("MidiQOL testfunc called ", scope);
+export function testfunc(...args) {
+	console.warn("MidiQOL testfunc called ", ...args);
 }
 // Minor-qol compatibility patching
 function doRoll(event = { shiftKey: false, ctrlKey: false, altKey: false, metaKey: false, type: "none" }, itemName, options = { type: "", versatile: false }) {
@@ -1072,8 +1091,12 @@ function setupMidiFlags() {
 	daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.disadvantage.skill.all`);
 	midiFlags.push(`flags.${MODULE_ID}.grants.fail.advantage.attack.all`);
 	daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.fail.advantage.attack.all`);
+	midiFlags.push(`flags.${MODULE_ID}.grants.noAdvantage.attack.all`);
+	daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.noAdvantage.attack.all`);
 	midiFlags.push(`flags.${MODULE_ID}.grants.fail.disadvantage.attack.all`);
 	daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.fail.disadvantage.attack.all`);
+	midiFlags.push(`flags.${MODULE_ID}.grants.noDisadvantage.attack.all`);
+	daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.noDisadvantage.attack.all`);
 	midiFlags.push(`flags.${MODULE_ID}.neverTarget`);
 	daeFieldBrowserFields.push(`flags.${MODULE_ID}.neverTarget`);
 	midiFlags.push(`flags.${MODULE_ID}.grants.attack.success.all`);
@@ -1125,7 +1148,20 @@ function setupMidiFlags() {
 	daeFieldBrowserFields.push(`flags.${MODULE_ID}.range.all`);
 	midiFlags.push(`flags.${MODULE_ID}.long.all`);
 	daeFieldBrowserFields.push(`flags.${MODULE_ID}.long.all`);
-	let attackTypes = allAttackTypes.concat(["heal", "other", "save", "util"]);
+	let attackTypes = allAttackTypes.concat(["save", "check", "skill", "tool"]);
+	attackTypes.forEach(at => {
+		midiFlags.push(`flags.${MODULE_ID}.grants.fail.advantage.attack.${at}`);
+		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.fail.advantage.attack.${at}`);
+		midiFlags.push(`flags.${MODULE_ID}.grants.noAdvantage.attack.${at}`);
+		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.noAdvantage.attack.${at}`);
+		midiFlags.push(`flags.${MODULE_ID}.grants.disadvantage.attack.${at}`);
+		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.disadvantage.attack.${at}`);
+		midiFlags.push(`flags.${MODULE_ID}.grants.noDisadvantage.attack.${at}`);
+		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.noDisadvantage.attack.${at}`);
+		midiFlags.push(`flags.${MODULE_ID}.grants.fail.disadvantage.attack.${at}`);
+		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.fail.disadvantage.attack.${at}`);
+	});
+	attackTypes = allAttackTypes.concat(["heal", "other", "save", "util"]);
 	attackTypes.forEach(at => {
 		midiFlags.push(`flags.${MODULE_ID}.range.${at}`);
 		daeFieldBrowserFields.push(`flags.${MODULE_ID}.range.${at}`);
@@ -1145,12 +1181,6 @@ function setupMidiFlags() {
 		daeFieldBrowserFields.push(`flags.${MODULE_ID}.noCritical.${at}`);
 		midiFlags.push(`flags.${MODULE_ID}.grants.advantage.attack.${at}`);
 		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.advantage.attack.${at}`);
-		midiFlags.push(`flags.${MODULE_ID}.grants.fail.advantage.attack.${at}`);
-		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.fail.advantage.attack.${at}`);
-		midiFlags.push(`flags.${MODULE_ID}.grants.disadvantage.attack.${at}`);
-		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.disadvantage.attack.${at}`);
-		midiFlags.push(`flags.${MODULE_ID}.grants.fail.disadvantage.attack.${at}`);
-		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.fail.disadvantage.attack.${at}`);
 		midiFlags.push(`flags.${MODULE_ID}.grants.critical.${at}`);
 		daeFieldBrowserFields.push(`flags.${MODULE_ID}.grants.critical.${at}`);
 		midiFlags.push(`flags.${MODULE_ID}.grants.noCritical.${at}`);
@@ -1383,6 +1413,7 @@ function setupMidiFlags() {
 	daeFieldBrowserFields.push(`flags.${MODULE_ID}.uncanny-dodge`);
 	midiFlags.push(`flags.${MODULE_ID}.OverTime`);
 	daeFieldBrowserFields.push(`flags.${MODULE_ID}.OverTime`);
+	daeFieldBrowserFields.push(`flags.${MODULE_ID}.ActivityOverTime`);
 	midiFlags.push(`flags.${MODULE_ID}.inMotion`);
 	daeFieldBrowserFields.push(`flags.${MODULE_ID}.inMotion`);
 	//@ts-ignore
@@ -1458,11 +1489,8 @@ export async function createMidiMacros() {
 						if (macroSpec.checkVersion
 							&& !foundry.utils.isNewerVersion(macroSpec.version, (macro.flags["midi-version"] ?? "0.0.0")))
 							continue; // already up to date
-						await macro.update({
-							command: macroSpec.commandText,
-							// @ts-expect-error can't know about flags
-							"flags.midi-version": macroSpec.version
-						});
+						//@ts-expect-error
+						await macro.update({ command: macroSpec.commandText, "flags.midi-version": macroSpec.version }, {});
 					}
 				}
 				else {
@@ -1512,8 +1540,14 @@ export function setupMidiStatusEffects() {
 	// Initialise these effects so that we don't need to make a raft of code aysnc only to fetch these
 	if (configSettings.enforceBonusActions !== "none") {
 		if (!CONFIG.statusEffects.find(e => e._id === getStaticID("bonusaction"))) {
-			//@ts-expect-error wants "true"
-			CONFIG.statusEffects.push({ id: "bonusaction", _id: getStaticID("bonusaction"), name: i18n("midi-qol.bonusActionUsed"), changes: [{ key: "flags.midi-qol.actions.bonus", mode: CONST.ACTIVE_EFFECT_MODES.ADD, value: true }], img: "modules/midi-qol/icons/bonus-action.svg", flags: { dae: { specialDuration: ["turnStart", "combatEnd", "shortRest"] } } });
+			CONFIG.statusEffects.push({
+				id: "bonusaction",
+				_id: getStaticID("bonusaction"),
+				name: i18n("midi-qol.bonusActionUsed"),
+				changes: [{ key: "flags.midi-qol.actions.bonus", mode: CONST.ACTIVE_EFFECT_MODES.CUSTOM, value: "true" }], img: "modules/midi-qol/icons/bonus-action.svg",
+				//@ts-expect-error
+				flags: { dae: { specialDuration: ["turnStart", "combatEnd", "shortRest"] } }
+			});
 		}
 		// @ts-expect-error not expecting keepId
 		ActiveEffect.implementation.fromStatusEffect("bonusaction", { keepId: true }).then(effect => {
@@ -1523,8 +1557,16 @@ export function setupMidiStatusEffects() {
 	}
 	if (configSettings.enforceReactions !== "none") {
 		if (!CONFIG.statusEffects.find(e => e._id === getStaticID("reaction"))) {
-			//@ts-expect-error wants "true"
-			CONFIG.statusEffects.push({ id: "reaction", _id: getStaticID("reaction"), name: i18n("midi-qol.reactionUsed"), changes: [{ key: "flags.midi-qol.actions.reaction", mode: CONST.ACTIVE_EFFECT_MODES.ADD, value: true }], img: "modules/midi-qol/icons/reaction.svg", effectData: { transfer: false }, flags: { dae: { specialDuration: ["turnStart", "combatEnd", "shortRest"] } } });
+			CONFIG.statusEffects.push({
+				id: "reaction",
+				_id: getStaticID("reaction"),
+				name: i18n("midi-qol.reactionUsed"),
+				changes: [{ key: "flags.midi-qol.actions.reaction", mode: CONST.ACTIVE_EFFECT_MODES.CUSTOM, value: "true" }],
+				img: "modules/midi-qol/icons/reaction.svg",
+				effectData: { transfer: false },
+				//@ts-expect-error
+				flags: { dae: { specialDuration: ["turnStart", "combatEnd", "shortRest"] } }
+			});
 		}
 		// @ts-expect-error not expecting keepId
 		ActiveEffect.implementation.fromStatusEffect("reaction", { keepId: true }).then(effect => {
@@ -1532,5 +1574,48 @@ export function setupMidiStatusEffects() {
 			globalThis.MidiQOL.midiReactionEffect = effect;
 		});
 	}
+	if (!CONFIG.statusEffects.find(e => e._id === getStaticID("flanking"))) {
+		CONFIG.statusEffects.push({
+			id: "flanking",
+			_id: getStaticID("flanking"),
+			name: i18n("midi-qol.Flanking"),
+			changes: [
+				{ key: "flags.midi-qol.advantage.attack.mwak", mode: CONST.ACTIVE_EFFECT_MODES.CUSTOM, value: "true" },
+				{ key: "flags.midi-qol.advantage.attack.msak", mode: CONST.ACTIVE_EFFECT_MODES.CUSTOM, value: "true" }
+			],
+			img: "icons/svg/sword.svg",
+			effectData: { transfer: false },
+			//@ts-expect-error
+			flags: { dae: { specialDuration: ["combatEnd"] } }
+		});
+	}
+	//@ts-expect-error not expecting keepId
+	ActiveEffect.implementation.fromStatusEffect("flanking", { keepId: true }).then(effect => {
+		midiFlankingEffect = effect;
+		globalThis.MidiQOL.midiFlankingEffect = effect;
+	});
+	if (!CONFIG.statusEffects.find(e => e._id === getStaticID("flanked"))) {
+		CONFIG.statusEffects.push({
+			id: "flanked",
+			_id: getStaticID("flanked"),
+			name: i18n("midi-qol.Flanked"),
+			changes: [
+				{ key: "flags.midi-qol.grants.advantage.attack.mwak", mode: CONST.ACTIVE_EFFECT_MODES.CUSTOM, value: "true" },
+				{ key: "flags.midi-qol.grants.advantage.attack.msak", mode: CONST.ACTIVE_EFFECT_MODES.CUSTOM, value: "true" }
+			],
+			img: "modules/midi-qol/icons/encirclement.svg",
+			effectData: {
+				transfer: false,
+			},
+			//@ts-expect-error
+			flags: { dae: { specialDuration: ["combatEnd"] } }
+		});
+	}
+	;
+	//@ts-expect-error not expecting keepId
+	ActiveEffect.implementation.fromStatusEffect("flanked", { keepId: true }).then(effect => {
+		midiFlankedEffect = effect;
+		globalThis.MidiQOL.midiFlankedEffect = effect;
+	});
 }
 // globalThis.onerror = midiOnerror;

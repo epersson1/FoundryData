@@ -134,11 +134,14 @@ Hooks.once('setup', function () {
     }
 });
 export async function confirmAction(toCheck, confirmFunction, title = i18n("dae.confirm")) {
-    if (toCheck) {
-        return Dialog.confirm({ title, content: `<p>${i18n("dae.sure")}</p>`, yes: confirmFunction });
-    }
-    else
+    if (toCheck || await foundry.applications.api.DialogV2.confirm({
+        // @ts-expect-error types issue
+        window: { title },
+        content: `<p>${i18n("dae.sure")}</p>`,
+        rejectClose: false
+    })) {
         return confirmFunction();
+    }
 }
 // Revisit to find out how to set execute as GM
 const DAEMacros = [

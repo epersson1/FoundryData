@@ -58,6 +58,7 @@ class LevelsUI extends FormApplication {
         html.on("click", "#levels-ui-controls .fa-edit", this._onToggleEdit.bind(this));
         html.on("click", "#levels-ui-controls .fa-map", this._onGetFromScene.bind(this));
         html.on("click", "#levels-ui-controls .fa-users", this._onShowPlayerList.bind(this));
+        html.on("click", "#levels-ui-controls .fa-cloud", () => { canvas.fog.setupMultilevelFogExploration(); });
         html.on("click", "#levels-ui-controls .fa-archway", () => {
             this.roofEnabled = !this.roofEnabled;
             this.setButtonStyles();
@@ -67,7 +68,7 @@ class LevelsUI extends FormApplication {
             this.placeOverhead = !this.placeOverhead;
             this.setButtonStyles();
         });
-        html.on("click", "#levels-ui-controls .fa-sort-amount-up-alt", () => {
+        html.on("click", "#levels-ui-controls .fa-game-board", () => {
             this.stairEnabled = !this.stairEnabled;
             this.setButtonStyles();
         });
@@ -110,7 +111,7 @@ class LevelsUI extends FormApplication {
     setButtonStyles() {
         this.element.find(".fa-archway").toggleClass("active", this.roofEnabled);
         this.element.find(".fa-tree").toggleClass("active", this.placeOverhead);
-        this.element.find(".fa-sort-amount-up-alt").toggleClass("active", this.stairEnabled);
+        this.element.find(".fa-game-board").toggleClass("active", this.stairEnabled);
         this.element.find(".fa-users").toggleClass("active", this.element.find(".players-on-level").hasClass("active"));
         this.element.find(".fa-link").toggleClass("active", this.tokenOnly);
     }
@@ -265,22 +266,21 @@ class LevelsUI extends FormApplication {
     }
 
     generateLi(data) {
-        //data 0 - top 1- bottom 2- name
         let $li = $(`
-	<li class="level-item" draggable>
-    <i class="fas fa-arrows-alt"></i>
-    <div class="players-on-level"></div>
-    <i class="fas fa-caret-right"></i>
-    <div class="level-inputs">
-    <input type="text" class="level-name" value="${data[2] ?? ""}" placeholder="${game.i18n.localize("levels.widget.element")}">
-    <i class="fas fa-caret-down"></i>
-    <input type="number" class="level-bottom" value="${data[0]}" placeholder="0">
-    <i class="fas fa-caret-up"></i>
-    <input type="number" class="level-top" value="${data[1]}" placeholder="0">
-    <i class="fas fa-trash"></i>
-    </div>
-	</li>
-	`);
+            <li class="level-item" draggable>
+            <i class="fas fa-arrows-alt"></i>
+            <div class="players-on-level"></div>
+            <i class="fas fa-caret-right"></i>
+            <div class="level-inputs">
+            <input type="text" class="level-name" value="${data[2] ?? ""}" placeholder="${game.i18n.localize("levels.widget.element")}">
+            <i class="fas fa-caret-down"></i>
+            <input type="number" class="level-bottom" value="${data[0]}" placeholder="0">
+            <i class="fas fa-caret-up"></i>
+            <input type="number" class="level-top" value="${data[1]}" placeholder="0">
+            <i class="fas fa-trash"></i>
+            </div>
+            </li>
+        `);
         $li.find("input").prop("readonly", !this.isEdit);
         $li.find(".fa-trash").toggleClass("hidden", this.isEdit);
         $li.find(".fa-arrows-alt").toggleClass("hidden", this.isEdit);
@@ -541,7 +541,7 @@ Hooks.on("ready", () => {
         Hooks.on("preCreateTile", (tile, updates) => {
             if (CONFIG.Levels.UI.tokensOnly) return;
             if (CONFIG.Levels.UI.rangeEnabled == true) {
-                tile.updateSource({occlusion: { mode: 1 }});
+                tile.updateSource({ occlusion: { mode: 1 } });
                 if (!game.Levels3DPreview?._active) {
                     tile.updateSource({
                         elevation: CONFIG.Levels.UI.roofEnabled ? parseFloat(CONFIG.Levels.UI.range[1]) : parseFloat(CONFIG.Levels.UI.range[0]),
@@ -638,48 +638,21 @@ Hooks.on("ready", () => {
                             `,
                         },
                     },
-                ])
+                ]);
             });
         });
 
         Hooks.on("preCreateDrawing", (drawing, updates) => {
             if (CONFIG.Levels.UI.tokensOnly) return;
-            let sortedLevels = [...CONFIG.Levels.UI.definedLevels].sort((a, b) => {
-                return parseFloat(b[0]) - parseFloat(a[0]);
-            });
-            let aboverange = sortedLevels.find((l) => CONFIG.Levels.UI.range[0] === l[0] && CONFIG.Levels.UI.range[1] === l[1]);
-            aboverange = sortedLevels.indexOf(aboverange) === 0 ? undefined : sortedLevels[sortedLevels.indexOf(aboverange) - 1];
-
-            if (aboverange) {
-                let newTop = aboverange[1];
-                let newBot = aboverange[0];
-                if (CONFIG.Levels.UI.rangeEnabled == true) {
-                    drawing.updateSource({
-                        elevation: parseFloat(CONFIG.Levels.UI.range[0]),
-                        hidden: CONFIG.Levels.UI.stairEnabled,
-                        text: CONFIG.Levels.UI.stairEnabled ? `Levels Stair ${CONFIG.Levels.UI.range[0]}-${newBot}` : "",
-                        flags: {
-                            levels: {
-                                drawingMode: CONFIG.Levels.UI.stairEnabled ? 2 : 0,
-                                rangeTop: newBot - 1,
-                            },
+            if (CONFIG.Levels.UI.rangeEnabled == true) {
+                drawing.updateSource({
+                    elevation: parseFloat(CONFIG.Levels.UI.range[0]),
+                    flags: {
+                        levels: {
+                            rangeTop: parseFloat(CONFIG.Levels.UI.range[1]),
                         },
-                    });
-                }
-            } else {
-                if (CONFIG.Levels.UI.rangeEnabled == true) {
-                    drawing.updateSource({
-                        hidden: CONFIG.Levels.UI.stairEnabled,
-                        text: CONFIG.Levels.UI.stairEnabled ? `Levels Stair ${CONFIG.Levels.UI.range[0]}-${parseFloat(CONFIG.Levels.UI.range[1]) + 1}` : "",
-                        elevation: parseFloat(CONFIG.Levels.UI.range[0]),
-                        flags: {
-                            levels: {
-                                drawingMode: CONFIG.Levels.UI.stairEnabled ? 2 : 0,
-                                rangeTop: parseFloat(CONFIG.Levels.UI.range[1]),
-                            },
-                        },
-                    });
-                }
+                    },
+                });
             }
         });
 

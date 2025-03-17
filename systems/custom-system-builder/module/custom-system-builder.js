@@ -44,6 +44,7 @@ import Logger from './Logger.js';
 import Meter from './sheets/components/Meter.js';
 import ComputablePhrase from './formulas/ComputablePhrase.js';
 import ActiveEffectContainer from './sheets/components/ActiveEffectContainer.js';
+import initChat from './chat.js';
 /* -------------------------------------------- */
 /*  Init Hook                                   */
 /* -------------------------------------------- */
@@ -99,13 +100,14 @@ Hooks.once('init', async function () {
             default: '',
             type: Boolean
         });
-        game.settings.register(game.system.id, 'delayEntitySaving', {
-            name: 'CSB.Settings.DelayEntitySaving.Name',
-            hint: 'CSB.Settings.DelayEntitySaving.Hint',
-            scope: 'world',
+        game.settings.register(game.system.id, 'manualEntitySaving', {
+            name: 'CSB.Settings.ManualEntitySaving.Name',
+            hint: 'CSB.Settings.ManualEntitySaving.Hint',
+            scope: 'client',
             config: true,
             default: false,
-            type: Boolean
+            type: Boolean,
+            requiresReload: true
         });
         game.settings.register(game.system.id, 'loggingLevel', {
             name: 'CSB.Settings.LoggingLevel.Name',
@@ -200,6 +202,7 @@ Hooks.once('init', async function () {
         componentFactory.addComponentType(ItemContainer);
         componentFactory.addComponentType(ConditionalModifierList);
         componentFactory.addComponentType(ActiveEffectContainer);
+        initChat();
         Hooks.callAll('customSystemBuilderInit');
         return true;
     }

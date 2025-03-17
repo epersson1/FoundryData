@@ -37,5 +37,14 @@ let defineMidiForwardActivityClass = (ActivityClass) => {
 		get possibleOtherActivity() {
 			return false;
 		}
+		get isSelfTriggerableOnly() {
+			return false;
+		}
+		get isTriggerableActivity() {
+			return false;
+		}
+		get forcedTargetConfirmation() {
+			return "never";
+		}
 	};
 };

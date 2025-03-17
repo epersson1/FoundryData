@@ -134,3 +134,10 @@
         {{selectOptions COMPONENT_SIZES selected=size localize=true}}
     </select>
 </div>
+
+<div class="custom-system-size-custom" style="{{#unless (eq size "custom")}}display:none{{/unless}}">
+    <div class='custom-system-form-field'>
+        <label for='selectCustomSize'>{{localize 'CSB.ComponentProperties.Size.CustomSizeTitle'}}*</label>
+        <input id='selectCustomSize' data-key='customSize' type="number" value="{{customSize}}" />
+    </div>
+</div>

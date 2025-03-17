@@ -2,7 +2,7 @@
     "title": "Argon - Combat HUD (DND5E)",
     "description": "DnD5e - Fifth Edition System Argon integration",
     "id": "enhancedcombathud-dnd5e",
-    "version": "4.2.1",
+    "version": "4.3.4",
     "authors": [
         {
             "name": "theripper93",
@@ -77,7 +77,7 @@
     "packs": [],
     "url": "https://github.com/theripper93/enhancedcombathud-dnd5e",
     "manifest": "https://github.com/theripper93/enhancedcombathud-dnd5e/releases/latest/download/module.json",
-    "download": "https://github.com/theripper93/enhancedcombathud-dnd5e/releases/download/4.2.1/module.zip",
+    "download": "https://github.com/theripper93/enhancedcombathud-dnd5e/releases/download/4.3.4/module.zip",
     "relationships": {
         "requires": [
             {
@@ -93,7 +93,7 @@
                 "id": "dnd5e",
                 "type": "system",
                 "compatibility": {
-                    "minimum": "4.1.0"
+                    "minimum": "4.3.3"
                 }
             }
         ]

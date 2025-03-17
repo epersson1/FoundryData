@@ -322,6 +322,7 @@ class NumberField extends InputComponent {
             label: json.label,
             defaultValue: json.defaultValue,
             size: json.size,
+            customSize: json.customSize,
             cssClass: json.cssClass,
             role: json.role,
             permission: json.permission,
@@ -359,6 +360,24 @@ class NumberField extends InputComponent {
         }));
         return mainElt;
     }
+    /** Attaches event-listeners to the html of the config-form */
+    static attachListenersToConfigForm(html) {
+        $(html)
+            .find('#numberFieldSize')
+            .on('change', (event) => {
+            const target = $(event.currentTarget);
+            const customSizeBlock = $('.custom-system-size-custom');
+            const slideValue = 200;
+            switch (target.val()) {
+                case 'custom':
+                    customSizeBlock.slideDown(slideValue);
+                    break;
+                default:
+                    customSizeBlock.slideUp(slideValue);
+                    break;
+            }
+        });
+    }
     /**
      * Extracts configuration from submitted HTML form
      * @override
@@ -379,6 +398,9 @@ class NumberField extends InputComponent {
             controlsStyle: html.find('#numberFieldControlsStyle').val()?.toString() ?? defaultControlsStyle,
             inputStyle: html.find('#numberFieldInputStyle').val()?.toString() ?? defaultInputStyle
         };
+        if (fieldData.size === 'custom') {
+            fieldData.customSize = parseInt(String(html.find('#numberFieldCustomSize').val()));
+        }
         this.validateConfig(fieldData);
         return fieldData;
     }

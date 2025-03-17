@@ -1447,7 +1447,7 @@ function getHumanReadableAttributeLabel(attr, { actor, item }={}) {
   if ( attr.startsWith("system.") ) attr = attr.slice(7);
 
   // Check any actor-specific names first.
-  if ( attr.startsWith("resources.") && actor ) {
+  if ( attr.match(/^resources\.(?:primary|secondary|tertiary)/) && actor ) {
     const key = attr.replace(/\.value$/, "");
     const resource = foundry.utils.getProperty(actor, `system.${key}`);
     if ( resource?.label ) return resource.label;
@@ -2528,6 +2528,322 @@ class ConsumptionError extends Error {
   }
 }
 
+const { ArrayField: ArrayField$o, NumberField: NumberField$K, SchemaField: SchemaField$V, StringField: StringField$1b } = foundry.data.fields;
+
+/**
+ * @import {
+ *   BasicRollProcessConfiguration, BasicRollDialogConfiguration, BasicRollMessageConfiguration
+ * } from "../../dice/basic-roll.mjs";
+ */
+
+/**
+ * @typedef {object} UsesData
+ * @property {number} spent                 Number of uses that have been spent.
+ * @property {string} max                   Formula for the maximum number of uses.
+ * @property {UsesRecoveryData[]} recovery  Recovery profiles for this activity's uses.
+ */
+
+/**
+ * Data for a recovery profile for an activity's uses.
+ *
+ * @typedef {object} UsesRecoveryData
+ * @property {string} period   Period at which this profile is activated.
+ * @property {string} type     Whether uses are reset to full, reset to zero, or recover a certain number of uses.
+ * @property {string} formula  Formula used to determine recovery if type is not reset.
+ */
+
+/**
+ * Field for storing uses data.
+ */
+class UsesField extends SchemaField$V {
+  constructor(fields={}, options={}) {
+    fields = {
+      spent: new NumberField$K({ initial: 0, min: 0, integer: true }),
+      max: new FormulaField({ deterministic: true }),
+      recovery: new ArrayField$o(
+        new SchemaField$V({
+          period: new StringField$1b({ initial: "lr" }),
+          type: new StringField$1b({ initial: "recoverAll" }),
+          formula: new FormulaField()
+        })
+      ),
+      ...fields
+    };
+    super(fields, options);
+  }
+
+  /* -------------------------------------------- */
+  /*  Data Preparation                            */
+  /* -------------------------------------------- */
+
+  /**
+   * Prepare data for this field. Should be called during the `prepareFinalData` stage.
+   * @this {ItemDataModel|BaseActivityData}
+   * @param {object} rollData  Roll data used for formula replacements.
+   * @param {object} [labels]  Object in which to insert generated labels.
+   */
+  static prepareData(rollData, labels) {
+    prepareFormulaValue(this, "uses.max", "DND5E.USES.FIELDS.uses.max.label", rollData);
+    this.uses.value = this.uses.max ? Math.clamp(this.uses.max - this.uses.spent, 0, this.uses.max) : 0;
+
+    const periods = [];
+    for ( const recovery of this.uses.recovery ) {
+      if ( recovery.period === "recharge" ) {
+        recovery.formula ??= "6";
+        recovery.type = "recoverAll";
+        recovery.recharge = { options: UsesField.rechargeOptions };
+        if ( labels ) labels.recharge ??= `${game.i18n.localize("DND5E.Recharge")} [${
+          recovery.formula}${parseInt(recovery.formula) < 6 ? "+" : ""}]`;
+      } else if ( recovery.period in CONFIG.DND5E.limitedUsePeriods ) {
+        const config = CONFIG.DND5E.limitedUsePeriods[recovery.period];
+        periods.push(config.abbreviation ?? config.label);
+      }
+    }
+    if ( labels ) labels.recovery = game.i18n.getListFormatter({ style: "narrow" }).format(periods);
+
+    this.uses.label = UsesField.getStatblockLabel.call(this);
+
+    Object.defineProperty(this.uses, "rollRecharge", {
+      value: UsesField.rollRecharge.bind(this.parent?.system ? this.parent : this),
+      configurable: true
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Recharge range options.
+   * @returns {FormSelectOption[]}
+   */
+  static get rechargeOptions() {
+    return Array.fromRange(5, 2).reverse().map(min => ({
+      value: min,
+      label: game.i18n.format("DND5E.USES.Recovery.Recharge.Range", {
+        range: min === 6 ? formatNumber(6) : formatRange(min, 6)
+      })
+    }));
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Create a label for uses data that matches the style seen on NPC stat blocks. Complex recovery data might result
+   * in no label being generated if it doesn't represent recovery that can be normally found on a NPC.
+   * @this {ItemDataModel|BaseActivityData}
+   * @returns {string}
+   */
+  static getStatblockLabel() {
+    if ( !this.uses.max || (this.uses.recovery.length !== 1) ) return "";
+    const recovery = this.uses.recovery[0];
+
+    // Recharge X–Y
+    if ( recovery.period === "recharge" ) {
+      const value = parseInt(recovery.formula);
+      return `${game.i18n.localize("DND5E.Recharge")} ${value === 6 ? "6" : `${value}–6`}`;
+    }
+
+    // Recharge after a Short or Long Rest
+    if ( ["lr", "sr"].includes(recovery.period) && (this.uses.max === 1) ) {
+      return game.i18n.localize(`DND5E.Recharge${recovery.period === "sr" ? "Short" : "Long"}`);
+    }
+
+    // X/Day
+    const period = CONFIG.DND5E.limitedUsePeriods[recovery.period === "sr" ? "sr" : "day"]?.label ?? "";
+    if ( !period ) return "";
+    return `${this.uses.max}/${period}`;
+  }
+
+  /* -------------------------------------------- */
+  /*  Helpers                                     */
+  /* -------------------------------------------- */
+
+  /**
+   * Determine uses recovery.
+   * @this {ItemDataModel|BaseActivityData}
+   * @param {string[]} periods  Recovery periods to check.
+   * @param {object} rollData   Roll data to use when evaluating recover formulas.
+   * @returns {Promise<{ updates: object, rolls: BasicRoll[] }|false>}
+   */
+  static async recoverUses(periods, rollData) {
+    if ( !this.uses?.recovery.length ) return false;
+
+    // Search the recovery profiles in order to find the first matching period,
+    // and then find the first profile that uses that recovery period
+    let profile;
+    findPeriod: {
+      for ( const period of periods ) {
+        for ( const recovery of this.uses.recovery ) {
+          if ( recovery.period === period ) {
+            profile = recovery;
+            break findPeriod;
+          }
+        }
+      }
+    }
+    if ( !profile ) return false;
+
+    const updates = {};
+    const rolls = [];
+    const item = this.item ?? this.parent;
+
+    if ( profile.type === "recoverAll" ) updates.spent = 0;
+    else if ( profile.type === "loseAll" ) updates.spent = this.uses.max;
+    else if ( profile.formula ) {
+      let roll;
+      let total;
+      try {
+        const delta = this.parent instanceof Item ? { item: this.parent.id, keyPath: "system.uses.spent" }
+          : { item: this.item.id, keyPath: `system.activities.${this.id}.uses.spent` };
+        roll = new CONFIG.Dice.BasicRoll(profile.formula, rollData, { delta });
+        if ( ["day", "dawn", "dusk"].includes(profile.period)
+          && (game.settings.get("dnd5e", "restVariant") === "gritty") ) {
+          roll.alter(7, 0, { multiplyNumeric: true });
+        }
+        total = (await roll.evaluate()).total;
+      } catch(err) {
+        Hooks.onError("UsesField#recoverUses", err, {
+          msg: game.i18n.format("DND5E.ItemRecoveryFormulaWarning", {
+            name: item.name, formula: profile.formula, uuid: this.uuid ?? item.uuid
+          }),
+          log: "error",
+          notify: "error"
+        });
+        return false;
+      }
+
+      const newSpent = Math.clamp(this.uses.spent - total, 0, this.uses.max);
+      if ( newSpent !== this.uses.spent ) {
+        updates.spent = newSpent;
+        if ( !roll.isDeterministic ) rolls.push(roll);
+      }
+    }
+
+    return { updates, rolls };
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * @typedef {BasicRollProcessConfiguration} RechargeRollProcessConfiguration
+   * @property {boolean} [apply]  Apply the uses updates back to the item or activity. If set to `false`, then the
+   *                              `dnd5e.postRollRecharge` hook won't be called.
+   */
+
+  /**
+   * Rolls a recharge test for an Item or Activity that uses the d6 recharge mechanic.
+   * @this {Item5e|Activity}
+   * @param {RechargeRollProcessConfiguration} config  Configuration information for the roll.
+   * @param {BasicRollDialogConfiguration} dialog      Configuration for the roll dialog.
+   * @param {BasicRollMessageConfiguration} message    Configuration for the roll message.
+   * @returns {Promise<BasicRoll[]|{ rolls: BasicRoll[], updates: object }|void>}  The created Roll instances, update
+   *                                                                               data, or nothing if not rolled.
+   */
+  static async rollRecharge(config={}, dialog={}, message={}) {
+    const uses = this.system ? this.system.uses : this.uses;
+    const recharge = uses?.recovery.find(({ period }) => period === "recharge");
+    if ( !recharge || !uses?.spent ) return;
+
+    let oldReturn = false;
+    if ( config.apply === undefined ) {
+      foundry.utils.logCompatibilityWarning(
+        "The `apply` parameter should be passed to `rollRecharge` to opt-in to the new return behavior.",
+        { since: "DnD5e 4.3", until: "DnD5e 5.0" }
+      );
+      oldReturn = config.apply = true;
+    }
+
+    const rollConfig = foundry.utils.mergeObject({
+      rolls: [{
+        parts: ["1d6"],
+        data: this.getRollData(),
+        options: {
+          delta: this instanceof Item ? { item: this.id, keyPath: "system.uses.spent" }
+            : { item: this.item.id, keyPath: `system.activities.${this.id}.uses.spent` },
+          target: parseInt(recharge.formula)
+        }
+      }]
+    }, config);
+    rollConfig.hookNames = [...(config.hookNames ?? []), "recharge"];
+    rollConfig.subject = this;
+
+    const dialogConfig = foundry.utils.mergeObject({ configure: false }, dialog);
+
+    const messageConfig = foundry.utils.mergeObject({
+      create: true,
+      data: {
+        speaker: ChatMessage.getSpeaker({ actor: this.actor, token: this.actor.token })
+      },
+      rollMode: game.settings.get("core", "rollMode")
+    }, message);
+
+    if ( "dnd5e.preRollRecharge" in Hooks.events ) {
+      foundry.utils.logCompatibilityWarning(
+        "The `dnd5e.preRollRecharge` hook has been deprecated and replaced with `dnd5e.preRollRechargeV2`.",
+        { since: "DnD5e 4.0", until: "DnD5e 4.4" }
+      );
+      const hookData = {
+        formula: rollConfig.rolls[0].parts[0], data: rollConfig.rolls[0].data,
+        target: rollConfig.rolls[0].options.target, chatMessage: messageConfig.create
+      };
+      if ( Hooks.call("dnd5e.preRollRecharge", this, hookData) === false ) return;
+      rollConfig.rolls[0].parts[0] = hookData.formula;
+      rollConfig.rolls[0].data = hookData.data;
+      rollConfig.rolls[0].options.target = hookData.target;
+      messageConfig.create = hookData.chatMessage;
+    }
+
+    const rolls = await CONFIG.Dice.BasicRoll.buildConfigure(rollConfig, dialogConfig, messageConfig);
+    await CONFIG.Dice.BasicRoll.buildEvaluate(rolls, rollConfig, messageConfig);
+    if ( !rolls.length ) return;
+    messageConfig.data.flavor = game.i18n.format("DND5E.ItemRechargeCheck", {
+      name: this.name,
+      result: game.i18n.localize(`DND5E.ItemRecharge${rolls[0].isSuccess ? "Success" : "Failure"}`)
+    });
+    await CONFIG.Dice.BasicRoll.buildPost(rolls, rollConfig, messageConfig);
+
+    const updates = {};
+    if ( rolls[0].isSuccess ) {
+      if ( this instanceof Item ) updates["system.uses.spent"] = 0;
+      else updates["uses.spent"] = 0;
+    }
+
+    /**
+     * A hook event that fires after an Item or Activity has rolled to recharge, but before any usage changes have
+     * been made.
+     * @function dnd5e.rollRechargeV2
+     * @memberof hookEvents
+     * @param {BasicRoll[]} rolls             The resulting rolls.
+     * @param {object} data
+     * @param {Item5e|Activity} data.subject  Item or Activity for which the roll was performed.
+     * @param {object} data.updates           Updates to be applied to the subject.
+     * @returns {boolean}                     Explicitly return `false` to prevent updates from being performed.
+     */
+    if ( Hooks.call("dnd5e.rollRechargeV2", rolls, { subject: this, updates }) === false ) return rolls;
+
+    if ( "dnd5e.rollRecharge" in Hooks.events ) {
+      foundry.utils.logCompatibilityWarning(
+        "The `dnd5e.rollRecharge` hook has been deprecated and replaced with `dnd5e.rollRechargeV2`.",
+        { since: "DnD5e 4.0", until: "DnD5e 4.4" }
+      );
+      if ( Hooks.call("dnd5e.rollRecharge", this, rolls[0]) === false ) return rolls;
+    }
+
+    if ( rollConfig.apply && !foundry.utils.isEmpty(updates) ) await this.update(updates);
+
+    /**
+     * A hook event that fires after an Item or Activity has rolled recharge and usage updates have been performed.
+     * @function dnd5e.postRollRecharge
+     * @memberof hookEvents
+     * @param {BasicRoll[]} rolls     The resulting rolls.
+     * @param {object} data
+     * @param {Actor5e} data.subject  Item or Activity for which the roll was performed.
+     */
+    Hooks.callAll("dnd5e.postRollRecharge", rolls, { subject: this });
+
+    return oldReturn ? rolls : { rolls, updates };
+  }
+}
+
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
@@ -3160,6 +3476,9 @@ class ActivitySheet extends PseudoDocumentSheet {
           ...(typeConfig.scalingModes ?? []).map(({ value, label }) => ({ value, label: game.i18n.localize(label) }))
         ] : null,
         showTargets: "validTargets" in typeConfig,
+        selectedTarget: ("validTargets" in typeConfig) && ((data.type === "Item") && data.target?.includes("."))
+          ? (this.activity.actor?.sourcedItems?.get(data.target, { legacy: false })?.first()?.id ?? data.target)
+          : data.target,
         targetPlaceholder: data.type === "itemUses" ? game.i18n.localize("DND5E.CONSUMPTION.Target.ThisItem") : null,
         validTargets: showTextTarget ? null : target.validTargets
       };
@@ -3179,12 +3498,7 @@ class ActivitySheet extends PseudoDocumentSheet {
       fields: this.activity.schema.fields.uses.fields.recovery.element.fields,
       prefix: `uses.recovery.${index}.`,
       source: context.source.uses.recovery[index] ?? data,
-      formulaOptions: data.period === "recharge" ? Array.fromRange(5, 2).reverse().map(min => ({
-        value: min,
-        label: game.i18n.format("DND5E.USES.Recovery.Recharge.Range", {
-          range: min === 6 ? formatNumber(6) : formatRange(min, 6)
-        })
-      })) : null
+      formulaOptions: data.period === "recharge" ? UsesField.rechargeOptions : null
     }));
 
     // Template dimensions
@@ -3694,7 +4008,7 @@ class Dialog5e extends Application5e {
   }
 }
 
-const { BooleanField: BooleanField$I, NumberField: NumberField$K, StringField: StringField$1b } = foundry.data.fields;
+const { BooleanField: BooleanField$I, NumberField: NumberField$J, StringField: StringField$1a } = foundry.data.fields;
 
 /**
  * Dialog for configuring the usage of an activity.
@@ -3901,7 +4215,7 @@ class ActivityUsageDialog extends Dialog5e {
       if ( existingConcentration.length ) {
         const optional = existingConcentration.length < (this.actor.system.attributes?.concentration?.limit ?? 0);
         context.fields.push({
-          field: new StringField$1b({ label: game.i18n.localize("DND5E.ConcentratingEnd") }),
+          field: new StringField$1a({ label: game.i18n.localize("DND5E.ConcentratingEnd") }),
           name: "concentration.end",
           value: this.config.concentration?.end,
           options: optional ? [{ value: "", label: "—" }, ...existingConcentration] : existingConcentration
@@ -4068,7 +4382,7 @@ class ActivityUsageDialog extends Dialog5e {
         return { value: `spell${level}`, label };
       }).filter(_ => _);
       context.spellSlots = {
-        field: new StringField$1b({ label: game.i18n.localize("DND5E.SpellCastUpcast") }),
+        field: new StringField$1a({ label: game.i18n.localize("DND5E.SpellCastUpcast") }),
         name: "spell.slot",
         value: this.config.spell?.slot,
         options: spellSlotOptions
@@ -4098,7 +4412,7 @@ class ActivityUsageDialog extends Dialog5e {
       }).filter(_ => _);
 
       context.spellSlots = {
-        field: new StringField$1b({ label: game.i18n.localize("DND5E.SpellCastUpcast") }),
+        field: new StringField$1a({ label: game.i18n.localize("DND5E.SpellCastUpcast") }),
         name: "spell.slot",
         value: spellSlotValue,
         options: spellSlotOptions
@@ -4114,7 +4428,7 @@ class ActivityUsageDialog extends Dialog5e {
     else if ( scale.allowed && (this.config.scaling !== false) ) {
       const max = scale.max ? simplifyBonus(scale.max, rollData) : Infinity;
       if ( max > 1 ) context.scaling = {
-        field: new NumberField$K({ min: 1, max, label: game.i18n.localize("DND5E.ScalingValue") }),
+        field: new NumberField$J({ min: 1, max, label: game.i18n.localize("DND5E.ScalingValue") }),
         name: "scalingValue",
         // Config stores the scaling increase, but scaling value (increase + 1) is easier to understand in the UI
         value: Math.clamp((this.config.scaling ?? 0) + 1, 1, max),
@@ -5214,7 +5528,7 @@ function ActivityMixin(Base) {
        * @param {ActivityMessageConfiguration} messageConfig  Configuration info for the created chat message.
        * @returns {boolean}  Explicitly return `false` to prevent activity from being activated.
        */
-      if ( Hooks.call("dnd5e.preActivityConsumption", this, usageConfig, messageConfig) === false ) return;
+      if ( Hooks.call("dnd5e.preActivityConsumption", this, usageConfig, messageConfig) === false ) return false;
 
       if ( "dnd5e.preItemUsageConsumption" in Hooks.events ) {
         foundry.utils.logCompatibilityWarning(
@@ -5222,7 +5536,7 @@ function ActivityMixin(Base) {
           { since: "DnD5e 4.0", until: "DnD5e 4.4" }
         );
         const { config, options } = this._createDeprecatedConfigs(usageConfig, {}, messageConfig);
-        if ( Hooks.call("dnd5e.preItemUsageConsumption", this.item, config, options) === false ) return;
+        if ( Hooks.call("dnd5e.preItemUsageConsumption", this.item, config, options) === false ) return false;
         this._applyDeprecatedConfigs(usageConfig, {}, messageConfig, config, options);
       }
 
@@ -5240,7 +5554,7 @@ function ActivityMixin(Base) {
        * @param {ActivityUsageUpdates} updates                Updates to apply to the actor and other documents.
        * @returns {boolean}  Explicitly return `false` to prevent activity from being activated.
        */
-      if ( Hooks.call("dnd5e.activityConsumption", this, usageConfig, messageConfig, updates) === false ) return;
+      if ( Hooks.call("dnd5e.activityConsumption", this, usageConfig, messageConfig, updates) === false ) return false;
 
       if ( "dnd5e.itemUsageConsumption" in Hooks.events ) {
         foundry.utils.logCompatibilityWarning(
@@ -5254,7 +5568,7 @@ function ActivityMixin(Base) {
           itemUpdates: updates.item.find(i => i._id === this.item.id),
           resourceUpdates: updates.item.filter(i => i._id !== this.item.id)
         };
-        if ( Hooks.call("dnd5e.itemUsageConsumption", this.item, config, options, usage) === false ) return;
+        if ( Hooks.call("dnd5e.itemUsageConsumption", this.item, config, options, usage) === false ) return false;
         this._applyDeprecatedConfigs(usageConfig, {}, messageConfig, config, options);
         updates.actor = usage.actorUpdates;
         updates.delete = usage.deleteIds;
@@ -5280,7 +5594,7 @@ function ActivityMixin(Base) {
        * @param {ActivityUsageUpdates} updates                Applied updates to the actor and other documents.
        * @returns {boolean}  Explicitly return `false` to prevent activity from being activated.
        */
-      if ( Hooks.call("dnd5e.postActivityConsumption", this, usageConfig, messageConfig, updates) === false ) return;
+      if ( Hooks.call("dnd5e.postActivityConsumption", this, usageConfig, messageConfig, updates) === false ) return false;
 
       return updates;
     }
@@ -5512,15 +5826,18 @@ function ActivityMixin(Base) {
       else {
         const canScale = linked ? linked.consumption.scaling.allowed : this.canScale;
         const linkedDelta = (linked?.spell?.level ?? Infinity) - this.item.system.level;
-        if ( canScale ) config.scaling ??= Number.isFinite(linkedDelta) ? linkedDelta : 0;
-        else config.scaling = false;
+        if ( !canScale ) config.scaling = false;
+        else if ( Number.isFinite(linkedDelta) ) config.scaling ??= linkedDelta;
 
         if ( this.requiresSpellSlot ) {
           const mode = this.item.system.preparation.mode;
           config.spell ??= {};
           config.spell.slot ??= linked?.spell?.level ? `spell${linked.spell.level}`
             : (mode in this.actor.system.spells) ? mode : `spell${this.item.system.level}`;
+          const scaling = (this.actor.system.spells?.[config.spell.slot]?.level ?? 0) - this.item.system.level;
+          if ( scaling > 0 ) config.scaling ??= scaling;
         }
+        config.scaling ??= 0;
       }
 
       if ( this.requiresConcentration && !game.settings.get("dnd5e", "disableConcentration") ) {
@@ -6000,11 +6317,14 @@ function ActivityMixin(Base) {
 
       const rolls = await CONFIG.Dice.DamageRoll.build(rollConfig, dialogConfig, messageConfig);
       if ( !rolls?.length ) return;
+
+      const canUpdate = this.item.isOwner && !this.item[game.release.generation < 13 ? "compendium" : "inCompendium"];
       const lastDamageTypes = rolls.reduce((obj, roll, index) => {
         if ( roll.options.type ) obj[index] = roll.options.type;
         return obj;
       }, {});
-      if ( !foundry.utils.isEmpty(lastDamageTypes) && this.actor.items.has(this.item.id) ) {
+      if ( canUpdate && !foundry.utils.isEmpty(lastDamageTypes)
+        && (this.actor && this.actor.items.has(this.item.id)) ) {
         await this.item.setFlag("dnd5e", `last.${this.id}.damageType`, lastDamageTypes);
       }
 
@@ -6946,7 +7266,7 @@ class Scaling {
   }
 }
 
-const { BooleanField: BooleanField$H, EmbeddedDataField: EmbeddedDataField$5, NumberField: NumberField$J, SchemaField: SchemaField$V, SetField: SetField$w, StringField: StringField$1a } = foundry.data.fields;
+const { BooleanField: BooleanField$H, EmbeddedDataField: EmbeddedDataField$5, NumberField: NumberField$I, SchemaField: SchemaField$U, SetField: SetField$w, StringField: StringField$19 } = foundry.data.fields;
 
 /**
  * Field for storing damage data.
@@ -6984,17 +7304,17 @@ class DamageData extends foundry.abstract.DataModel {
   /** @override */
   static defineSchema() {
     return {
-      number: new NumberField$J({ min: 0, integer: true }),
-      denomination: new NumberField$J({ min: 0, integer: true }),
+      number: new NumberField$I({ min: 0, integer: true }),
+      denomination: new NumberField$I({ min: 0, integer: true }),
       bonus: new FormulaField(),
-      types: new SetField$w(new StringField$1a()),
-      custom: new SchemaField$V({
+      types: new SetField$w(new StringField$19()),
+      custom: new SchemaField$U({
         enabled: new BooleanField$H(),
         formula: new FormulaField()
       }),
-      scaling: new SchemaField$V({
-        mode: new StringField$1a(),
-        number: new NumberField$J({ initial: 1, min: 0, integer: true }),
+      scaling: new SchemaField$U({
+        mode: new StringField$19(),
+        number: new NumberField$I({ initial: 1, min: 0, integer: true }),
         formula: new FormulaField()
       })
     };
@@ -7084,7 +7404,7 @@ class DamageData extends foundry.abstract.DataModel {
   }
 }
 
-const { NumberField: NumberField$I, SchemaField: SchemaField$U, StringField: StringField$19 } = foundry.data.fields;
+const { NumberField: NumberField$H, SchemaField: SchemaField$T, StringField: StringField$18 } = foundry.data.fields;
 
 /**
  * Field for storing activation data.
@@ -7093,12 +7413,12 @@ const { NumberField: NumberField$I, SchemaField: SchemaField$U, StringField: Str
  * @property {number} value           Scalar value associated with the activation.
  * @property {string} condition       Condition required to activate this activity.
  */
-class ActivationField extends SchemaField$U {
+class ActivationField extends SchemaField$T {
   constructor(fields={}, options={}) {
     fields = {
-      type: new StringField$19({ initial: "action" }),
-      value: new NumberField$I({ min: 0, integer: true }),
-      condition: new StringField$19(),
+      type: new StringField$18({ initial: "action" }),
+      value: new NumberField$H({ min: 0, integer: true }),
+      condition: new StringField$18(),
       ...fields
     };
     super(fields, options);
@@ -7126,7 +7446,7 @@ class ActivationField extends SchemaField$U {
   }
 }
 
-const { SchemaField: SchemaField$T, StringField: StringField$18 } = foundry.data.fields;
+const { SchemaField: SchemaField$S, StringField: StringField$17 } = foundry.data.fields;
 
 /**
  * Field for storing duration data.
@@ -7135,12 +7455,12 @@ const { SchemaField: SchemaField$T, StringField: StringField$18 } = foundry.data
  * @property {string} units             Units that are used for the duration.
  * @property {string} special           Description of any special duration details.
  */
-class DurationField extends SchemaField$T {
+class DurationField extends SchemaField$S {
   constructor(fields={}, options={}) {
     fields = {
       value: new FormulaField({ deterministic: true }),
-      units: new StringField$18({ initial: "inst" }),
-      special: new StringField$18(),
+      units: new StringField$17({ initial: "inst" }),
+      special: new StringField$17(),
       ...fields
     };
     super(fields, options);
@@ -7198,7 +7518,7 @@ class DurationField extends SchemaField$T {
   }
 }
 
-const { SchemaField: SchemaField$S, StringField: StringField$17 } = foundry.data.fields;
+const { SchemaField: SchemaField$R, StringField: StringField$16 } = foundry.data.fields;
 
 /**
  * Field for storing range data.
@@ -7207,12 +7527,12 @@ const { SchemaField: SchemaField$S, StringField: StringField$17 } = foundry.data
  * @property {string} units                Units that are used for the range.
  * @property {string} special              Description of any special range details.
  */
-class RangeField extends SchemaField$S {
+class RangeField extends SchemaField$R {
   constructor(fields={}, options={}) {
     fields = {
       value: new FormulaField({ deterministic: true }),
-      units: new StringField$17(),
-      special: new StringField$17(),
+      units: new StringField$16(),
+      special: new StringField$16(),
       ...fields
     };
     super(fields, options);
@@ -7245,7 +7565,7 @@ class RangeField extends SchemaField$S {
   }
 }
 
-const { BooleanField: BooleanField$G, SchemaField: SchemaField$R, StringField: StringField$16 } = foundry.data.fields;
+const { BooleanField: BooleanField$G, SchemaField: SchemaField$Q, StringField: StringField$15 } = foundry.data.fields;
 
 /**
  * @typedef {object} TargetData
@@ -7267,23 +7587,23 @@ const { BooleanField: BooleanField$G, SchemaField: SchemaField$R, StringField: S
 /**
  * Field for storing target data.
  */
-class TargetField extends SchemaField$R {
+class TargetField extends SchemaField$Q {
   constructor(fields={}, options={}) {
     fields = {
-      template: new SchemaField$R({
+      template: new SchemaField$Q({
         count: new FormulaField({ deterministic: true }),
         contiguous: new BooleanField$G(),
-        type: new StringField$16(),
+        type: new StringField$15(),
         size: new FormulaField({ deterministic: true }),
         width: new FormulaField({ deterministic: true }),
         height: new FormulaField({ deterministic: true }),
-        units: new StringField$16({ initial: () => defaultUnits("length") })
+        units: new StringField$15({ initial: () => defaultUnits("length") })
       }),
-      affects: new SchemaField$R({
+      affects: new SchemaField$Q({
         count: new FormulaField({ deterministic: true }),
-        type: new StringField$16(),
+        type: new StringField$15(),
         choice: new BooleanField$G(),
-        special: new StringField$16()
+        special: new StringField$15()
       }),
       ...fields
     };
@@ -7378,314 +7698,6 @@ class TargetField extends SchemaField$R {
       if ( dimensions.height ) dimensions.height = "DND5E.AreaOfEffect.Size.Height";
     }
     return dimensions;
-  }
-}
-
-const { ArrayField: ArrayField$o, NumberField: NumberField$H, SchemaField: SchemaField$Q, StringField: StringField$15 } = foundry.data.fields;
-
-/**
- * @import {
- *   BasicRollProcessConfiguration, BasicRollDialogConfiguration, BasicRollMessageConfiguration
- * } from "../../dice/basic-roll.mjs";
- */
-
-/**
- * @typedef {object} UsesData
- * @property {number} spent                 Number of uses that have been spent.
- * @property {string} max                   Formula for the maximum number of uses.
- * @property {UsesRecoveryData[]} recovery  Recovery profiles for this activity's uses.
- */
-
-/**
- * Data for a recovery profile for an activity's uses.
- *
- * @typedef {object} UsesRecoveryData
- * @property {string} period   Period at which this profile is activated.
- * @property {string} type     Whether uses are reset to full, reset to zero, or recover a certain number of uses.
- * @property {string} formula  Formula used to determine recovery if type is not reset.
- */
-
-/**
- * Field for storing uses data.
- */
-class UsesField extends SchemaField$Q {
-  constructor(fields={}, options={}) {
-    fields = {
-      spent: new NumberField$H({ initial: 0, min: 0, integer: true }),
-      max: new FormulaField({ deterministic: true }),
-      recovery: new ArrayField$o(
-        new SchemaField$Q({
-          period: new StringField$15({ initial: "lr" }),
-          type: new StringField$15({ initial: "recoverAll" }),
-          formula: new FormulaField()
-        })
-      ),
-      ...fields
-    };
-    super(fields, options);
-  }
-
-  /* -------------------------------------------- */
-  /*  Data Preparation                            */
-  /* -------------------------------------------- */
-
-  /**
-   * Prepare data for this field. Should be called during the `prepareFinalData` stage.
-   * @this {ItemDataModel|BaseActivityData}
-   * @param {object} rollData  Roll data used for formula replacements.
-   * @param {object} [labels]  Object in which to insert generated labels.
-   */
-  static prepareData(rollData, labels) {
-    prepareFormulaValue(this, "uses.max", "DND5E.USES.FIELDS.uses.max.label", rollData);
-    this.uses.value = this.uses.max ? Math.clamp(this.uses.max - this.uses.spent, 0, this.uses.max) : 0;
-
-    const periods = [];
-    for ( const recovery of this.uses.recovery ) {
-      if ( recovery.period === "recharge" ) {
-        recovery.formula ??= "6";
-        recovery.type = "recoverAll";
-        recovery.recharge = {
-          options: Array.fromRange(5, 2).reverse().map(min => ({
-            value: min,
-            label: game.i18n.format("DND5E.USES.Recovery.Recharge.Range", {
-              range: min === 6 ? formatNumber(6) : formatRange(min, 6)
-            })
-          }))
-        };
-        if ( labels ) labels.recharge ??= `${game.i18n.localize("DND5E.Recharge")} [${
-          recovery.formula}${parseInt(recovery.formula) < 6 ? "+" : ""}]`;
-      } else if ( recovery.period in CONFIG.DND5E.limitedUsePeriods ) {
-        const config = CONFIG.DND5E.limitedUsePeriods[recovery.period];
-        periods.push(config.abbreviation ?? config.label);
-      }
-    }
-    if ( labels ) labels.recovery = game.i18n.getListFormatter({ style: "narrow" }).format(periods);
-
-    this.uses.label = UsesField.getStatblockLabel.call(this);
-
-    Object.defineProperty(this.uses, "rollRecharge", {
-      value: UsesField.rollRecharge.bind(this.parent?.system ? this.parent : this),
-      configurable: true
-    });
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Create a label for uses data that matches the style seen on NPC stat blocks. Complex recovery data might result
-   * in no label being generated if it doesn't represent recovery that can be normally found on a NPC.
-   * @this {ItemDataModel|BaseActivityData}
-   * @returns {string}
-   */
-  static getStatblockLabel() {
-    if ( !this.uses.max || (this.uses.recovery.length !== 1) ) return "";
-    const recovery = this.uses.recovery[0];
-
-    // Recharge X–Y
-    if ( recovery.period === "recharge" ) {
-      const value = parseInt(recovery.formula);
-      return `${game.i18n.localize("DND5E.Recharge")} ${value === 6 ? "6" : `${value}–6`}`;
-    }
-
-    // Recharge after a Short or Long Rest
-    if ( ["lr", "sr"].includes(recovery.period) && (this.uses.max === 1) ) {
-      return game.i18n.localize(`DND5E.Recharge${recovery.period === "sr" ? "Short" : "Long"}`);
-    }
-
-    // X/Day
-    const period = CONFIG.DND5E.limitedUsePeriods[recovery.period === "sr" ? "sr" : "day"]?.label ?? "";
-    if ( !period ) return "";
-    return `${this.uses.max}/${period}`;
-  }
-
-  /* -------------------------------------------- */
-  /*  Helpers                                     */
-  /* -------------------------------------------- */
-
-  /**
-   * Determine uses recovery.
-   * @this {ItemDataModel|BaseActivityData}
-   * @param {string[]} periods  Recovery periods to check.
-   * @param {object} rollData   Roll data to use when evaluating recover formulas.
-   * @returns {Promise<{ updates: object, rolls: BasicRoll[] }|false>}
-   */
-  static async recoverUses(periods, rollData) {
-    if ( !this.uses?.recovery.length ) return false;
-
-    // Search the recovery profiles in order to find the first matching period,
-    // and then find the first profile that uses that recovery period
-    let profile;
-    findPeriod: {
-      for ( const period of periods ) {
-        for ( const recovery of this.uses.recovery ) {
-          if ( recovery.period === period ) {
-            profile = recovery;
-            break findPeriod;
-          }
-        }
-      }
-    }
-    if ( !profile ) return false;
-
-    const updates = {};
-    const rolls = [];
-    const item = this.item ?? this.parent;
-
-    if ( profile.type === "recoverAll" ) updates.spent = 0;
-    else if ( profile.type === "loseAll" ) updates.spent = this.uses.max;
-    else if ( profile.formula ) {
-      let roll;
-      let total;
-      try {
-        const delta = this.parent instanceof Item ? { item: this.parent.id, keyPath: "system.uses.spent" }
-          : { item: this.item.id, keyPath: `system.activities.${this.id}.uses.spent` };
-        roll = new CONFIG.Dice.BasicRoll(profile.formula, rollData, { delta });
-        if ( ["day", "dawn", "dusk"].includes(profile.period)
-          && (game.settings.get("dnd5e", "restVariant") === "gritty") ) {
-          roll.alter(7, 0, { multiplyNumeric: true });
-        }
-        total = (await roll.evaluate()).total;
-      } catch(err) {
-        Hooks.onError("UsesField#recoverUses", err, {
-          msg: game.i18n.format("DND5E.ItemRecoveryFormulaWarning", {
-            name: item.name, formula: profile.formula, uuid: this.uuid ?? item.uuid
-          }),
-          log: "error",
-          notify: "error"
-        });
-        return false;
-      }
-
-      const newSpent = Math.clamp(this.uses.spent - total, 0, this.uses.max);
-      if ( newSpent !== this.uses.spent ) {
-        updates.spent = newSpent;
-        if ( !roll.isDeterministic ) rolls.push(roll);
-      }
-    }
-
-    return { updates, rolls };
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * @typedef {BasicRollProcessConfiguration} RechargeRollProcessConfiguration
-   * @property {boolean} [apply]  Apply the uses updates back to the item or activity. If set to `false`, then the
-   *                              `dnd5e.postRollRecharge` hook won't be called.
-   */
-
-  /**
-   * Rolls a recharge test for an Item or Activity that uses the d6 recharge mechanic.
-   * @this {Item5e|Activity}
-   * @param {RechargeRollProcessConfiguration} config  Configuration information for the roll.
-   * @param {BasicRollDialogConfiguration} dialog      Configuration for the roll dialog.
-   * @param {BasicRollMessageConfiguration} message    Configuration for the roll message.
-   * @returns {Promise<BasicRoll[]|{ rolls: BasicRoll[], updates: object }|void>}  The created Roll instances, update
-   *                                                                               data, or nothing if not rolled.
-   */
-  static async rollRecharge(config={}, dialog={}, message={}) {
-    const uses = this.system ? this.system.uses : this.uses;
-    const recharge = uses?.recovery.find(({ period }) => period === "recharge");
-    if ( !recharge ) return;
-
-    let oldReturn = false;
-    if ( config.apply === undefined ) {
-      foundry.utils.logCompatibilityWarning(
-        "The `apply` parameter should be passed to `rollRecharge` to opt-in to the new return behavior.",
-        { since: "DnD5e 4.3", until: "DnD5e 5.0" }
-      );
-      oldReturn = config.apply = true;
-    }
-
-    const rollConfig = foundry.utils.mergeObject({
-      rolls: [{
-        parts: ["1d6"],
-        data: this.getRollData(),
-        options: {
-          delta: this instanceof Item ? { item: this.id, keyPath: "system.uses.spent" }
-            : { item: this.item.id, keyPath: `system.activities.${this.id}.uses.spent` },
-          target: parseInt(recharge.formula)
-        }
-      }]
-    }, config);
-    rollConfig.hookNames = [...(config.hookNames ?? []), "recharge"];
-    rollConfig.subject = this;
-
-    const dialogConfig = foundry.utils.mergeObject({ configure: false }, dialog);
-
-    const messageConfig = foundry.utils.mergeObject({
-      create: true,
-      data: {
-        speaker: ChatMessage.getSpeaker({ actor: this.actor, token: this.actor.token })
-      },
-      rollMode: game.settings.get("core", "rollMode")
-    }, message);
-
-    if ( "dnd5e.preRollRecharge" in Hooks.events ) {
-      foundry.utils.logCompatibilityWarning(
-        "The `dnd5e.preRollRecharge` hook has been deprecated and replaced with `dnd5e.preRollRechargeV2`.",
-        { since: "DnD5e 4.0", until: "DnD5e 4.4" }
-      );
-      const hookData = {
-        formula: rollConfig.rolls[0].parts[0], data: rollConfig.rolls[0].data,
-        target: rollConfig.rolls[0].options.target, chatMessage: messageConfig.create
-      };
-      if ( Hooks.call("dnd5e.preRollRecharge", this, hookData) === false ) return;
-      rollConfig.rolls[0].parts[0] = hookData.formula;
-      rollConfig.rolls[0].data = hookData.data;
-      rollConfig.rolls[0].options.target = hookData.target;
-      messageConfig.create = hookData.chatMessage;
-    }
-
-    const rolls = await CONFIG.Dice.BasicRoll.buildConfigure(rollConfig, dialogConfig, messageConfig);
-    await CONFIG.Dice.BasicRoll.buildEvaluate(rolls, rollConfig, messageConfig);
-    if ( !rolls.length ) return;
-    messageConfig.data.flavor = game.i18n.format("DND5E.ItemRechargeCheck", {
-      name: this.name,
-      result: game.i18n.localize(`DND5E.ItemRecharge${rolls[0].isSuccess ? "Success" : "Failure"}`)
-    });
-    await CONFIG.Dice.BasicRoll.buildPost(rolls, rollConfig, messageConfig);
-
-    const updates = {};
-    if ( rolls[0].isSuccess ) {
-      if ( this instanceof Item ) updates["system.uses.spent"] = 0;
-      else updates["uses.spent"] = 0;
-    }
-
-    /**
-     * A hook event that fires after an Item or Activity has rolled to recharge, but before any usage changes have
-     * been made.
-     * @function dnd5e.rollRechargeV2
-     * @memberof hookEvents
-     * @param {BasicRoll[]} rolls             The resulting rolls.
-     * @param {object} data
-     * @param {Item5e|Activity} data.subject  Item or Activity for which the roll was performed.
-     * @param {object} data.updates           Updates to be applied to the subject.
-     * @returns {boolean}                     Explicitly return `false` to prevent updates from being performed.
-     */
-    if ( Hooks.call("dnd5e.rollRechargeV2", rolls, { subject: this, updates }) === false ) return rolls;
-
-    if ( "dnd5e.rollRecharge" in Hooks.events ) {
-      foundry.utils.logCompatibilityWarning(
-        "The `dnd5e.rollRecharge` hook has been deprecated and replaced with `dnd5e.rollRechargeV2`.",
-        { since: "DnD5e 4.0", until: "DnD5e 4.4" }
-      );
-      if ( Hooks.call("dnd5e.rollRecharge", this, rolls[0]) === false ) return rolls;
-    }
-
-    if ( rollConfig.apply && !foundry.utils.isEmpty(updates) ) await this.update(updates);
-
-    /**
-     * A hook event that fires after an Item or Activity has rolled recharge and usage updates have been performed.
-     * @function dnd5e.postRollRecharge
-     * @memberof hookEvents
-     * @param {BasicRoll[]} rolls     The resulting rolls.
-     * @param {object} data
-     * @param {Actor5e} data.subject  Item or Activity for which the roll was performed.
-     */
-    Hooks.callAll("dnd5e.postRollRecharge", rolls, { subject: this });
-
-    return oldReturn ? rolls : { rolls, updates };
   }
 }
 
@@ -7843,8 +7855,8 @@ class BaseActivityData extends foundry.abstract.DataModel {
    */
   get activationLabels() {
     if ( !this.activation.type || this.isSpell ) return null;
-    const { activation, duration, range, target } = this.labels;
-    return { activation, duration, range, target };
+    const { activation, duration, range, reach, target } = this.labels;
+    return { activation, duration, range, reach, target };
   }
 
   /* -------------------------------------------- */
@@ -8249,6 +8261,16 @@ class BaseActivityData extends foundry.abstract.DataModel {
   /* -------------------------------------------- */
 
   /**
+   * Prepare context to display this activity in a parent sheet.
+   * @returns {object}
+   */
+  prepareSheetContext() {
+    return this;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
    * Prepare data related to this activity.
    */
   prepareData() {
@@ -8386,7 +8408,7 @@ class BaseActivityData extends foundry.abstract.DataModel {
   getDamageConfig(config={}) {
     if ( !this.damage?.parts ) return foundry.utils.mergeObject({ rolls: [] }, config);
 
-    const rollConfig = foundry.utils.mergeObject({ scaling: 0 }, config);
+    const rollConfig = foundry.utils.deepClone(config);
     const rollData = this.getRollData();
     rollConfig.rolls = this.damage.parts
       .map((d, index) => this._processDamagePart(d, rollConfig, rollData, index))
@@ -8408,7 +8430,7 @@ class BaseActivityData extends foundry.abstract.DataModel {
    * @protected
    */
   _processDamagePart(damage, rollConfig, rollData, index=0) {
-    const scaledFormula = damage.scaledFormula(rollData.scaling);
+    const scaledFormula = damage.scaledFormula(rollConfig.scaling ?? rollData.scaling);
     const parts = scaledFormula ? [scaledFormula] : [];
     const data = { ...rollData };
 
@@ -8533,8 +8555,9 @@ class AttackActivityData extends BaseActivityData {
   /** @inheritDoc */
   get activationLabels() {
     const labels = super.activationLabels;
-    if ( labels && (this.item.type === "weapon") && this.item.labels?.range && !this.range.override ) {
-      labels.range = this.item.labels.range;
+    if ( labels && (this.item.type === "weapon") && !this.range.override ) {
+      if ( this.item.labels?.range ) labels.range = this.item.labels.range;
+      if ( this.item.labels?.reach ) labels.reach = this.item.labels.reach;
     }
     return labels;
   }
@@ -9242,6 +9265,18 @@ class BasicRoll extends Roll {
   evaluateSync(options={}) {
     this.preCalculateDiceTerms(options);
     return super.evaluateSync(options);
+  }
+
+  /* -------------------------------------------- */
+  /*  Roll Formula Parsing                        */
+  /* -------------------------------------------- */
+
+  /** @inheritDoc */
+  static replaceFormulaData(formula, data, options) {
+    // This looks for the pattern `$!!$` and replaces it with just the value between the marks (the bang has
+    // been added to ensure this is a deliberate shim from the system, not a unintentional usage that should
+    // show an error).
+    return super.replaceFormulaData(formula, data, options).replaceAll(/\$"?!(.+?)!"?\$/g, "$1");
   }
 
   /* -------------------------------------------- */
@@ -9959,6 +9994,7 @@ class AttackActivity extends ActivityMixin(AttackActivityData) {
     const flags = {};
     let ammoUpdate = null;
 
+    const canUpdate = this.item.isOwner && !this.item[game.release.generation < 13 ? "compendium" : "inCompendium"];
     if ( rolls[0].options.ammunition ) {
       const ammo = this.actor?.items.get(rolls[0].options.ammunition);
       if ( ammo ) {
@@ -9976,7 +10012,7 @@ class AttackActivity extends ActivityMixin(AttackActivityData) {
     if ( rolls[0].options.attackMode ) flags.attackMode = rolls[0].options.attackMode;
     else if ( rollConfig.attackMode ) rolls[0].options.attackMode = rollConfig.attackMode;
     if ( rolls[0].options.mastery ) flags.mastery = rolls[0].options.mastery;
-    if ( !foundry.utils.isEmpty(flags) && this.actor.items.has(this.item.id) ) {
+    if ( canUpdate && !foundry.utils.isEmpty(flags) && (this.actor && this.actor.items.has(this.item.id)) ) {
       await this.item.setFlag("dnd5e", `last.${this.id}`, flags);
     }
 
@@ -10005,7 +10041,7 @@ class AttackActivity extends ActivityMixin(AttackActivityData) {
     }
 
     // Commit ammunition consumption on attack rolls resource consumption if the attack roll was made
-    if ( ammoUpdate?.destroy ) {
+    if ( canUpdate && ammoUpdate?.destroy ) {
       // If ammunition was deleted, store a copy of it in the roll message
       const data = this.actor.items.get(ammoUpdate.id).toObject();
       const messageId = messageConfig.data?.flags?.dnd5e?.originatingMessage
@@ -10014,7 +10050,7 @@ class AttackActivity extends ActivityMixin(AttackActivityData) {
       await attackMessage?.setFlag("dnd5e", "roll.ammunitionData", data);
       await this.actor.deleteEmbeddedDocuments("Item", [ammoUpdate.id]);
     }
-    else if ( ammoUpdate ) await this.actor?.updateEmbeddedDocuments("Item", [
+    else if ( canUpdate && ammoUpdate ) await this.actor?.updateEmbeddedDocuments("Item", [
       { _id: ammoUpdate.id, "system.quantity": ammoUpdate.quantity }
     ]);
 
@@ -10046,7 +10082,7 @@ class AttackActivity extends ActivityMixin(AttackActivityData) {
     const attackMode = formData?.get("attackMode") ?? process.attackMode;
     const mastery = formData?.get("mastery") ?? process.mastery;
 
-    let { parts, data } = this.getAttackData({ ammunition, attackMode, situational: config.data?.situational });
+    let { parts, data } = this.getAttackData({ ammunition, attackMode });
     const options = config.options ?? {};
     if ( ammunition !== undefined ) options.ammunition = ammunition;
     if ( attackMode !== undefined ) options.attackMode = attackMode;
@@ -10257,19 +10293,13 @@ class CastActivityData extends BaseActivityData {
   /* -------------------------------------------- */
 
   /** @inheritDoc */
-  prepareData() {
-    const spell = fromUuidSync(this.spell.uuid);
-    if ( spell ) {
-      this.name = this.name || spell.name;
-      this.img = this.img || spell.img;
-    }
-    super.prepareData();
-  }
-
-  /* -------------------------------------------- */
-
-  /** @inheritDoc */
   prepareFinalData(rollData) {
+    const spell = fromUuidSync(this.spell.uuid) ?? this.cachedSpell;
+    if ( spell ) {
+      this.name = this._source.name || spell.name || this.name;
+      this.img = this._source.img || spell.img || this.name;
+    }
+
     super.prepareFinalData(rollData);
 
     for ( const field of ["activation", "duration", "range", "target"] ) {
@@ -12458,7 +12488,7 @@ class HealActivityData extends BaseActivityData {
   getDamageConfig(config={}) {
     if ( !this.healing.formula ) return foundry.utils.mergeObject({ rolls: [] }, config);
 
-    const rollConfig = foundry.utils.mergeObject({ critical: { allow: false }, scaling: 0 }, config);
+    const rollConfig = foundry.utils.mergeObject({ critical: { allow: false } }, config);
     const rollData = this.getRollData();
     rollConfig.rolls = [this._processDamagePart(this.healing, rollConfig, rollData)].concat(config.rolls ?? []);
 
@@ -13186,7 +13216,7 @@ class Award extends Application5e {
   static async #handleFormSubmission(event, form, formData) {
     const data = foundry.utils.expandObject(formData.object);
     const destinations = this.transferDestinations.filter(d => data.destination[d.id]);
-    const each = formData.each;
+    const each = data.each;
     this._saveDestinations(destinations);
     const results = new Map();
     await this.constructor.awardCurrency(data.amount, destinations, { each, origin: this.origin, results });
@@ -13199,7 +13229,7 @@ class Award extends Application5e {
 
   /**
    * Save the selected destination IDs to either the current group's flags or the user's flags.
-   * @param {Set<Actor5e>} destinations  Selected destinations to save.
+   * @param {Actor5e[]} destinations  Selected destinations to save.
    * @protected
    */
   _saveDestinations(destinations) {
@@ -21548,7 +21578,7 @@ class PropertyAttribution extends Application5e {
     else if ( typeof property === "object" && Number.isNumeric(property.value) ) total = property.value;
     const sources = foundry.utils.duplicate(this.attributions);
     return {
-      caption: game.i18n.localize(options.title),
+      caption: game.i18n.localize(this.options.title),
       sources: sources.map(entry => {
         if ( entry.label.startsWith("@") ) entry.label = this.getPropertyLabel(entry.label.slice(1));
         if ( (entry.mode === CONST.ACTIVE_EFFECT_MODES.ADD) && (entry.value < 0) ) {
@@ -22061,6 +22091,7 @@ async function enrichAttack(config, label, options) {
     config.formula = simplifyRollFormula(
       Roll.defaultImplementation.replaceFormulaData(attackConfig.parts.join(" + "), attackConfig.data)
     );
+    if ( attackConfig.data.scaling ) config.scaling ??= String(attackConfig.data.scaling.increase);
     delete config.activity;
   }
 
@@ -22686,6 +22717,7 @@ async function enrichDamage(configs, label, options) {
       config.formulas.push(simplifyRollFormula(
         Roll.defaultImplementation.replaceFormulaData(roll.parts.join(" + "), roll.data)
       ));
+      if ( roll.data.scaling ) config.scaling ??= String(roll.data.scaling.increase);
       config.damageTypes.push(roll.options.types?.join("|") ?? roll.options.type);
     }
     delete config.activity;
@@ -23301,10 +23333,10 @@ function createRequestButton(dataset) {
  */
 async function rollAttack(event) {
   const target = event.target.closest(".roll-link-group");
-  const { activityUuid, attackMode, formula } = target.dataset;
+  const { activityUuid, attackMode, formula, scaling } = target.dataset;
 
   if ( activityUuid ) {
-    const activity = await fromUuid(activityUuid);
+    const activity = await _fetchActivity(activityUuid, Number(scaling ?? 0));
     if ( activity ) return activity.rollAttack({ attackMode, event });
   }
 
@@ -23353,10 +23385,10 @@ async function rollAttack(event) {
  */
 async function rollDamage(event) {
   const target = event.target.closest(".roll-link-group");
-  let { activityUuid, attackMode, formulas, damageTypes, rollType } = target.dataset;
+  let { activityUuid, attackMode, formulas, damageTypes, rollType, scaling } = target.dataset;
 
   if ( activityUuid ) {
-    const activity = await fromUuid(activityUuid);
+    const activity = await _fetchActivity(activityUuid, Number(scaling ?? 0));
     if ( activity ) return activity.rollDamage({ attackMode, event });
   }
 
@@ -23393,6 +23425,21 @@ async function rollDamage(event) {
   const rolls = await CONFIG.Dice.DamageRoll.build(rollConfig, {}, messageConfig);
   if ( !rolls?.length ) return;
   Hooks.callAll("dnd5e.rollDamageV2", rolls);
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Fetch an activity with scaling applied.
+ * @param {string} uuid     Activity UUID.
+ * @param {number} scaling  Scaling increase to apply.
+ * @returns {Activity|void}
+ */
+async function _fetchActivity(uuid, scaling) {
+  const activity = await fromUuid(uuid);
+  if ( !activity || !scaling ) return activity;
+  const item = activity.item.clone({ "flags.dnd5e.scaling": scaling }, { keepId: true });
+  return item.system.activities.get(activity.id);
 }
 
 /* -------------------------------------------- */
@@ -23466,10 +23513,11 @@ var enrichers = /*#__PURE__*/Object.freeze({
  * @ignore
  */
 function parseUuid(uuid, {relative}={}) {
-  if ( game.release.generation >= 12 ) return foundry.utils.parseUuid(uuid, { relative });
+  if ( game.release.generation > 12 ) return foundry.utils.parseUuid(uuid, { relative });
   if ( !uuid ) throw new Error("A UUID string is required.");
   if ( uuid.startsWith(".") && relative ) return _resolveRelativeUuid(uuid, relative);
   const parsed = foundry.utils.parseUuid(uuid, {relative});
+  if ( !parsed?.collection ) return parsed;
   const remappedUuid = uuid.startsWith("Compendium") ? [
     "Compendium",
     parsed.collection.metadata.id,
@@ -28265,17 +28313,17 @@ class PhysicalItemTemplate extends SystemDataModel {
   async _renderContainers({ formerContainer, ...rendering }={}) {
     // Render this item's container & any containers it is within
     const parentContainers = await this.allContainers();
-    parentContainers.forEach(c => c.sheet?.render(false, rendering));
+    parentContainers.forEach(c => c.sheet?.render(false, { ...rendering }));
 
     // Render the actor sheet, compendium, or sidebar
-    if ( this.parent.isEmbedded ) this.parent.actor.sheet?.render(false, rendering);
-    else if ( this.parent.pack ) game.packs.get(this.parent.pack).apps.forEach(a => a.render(false, rendering));
-    else ui.items.render(false, rendering);
+    if ( this.parent.isEmbedded ) this.parent.actor.sheet?.render(false, { ...rendering });
+    else if ( this.parent.pack ) game.packs.get(this.parent.pack).apps.forEach(a => a.render(false, { ...rendering }));
+    else ui.items.render(false, { ...rendering });
 
     // Render former container if it was moved between containers
     if ( formerContainer ) {
       const former = await fromUuid(formerContainer);
-      former.render(false, rendering);
+      former.render(false, { ...rendering });
       former.system._renderContainers(rendering);
     }
   }
@@ -30070,8 +30118,13 @@ class SpellData extends ItemDataModel.mixin(ActivitiesTemplate, ItemDescriptionT
    */
   get linkedActivity() {
     const relative = this.parent.actor;
-    if ( !relative ) return null;
-    return fromUuidSync(this.parent.getFlag("dnd5e", "cachedFor"), { relative, strict: false }) ?? null;
+    const uuid = this.parent.getFlag("dnd5e", "cachedFor");
+    if ( !relative || !uuid ) return null;
+    const data = foundry.utils.parseUuid(uuid, { relative });
+    const [itemId, , activityId] = (data?.embedded ?? []).slice(-3);
+    return relative.items.get(itemId)?.system.activities?.get(activityId) ?? null;
+    // TODO: Swap back to fromUuidSync once https://github.com/foundryvtt/foundryvtt/issues/11214 is resolved
+    // return fromUuidSync(this.parent.getFlag("dnd5e", "cachedFor"), { relative, strict: false }) ?? null;
   }
 
   /* -------------------------------------------- */
@@ -33448,8 +33501,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       extraBonus: process.bonus,
       [`${abilityId}CheckBonus`]: ability?.bonuses?.check,
       [`${type}Bonus`]: this.system.bonuses?.abilities?.[type],
-      abilityCheckBonus: this.system.bonuses?.abilities?.check,
-      situational: config.data?.situational
+      abilityCheckBonus: this.system.bonuses?.abilities?.check
     }, { ...rollData });
 
     // Add exhaustion reduction
@@ -35726,6 +35778,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 class SourcedItemsMap extends Map {
   /** @inheritDoc */
   get(key, { remap=true, legacy=true }={}) {
+    if ( !key ) return;
     if ( remap ) ({ uuid: key } = parseUuid(key) ?? {});
     if ( legacy ) {
       foundry.utils.logCompatibilityWarning(
@@ -38164,7 +38217,11 @@ class SubclassAdvancement extends Advancement {
   async restore(level, data) {
     if ( !data ) return;
     this.actor.updateSource({ items: [data] });
-    this.updateSource({ value: { document: data._id, uuid: data.flags.dnd5e.sourceId } });
+    this.updateSource({
+      value: {
+        document: data._id, uuid: data._stats?.compendiumSource ?? data.flags?.dnd5e?.sourceId
+      }
+    });
   }
 
   /* -------------------------------------------- */
@@ -44120,6 +44177,7 @@ function registerDeferredSettings() {
  * @param {Set<string>} [flags=[]]  Additional theming flags to set.
  */
 function setTheme(element, theme="", flags=new Set()) {
+  if ( foundry.utils.getType(theme) === "Object" ) theme = theme.applications;
   element.className = element.className.replace(/\bdnd5e-(theme|flag)-[\w-]+\b/g, "");
 
   // Primary Theme
@@ -45045,7 +45103,8 @@ function DragDropApplicationMixin(Base) {
     /* -------------------------------------------- */
 
     /**
-     * The behavior for the dropped data.
+     * The behavior for the dropped data. When called during the drop event, ensure this is called before awaiting
+     * anything or the drop behavior will be lost.
      * @param {DragEvent} event  The drag event.
      * @param {object} data      The drag payload.
      * @returns {DropEffectValue}
@@ -49014,7 +49073,8 @@ class AttributesFields {
           { since: "DnD5e 4.3", until: "DnD5e 5.0" }
         );
         return this.spell.dc;
-      }
+      },
+      enumerable: true
     });
     Object.defineProperty(this.attributes, "spellmod", {
       get() {
@@ -49023,7 +49083,8 @@ class AttributesFields {
           { since: "DnD5e 4.3", until: "DnD5e 5.0" }
         );
         return this.spell.mod;
-      }
+      },
+      enumerable: true
     });
   }
 }
@@ -49188,7 +49249,12 @@ class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplate) {
       abl.save.toString = function() {
         foundry.utils.logCompatibilityWarning("The 'abilities.<ability>.save' property is now stored in "
           + "'abilities.<ability>.save.value'.", { since: "4.3", until: "4.5" });
-        return abl.save.value;
+        return String(abl.save.value);
+      };
+      abl.save.toJSON = function() {
+        foundry.utils.logCompatibilityWarning("The 'abilities.<ability>.save' property is now stored in "
+          + "'abilities.<ability>.save.value'.", { since: "4.3", until: "4.5" });
+        return `!${abl.save.value}!`;
       };
     }
   }
@@ -50927,8 +50993,9 @@ class StartingEquipmentConfig extends DocumentSheet5e {
   /* -------------------------------------------- */
 
   /** @override */
-  _prepareSubmitData(event, form, formData) {
+  _prepareSubmitData(event, form, formData, updateData) {
     const submitData = this._processFormData(event, form, formData);
+    if ( updateData ) foundry.utils.mergeObject(submitData, updateData, { inplace: true, performDeletions: true });
     // Skip the validation step here because it causes a bunch of problems with providing array
     // updates when using the `submit` method
     return submitData;
@@ -52032,6 +52099,10 @@ function ItemSheetV2Mixin(Base) {
         editable: this.item._source.name,
         field: this.item.schema.getField("name")
       };
+      context.img = {
+        value: this.item.img,
+        editable: this.item._source.img
+      };
 
       if ( ("identified" in this.item.system) && (identified === false) ) {
         context.name = {
@@ -52395,21 +52466,24 @@ class ItemSheet5e2 extends ItemSheetV2Mixin(ItemSheet5e) {
       { value: "loseAll", label: "DND5E.USES.Recovery.Type.LoseAll" },
       { value: "formula", label: "DND5E.USES.Recovery.Type.Formula" }
     ];
-    context.usesRecovery = (context.system.uses?.recovery ?? []).map((data, index) => ({
+    context.usesRecovery = (context.source.uses?.recovery ?? []).map((data, index) => ({
       data,
       fields: context.fields.uses.fields.recovery.element.fields,
       prefix: `system.uses.recovery.${index}.`,
       source: context.source.uses.recovery[index] ?? data,
-      formulaOptions: data.period === "recharge" ? data.recharge?.options : null
+      formulaOptions: data.period === "recharge" ? UsesField.rechargeOptions : null
     }));
 
     // Activities
     context.activities = (activities ?? []).filter(a => {
       return CONFIG.DND5E.activityTypes[a.type]?.configurable !== false;
-    }).map(({ _id: id, name, img, sort }) => ({
-      id, name, sort,
-      img: { src: img, svg: img?.endsWith(".svg") }
-    }));
+    }).map(activity => {
+      const { _id: id, name, img, sort } = activity.prepareSheetContext();
+      return {
+        id, name, sort,
+        img: { src: img, svg: img?.endsWith(".svg") }
+      };
+    });
 
     // Facilities
     if ( this.item.type === "facility" ) {
@@ -53203,7 +53277,7 @@ function ActorSheetV2Mixin(Base) {
      * @protected
      */
     _prepareActivity(activity) {
-      let { _id, activation, img, labels, name, range, save, uses } = activity;
+      let { _id, activation, img, labels, name, range, save, uses } = activity.prepareSheetContext();
 
       // To Hit
       const toHit = parseInt(labels.toHit);
@@ -59839,8 +59913,8 @@ class ContainerSheet extends ItemSheet5e {
    * @protected
    */
   async _onDropItem(event, data) {
-    const item = await Item.implementation.fromDropData(data);
     const behavior = this._dropBehavior(event, data);
+    const item = await Item.implementation.fromDropData(data);
     if ( !this.item.isOwner || !item || (behavior === "none") ) return false;
 
     // If item already exists in this container, just adjust its sorting
@@ -60114,7 +60188,7 @@ class ItemCompendium5eV13 extends DragDropApplicationMixin(foundry.applications.
   /** @override */
   _defaultDropBehavior(event, data) {
     if ( !data.uuid ) return "copy";
-    if ( data.type !== "Item" ) return "none";
+    if ( (data.type !== "Folder") && (data.type !== "Item") ) return "none";
     return foundry.utils.parseUuid(data.uuid).collection === this.collection ? "move" : "copy";
   }
 
@@ -60123,8 +60197,8 @@ class ItemCompendium5eV13 extends DragDropApplicationMixin(foundry.applications.
   /** @inheritDoc */
   async _handleDroppedEntry(target, data) {
     // Obtain the dropped Document
-    let item = await Item.fromDropData(data);
     const behavior = this._dropBehavior(event, data);
+    let item = await Item.fromDropData(data);
     if ( !item || (behavior === "none") ) return;
 
     // Create item and its contents if it doesn't already exist here
@@ -60163,7 +60237,9 @@ class ItemCompendium5eV13 extends DragDropApplicationMixin(foundry.applications.
  * Compendium with added support for item containers.
  * TODO: Remove when v12 support is dropped.
  */
-class ItemCompendium5eV12 extends DragDropApplicationMixin(foundry.applications?.sidebar?.apps?.Compendium ?? Compendium) {
+class ItemCompendium5eV12 extends DragDropApplicationMixin(
+  foundry.applications?.sidebar?.apps?.Compendium ?? Compendium
+) {
 
   /** @inheritDoc */
   async _render(...args) {
@@ -60197,7 +60273,7 @@ class ItemCompendium5eV12 extends DragDropApplicationMixin(foundry.applications?
   /** @override */
   _defaultDropBehavior(event, data) {
     if ( !data.uuid ) return "copy";
-    if ( data.type !== "Item" ) return "none";
+    if ( (data.type !== "Folder") && (data.type !== "Item") ) return "none";
     return foundry.utils.parseUuid(data.uuid).collection === this.collection ? "move" : "copy";
   }
 
@@ -60206,8 +60282,8 @@ class ItemCompendium5eV12 extends DragDropApplicationMixin(foundry.applications?
   /** @inheritDoc */
   async _handleDroppedEntry(target, data) {
     // Obtain the dropped Document
-    let item = await Item.fromDropData(data);
     const behavior = this._dropBehavior(event, data);
+    let item = await Item.fromDropData(data);
     if ( !item || (behavior === "none") ) return;
 
     // Create item and its contents if it doesn't already exist here
@@ -60245,14 +60321,17 @@ class ItemCompendium5eV12 extends DragDropApplicationMixin(foundry.applications?
 /**
  * Items sidebar with added support for item containers.
  */
-class ItemDirectory5e extends DragDropApplicationMixin(foundry.applications?.sidebar?.tabs?.ItemDirectory ?? ItemDirectory) {
+class ItemDirectory5e extends DragDropApplicationMixin(
+  foundry.applications?.sidebar?.tabs?.ItemDirectory ?? ItemDirectory
+) {
 
   /** @override */
   _allowedDropBehaviors(event, data) {
     const allowed = new Set(["copy"]);
     if ( !data.uuid ) return allowed;
-    const s = foundry.utils.parseUuid(data.uuid);
-    if ( !(s.collection instanceof CompendiumCollection) ) allowed.add("move");
+    const fromCompendium = foundry.utils.parseUuid(data.uuid).collection instanceof CompendiumCollection;
+    if ( data.type === "Folder" ) return fromCompendium ? allowed : new Set(["move"]);
+    else if ( !fromCompendium ) allowed.add("move");
     return allowed;
   }
 
@@ -60261,8 +60340,10 @@ class ItemDirectory5e extends DragDropApplicationMixin(foundry.applications?.sid
   /** @override */
   _defaultDropBehavior(event, data) {
     if ( !data.uuid ) return "copy";
-    if ( data.type !== "Item" ) return "none";
-    return foundry.utils.parseUuid(data.uuid).collection === this.collection ? "move" : "copy";
+    if ( (data.type !== "Folder") && (data.type !== "Item") ) return "none";
+    const collection = foundry.utils.parseUuid(data.uuid).collection;
+    return ((data.type === "Folder") && (collection instanceof Folder))
+      || ((data.type === "Item") && (collection === this.collection)) ? "move" : "copy";
   }
 
   /* -------------------------------------------- */
@@ -62241,13 +62322,18 @@ class DamageRoll extends BasicRoll {
         }
       }
 
-      // Multiply numeric terms
-      else if ( critical.multiplyNumeric && (term instanceof NumericTerm) ) {
-        term.options.baseNumber = term.options.baseNumber ?? term.number; // Reset back
-        term.number = term.options.baseNumber;
-        if ( this.isCritical ) {
-          term.number *= (critical.multiplier ?? 2);
-          term.options.critical = true;
+      else if ( term instanceof NumericTerm ) {
+        // Remove previous flat critical bonuses
+        if ( term.options.criticalFlatBonus ) this.terms.splice(i - 1, 2);
+
+        // Multiply numeric terms
+        else if ( critical.multiplyNumeric ) {
+          term.options.baseNumber = term.options.baseNumber ?? term.number; // Reset back
+          term.number = term.options.baseNumber;
+          if ( this.isCritical ) {
+            term.number *= (critical.multiplier ?? 2);
+            term.options.critical = true;
+          }
         }
       }
     }
@@ -62255,8 +62341,8 @@ class DamageRoll extends BasicRoll {
     // Add powerful critical bonus
     if ( critical.powerfulCritical && flatBonus.size ) {
       for ( const [type, number] of flatBonus.entries() ) {
-        this.terms.push(new OperatorTerm$1({operator: "+"}));
-        this.terms.push(new NumericTerm({number, options: {flavor: type}}));
+        this.terms.push(new OperatorTerm$1({ operator: "+" }));
+        this.terms.push(new NumericTerm({number, options: { flavor: type, criticalFlatBonus: true }}));
       }
     }
 
@@ -63290,7 +63376,7 @@ class ChatMessage5e extends ChatMessage {
    * @returns {Activity|void}
    */
   getAssociatedActivity() {
-    const activity = fromUuidSync(this.getFlag("dnd5e", "activity.uuid"));
+    const activity = fromUuidSync(this.getFlag("dnd5e", "activity.uuid"), { strict: false });
     if ( activity ) return activity;
     return this.getAssociatedItem()?.system.activities?.get(this.getFlag("dnd5e", "activity.id"));
   }
@@ -63317,7 +63403,7 @@ class ChatMessage5e extends ChatMessage {
    * @returns {Item5e|void}
    */
   getAssociatedItem() {
-    const item = fromUuidSync(this.getFlag("dnd5e", "item.uuid"));
+    const item = fromUuidSync(this.getFlag("dnd5e", "item.uuid"), { strict: false });
     if ( item ) return item;
     const actor = this.getAssociatedActor();
     if ( !actor ) return;
@@ -67395,12 +67481,15 @@ class WeaponData extends ItemDataModel.mixin(
     this.prepareFinalEquippableData();
 
     const labels = this.parent.labels ??= {};
+    const units = this.range.units ?? defaultUnits("length");
     if ( this.hasRange ) {
-      const units = this.range.units ?? Object.keys(CONFIG.DND5E.movementUnits)[0];
       const parts = [this.range.value, this.range.long !== this.range.value ? this.range.long : null].filter(_ => _);
       parts.push(formatLength(parts.pop(), units));
       labels.range = parts.filterJoin("/");
-    } else labels.range = game.i18n.localize("DND5E.None");
+    }
+    if ( this.range.reach ) {
+      labels.reach = game.i18n.format("DND5E.RANGE.Formatted.Reach", { reach: formatLength(this.range.reach, units) });
+    }
   }
 
   /* -------------------------------------------- */

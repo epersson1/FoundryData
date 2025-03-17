@@ -151,13 +151,19 @@ export class CustomItem extends Item {
             }
         }
     }
-    async clone(data = {}, options = {}) {
-        const newItem = await super.clone(data, options);
-        const allCloning = [];
-        for (const subItem of this.items ?? []) {
-            allCloning.push(subItem.clone({ system: { container: newItem.id } }, { ...options, folder: CustomItem.getEmbeddedItemsFolder() }));
+    toObject() {
+        const result = super.toObject();
+        result.items = [];
+        for (const subItem of this.items) {
+            result.items.push(subItem.toObject());
         }
-        await Promise.allSettled(allCloning);
+        return result;
+    }
+    clone(data = {}, options = {}) {
+        const newItem = super.clone(data, options);
+        for (const subItem of this.items ?? []) {
+            subItem.clone({ system: { container: newItem.id } }, { ...options, folder: CustomItem.getEmbeddedItemsFolder() });
+        }
         return newItem;
     }
     static async create(data, options) {

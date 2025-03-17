@@ -16,6 +16,14 @@
     </select>
 </div>
 
+<div class="custom-system-size-custom" style="{{#unless (eq size "custom")}}display:none{{/unless}}">
+    <div class='custom-system-form-field'>
+        <label for='meterCustomSize'>{{localize 'CSB.ComponentProperties.Size.CustomSizeTitle'}}*</label>
+        <input id='meterCustomSize' data-key='customSize' type="number" value="{{customSize}}" />
+    </div>
+</div>
+
+
 <div class='custom-system-form-field'>
     <label for='meterValue'>{{localize 'CSB.ComponentProperties.Meter.Value'}}*
         {{> icon-formula}}

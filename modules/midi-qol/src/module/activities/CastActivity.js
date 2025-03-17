@@ -35,8 +35,20 @@ let defineMidiCastActivityClass = (ActivityClass) => {
 				dialog: ActivityClass.metadata.usage.dialog,
 			},
 		}, { inplace: false, insertKeys: true, insertValues: true });
+		async use(usage, dialog, message) {
+			return ActivityClass.prototype.use.bind(this)(usage, dialog, message);
+		}
 		get possibleOtherActivity() {
 			return false;
+		}
+		get isSelfTriggerableOnly() {
+			return false;
+		}
+		get isTriggerableActivity() {
+			return false;
+		}
+		get forcedTargetConfirmation() {
+			return "never";
 		}
 	};
 };

@@ -1,7 +1,4 @@
-2025/02/04-11:16:43.915 9774 Recovering log #24
-2025/02/04-11:16:43.922 9774 Delete type=0 #24
-2025/02/04-11:16:43.922 9774 Delete type=3 #23
-2025/02/04-12:25:17.845 6f8 Level-0 table #28: started
-2025/02/04-12:25:17.845 6f8 Level-0 table #28: 0 bytes OK
-2025/02/04-12:25:17.848 6f8 Delete type=0 #26
-2025/02/04-12:25:17.855 6f8 Manual compaction at level-0 from 'undefined' @ 72057594037927935 : 1 .. 'undefined' @ 0 : 0; will stop at (end)
+2025/03/09-16:24:44.819 2814 Log #30: 0 ops saved to Table #31 OK
+2025/03/09-16:24:44.819 2814 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/cards/000030.log: OK
+2025/03/09-16:24:44.840 2814 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/cards/MANIFEST-000029: OK
+2025/03/09-16:24:44.865 2814 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/cards; recovered 0 files; 0 bytes. Some data may have been lost. ****

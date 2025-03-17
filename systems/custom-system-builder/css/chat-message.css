@@ -38,3 +38,16 @@
 .custom-system-arg-tooltip {
     color: var(--color-text-light-6);
 }
+
+.custom-system-dice-pool {
+    margin-right: 3px;
+    padding-top: 4px;
+}
+
+.custom-system-dice-pool-multiple {
+    border: 1px solid black;
+}
+
+.custom-system-dice-tooltip .dice-rolls {
+    padding-top: 1px;
+}

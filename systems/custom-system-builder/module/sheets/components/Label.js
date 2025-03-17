@@ -551,6 +551,7 @@ class Label extends InputComponent {
             altRollMessageToChat: json.altRollMessageToChat,
             style: json.style,
             size: json.size,
+            customSize: json.customSize,
             cssClass: json.cssClass,
             role: json.role,
             permission: json.permission,
@@ -631,6 +632,21 @@ class Label extends InputComponent {
                 editorDiv.hide();
             }
         });
+        $(html)
+            .find('#labelSize')
+            .on('change', (event) => {
+            const target = $(event.currentTarget);
+            const customSizeBlock = $('.custom-system-size-custom');
+            const slideValue = 200;
+            switch (target.val()) {
+                case 'custom':
+                    customSizeBlock.slideDown(slideValue);
+                    break;
+                default:
+                    customSizeBlock.slideUp(slideValue);
+                    break;
+            }
+        });
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -658,7 +674,7 @@ class Label extends InputComponent {
                 rawTextArea.val(trimProseMirrorEmptyValue(editorValue));
             }
         });
-        return {
+        const fieldData = {
             ...super.extractConfig(html),
             type: 'label',
             style: html.find('#labelStyle').val()?.toString() ?? 'label',
@@ -672,6 +688,11 @@ class Label extends InputComponent {
             rollMessageToChat: html.find('#labelRollMessageToChat').is(':checked'),
             altRollMessageToChat: html.find('#labelAltRollMessageToChat').is(':checked')
         };
+        if (fieldData.size === 'custom') {
+            fieldData.customSize = parseInt(String(html.find('#labelCustomSize').val()));
+        }
+        this.validateConfig(fieldData);
+        return fieldData;
     }
 }
 Label.valueType = 'none';

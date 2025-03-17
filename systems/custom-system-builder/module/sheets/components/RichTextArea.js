@@ -170,6 +170,7 @@ class RichTextArea extends InputComponent {
             defaultValue: json.defaultValue,
             style: json.style,
             size: json.size,
+            customSize: json.customSize,
             cssClass: json.cssClass,
             role: json.role,
             permission: json.permission,

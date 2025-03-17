@@ -16,6 +16,13 @@
     </select>
 </div>
 
+<div class="custom-system-size-custom" style="{{#unless (eq size "custom")}}display:none{{/unless}}">
+    <div class='custom-system-form-field'>
+        <label for='numberFieldCustomSize'>{{localize 'CSB.ComponentProperties.Size.CustomSizeTitle'}}*</label>
+        <input id='numberFieldCustomSize' data-key='customSize' type="number" value="{{customSize}}" />
+    </div>
+</div>
+
 <div class='custom-system-form-field'>
     <label for='numberFieldAllowDecimal'>{{localize 'CSB.ComponentProperties.NumberField.AllowDecimal'}}</label>
     <input type='checkbox' id='numberFieldAllowDecimal' data-key='allowDecimal' {{checked allowDecimal}} />

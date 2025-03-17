@@ -2649,6 +2649,7 @@ const CONSTANTS = {
   DOCUMENT_NAME_ACTOR: "Actor",
   DOCUMENT_NAME_ITEM: "Item",
   DOCUMENT_NAME_ACTIVITY: "Activity",
+  ACTIVITY_TYPE_CAST: "cast",
   ACTIVITY_TYPE_SAVE: "save",
   ATTUNEMENT_OPTIONAL: "optional",
   ATTUNEMENT_REQUIRED: "required",
@@ -2659,6 +2660,7 @@ const CONSTANTS = {
   FAVORITES_SECTION_TYPE_GENERIC: "generic",
   FAVORITES_SECTION_TYPE_INVENTORY: "inventory",
   FAVORITES_SECTION_TYPE_SPELLBOOK: "spellbook",
+  HABITAT_TYPE_ANY: "any",
   ITEM_CAPACITY_TYPE_WEIGHT: "weight",
   ITEM_TYPE_BACKGROUND: "background",
   ITEM_TYPE_CLASS: "class",
@@ -6905,7 +6907,7 @@ function toggleShowAllSkills(_, toggleField, $$props, expanded) {
   toggleField() !== null && $$props.actor.update({ [toggleField()]: !expanded() });
 }
 __name(toggleShowAllSkills, "toggleShowAllSkills");
-var on_click$1A = /* @__PURE__ */ __name((__1, context, skillRef) => FoundryAdapter.renderSkillToolConfig(get(context).actor, "skills", get(skillRef).key), "on_click$1A"), on_click_1$C = /* @__PURE__ */ __name((__2, context, skillRef) => FoundryAdapter.cycleProficiency(get(context).actor, get(skillRef).key, get(skillRef).skill?.value, "skills"), "on_click_1$C"), on_contextmenu$7 = /* @__PURE__ */ __name((__3, context, skillRef) => FoundryAdapter.cycleProficiency(get(context).actor, get(skillRef).key, get(skillRef).skill?.value, "skills", !0), "on_contextmenu$7"), root_3$_ = /* @__PURE__ */ template('<button type="button" class="configure-proficiency inline-icon-button svelte-tmgyvr"><i class="fas fa-cog"></i></button> <button type="button" class="skill-proficiency-toggle inline-icon-button svelte-tmgyvr"><!></button>', 1), root_4$Q = /* @__PURE__ */ template('<span class="skill-proficiency svelte-tmgyvr"><!></span>'), on_click_2$l = /* @__PURE__ */ __name((event2, context, skillRef) => get(context).actor.rollSkill({ skill: get(skillRef).key, event: event2 }), "on_click_2$l"), root_5$U = /* @__PURE__ */ template('<button type="button" class="tidy5e-skill-name transparent-button rollable svelte-tmgyvr"> </button>'), root_6$D = /* @__PURE__ */ template('<span class="tidy5e-skill-name svelte-tmgyvr"> </span>'), root_8$u = /* @__PURE__ */ template('<span class="skill-ability"> </span>'), root_2$1u = /* @__PURE__ */ template('<li class="proficiency-row skill svelte-tmgyvr"><!> <!> <!> <span class="skill-mod svelte-tmgyvr"> </span> <span class="skill-passive svelte-tmgyvr"> </span></li>'), root_9$v = /* @__PURE__ */ template('<div style="text-align:center;"><a class="toggle-proficient svelte-tmgyvr"><!></a></div>'), root$4x = /* @__PURE__ */ template('<div class="skills-list-container svelte-tmgyvr"><ul class="skills-list svelte-tmgyvr"></ul> <!></div>');
+var on_click$1A = /* @__PURE__ */ __name((__1, context, skillRef) => FoundryAdapter.renderSkillToolConfig(get(context).actor, "skills", get(skillRef).key), "on_click$1A"), on_click_1$C = /* @__PURE__ */ __name((__2, context, skillRef) => FoundryAdapter.cycleProficiency(get(context).actor, get(skillRef).key, get(skillRef).skill?.value, "skills"), "on_click_1$C"), on_contextmenu$7 = /* @__PURE__ */ __name((__3, context, skillRef) => FoundryAdapter.cycleProficiency(get(context).actor, get(skillRef).key, get(skillRef).skill?.value, "skills", !0), "on_contextmenu$7"), root_3$_ = /* @__PURE__ */ template('<button type="button" class="configure-proficiency inline-icon-button svelte-18un0uf"><i class="fas fa-cog"></i></button> <button type="button" class="skill-proficiency-toggle inline-icon-button svelte-18un0uf"><!></button>', 1), root_4$Q = /* @__PURE__ */ template('<span class="skill-proficiency svelte-18un0uf"><!></span>'), on_click_2$l = /* @__PURE__ */ __name((event2, context, skillRef) => get(context).actor.rollSkill({ skill: get(skillRef).key, event: event2 }), "on_click_2$l"), root_5$U = /* @__PURE__ */ template('<button type="button" class="tidy5e-skill-name transparent-button rollable svelte-18un0uf"> </button>'), root_6$D = /* @__PURE__ */ template('<span class="tidy5e-skill-name svelte-18un0uf"> </span>'), root_8$u = /* @__PURE__ */ template('<span class="skill-ability"> </span>'), root_2$1u = /* @__PURE__ */ template('<li class="proficiency-row skill svelte-18un0uf"><!> <!> <!> <span class="skill-mod svelte-18un0uf"> </span> <span class="skill-passive svelte-18un0uf"> </span></li>'), root_9$v = /* @__PURE__ */ template('<div style="text-align:center;"><a class="toggle-proficient svelte-18un0uf"><!></a></div>'), root$4x = /* @__PURE__ */ template('<div class="skills-list-container svelte-18un0uf"><ul class="skills-list svelte-18un0uf"></ul> <!></div>');
 function SkillsList($$anchor, $$props) {
   push($$props, !0);
   let toggleable = prop($$props, "toggleable", 3, !1), expanded = prop($$props, "expanded", 3, !0), toggleField = prop($$props, "toggleField", 3, null), context = /* @__PURE__ */ derived(getSheetContext), skillRefs = /* @__PURE__ */ derived(() => Array.from(Object.entries(get(context).config.skills)).reduce(
@@ -6928,7 +6930,7 @@ function SkillsList($$anchor, $$props) {
   function onSkillAbilityChange(option, skillRef) {
     get(context).actor.update({
       system: {
-        skills: { [skillRef.key]: { ability: option } }
+        skills: { [skillRef.key]: { ability: option.value } }
       }
     });
   }
@@ -7263,7 +7265,7 @@ var root_2$1q = /* @__PURE__ */ template('<span class="hit-dice-counter"> </span
         c0,93-3.2,163.9-12.5,203c-3.9,16.2,4,33,18.3,39.6l113.6,66.3c27.9,13.6,60.3-6.7,60.3-37.7V258.3c0-5.2-3.3-9.8-8.3-11.5
         l-91.3-30.4c-4.9-1.6-8.3-6.3-8.3-11.5v-15.1c0-6.7,5.4-12.1,12.1-12.1h263.4c6.7,0,12.1,5.4,12.1,12.1v15.1c0,5.2-3.3,9.8-8.3,11.5
         l-91.3,30.4c-4.9,1.6-8.3,6.3-8.3,11.5V470c0,31,32.5,51.3,60.3,37.7l113.6-66.3c14.3-6.6,22.2-23.4,18.3-39.6
-        C474.9,362.7,471.7,291.8,471.7,198.8L471.7,198.8z" class="svelte-gpxd2f"></path></svg>`), root_33$1 = /* @__PURE__ */ template('<li class="trait-tag"> </li>'), root_32$3 = /* @__PURE__ */ template('<ul class="trait-list"></ul>'), root$4t = /* @__PURE__ */ template('<div class="traits svelte-gpxd2f"><!> <!> <!> <!> <!> <!> <!> <!> <!> <!> <!> <!> <!> <!></div>');
+        C474.9,362.7,471.7,291.8,471.7,198.8L471.7,198.8z" class="svelte-gpxd2f"></path></svg>`), root_33$1 = /* @__PURE__ */ template('<li class="trait-tag"> </li>'), root_32$3 = /* @__PURE__ */ template('<ul class="trait-list"></ul>'), root_35$2 = /* @__PURE__ */ template('<li class="trait-tag"> </li>'), root_34$1 = /* @__PURE__ */ template('<ul class="trait-list"></ul>'), root_31$3 = /* @__PURE__ */ template("<!> <!>", 1), root$4t = /* @__PURE__ */ template('<div class="traits svelte-gpxd2f"><!> <!> <!> <!> <!> <!> <!> <!> <!> <!> <!> <!> <!> <!></div>');
 function Traits($$anchor, $$props) {
   push($$props, !0);
   let context = /* @__PURE__ */ derived(getSheetContext), useSenses = prop($$props, "useSenses", 3, !0);
@@ -7726,16 +7728,17 @@ function Traits($$anchor, $$props) {
   var node_15 = sibling(node_13, 2);
   {
     var consequent_15 = /* @__PURE__ */ __name(($$anchor2) => {
-      const expression_42 = /* @__PURE__ */ derived(() => localize("DND5E.Treasure.Configuration.Label")), expression_43 = /* @__PURE__ */ derived(() => localize("DND5E.Treasure.Configuration.Title")), expression_44 = /* @__PURE__ */ derived(() => get(context).unlocked || !!get(context).treasure);
-      TraitSection($$anchor2, {
+      var fragment_24 = root_31$3(), node_16 = first_child(fragment_24);
+      const expression_42 = /* @__PURE__ */ derived(() => localize("DND5E.Habitat.Configuration.Label")), expression_43 = /* @__PURE__ */ derived(() => localize("DND5E.Habitat.Configuration.Title")), expression_44 = /* @__PURE__ */ derived(() => get(context).unlocked || !!get(context).habitat.length);
+      TraitSection(node_16, {
         get title() {
           return get(expression_42);
         },
-        iconCssClass: "fa-solid fa-gem",
+        iconCssClass: "fa-solid fa-mountain-sun",
         get configureButtonTitle() {
           return get(expression_43);
         },
-        onConfigureClicked: /* @__PURE__ */ __name(() => new dnd5e.applications.actor.TreasureConfig({ document: get(context).actor }).render({ force: !0 }), "onConfigureClicked"),
+        onConfigureClicked: /* @__PURE__ */ __name((ev) => new dnd5e.applications.actor.HabitatConfig({ document: get(context).actor }).render({ force: !0 }), "onConfigureClicked"),
         get show() {
           return get(expression_44);
         },
@@ -7744,7 +7747,7 @@ function Traits($$anchor, $$props) {
         },
         children: /* @__PURE__ */ __name(($$anchor3, $$slotProps) => {
           var ul_1 = root_32$3();
-          each(ul_1, 21, () => get(context).treasure, index, ($$anchor4, $$item) => {
+          each(ul_1, 21, () => get(context).habitat, index, ($$anchor4, $$item) => {
             let label = /* @__PURE__ */ __name(() => get($$item).label, "label");
             var li_1 = root_33$1(), text_4 = child(li_1);
             template_effect(() => set_text(text_4, label())), append($$anchor4, li_1);
@@ -7752,17 +7755,44 @@ function Traits($$anchor, $$props) {
         }, "children"),
         $$slots: { default: !0 }
       });
+      var node_17 = sibling(node_16, 2);
+      const expression_45 = /* @__PURE__ */ derived(() => localize("DND5E.Treasure.Configuration.Label")), expression_46 = /* @__PURE__ */ derived(() => localize("DND5E.Treasure.Configuration.Title")), expression_47 = /* @__PURE__ */ derived(() => get(context).unlocked || !!get(context).treasure);
+      TraitSection(node_17, {
+        get title() {
+          return get(expression_45);
+        },
+        iconCssClass: "fa-solid fa-gem",
+        get configureButtonTitle() {
+          return get(expression_46);
+        },
+        onConfigureClicked: /* @__PURE__ */ __name(() => new dnd5e.applications.actor.TreasureConfig({ document: get(context).actor }).render({ force: !0 }), "onConfigureClicked"),
+        get show() {
+          return get(expression_47);
+        },
+        get useConfigureButton() {
+          return get(context).editable;
+        },
+        children: /* @__PURE__ */ __name(($$anchor3, $$slotProps) => {
+          var ul_2 = root_34$1();
+          each(ul_2, 21, () => get(context).treasure, index, ($$anchor4, $$item) => {
+            let label = /* @__PURE__ */ __name(() => get($$item).label, "label");
+            var li_2 = root_35$2(), text_5 = child(li_2);
+            template_effect(() => set_text(text_5, label())), append($$anchor4, li_2);
+          }), append($$anchor3, ul_2);
+        }, "children"),
+        $$slots: { default: !0 }
+      }), append($$anchor2, fragment_24);
     }, "consequent_15");
     if_block(node_15, ($$render) => {
       get(context).isNPC && $$render(consequent_15);
     });
   }
-  var node_16 = sibling(node_15, 2);
+  var node_18 = sibling(node_15, 2);
   {
     var consequent_16 = /* @__PURE__ */ __name(($$anchor2) => {
-      var fragment_25 = comment(), node_17 = first_child(fragment_25);
-      each(node_17, 17, () => get(context).customActorTraits, index, ($$anchor3, trait) => {
-        const expression_45 = /* @__PURE__ */ derived(() => get(trait).openConfigurationTooltip ?? ""), expression_46 = /* @__PURE__ */ derived(() => get(trait).alwaysShow || get(context).unlocked), expression_47 = /* @__PURE__ */ derived(() => !!get(trait).openConfiguration);
+      var fragment_25 = comment(), node_19 = first_child(fragment_25);
+      each(node_19, 17, () => get(context).customActorTraits, index, ($$anchor3, trait) => {
+        const expression_48 = /* @__PURE__ */ derived(() => get(trait).openConfigurationTooltip ?? ""), expression_49 = /* @__PURE__ */ derived(() => get(trait).alwaysShow || get(context).unlocked), expression_50 = /* @__PURE__ */ derived(() => !!get(trait).openConfiguration);
         TraitSection($$anchor3, {
           get title() {
             return get(trait).title;
@@ -7771,7 +7801,7 @@ function Traits($$anchor, $$props) {
             return get(trait).iconClass;
           },
           get configureButtonTitle() {
-            return get(expression_45);
+            return get(expression_48);
           },
           onConfigureClicked: /* @__PURE__ */ __name((ev) => {
             try {
@@ -7786,15 +7816,15 @@ function Traits($$anchor, $$props) {
             }
           }, "onConfigureClicked"),
           get show() {
-            return get(expression_46);
+            return get(expression_49);
           },
           get useConfigureButton() {
-            return get(expression_47);
+            return get(expression_50);
           }
         });
       }), append($$anchor2, fragment_25);
     }, "consequent_16");
-    if_block(node_16, ($$render) => {
+    if_block(node_18, ($$render) => {
       get(context).customActorTraits?.length && $$render(consequent_16);
     });
   }
@@ -32796,6 +32826,10 @@ function arrayMove(arr, fromIndex, toIndex) {
   arr.splice(fromIndex, 1), arr.splice(toIndex, 0, element2);
 }
 __name(arrayMove, "arrayMove");
+function splitSemicolons(input) {
+  return input.split(";").map((t2) => t2.trim()).filter((t2) => t2);
+}
+__name(splitSemicolons, "splitSemicolons");
 var on_click$N = /* @__PURE__ */ __name((_, moveUp) => moveUp(), "on_click$N"), on_click_1$o = /* @__PURE__ */ __name((__1, moveDown) => moveDown(), "on_click_1$o"), root$1P = /* @__PURE__ */ template('<div><div class="controls"><button type="button" aria-keyshortcuts="Alt+ArrowUp" data-testid="sorting-listbox-move-up"><i class="fas fa-angle-up"></i></button> <button type="button" aria-keyshortcuts="Alt+ArrowDown" data-testid="sorting-listbox-move-down"><i class="fas fa-angle-down"></i></button></div> <!></div>');
 function SortingListbox($$anchor, $$props) {
   push($$props, !0);
@@ -42438,11 +42472,11 @@ class AttributePins {
     const flagPins = doc.actor ? TidyFlags.attributePins.get(doc.actor) : [], relativeUuid = this.getRelativeUUID(doc);
     return flagPins.some((x2) => x2.id === relativeUuid);
   }
-  static pin(doc, type) {
+  static async pin(doc, type) {
     if (!doc.actor || this.isPinned(doc))
       return;
     const relativeUuid = this.getRelativeUUID(doc);
-    if (relativeUuid.startsWith(".") && fromUuidSync(relativeUuid, { relative: doc.actor }) === null) {
+    if (relativeUuid.startsWith(".") && await fromUuid(relativeUuid, { relative: doc.actor }) === null) {
       error(`The item with id ${doc.id} is not owned by actor ${doc.actor.id}`);
       return;
     }
@@ -42458,32 +42492,33 @@ class AttributePins {
       id: relativeUuid,
       sort: maxSort + CONST.SORT_INTEGER_DENSITY,
       resource: doc.type === CONSTANTS.ITEM_TYPE_CONSUMABLE ? "quantity" : "limited-uses"
-    }), newPins = this.preparePinsForForSaving(doc, newPins), TidyFlags.attributePins.set(doc.actor, newPins);
+    }), newPins = await this.preparePinsForForSaving(doc, newPins), TidyFlags.attributePins.set(doc.actor, newPins);
   }
-  static unpin(doc) {
+  static async unpin(doc) {
     if (!doc.actor || !this.isPinned(doc))
       return;
     const flagPins = TidyFlags.attributePins.get(doc.actor), relativeUuid = this.getRelativeUUID(doc);
     let newPins = flagPins.filter((x2) => x2.id !== relativeUuid);
-    return newPins = this.preparePinsForForSaving(doc, newPins), TidyFlags.attributePins.set(doc.actor, newPins);
+    return newPins = await this.preparePinsForForSaving(doc, newPins), TidyFlags.attributePins.set(doc.actor, newPins);
   }
   static getRelativeUUID(doc) {
     return doc.getRelativeUUID?.(doc.actor) ?? doc.relativeUUID;
   }
-  static setItemResourceType(item, resourceType) {
+  static async setItemResourceType(item, resourceType) {
     let pins = TidyFlags.attributePins.get(item.actor);
     const relativeUuid = this.getRelativeUUID(item), pinToUpdate = pins.find((x2) => x2.id === relativeUuid);
-    return pinToUpdate && (pinToUpdate.resource = resourceType), pins = this.preparePinsForForSaving(item, pins), TidyFlags.attributePins.set(item.actor, pins);
+    return pinToUpdate && (pinToUpdate.resource = resourceType), pins = await this.preparePinsForForSaving(item, pins), TidyFlags.attributePins.set(item.actor, pins);
   }
-  static setAlias(doc, alias) {
+  static async setAlias(doc, alias) {
     let pins = TidyFlags.attributePins.get(doc.actor);
     const relativeUuid = this.getRelativeUUID(doc), pinToUpdate = pins.find((x2) => x2.id === relativeUuid);
-    return pinToUpdate && (pinToUpdate.alias = alias), pins = this.preparePinsForForSaving(doc, pins), TidyFlags.attributePins.set(doc.actor, pins);
+    return pinToUpdate && (pinToUpdate.alias = alias), pins = await this.preparePinsForForSaving(doc, pins), TidyFlags.attributePins.set(doc.actor, pins);
   }
-  static preparePinsForForSaving(pinnedDoc, pins) {
-    return pins.filter(
-      (x2) => !!fromUuidSync(x2.id, { relative: pinnedDoc.actor })
-    );
+  static async preparePinsForForSaving(pinnedDoc, pins) {
+    let pinsToSave = [];
+    for (let pin of pins)
+      await fromUuid(pin.id, { relative: pinnedDoc.actor }) && pinsToSave.push(pin);
+    return pinsToSave;
   }
   static getResourceType(doc) {
     const relativeUuid = this.getRelativeUUID(doc);
@@ -50782,7 +50817,7 @@ class Tidy5eCharacterSheet extends BaseSheetCustomSectionMixin((object) => objec
         rollData: context.rollData,
         relativeTo: this.actor
       })
-    }, await this._prepareFacilities(context), this._prepareAttributePins(context);
+    }, await this._prepareFacilities(context), await this._prepareAttributePins(context);
     let tabs = await singleton.getTabs(context);
     const selectedTabs = TidyFlags.selectedTabs.get(context.actor);
     if (selectedTabs?.length)
@@ -51035,10 +51070,10 @@ class Tidy5eCharacterSheet extends BaseSheetCustomSectionMixin((object) => objec
       return uuid ? { actor: await fromUuid(uuid), uuid } : { actor: void 0, uuid: void 0 };
     }));
   }
-  _prepareAttributePins(context) {
+  async _prepareAttributePins(context) {
     let flagPins = TidyFlags.attributePins.get(this.actor).toSorted((a2, b2) => (a2.sort || 0) - (b2.sort || 0)), pins = [];
     for (let pin of flagPins) {
-      let document2 = fromUuidSync(pin.id, { relative: this.actor });
+      let document2 = await fromUuid(pin.id, { relative: this.actor });
       document2 ? pin.type === "item" ? pins.push({
         ...pin,
         linkedUses: context.itemContext[document2.id]?.linkedUses,
@@ -52558,6 +52593,7 @@ class Tidy5eNpcSheet extends BaseSheetCustomSectionMixin((object) => object.item
         rollData: defaultDocumentContext.rollData,
         relativeTo: this.actor
       }),
+      habitat: [],
       hideEmptySpellbook: lockSensitiveFields && defaultDocumentContext.spellbook.length === 0,
       healthPercentage: this.actor.system.attributes.hp.pct.toNearest(0.1),
       showSpellbookTab: settings.value.showSpellbookTabNpc,
@@ -52628,6 +52664,16 @@ class Tidy5eNpcSheet extends BaseSheetCustomSectionMixin((object) => object.item
       ctx.containerContents = await Container.getContainerContents(panelItem.container);
     }
     let details = this.actor.system.details;
+    if (details?.habitat?.value.length || details?.habitat?.custom) {
+      const { habitat } = details, any = details.habitat.value.find(({ type }) => type === CONSTANTS.HABITAT_TYPE_ANY);
+      context.habitat = habitat.value.reduce(
+        (arr, { type, subtype }) => {
+          let { label } = CONFIG.DND5E.habitats[type] ?? {};
+          return label && (!any || type === CONSTANTS.HABITAT_TYPE_ANY) && (subtype && (label = game.i18n.format("DND5E.Habitat.Subtype", { type: label, subtype })), arr.push({ label })), arr;
+        },
+        []
+      ).concat(splitSemicolons(habitat.custom).map((label) => ({ label }))).sort((a2, b2) => a2.label.localeCompare(b2.label, game.i18n.lang));
+    }
     if (details?.treasure?.value.size) {
       const any = details.treasure.value.has(CONSTANTS.TREASURE_ANY);
       context.treasure = details.treasure.value.reduce(
@@ -54536,7 +54582,7 @@ class Tidy5eItemSheetClassic extends DragAndDropMixin(SvelteApplicationMixin(fou
           return this._onDropActivity(event2, data);
         case "Advancement":
         case "Item":
-          return this._onDropAdvancement(event2, data);
+          return this._onDropItem(event2, data);
       }
   }
   /* -------------------------------------------- */
@@ -54575,6 +54621,23 @@ class Tidy5eItemSheetClassic extends DragAndDropMixin(SvelteApplicationMixin(fou
       delete data._id, this.item.createActivity(type, data, { renderSheet: !1 });
   }
   /* -------------------------------------------- */
+  /**
+   * Handle dropping another item onto this item.
+   * @param {DragEvent} event  The drag event.
+   * @param {object} data      The dropped data.
+   */
+  async _onDropItem(event2, data) {
+    const item = await Item.implementation.fromDropData(data);
+    item?.type === "spell" && this.item.system.activities ? this._onDropSpell(event2, item) : this._onDropAdvancement(event2, data);
+  }
+  /**
+   * Handle creating a "Cast" activity when dropping a spell.
+   * @param {DragEvent} event  The drag event.
+   * @param {Item5e} item      The dropped item.
+   */
+  _onDropSpell(event2, item) {
+    this.item.createActivity(CONSTANTS.ACTIVITY_TYPE_CAST, { spell: { uuid: item.uuid } });
+  }
   /**
    * Handle the dropping of an advancement or item with advancements onto the advancements tab.
    * @param {DragEvent} event                  The concluding DragEvent which contains drop data.

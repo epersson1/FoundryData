@@ -301,66 +301,77 @@ class DynamicTable extends ExtensibleTable {
             const addButtonCell = $('<td></td>');
             const addButton = $('<a class="custom-system-addDynamicLine custom-system-clickable"><i class="fas fa-plus-circle"></i></a>');
             addButton.on('click', async () => {
-                if (entity.isTemplate) {
-                    this.predefinedLines.push({
-                        ...sampleNewRow,
-                        $predefinedIdx: this.predefinedLines.length,
-                        $deletionDisabled: false,
-                        $deleted: false
-                    });
-                    await this.save(entity);
-                }
-                else {
-                    let tableProps = foundry.utils.getProperty(entity.system.props, this.key) ?? {};
-                    const newIdx = Math.max(...Object.keys(tableProps).map((key) => Number(key))) + 1;
-                    // Compute new row
-                    const newRow = {
-                        $deleted: false
-                    };
-                    let keysToCompute = Object.keys(sampleNewRow).filter((key) => {
-                        return key !== '$deleted' && sampleNewRow[key] !== undefined;
-                    });
-                    let computedKeys = [];
-                    do {
-                        computedKeys = [];
-                        for (const key of keysToCompute) {
-                            try {
-                                const tmpProps = foundry.utils.mergeObject(entity.system.props, {
-                                    [this.key]: {
-                                        [newIdx]: newRow
+                return this._createRow(entity, sampleNewRow);
+            });
+            addButton.on('contextmenu', (ev) => {
+                const contextMenuElement = $('<nav></nav>');
+                contextMenuElement.attr('id', `context-menu`);
+                contextMenuElement.addClass('custom-system-roll-context');
+                const contextActionList = $('<ol></ol>');
+                contextActionList.addClass('context-items');
+                const actionBullet = $('<li></li>');
+                actionBullet.addClass('context-item');
+                actionBullet.html(`<i class="fas fa-plus-circle"></i>${game.i18n.localize('CSB.ComponentProperties.DynamicTable.AddMultipleRowsDialog.AddMultipleRows')}`);
+                actionBullet.on('click', async () => {
+                    new Dialog({
+                        title: game.i18n.localize('CSB.ComponentProperties.DynamicTable.AddMultipleRowsDialog.AddMultipleRows'),
+                        content: await renderTemplate(`systems/${game.system.id}/templates/_template/dialogs/addMultipleRows.hbs`, {}),
+                        buttons: {
+                            confirm: {
+                                label: game.i18n.localize('Confirm'),
+                                callback: async (html) => {
+                                    const rowCount = parseInt(String($(html).find('#rowCount').val() ?? '0'));
+                                    if (rowCount === 0 || isNaN(rowCount)) {
+                                        throw new Error(game.i18n.localize('CSB.ComponentProperties.DynamicTable.AddMultipleRowsDialog.RowCountError'));
                                     }
-                                }, { inplace: false });
-                                newRow[key] = sampleNewRow[key]
-                                    ? ComputablePhrase.computeMessageStatic(String(sampleNewRow[key]), tmpProps, {
-                                        source: `${this.key}.${newIdx}.${key}.defaultValue`,
-                                        triggerEntity: entity,
-                                        reference: `${this.key}.${newIdx}`
-                                    }).result
-                                    : undefined;
-                                computedKeys.push(key);
+                                    for (let i = 0; i < rowCount; i++) {
+                                        await this._createRow(entity, sampleNewRow, false);
+                                    }
+                                    if (entity.isTemplate) {
+                                        await this.save(entity);
+                                    }
+                                    else {
+                                        await entity.entity.update({
+                                            system: {
+                                                props: entity.system.props
+                                            }
+                                        });
+                                    }
+                                }
+                            },
+                            cancel: {
+                                label: game.i18n.localize('Cancel'),
+                                callback: () => { }
                             }
-                            catch (_err) {
-                                null;
-                            }
+                        },
+                        default: 'confirm',
+                        render: (html) => {
+                            setTimeout(() => {
+                                $(html).find('#rowCount').trigger('focus').trigger('select');
+                            }, 10);
                         }
-                        keysToCompute = keysToCompute.filter((key) => !computedKeys.includes(key));
-                    } while (keysToCompute.length > 0 && computedKeys.length > 0);
-                    // Add new row to table data
-                    if (newIdx > 0) {
-                        tableProps[newIdx] = { ...newRow };
-                    }
-                    else {
-                        tableProps = {
-                            0: { ...newRow }
-                        };
-                    }
-                    foundry.utils.setProperty(entity.system.props, this.key, tableProps);
-                    await entity.entity.update({
-                        system: {
-                            props: entity.system.props
-                        }
+                    }, {
+                        width: undefined
+                    }).render(true);
+                    contextMenuElement.slideUp(200, () => {
+                        contextMenuElement.remove();
                     });
-                }
+                });
+                contextActionList.append(actionBullet);
+                contextMenuElement.append(contextActionList);
+                $('body').append(contextMenuElement);
+                // Set the position
+                const locationX = ev.pageX;
+                const locationY = ev.pageY;
+                contextMenuElement.css('left', `${Math.min(locationX, window.innerWidth - ((contextMenuElement.width() ?? 0) + 3))}px`);
+                contextMenuElement.css('top', `${Math.min(locationY + 3, window.innerHeight - ((contextMenuElement.height() ?? 0) + 3))}px`);
+                $('body').one('mousedown', (ev) => {
+                    if (contextMenuElement.has($(ev.target)[0]).length === 0) {
+                        contextMenuElement.slideUp(200, () => {
+                            contextMenuElement.remove();
+                        });
+                    }
+                });
             });
             addButtonCell.append(addButton);
             addRow.append(fillCell);
@@ -373,6 +384,72 @@ class DynamicTable extends ExtensibleTable {
         jQElement.append(tableBody);
         internalContents.append(jQElement);
         return baseElement;
+    }
+    async _createRow(entity, defaultRow, save = true) {
+        if (entity.isTemplate) {
+            this.predefinedLines.push({
+                ...defaultRow,
+                $predefinedIdx: this.predefinedLines.length,
+                $deletionDisabled: false,
+                $deleted: false
+            });
+            if (save) {
+                await this.save(entity);
+            }
+        }
+        else {
+            let tableProps = foundry.utils.getProperty(entity.system.props, this.key) ?? {};
+            const newIdx = Math.max(...Object.keys(tableProps).map((key) => Number(key))) + 1;
+            // Compute new row
+            const newRow = {
+                $deleted: false
+            };
+            let keysToCompute = Object.keys(defaultRow).filter((key) => {
+                return key !== '$deleted' && defaultRow[key] !== undefined;
+            });
+            let computedKeys = [];
+            do {
+                computedKeys = [];
+                for (const key of keysToCompute) {
+                    try {
+                        const tmpProps = foundry.utils.mergeObject(entity.system.props, {
+                            [this.key]: {
+                                [newIdx]: newRow
+                            }
+                        }, { inplace: false });
+                        newRow[key] = defaultRow[key]
+                            ? ComputablePhrase.computeMessageStatic(String(defaultRow[key]), tmpProps, {
+                                source: `${this.key}.${newIdx}.${key}.defaultValue`,
+                                triggerEntity: entity,
+                                reference: `${this.key}.${newIdx}`
+                            }).result
+                            : undefined;
+                        computedKeys.push(key);
+                    }
+                    catch (_err) {
+                        null;
+                    }
+                }
+                keysToCompute = keysToCompute.filter((key) => !computedKeys.includes(key));
+            } while (keysToCompute.length > 0 && computedKeys.length > 0);
+            // Add new row to table data
+            if (newIdx > 0) {
+                tableProps[newIdx] = { ...newRow };
+            }
+            else {
+                tableProps = {
+                    0: { ...newRow }
+                };
+            }
+            foundry.utils.setProperty(entity.system.props, this.key, tableProps);
+            if (save) {
+                await entity.entity.update({
+                    system: {
+                        props: entity.system.props
+                    }
+                });
+            }
+        }
     }
     _sortRows(dynamicProps, entity) {
         let rowOrder = [];

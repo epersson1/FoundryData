@@ -1,5 +1,5 @@
-2025/03/02-17:37:31.409 39dc Recovering log #185
-2025/03/02-17:37:31.422 39dc Level-0 table #187: started
-2025/03/02-17:37:31.462 39dc Level-0 table #187: 1274 bytes OK
-2025/03/02-17:37:31.512 39dc Delete type=0 #185
-2025/03/02-17:37:31.512 39dc Delete type=3 #184
+2025/03/16-19:08:50.928 22e0 Recovering log #202
+2025/03/16-19:08:50.928 22e0 Level-0 table #204: started
+2025/03/16-19:08:50.974 22e0 Level-0 table #204: 17411 bytes OK
+2025/03/16-19:08:51.007 22e0 Delete type=0 #202
+2025/03/16-19:08:51.007 22e0 Delete type=3 #201

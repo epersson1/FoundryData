@@ -30,6 +30,7 @@ class TemplateSystem {
     constructor(entity) {
         this.entity = entity;
         this._componentMap = {};
+        this._modificationFlag = false;
     }
     /**
      * Is the entity a Template?
@@ -92,6 +93,17 @@ class TemplateSystem {
                 break;
         }
         return allowedComponents;
+    }
+    get isModified() {
+        return this._modificationFlag;
+    }
+    set isModified(modificationFlag) {
+        this._modificationFlag = modificationFlag;
+        const sheetApplicationTitle = this.entity.sheet?.element.find('.window-title');
+        if (sheetApplicationTitle) {
+            const cache = sheetApplicationTitle.children();
+            sheetApplicationTitle.text(this.entity.sheet.title).append(cache);
+        }
     }
     /**
      * Gets the component map
@@ -335,7 +347,8 @@ class TemplateSystem {
             isGM: game.user.isGM,
             canReload: game.user.hasRole(game.settings.get(game.system.id, 'minimumRoleTemplateReloading')),
             display: system.display,
-            template: system.template
+            template: system.template,
+            manualEntitySaving: !!game.settings.get(game.system.id, 'manualEntitySaving')
         };
         if (this.customHeader) {
             extendedContext.headerPanel = await this.customHeader.render(this, this.entity.sheet.isEditable);
@@ -720,34 +733,41 @@ class TemplateSystem {
      * Sets the saving timeout in case of delayed save
      * @alpha Delayed saving is not fully functional at the moment
      */
-    setSaveTimeout(...args) {
-        if (document.activeElement &&
-            ($(document.activeElement).parents(`#${this.entity.sheet.id}`).length === 0 ||
+    /*     setSaveTimeout(...args: Array<never>) {
+        if (
+            document.activeElement &&
+            ($(document.activeElement).parents(`#${this.entity.sheet!.id}`).length === 0 ||
                 ['checkbox', 'radio'].includes($(document.activeElement).prop('type')) ||
-                ['select'].includes($(document.activeElement).prop('tagName').toLowerCase()))) {
-            return this.entity.sheet?.forceSubmit(...args);
-        }
-        else {
+                ['select'].includes($(document.activeElement).prop('tagName').toLowerCase()))
+        ) {
+            return (
+                this.entity.sheet! as unknown as
+                    | CustomActorSheet
+                    | EquippableItemSheet
+                    | SubTemplateItemSheet
+                    | UserInputTemplateItemSheet
+            )?.forceSubmit(...(args as unknown as [Event, FormApplication.OnSubmitOptions]));
+        } else {
             clearTimeout(this.saveTimeout);
             this.saveTimeout = setTimeout(() => {
                 this.setSaveTimeout(...args);
             }, 500);
         }
     }
+ */
     /**
      * Handles the sheet submit to either save now or wait a delay if activated in system settings
      * @alpha Delayed saving is not fully functional at the moment
      */
-    async handleSheetSubmit(...args) {
-        if (game.settings.get(game.system.id, 'delayEntitySaving')) {
-            clearTimeout(this.saveTimeout);
-            this.saveTimeout = setTimeout(() => {
-                this.setSaveTimeout(...args);
-            }, 500);
+    async handleSheetSubmit() {
+        this.isModified = true;
+        if (this.entity.sheet) {
+            this.entity.apps[this.entity.sheet.appId].options.title += '*';
         }
-        else {
-            return this.entity.sheet?.forceSubmit(...args);
-        }
+    }
+    async forceSubmitSheet() {
+        this.isModified = false;
+        return this.entity.sheet?.submit();
     }
     /**
      * Activate listeners on the sheets
@@ -911,6 +931,9 @@ class TemplateSystem {
             html.find('.custom-system-see-attribute-bars').on('click', (_ev) => {
                 // Open the dialog for vision
                 this.openAttributeBarsVision();
+            });
+            html.find('.custom-system-save-entity').on('click', (_ev) => {
+                this.forceSubmitSheet();
             });
         }
         html.find('.custom-system-configure-modifiers').on('click', async (_ev) => {

@@ -31,12 +31,14 @@ export const postAugmentedChatMessage = async (textContent, msgOptions, { rollMo
     rollMode = rollMode || game.settings.get('core', 'rollMode');
     // chat-roll is just the html template for computed formulas
     const template_file = `systems/${game.system.id}/templates/chat/chat-roll.hbs`;
+    const template_file_groups = `systems/${game.system.id}/templates/chat/chat-roll-dice-pools.hbs`;
     let phrase = textContent.buildPhrase;
     if (!phrase) {
         return;
     }
     const values = textContent.values;
     const rolls = [];
+    const diceGroups = [];
     // Render all formulas HTMLs
     for (const key in values) {
         let formattedValue = String(values[key].result);
@@ -54,10 +56,19 @@ export const postAugmentedChatMessage = async (textContent, msgOptions, { rollMo
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#specifying_a_string_as_the_replacement
         phrase = phrase.replace(key, () => formattedValue);
         for (const roll of values[key].rolls) {
-            rolls.push(Roll.fromData(roll.roll));
+            const rollObject = Roll.fromData(roll.roll);
+            rolls.push(rollObject);
+            if (roll.expandRollInChatCard) {
+                diceGroups.push(...getDiceGroupsFromRoll(rollObject, values[key].hidden));
+            }
         }
     }
     phrase = phrase.replaceAll(/\n/g, '').trim();
+    const diceGroupsRendered = await renderTemplate(template_file_groups, {
+        dice: diceGroups,
+        multipleDice: diceGroups.filter((group) => !group.hidden).length > 1
+    });
+    phrase += diceGroupsRendered;
     const chatRollData = {
         // @ts-expect-error Foundry not up to date in v12 yet
         rolls: rolls.map((roll) => roll.toJSON())
@@ -239,4 +250,46 @@ export function trimProseMirrorEmptyValue(value) {
         return '';
     }
     return value;
+}
+export function getDiceGroupsFromRoll(roll, hidden) {
+    const groups = [];
+    const currentPool = { dice: [], formula: '', total: 0, hidden: hidden ?? false };
+    let operator = '';
+    for (const term of roll.terms) {
+        if (term.rolls) {
+            for (const roll of term.rolls) {
+                groups.push(...getDiceGroupsFromRoll(roll, hidden));
+            }
+        }
+        // @ts-expect-error Outdated types
+        if (term instanceof foundry.dice.terms.ParentheticalTerm) {
+            groups.push(...getDiceGroupsFromRoll(term.roll, hidden));
+        }
+        // @ts-expect-error Outdated types
+        if (term instanceof foundry.dice.terms.DiceTerm) {
+            currentPool.formula += operator + term.expression;
+            currentPool.total += term.total;
+            const tooltip = term.getTooltipData();
+            currentPool.flavor = tooltip.flavor;
+            // @ts-expect-error Outdated types
+            currentPool.icon = tooltip.icon;
+            // @ts-expect-error Outdated types
+            currentPool.method = tooltip.method;
+            for (const roll of tooltip.rolls) {
+                currentPool.dice.push({
+                    faces: tooltip.faces,
+                    result: roll.result,
+                    classes: roll.classes
+                });
+            }
+            // @ts-expect-error Outdated types
+        }
+        else if (term instanceof foundry.dice.terms.OperatorTerm) {
+            operator = term.formula;
+        }
+    }
+    if (currentPool.dice.length > 0) {
+        groups.push(currentPool);
+    }
+    return groups;
 }

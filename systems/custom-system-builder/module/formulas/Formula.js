@@ -259,7 +259,8 @@ class Formula {
             let userInputDisplaySettings = userInputDisplayRegex.exec(userInputDisplaySettingsRaw).groups;
             userInputSettings.name = userInputDisplaySettings.name;
             userInputSettings.displayName = userInputDisplaySettings.displayName
-                ? (await new Formula(userInputDisplaySettings.displayName).compute({ ...props, ...localVars }, options)).result
+                ? (await new Formula(userInputDisplaySettings.displayName).compute({ ...props, ...localVars }, options))
+                    .result
                 : userInputDisplaySettings.name;
             userInputSettings.type = userInputDisplaySettings.type ?? 'text';
             let userInputChoices = userInputData.split('|').splice(1);
@@ -360,7 +361,11 @@ class Formula {
                 let rollFormula = rollString === '[' + rollResult.roll.formula + ']'
                     ? rollString
                     : rollString + ' → [' + rollResult.roll.formula + ']';
-                rolls.push({ formula: rollFormula, roll: rollResult.roll.toJSON() });
+                rolls.push({
+                    formula: rollFormula,
+                    roll: rollResult.roll.toJSON(),
+                    expandRollInChatCard: rollResult.expandRollInChatCard ?? false
+                });
             }
             roll = rollMessages.next();
         }
@@ -499,7 +504,12 @@ class Formula {
             return finalText;
         };
         let isRollTable = false;
+        let expandRollInChatCard = false;
         let selectValue = null;
+        if (rollText.startsWith('!')) {
+            expandRollInChatCard = true;
+            rollText = rollText.substring(1);
+        }
         if (rollText.startsWith('#')) {
             isRollTable = true;
             let separatedRoll = rollText.substring(1).split('|', 2);
@@ -513,17 +523,17 @@ class Formula {
                 let finalSelectValue = await computeRollPhrase(selectValue);
                 let roll = new Roll(finalSelectValue.result);
                 await roll.evaluate();
-                return await rollTable.draw({ displayChat: false, roll });
+                return { ...(await rollTable.draw({ displayChat: false, roll })), expandRollInChatCard };
             }
             else {
-                return await rollTable.draw({ displayChat: false });
+                return { ...(await rollTable.draw({ displayChat: false })), expandRollInChatCard };
             }
         }
         else {
             // Roll evaluation
             let roll = new Roll(finalRollText.result);
             await roll.evaluate();
-            return { roll };
+            return { roll, expandRollInChatCard };
         }
     }
     getSymbolsInOrder(rootNode, currentSymbol, mathTokens) {

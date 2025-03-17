@@ -2465,7 +2465,7 @@ function attachActorSheetHeaderButton(app, buttons) {
         label: titleText,
         class: 'dae-config-actorsheet',
         icon: 'fas fa-wrench',
-        onclick: ev => { new ActiveEffects(app.document, {}).render(true); }
+        onclick: ev => { new ActiveEffects({ document: app.document }).render({ force: true }); }
     });
 }
 // This does not seem to work.
@@ -2478,7 +2478,7 @@ function attachActivitySheetHeaderButton(app, buttons) {
             class: 'dae-dimeditor',
             icon: 'fas fa-file-pen',
             tooltip: DIMtitle,
-            onclick: ev => { new DIMEditor(app.document, {}).render(true); }
+            onclick: (ev) => new DIMEditor({ document: app.document }).render({ force: true })
         });
     }
 }
@@ -2489,14 +2489,14 @@ Hooks.once("tidy5e-sheet.ready", api => {
                 icon: 'fas fa-wrench',
                 label: "DAE",
                 async onClickAction() {
-                    new ActiveEffects(this.document, {}).render(true);
+                    new ActiveEffects({ document: this.document }).render({ force: true });
                 }
             },
             {
                 icon: 'fas fa-file-pen',
                 label: "DIME",
                 async onClickAction() {
-                    new DIMEditor(this.document, {}).render(true);
+                    new DIMEditor({ document: this.document }).render({ force: true });
                 }
             }
         ]
@@ -2510,7 +2510,7 @@ function attachItemSheetHeaderButton(app, buttons) {
             label: titleText,
             class: 'dae-config-itemsheet',
             icon: 'fas fa-wrench',
-            onclick: ev => { new ActiveEffects(app.document, {}).render(true); }
+            onclick: ev => { new ActiveEffects({ document: app.document }).render({ force: true }); }
         });
     }
     if (DIMETitleBar) {
@@ -2521,7 +2521,7 @@ function attachItemSheetHeaderButton(app, buttons) {
             class: 'dae-dimeditor',
             icon: 'fas fa-file-pen',
             tooltip: DIMtitle,
-            onclick: ev => { new DIMEditor(app.document, {}).render(true); }
+            onclick: (ev) => new DIMEditor({ document: app.document }).render({ force: true })
         });
     }
 }
@@ -2566,6 +2566,7 @@ export function daeSetupActions() {
     statusCounterActive = game.modules?.get("statuscounter")?.active;
     daeSystemClass.setupActions();
 }
+export var maxShortDuration;
 export function fetchParams() {
     //@ts-expect-error type string
     setDebugLevel(game.settings?.get("dae", "ZZDebug"));
@@ -2589,6 +2590,8 @@ export function fetchParams() {
     showInline = game.settings?.get("dae", "showInline") ?? false;
     // @ts-expect-error
     dependentConditions = game.settings?.get("dae", "DependentConditions") ?? false;
+    //@ts-expect-error
+    maxShortDuration = game.settings?.get("dae", "maxShortDuration") ?? 600;
     Hooks.callAll("dae.settingsChanged");
 }
 export function getTokenDocument(tokenRef) {
@@ -2985,4 +2988,10 @@ export function effectBaseName(effect) {
 }
 function busyWait(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+}
+export function getStaticID(id) {
+    id = `dnd5e${id}`;
+    if (id.length >= 16)
+        return id.substring(0, 16);
+    return id.padEnd(16, "0");
 }

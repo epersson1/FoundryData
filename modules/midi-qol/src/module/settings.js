@@ -2,9 +2,9 @@ import { debug, setDebugLevel, i18n, debugEnabled, geti18nTranslations, geti18nO
 import { ConfigPanel } from "./apps/ConfigPanel.js";
 import { SoundConfigPanel } from "./apps/SoundConfigPanel.js";
 import { TroubleShooter } from "./apps/TroubleShooter.js";
-import { configureDamageRollDialog } from "./patching.js";
 import { TargetConfirmationConfig } from "./apps/TargetConfirmationConfig.js";
 import { _updateAction } from "./utils.js";
+import { Workflow } from "./Workflow.js";
 export var itemRollButtons;
 export var criticalDamage;
 export var criticalDamageGM;
@@ -24,6 +24,7 @@ export var midiSoundSettingsBackup = undefined;
 export var DebounceInterval;
 export var _debouncedUpdateAction;
 export var ReplaceDefaultActivities = true;
+export var UseWeakReferences = false;
 export const defaultTargetConfirmationSettings = {
 	enabled: false,
 	always: false,
@@ -35,7 +36,7 @@ export const defaultTargetConfirmationSettings = {
 	hasRangedAoE: false,
 	longRange: false,
 	inCover: false,
-	mixedDispositiion: false,
+	mixedDisposition: false,
 	gridPosition: { x: 0, y: 0 }
 };
 const defaultKeyMapping = {
@@ -137,7 +138,6 @@ class ConfigSettings {
 	playerSaveTimeout = 0;
 	playerStatsOnly = false;
 	potionUseSound = "";
-	promptDamageRoll = false;
 	quickSettings = true;
 	rangeTarget = "none";
 	useTemplateRangedTargeting = false;
@@ -146,7 +146,8 @@ class ConfigSettings {
 	removeButtons = "all";
 	removeConcentration = true;
 	removeConcentrationEffects = "effects";
-	requireAmmunition = false;
+	playerRequireAmmunition = false;
+	gmRequireAmmunition = false;
 	requireMagical = "off";
 	requiresTargets = "none";
 	rollNPCLinkedSaves = "auto";
@@ -349,7 +350,7 @@ export let fetchSoundSettings = () => {
 export let fetchParams = () => {
 	if (debugEnabled > 1)
 		debug("Fetch Params Loading");
-	const promptDamageRoll = configSettings.promptDamageRoll ?? false;
+	const blfxActive = game.modules?.get("boss-loot-assets-premium")?.active || game.modules?.get("boss-loot-assets-free")?.active;
 	//@ts-expect-error
 	configSettings = game.settings?.get("midi-qol", "ConfigSettings");
 	//TODO create a config.html for this
@@ -391,8 +392,6 @@ export let fetchParams = () => {
 	//@ts-expect-error type mismatch - this is for legacy true setting
 	if (configSettings.rollSkillsBlind === true)
 		configSettings.rollSkillsBlind = ["all"];
-	if (configSettings.promptDamageRoll === undefined)
-		configSettings.promptDamageRoll = false;
 	if (configSettings.gmHide3dDice === undefined)
 		configSettings.gmHide3dDice = false;
 	if (configSettings.ghostRolls === undefined)
@@ -655,6 +654,11 @@ export let fetchParams = () => {
 	//@ts-expect-error
 	ReplaceDefaultActivities = Boolean(game.settings?.get("midi-qol", "ReplaceDefaultActivities"));
 	_debouncedUpdateAction = foundry.utils.debounce(_updateAction, DebounceInterval);
+	const oldWeakReferences = UseWeakReferences;
+	//@ts-expect-error
+	UseWeakReferences = game.settings?.get("midi-qol", "UseWeakReferences") ?? false;
+	if (UseWeakReferences !== oldWeakReferences)
+		Workflow.clearWorkflows();
 	//@ts-expect-error
 	targetConfirmation = game.settings?.get("midi-qol", "TargetConfirmation");
 	if (configSettings.griddedGridless === undefined)
@@ -665,12 +669,9 @@ export let fetchParams = () => {
 		configSettings.concentrationIncapacitatedConditionCheck = false;
 	if (configSettings.activityNamePrefix === undefined)
 		configSettings.activityNamePrefix = true;
-	const blfxActive = game.modules?.get("boss-loot-assets-premium")?.active || game.modules?.get("boss-loot-assets-free")?.active;
-	if (blfxActive) {
-		if (configSettings.activityNamePrefix === true) {
-			TroubleShooter.recordError({}, "Boss Loot FX is active - disabling activity name prefix");
-			console.warn("midiqol | Boss Loot FX is active - disabling activity name prefix");
-		}
+	if (blfxActive && configSettings.activityNamePrefix) {
+		TroubleShooter.recordError({}, "Boss Loot FX is active - disabling activity name prefix");
+		console.warn("midiqol | Boss Loot FX is active - disabling activity name prefix");
 		configSettings.activityNamePrefix = false;
 	}
 	if (targetConfirmation === undefined || typeof targetConfirmation === "string" || targetConfirmation instanceof String)
@@ -686,12 +687,9 @@ export let fetchParams = () => {
 			longRange: false,
 			inCover: false,
 			allies: false,
-			mixedDispositiion: false,
+			mixedDisposition: false,
 			gridPosition: { x: 0, y: 0 }
 		};
-	if (game.ready) {
-		configureDamageRollDialog();
-	}
 	setDebugLevel(debugText);
 	if (configSettings.concentrationAutomation && game.user === game.users?.activeGM) {
 		Hooks.once("ready", () => {
@@ -979,6 +977,16 @@ export const registerSettings = function () {
 		type: String,
 		config: true,
 		choices: geti18nOptions("DebugOptions"),
+		onChange: fetchParams
+	});
+	//@ts-expect-error
+	game.settings?.register("midi-qol", "UseWeakReferences", {
+		name: "Use Weak References for Workflows",
+		hint: "DO NOT CHANGE THIS SETTING",
+		scope: "world",
+		default: false,
+		type: Boolean,
+		config: true,
 		onChange: fetchParams
 	});
 	//@ts-expect-error

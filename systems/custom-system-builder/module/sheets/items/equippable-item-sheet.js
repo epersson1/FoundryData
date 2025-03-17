@@ -49,6 +49,32 @@ export class EquippableItemSheet extends ItemSheet {
     get template() {
         return `systems/${game.system.id}/templates/item/${this.item.type}-sheet.hbs`;
     }
+    get title() {
+        return super.title + (this.item.templateSystem.isModified ? ' *' : '');
+    }
+    /**
+     * Define whether a user is able to begin a dragstart workflow for a given drag selector
+     * @param selector       The candidate HTML selector for dragging
+     * @returns              Can the current user drag this selector?
+     * @protected
+     * @override
+     * @ignore
+     */
+    _canDragStart(_selector) {
+        return this.isEditable;
+    }
+    /* -------------------------------------------- */
+    /**
+     * Define whether a user is able to conclude a drag-and-drop workflow for a given drop selector
+     * @param selector       The candidate HTML selector for the drop target
+     * @returns              Can the current user drop on this selector?
+     * @protected
+     * @override
+     * @ignore
+     */
+    _canDragDrop(_selector) {
+        return this.isEditable;
+    }
     /* -------------------------------------------- */
     /** @override */
     async getData() {
@@ -81,15 +107,15 @@ export class EquippableItemSheet extends ItemSheet {
         }
         return super.render(force, options);
     }
-    async forceSubmit(event, options) {
-        return super._onSubmit(event, options);
-    }
-    async _onSubmit(...args) {
-        return new Promise((resolve) => {
-            this.item.templateSystem.handleSheetSubmit(...args).then((result) => {
-                resolve(result ?? {});
-            });
-        });
+    async _onSubmit(event, options) {
+        if (game.settings.get(game.system.id, 'manualEntitySaving') && event.type === 'change') {
+            await this.item.templateSystem.handleSheetSubmit();
+            return {};
+        }
+        else {
+            this.item.templateSystem.isModified = false;
+            return super._onSubmit(event, options);
+        }
     }
     /**
      * Render the inner application content
@@ -100,6 +126,9 @@ export class EquippableItemSheet extends ItemSheet {
      * @ignore
      */
     async _renderInner(data) {
+        if (this.item.templateSystem.isModified) {
+            this.submit();
+        }
         const html = await super._renderInner(data);
         // Append built sheet to html
         html.find('.custom-system-customHeader').append(data.headerPanel);
@@ -203,8 +232,9 @@ Hooks.on('renderEquippableItemSheet', function (app, html, _data) {
     html.find('.editor-content[data-edit]').each((_i, div) => app._activateEditor(div));
     html.find('*').on('focus', (ev) => {
         focusedElt = ev.currentTarget.id;
+        globalThis.focusedApp = app.id;
     });
-    if (focusedElt) {
+    if (focusedElt && globalThis.focusedApp === app.id) {
         html.find('#' + focusedElt).trigger('focus');
     }
 });

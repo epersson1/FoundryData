@@ -1,7 +1,5 @@
-2025/02/04-11:16:44.013 5bf0 Recovering log #24
-2025/02/04-11:16:44.021 5bf0 Delete type=0 #24
-2025/02/04-11:16:44.022 5bf0 Delete type=3 #23
-2025/02/04-12:25:17.852 6f8 Level-0 table #28: started
-2025/02/04-12:25:17.852 6f8 Level-0 table #28: 0 bytes OK
-2025/02/04-12:25:17.855 6f8 Delete type=0 #26
-2025/02/04-12:25:17.856 6f8 Manual compaction at level-0 from 'undefined' @ 72057594037927935 : 1 .. 'undefined' @ 0 : 0; will stop at (end)
+2025/03/09-16:24:45.287 42b0 Log #30: 13 ops saved to Table #31 OK
+2025/03/09-16:24:45.287 42b0 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/folders/000030.log: OK
+2025/03/09-16:24:45.287 42b0 Table #31: 13 entries OK
+2025/03/09-16:24:45.315 42b0 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/folders/MANIFEST-000029: OK
+2025/03/09-16:24:45.339 42b0 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/folders; recovered 1 files; 1653 bytes. Some data may have been lost. ****

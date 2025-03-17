@@ -1,8 +1,15 @@
+# Version 1.2.0
+- Added a scene for 6 players using an Eastern template.
+- Added a scene for 6 players using a Medieval template.
+- Added player journals for a Spellcaster and a Specialist to support a 5th and 6th player.
+- Cleaned up all scenes so they use the same object glow percentages.
+- Cleaned up asset folders and standardized filenames; fixed some typos.
+
 # Version 1.1.0
-<li>Added Eastern scene and changed the name of the initial scene.</li>
-<li>Changed from tokens to written objectives in Medieval landing page to match Eastern page, and for easier gamemastery.</li>
-<li>Added glows to all foreground elements so they contrast better with most backgrounds.</li>
-<li>Added example background images.</li>
+- Added Eastern scene and changed the name of the initial scene.
+- Changed from tokens to written objectives in Medieval landing page to match Eastern page, and for easier gamemastery.
+- Added glows to all foreground elements so they contrast better with most backgrounds.
+- Added example background images.
 
 # Version 1.0.0
-<li>Initial release.</li>
+- Initial release.

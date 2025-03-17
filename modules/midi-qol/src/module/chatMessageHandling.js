@@ -1,8 +1,8 @@
 import { debug, warn, i18n, error, debugEnabled, MODULE_ID } from "../midi-qol.js";
 import { DDBGameLogWorkflow, Workflow } from "./Workflow.js";
 import { nsaFlag, coloredBorders, configSettings, forceHideRoll, safeGetGameSetting } from "./settings.js";
-import { playerFor, playerForActor, doOverTimeEffect, isInCombat, MQfromUuidSync } from "./utils.js";
-import { socketlibSocket, untimedExecuteAsGM } from "./GMAction.js";
+import { playerFor, playerForActor, doOverTimeEffect, isInCombat } from "./utils.js";
+import { socketlibSocket, unTimedExecuteAsGM } from "./GMAction.js";
 import { TroubleShooter } from "./apps/TroubleShooter.js";
 export const MAESTRO_MODULE_NAME = "maestro";
 export const MODULE_LABEL = "Maestro";
@@ -45,8 +45,8 @@ export function checkOverTimeSaves(message, data, options, user) {
 	const overtimeActorUuid = foundry.utils.getProperty(message, "flags.midi-qol.overtimeActorUuid");
 	if (actor.uuid !== overtimeActorUuid) {
 		if (overtimeActorUuid) {
-			const overTimeActor = MQfromUuidSync(overtimeActorUuid);
-			ui.notifications?.warn(`Over time actor mismatch ${actor.name} should be ${overTimeActor.name}`);
+			const overTimeActor = fromUuidSync(overtimeActorUuid);
+			ui.notifications?.warn(`Over time actor mismatch ${actor.name} should be ${overTimeActor?.name}`);
 		}
 		return true;
 	}
@@ -230,8 +230,8 @@ export let hideStuffHandler = (message, html, data) => {
 			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("critical");
 			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("fumble");
 		}
-		// @ts-expect-error protected - but this isn't doing anything, is it?
-		ui.chat.scrollBottom;
+		// @ ts-expect-error protected - but this isn't doing anything, is it?
+		// ui.chat.scrollBottom
 		return;
 	}
 	else {
@@ -319,8 +319,8 @@ export let hideStuffHandler = (message, html, data) => {
 			html.find(".midi-qol-gmTokenName").remove();
 		}
 	}
-	// @ts-expect-error protected
-	setTimeout(() => ui.chat?.scrollBottom(), 0);
+	// @ ts-expect-error protected
+	// setTimeout(() => ui.chat?.scrollBottom(), 0);
 	return true;
 };
 export function processItemCardCreation(message, user) {
@@ -349,7 +349,7 @@ export function ddbglPendingFired(data) {
 		return;
 	}
 	// const tokenUuid = `Scene.${sceneId??0}.Token.${tokenId??0}`;
-	const token = MQfromUuidSync(`Scene.${sceneId ?? 0}.Token.${tokenId ?? 0}`);
+	const token = fromUuidSync(`Scene.${sceneId ?? 0}.Token.${tokenId ?? 0}`)?.object;
 	const actor = (token instanceof CONFIG.Token.documentClass) ? token?.actor ?? game.actors?.get(actorId ?? "") : undefined;
 	if (!actor || !(token instanceof CONFIG.Token.documentClass)) {
 		warn(" ddb-game-log hook could not find actor");
@@ -419,13 +419,13 @@ export function processCreateDDBGLMessages(message, options, user) {
 		error("Could not find item for fulfilled roll");
 		return;
 	}
-	const token = MQfromUuidSync(`Scene.${message.speaker.scene}.Token.${message.speaker.token}`);
-	const actor = token.actor ?? game.actors?.get(message.speaker.actor ?? "");
+	const token = fromUuidSync(`Scene.${message.speaker.scene}.Token.${message.speaker.token}`)?.object;
+	const actor = token?.actor ?? game.actors?.get(message.speaker.actor ?? "");
 	if (!actor) {
 		error("ddb-game-log could not find actor for roll");
 		return;
 	}
-	// find the player who controls the charcter.
+	// find the player who controls the character.
 	let player;
 	if (token) {
 		player = playerFor(token);
@@ -443,6 +443,7 @@ export function processCreateDDBGLMessages(message, options, user) {
 		return;
 	}
 	let workflow = DDBGameLogWorkflow.get(item.uuid);
+	//@ts-expect-error no dnd5e-types
 	if (!workflow && flags.dnd5e.roll.type === "damage" && item.hasAttack && ["rwak", "mwak"].includes(item.actionType)) {
 		warn(`ddb-game-log roll damage roll wihtout workflow being started ${actor.name} using ${item.name}`);
 		return;
@@ -455,7 +456,7 @@ export function processCreateDDBGLMessages(message, options, user) {
 		if (!workflow.undoData.chatCardUuids)
 			workflow.undoData.chatCardUuids = [];
 		workflow.undoData.chatCardUuids = workflow.undoData.chatCardUuids.concat([message.uuid]);
-		untimedExecuteAsGM("updateUndoChatCardUuids", workflow.undoData);
+		unTimedExecuteAsGM("updateUndoChatCardUuids", workflow.undoData);
 	}
 	if (flags.dnd5e.roll.type === "attack") {
 		let rolls = message.rolls;

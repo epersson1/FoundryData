@@ -1,4 +1,5 @@
 import { debugEnabled, warn } from "../../midi-qol.js";
+import { Workflow } from "../Workflow.js";
 import { ReplaceDefaultActivities, configSettings } from "../settings.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
 export var MidiSummonActivity;
@@ -33,9 +34,24 @@ let defineMidiSummonActivityClass = (ActivityClass) => {
 			usage: {
 				chatCard: "modules/midi-qol/templates/activity-card.hbs",
 				dialog: ActivityClass.metadata.usage.dialog,
+				actions: {
+				// placeSummons: MidiSummonActivity.#placeSummons
+				},
 			},
 		}, { inplace: false, insertKeys: true, insertValues: true });
+		static #placeSummons(event, target, message) {
+			//@ts-expect-error
+			if (message)
+				this.workflow = Workflow.getWorkflow(message.uuid);
+			ActivityClass.#placeSummons.bind(this)(event, target, message);
+		}
 		get possibleOtherActivity() {
+			return false;
+		}
+		get isTriggerableActivity() {
+			return true;
+		}
+		get selfTriggerableOnly() {
 			return false;
 		}
 	};

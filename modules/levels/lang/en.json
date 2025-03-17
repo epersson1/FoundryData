@@ -1,6 +1,12 @@
 {
     "levels": {
         "modulename": "Levels",
+        "multiLevelFog": {
+            "createdScenes": "Created %n scenes. <a href='https://wiki.theripper93.com/levels#multilevel-fog-of-war' target='_blank'>Learn more</a>",
+            "noLevels": "This scene does not have multiple levels.",
+            "alreadyExists": "Scene already exist, please view the scene and reset it's fog to reset the specific level's fog or delete the scene and reinitialize multi level fog. Scene: ",
+            "advancedFogWarn": "Levels: The Advanced Fog Of war setting needs to be disabled for the Multi Level Fog to work, please disable it in the module settings or disable it per tile."
+        },
         "settings": {
             "enableTooltips": {
                 "name": "Enable Tooltips",
@@ -45,6 +51,10 @@
             "exactTokenVisibility": {
                 "name": "Exact token visibility",
                 "hint": "Precise token visibility must be enabled for this option to work. This option will do an 11 point check against the token's corners. Suggested if you are using 3D Canvas"
+            },
+            "multilevelFogFolder": {
+                "name": "Multilevel Fog Folder",
+                "hint": "The folder name to store the generated scenes for the multilevel fog of war."
             },
             "blockSightMovement": {
                 "name": "Fence",
@@ -246,10 +256,11 @@
         "ui": {
             "title": "Levels - Layer Tool",
             "players": "Show Players",
-            "stair": "Place Drawings as Stairs",
+            "stair": "Place Regions as Stairs",
             "addLevel": "Add a new level",
             "editLevels": "Edit Levels",
             "getFromScene": "Get Levels from Scene",
+            "fog": "Setup Multilevel Fog (BETA)",
             "clearLevels": "Clear Levels",
             "debugScene": "Debug Scene (Red means issues detected)",
             "minElevDiff": "Minimum Level Size",

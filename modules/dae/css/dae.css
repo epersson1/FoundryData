@@ -10,7 +10,7 @@
   line-height: 20px;
 }
 .dae-filter-container {
-  border: 2px groove #eeede0;
+  border: 2px groove var(--color-form-label);
 }
 .dae-filter-container .dae-filter-list {
   min-width: 100%;
@@ -19,6 +19,9 @@
   margin: 0;
   padding: 0;
   cursor: pointer;
+}
+.dae-active-effects .window-content {
+  overflow-y: scroll;
 }
 /*/ Unused? /*/
 .dnd5e.sheet.item {
@@ -109,12 +112,13 @@
   margin: 10px 0 2px 0;
   padding: 0;
   background: rgba(0, 0, 0, 0.05);
-  border: 3px groove #eeede0;
+  border: 3px groove var(--color-fieldset-border);
   font-weight: bold;
   line-height: 24px;
   min-height: 40px;
   display: flex;
   align-items: center;
+  border-radius: 8px;
 }
 .dnd5e.sheet.item .dae-effect-first-header {
   height: 40px;
@@ -123,7 +127,7 @@
   display: flex;
   align-items: center;
   font-weight: bold;
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.1);
   border-radius: 8px 8px 0 0;
 }
 .dnd5e.sheet.item .dae-effect-first-header .effect-add {
@@ -156,7 +160,7 @@
   padding-left: 6px;
 }
 .dnd5e.sheet.item .dae-change-list:nth-child(odd) {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 .dnd5e.sheet.item .dae-change-list .change-controls {
   flex: 2 0 20px;
@@ -173,12 +177,14 @@
   display: flex;
   align-items: center;
 }
-.dae-new-effect {
+.dnd5e.sheet.item .dae-new-effect {
   flex-grow: 1;
   margin-right: 5px;
 }
-.dae-new-effect select {
+.dnd5e.sheet.item .dae-new-effect select {
   width: 100%;
+  color: var(--color-text-primary);
+  background-color: var(--input-background-color);
 }
 .dae-arrow-down,
 .dae-arrow-right {
@@ -244,7 +250,8 @@
   text-indent: 10px;
   font-size: 12px;
 }
-[id^="DAEActiveEffectConfig"] .active-effect-sheet .dae-scrollable-list {
+[id^="DAEActiveEffectConfig"] .active-effect-sheet .dae-scrollable-list,
+[id^="DAEActiveEffectConfig"] .active-effect-config .dae-scrollable-list {
   overflow: visible;
 }
 /* ------------------------------------ */
@@ -312,7 +319,8 @@
 }
 /*/ Duration Tab /*/
 .dae-special-duration-container {
-  border: 2px groove #eeede0;
+  border: 2px groove var(--color-fieldset-border);
+  border-radius: 8px;
   padding: 6px;
   margin: 8px 0 !important;
   text-align: center;
@@ -323,22 +331,34 @@
   line-height: 24px;
   vertical-align: center;
   padding-left: 4px;
+  color: var(--color-form-label);
+}
+.dae-special-duration-container .dae-special-duration-title:hover {
+  color: var(--color-form-label-hover);
 }
 .dae-special-duration-container .dae-effect-control {
   width: 120px;
-  border: 2px groove #eeede0;
+  border: 2px groove var(--color-fieldset-border);
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   margin-right: 27px;
+  border-radius: 8px;
+  padding-top: 3px;
+  padding-bottom: 2px;
+  transition: border 250ms;
+}
+.dae-special-duration-container .dae-effect-control:hover {
+  border-color: var(--color-form-hint-hover);
+  transition: border-color 250ms;
 }
 .dae-special-duration-container .special-duration-list {
   padding: 0;
   margin: 0;
   list-style-type: none;
 }
-.dae-special-duration-container .special-duration-list .formgroup {
+.dae-special-duration-container .special-duration-list .form-group {
   margin-top: 4px;
   display: flex;
   justify-content: space-between;
@@ -347,6 +367,12 @@
 .dae-special-duration-container .special-duration-list select {
   flex-grow: 1;
   margin-right: 4px;
+}
+.dae-special-duration-container .special-duration-list .effect-control {
+  flex: 0;
+}
+.dae-special-duration-container .dae-effect-controls {
+  flex: 0;
 }
 /*/ Changes tab /*/
 .dae-effects-table {
@@ -436,4 +462,69 @@
 }
 .dae-controls {
   width: 50px;
+}
+.dae.active-effect-config .tab.changes header {
+  grid-template-columns: 400px 110px 250px 60px 1rem;
+  padding-right: 14px;
+}
+.dae.active-effect-config .tab.changes ol {
+  grid-template-columns: 400px 110px 250px 60px 1rem;
+  align-items: start;
+}
+.dae.active-effect-config .tab.changes .key {
+  min-width: 400px;
+}
+.dae.active-effect-config .tab.changes .key-wrapper {
+  flex-direction: column;
+  align-items: start;
+}
+.dae.active-effect-config .tab.changes .mode {
+  min-width: 110px;
+}
+.dae.active-effect-config .tab.changes .mode select {
+  min-width: 110px;
+}
+.dae.active-effect-config .tab.changes .value {
+  min-width: 250px;
+}
+.dae.active-effect-config .tab.changes .value input,
+.dae.active-effect-config .tab.changes .value textarea {
+  min-width: 250px;
+}
+.dae.active-effect-config .tab.changes .priority {
+  width: 60px;
+}
+.dae.active-effect-config .tab.changes .controls:has(a[data-action="deleteChange"]) {
+  margin-top: 7.25px;
+}
+.dae.active-effect-config .tab.changes .dae-field-info {
+  padding: 4px 2px 0;
+}
+.dae.active-effect-config .tab.changes .dae-field-name {
+  padding-bottom: 1px;
+  font-weight: bold;
+}
+.dae.active-effect-config .tab.changes .dae-field-description {
+  font-size: smaller;
+  max-height: 36px;
+  overflow: auto;
+  margin-top: 1px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+}
+/* ------------------------------------ */
+/*  	            DIME      	          */
+/* ------------------------------------ */
+.dimeditor .dime-img {
+  flex: none;
+}
+.dimeditor div[data-application-part="body"]:has(.form-group.stacked.command) {
+  height: 100%;
+}
+.dimeditor .form-group.stacked.command {
+  height: calc(100% - 100px);
+}
+.dimeditor .form-group.stacked.command textarea {
+  height: 100%;
+  resize: none;
 }

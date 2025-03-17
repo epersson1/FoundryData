@@ -1,7 +1,7 @@
 {
     "title": "TheRipper93's Module Hub",
     "description": "Utility for updates and troubleshooting of modules. Includes small tweaks such as Custom CSS, Compact Sidebar, Dice Tray, Auto rotation and more.",
-    "version": "4.1.3",
+    "version": "4.1.4",
     "authors": [
         {
             "name": "theripper93",
@@ -54,7 +54,7 @@
     ],
     "url": "https://github.com/theripper93/theripper-premium-hub",
     "manifest": "https://github.com/theripper93/theripper-premium-hub/releases/latest/download/module.json",
-    "download": "https://github.com/theripper93/theripper-premium-hub/releases/download/4.1.3/module.zip",
+    "download": "https://github.com/theripper93/theripper-premium-hub/releases/download/4.1.4/module.zip",
     "id": "theripper-premium-hub",
     "compatibility": {
         "minimum": "12",

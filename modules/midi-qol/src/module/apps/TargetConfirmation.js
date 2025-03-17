@@ -1,6 +1,6 @@
 import { i18n, error, i18nFormat } from "../../midi-qol.js";
 import { checkMechanic, checkRule, configSettings, targetConfirmation } from "../settings.js";
-import { FULL_COVER, HALF_COVER, THREE_QUARTERS_COVER, activityHasAreaTarget, checkActivityRange, computeCoverBonus, computeFlankingStatus, getIconFreeLink, getToken, isTargetable, markFlanking, tokenForActor } from "../utils.js";
+import { FULL_COVER, HALF_COVER, THREE_QUARTERS_COVER, activityHasAreaTarget, checkActivityRange, computeCoverBonus, computeFlankingStatus, getIconFreeLink, getToken, isValidTarget, markFlanking, tokenForActor, updateUserTargets } from "../utils.js";
 import { getTokenPlayerName } from "../utils.js";
 import { TroubleShooter } from "./TroubleShooter.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -40,12 +40,13 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 				for (let target of game.user.targets) {
 					if (maxTargets && validTargets.length >= maxTargets)
 						break;
-					if (isTargetable(target))
+					if (isValidTarget(target))
 						validTargets.push(target.id);
 				}
-				game.user.updateTokenTargets(validTargets);
+				updateUserTargets(validTargets);
 			}
 			this.data.targets = Array.from(game.user.targets ?? []);
+			this.render();
 		});
 		return this;
 	}
@@ -55,7 +56,10 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 	static get xPosition() {
 		const left = 100;
 		const middle = window.innerWidth / 2 - 155;
-		const right = window.innerWidth - 310 - (ui.sidebar?.element.hasClass("collapsed") ? 10 : (ui.sidebar?.position.width ?? 300));
+		let adjustment = 10;
+		if ((game.release?.generation ?? 12) < 13)
+			adjustment = (ui.sidebar?.element.hasClass("collapsed") ? 10 : (ui.sidebar?.position.width ?? 300));
+		const right = window.innerWidth - 310 - adjustment;
 		switch (targetConfirmation.gridPosition?.x) {
 			case -1: return left;
 			case 0: return middle;
@@ -96,17 +100,26 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 		const targets = Array.from(game.user?.targets ?? []);
 		data.targets = [];
 		const maxTargets = this.data.activity.target?.affects?.count;
+		const actor = this.data.activity.actor;
+		const token = tokenForActor(actor);
 		for (let target of targets) {
 			if (maxTargets && data.targets.length >= maxTargets)
 				break;
+			switch (this.data.activity.target?.affects?.type ?? "any") {
+				case "enemy":
+					if ((token?.document?.disposition ?? 1) * target.document.disposition >= 0)
+						continue;
+				case "ally":
+					if ((token?.document?.disposition ?? 1) * target.document.disposition < 0)
+						continue;
+				default: break;
+			}
 			let img = target.document.texture.src;
 			if (VideoHelper.hasVideoExtension(img)) {
 				img = await game.video?.createThumbnail(img, { width: 50, height: 50 }) ?? "";
 			}
-			const actor = this.data.activity.actor;
-			const token = tokenForActor(actor);
 			let details = [];
-			if (["ceflanked", "ceflankedNoconga"].includes(checkRule("checkFlanking"))) {
+			if (["ceflanked", "ceflankedNoconga", "midiFlanked", "midiFlankedNoConga"].includes(checkRule("checkFlanking"))) {
 				if (token && computeFlankingStatus(token, target))
 					details.push((i18n("midi-qol.Flanked") ?? "Flanked"));
 			}
@@ -169,7 +182,7 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 				}*/
 			}
 			data.targets.push({
-				name, // : namegame.user.isGM ? getLinkText(target.actor) : getTokenPlayerName(target),
+				name, // : name: game.user.isGM ? getLinkText(target.actor) : getTokenPlayerName(target),
 				img,
 				displayedDisposition,
 				details: details.join(" - "),
@@ -212,12 +225,14 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 					const token = getToken(i.id);
 					if (token) {
 						token.setTarget(false, { user: game.user, releaseOthers: false, groupSelection: true });
+						this.render();
 					}
 				});
 				i.closest(".midi-qol-box")?.addEventListener('click', async function () {
 					const token = getToken(i.id);
 					if (token)
 						await canvas?.ping(token.center);
+					console.error("ping");
 				});
 				i.closest(".midi-qol-box")?.addEventListener('mouseover', function () {
 					const token = getToken(i.id);

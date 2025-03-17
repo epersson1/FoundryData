@@ -1,3 +1,13 @@
-2025/02/04-12:25:48.482 273c Recovering log #33
-2025/02/04-12:25:48.495 273c Delete type=0 #33
-2025/02/04-12:25:48.495 273c Delete type=3 #30
+2025/03/09-16:24:46.215 3c18 Delete type=3 #1
+2025/03/09-16:25:39.669 3edc Level-0 table #42: started
+2025/03/09-16:25:39.724 3edc Level-0 table #42: 1033 bytes OK
+2025/03/09-16:25:39.753 3edc Delete type=0 #40
+2025/03/09-16:25:39.836 3edc Manual compaction at level-0 from '!settings!7PVPrdwLw26TnVRj' @ 72057594037927935 : 1 .. '!settings!xVV995t3v4kSQYrg' @ 0 : 0; will stop at '!settings!nvzqBYMD0Uugl8im' @ 306 : 1
+2025/03/09-16:25:39.836 3edc Compacting 3@0 + 0@1 files
+2025/03/09-16:25:39.896 3edc Generated table #43@0: 15 keys, 4581 bytes
+2025/03/09-16:25:39.896 3edc Compacted 3@0 + 0@1 files => 4581 bytes
+2025/03/09-16:25:39.928 3edc compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/03/09-16:25:39.928 3edc Delete type=2 #35
+2025/03/09-16:25:39.928 3edc Delete type=2 #38
+2025/03/09-16:25:39.936 3edc Delete type=2 #42
+2025/03/09-16:25:40.061 3edc Manual compaction at level-0 from '!settings!nvzqBYMD0Uugl8im' @ 306 : 1 .. '!settings!xVV995t3v4kSQYrg' @ 0 : 0; will stop at (end)

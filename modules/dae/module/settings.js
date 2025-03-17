@@ -131,4 +131,14 @@ export const registerSettings = async function () {
         config: true,
         requiresReload: true
     });
+    //@ts-expect-error
+    game.settings?.register("dae", "maxShortDuration", {
+        name: "dae.maxShortDuration.Name",
+        hint: "dae.maxShortDuration.Hint",
+        scope: "world",
+        default: 600,
+        type: Number,
+        config: true,
+        requiresReload: true
+    });
 };

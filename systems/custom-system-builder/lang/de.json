@@ -115,6 +115,11 @@
                 }
             },
             "DynamicTable": {
+                "AddMultipleRowsDialog": {
+                    "AddMultipleRows": "Füge mehrere Zeilen hinzu",
+                    "HowManyRows": "Wie viele Zeilen?",
+                    "RowCountError": "Anzahl Zeilen sollte eine positive Zahl sein."
+                },
                 "CanAddRow": "Sollen Spieler neue Einträge in der Tabelle erstellen können?",
                 "ConfirmDialogOnDelete": "Zeige Bestätigungs-Fenster bei Löschung einer Zeile",
                 "DeleteRowDialog": {
@@ -158,6 +163,7 @@
                 }
             },
             "InputComponent": {
+                "CustomSizeInvalid": "Benutzerdefinierte Größe muss eine Zahl größer gleich 5 sein",
                 "Label": "Label"
             },
             "ItemContainer": {
@@ -294,6 +300,8 @@
             },
             "Size": {
                 "Auto": "Auto",
+                "Custom": "Custom",
+                "CustomSizeTitle": "Custom size",
                 "Gigantic": "Gigantisch",
                 "Large": "Groß",
                 "Larger": "Größer",
@@ -430,10 +438,6 @@
                 "Name": "Zeige versteckte Rolls",
                 "Hint": "Diese Option erlaubt es, dass der SL versteckte Rolls sieht."
             },
-            "DelayEntitySaving": {
-                "Name": "Verzögere das Speichern von Entitäten",
-                "Hint": "Bei größeren Charakterbögen könnte es Sinn machen, diese Option zu aktivieren, da das Speichern viel Zeit in Anspruch nehmen kann. Hierbei wird gewartet, bis die Felder nicht mehr ausgewählt sind."
-            },
             "LoggingLevel": {
                 "Name": "System-Logging-Level",
                 "Hint": "Dies setzt das systemweite Mindest-Log-Level. Bei größeren Systeme kann das Level 'Debug' zu Verzögerungen im Interface führen.",
@@ -453,6 +457,10 @@
             "MinimumRoleTemplateReload": {
                 "Name": "Mindest-Rolle zum Neuladen von Bögen",
                 "Hint": "Mindest-Rolle, um ein Template auszuwählen und den Bogen neu zu laden."
+            },
+            "ManualEntitySaving": {
+                "Name": "Manuelle Speicherung der Entität",
+                "Hint": "Bei großen Sheets könnte es Sinn machen, automatische Updates zu deaktivieren, wenn der Vorgang zu lange dauert. Hierbei wird ein Speichern-Button zur Verfügung gestellt, mit dem man Änderungen manuell speichern kann. Automatische Updates werden aber dennoch ausgelöst, wenn ein Item hinzugefügt, gespeichert oder gelöscht wird oder wenn der Bogen geschlossen wird."
             }
         },
         "Sheets": {

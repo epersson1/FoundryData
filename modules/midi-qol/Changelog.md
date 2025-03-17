@@ -1,3 +1,133 @@
+### 12.4.31
+* Don't remove existing workflow on construction as there could well be another workflow in flight.
+* Slight change to behaviour in activity.use, if you pass a workflow in usage, midi will reuse that workflow rather than creating a new one. Can be useful if you want to pre-configure the workflow. (TrapWorkflow does this).
+* Fixed a bug where an attack activity would return itself as it's own other activity if there were no others and it's set to auto.
+* Midi was incorrectly removing a workflow when another was created in some circumstances.
+* Fix? for flags.onUseMacro ItemMacro, macroPass.
+* Included a new sample item mortar, which places a template then makes a ranged weapon attack against each target in the template to show off the attack roll per target in dnd5e 4.x. The idea of using a Use activity to target then a trigger activity to deal with the targets might have more general use.
+* Added a world setting Use Weak References. Don't enable this unless you know what it means - only meant for GM and dev testing - will be removed eventually.
+
+### 12.4.30
+* Fix for the debacle with not being able to do most rolls.
+* Roll an attack per target now respects the per item settings.
+* Fix for optional bonus expressions (i.e. @abilities.int.mod * 2) not working, throwing an unevaluated expression error.
+* When rolling a save activity the targets required to save is displayed prior to the rolls being requested so everyone can see who is saving (unless it's GM only) and after the damage is rolled.
+* Fix for setting confirm targets on activities' midi-qol tab.
+* Fix for flanking/flanked applied by players - thanks @thatlonelybugbear.
+* Fixed dumb error in midi's flanked status effect - should work properly now.
+  - if using Cauldron of Plentiful resources midi will automatically update the flanked effect.
+* Fix for midi sound configuration not opening when the settings reference sounds that cannot be found.
+  - Any referenced playlists or sounds that no longer exist will be flagged and you won't be able to save your settings until that is corrected.
+* Added a use condition reason, which is displayed if the item use condition failed.
+* Added game.time.worldTime as worldTime for condition evaluation. Used in sample items Revivify to check how long target had been dead.
+* Added full target rollData as target. in condition evaluation.
+* **Breaking** the flag flags.traits.idi.value now means downgrade damage immunity to resistance. If you want to completely ignore immunity, set flags.traits.idi.value **and** flags.traits.idr.value.
+* Fix for problem when Auto Animations and Midi's autoRemoveInstantaneousTemplates sometimes causing AA to lose the template data and place the animation incorrectly. If Boss Loot Assets is active it will also remove the template too early for AA to get the information.
+* Separate roll per target now will correctly do a targetless roll if you roll with no targets selected.
+* Utility Activities got a little more love with the dnd5e button being displayed and rolls completing as expected and the various keys (shift/F) etc working.
+  - Utility rolls currently auto fast forward based on the damage fast forward setting.
+* When rolling a save activity and not auto rolling saves (via Epic Rolls/Monks Token Bar or midi's auto rolling) the dnd5e save buttons are left on display for the gm/players to use. They only have an effect after damage is rolled.
+* Various improvements to damage application integration with dnd5e apply damage tray.
+  - ignore damage immunity now displays as being applied in damage tray.
+  - selected targets now include ignore immunity/resistance etc in damage try.
+* Support for dnd5e always apply effects being applied by midi-qol.
+
+
+* **For macro writers** Midi workflows are now keyed by the chatcard.uuid that spawned the workflow. Moving forwards to get a particular workflow you will need to use MidiQOL.Workflow.getWorkflow(chatCardUuid).
+  - Midi inserts the workflow in the config and usage elements for most of the dnd5e rolls, e.g rollAttack(config,....), activity.use(usage,....) and the down stream calls. So hooking dnd5e.xxx should allow you to recover the workflow via config.workflow, or usage.config as appropriate.
+  - For a limited period fetching workflows via activity uuid will continue to work.
+  - If you are intercepting the dnd5e rollAttack/rollDamage etc functions to do processing config.workflow will be instantiated to the appropriate workflow.
+  - Midi no longer stores any data in the activity, so activity.workflow and activity.targets will not be defined.
+  - As a side effect of this change there can be multiple workflows active for the same activity and this should be correctly resolved.
+  - During the deprecation period Workflow.getWorkflow(activity.uuid) will return the most recent workflow rolled for that activity uuid.
+* Socketed completeActivityUse now correctly sets targets.
+    
+
+### 12.4.29
+* Fix for Utility activities to display rolls in the chat card, like other activities.
+* Fix so that auto consume is disabled when roll toggle is pressed.
+* Fix for triggered activities not being properly prepared when rolled. (Affects saving throws amongst other things).
+* Fix for reroll-with bonus not correctly looking up actor data when triggered via MTB.
+* Fix for drag and drop targeting. Now works correctly in both gridded and gridless scenes.
+* Fixes for spellSniper and sharpShooter thanks @Elwin.
+* Cast and Forward activities cannot be selected as triggered activities due to issues with targeting, once resolved they will be enabled, but only for item owner triggered activities.
+* Adjusted some flags for noAdvantage/noDisadvantage to apply to attacks and saves, checks and skill rolls.
+* Fix for MidiQOL.chooseEffect not counting down the time remaining before timeout correctly.
+For macro writers
+* Fix for forced rolls via GMAction.RollAbilityV2 not correctly setting options for the roll. Manifested in contested roll not correctly picking up the skill requested, but would also affect any automated skill rolls.
+* Fix for not passing correct workflow options to preTemplateTargets - thanks @Elwin
+* Fix for various other typos/bugs thanks @Micheal @thatlonelybugbear.
+* Slight re-organization of config settings and removal of some extra boxes on the config panel.
+* First cut of support for separate attack rolls per target for attack activities.
+* Removed support for the deprecated **system.details.race === 'notarget'** test for checking if a token is a valid target.
+  - Added support for secret tokens to be ignored in targeting by midi.
+* Removed searching item description for 1/2 "damage on save" etc, since it now must be specified in the relevant activity.
+* As a first step to making workflows survive reloads (not really started in this release).... **Major breaking** workflow.uuid is now deprecated, since it was never a uuid that could be looked up. Workflow.id is now the preferred usage (and the key into Workflow._workflows) and is the same as workflow.itemCardUuid. For a short period workflow.uuid will return workflow.itemUuid, workflow.itemUuid is preferred for fetching the workflow's item's uuid.
+
+### 12.4.28
+* Fix for contested roll when using a skill. Thanks @michael.
+* Added in some bug fix merges from @thatLonelyBugbear - thanks.
+* Fix for 1/2 damage application when base activity is a check activity.
+* New setting on activity's midi-qol tab. Display activity name - default false - if true the activity's name will be added to the chat card.
+* Fix for failing to allow a roll when out of ammunition and a new ammunition type is selected from the configure dialog.
+* Fix for flanked not being applied when targeted by non-gm.
+* Fix for edge case bug where checking flanked/flanking for large tokens included squares covered by large tokens not in contact with the target token.
+  - Adjusted flanking/flanked calculations to allow for exact distance measured worlds.
+* New midi property for activities, rollMode so that you can force an activity to roll with a particular mode. Can be useful for some overtime activities (matches the roll mode setting in old overtime effects), but applies to any midi activity.
+* Added flags.midi-qol.grants.noAdvantage/noDisadvantage.attack.all/rwak etc and deprecated (with warning) flags.midi-qol.grants.fail.advantage/disadvantage.attack.all/rwak etc.
+* New Acid Arrow included in midi sample items, which implements the whole Acid Arrow spell with no macros, and uses a combination of overtime effects and triggered activities.
+* Updated Regeneration included in sample items to use new overtime activities.
+* Corrected Spider Bite sample item.
+* New feature Overtime Activity effects. 
+  - Any midi activity may be designated as an overtime activity. (If fact any activity can be used, but it may not behave as you'd expect).
+  - There is a new midi effect flag, flags.midi-qol.ActivityOverTime (much like flags.midi-qol.overTime) which allows you to specify an activity to be called. This is either the uuid of the activity to call or the identifier of the activity on the same item as the activity applying the effect to the target. Be careful about referencing by uuid, as the activity's uuid may change if the actor/item is exported/imported to another world, compendium uuids should be fine.
+  - For example, you have a bleeding effect which does 1d4 necrotic damage at the start of the target's and then if successful DC 12 con save is made the effect is removed.
+    - Step 1. Create a Save activity (called Bleeding Save), which has a con dc of 12, and does 1d4 necrotic damage (full damage on successful save). You want the activity to target self (since it will be rolled by the actor that has the effect applied) but otherwise could be anything. Set overtime activity true, "turn start: and "save removes" on the midi properties tab for the activity.
+    - Step 2. On the item's attack activity specify an effect to apply, flags.midi-qol.ActivityOvertime and enter bleeding-save in the field (or copy and paste the Bleeding Save activity's uuid)
+  - The overtime activity's use condition will be checked before calling the overtime effect, i.e. attributes.hp.value > 0 (no point flogging a dead horse).
+  - You can create multiple overtime change entries on the same effect and they will be executed in order of the changes "turn start", then "turn end", and priority (lowest first). So you can split effects to have some run at the start of the turn and some at the end of the turn and have an assortment of remove conditions and effects.
+  - Overtime activities will use the spell level of the original cast to allow for scaling of damage in the dependent activity - disable scaling in the dependent activity if you don't want this to be applied.
+  - When creating overtime activities make sure to have them target self - most of the time that is what you want.
+  - You can include AoE activities as overtime activities (choose emanation or emanation no template to have them centered on the target token with the effect). Other target options will prompt for the placement of a template.
+  - Any activity can be chosen as a dependent activity, so you could for example summon an imp each round or force a bagpipes check each round to avoid taking damage. I've not tested all activities as dependent activities, but save, check, damage and summon have been tested.
+
+
+### 12.4.27.1
+* Fix for infinite loop.
+
+Although this is the first non-beta release midi has been working with dnd5e 4.x for more than a month so this release should be fairly solid. Please do read the following notes
+* If you have not yet migrated to v4 you **really really** should make a backup of your world before installing midi.
+* It is **strongly recommended** that when you first run the upgraded world that you disable all modules so that dnd5e can do it's best to migrate items.
+* There are likely to be issues with any items that end up having a utility effect created (this means any item that has other damage defined) so please check them once updated and midi is enabled.
+* If this is the first time you have run midi with dnd4, there are quite a lot of changes:
+  - midi now uses activities, most directly for attack activities that can also roll extra damage, such as a spider bite via an "other" activity. This replaces the previous "other damage" mechanism. 
+    - Have a look at the SRD spider bite item plus the spider bite included in the midi sample items (which shows a few tweaks).
+  - Most midi properties are being migrated from the item to activities, which is not yet complete. 
+  - Use/active effect conditions are now per activity (rather than per item - although the existing per item conditions are still supported while they are deprecated).
+    - Reaction activities check the Use condition to decide if the activity should be offered as a reaction option.
+  - Support for a triggered activity on all midi activities, which allows you to chain a new activity after the first activity is complete. Have a look at ice knife as an example use case for this.
+  - The previous mechanism for area effect items centered on the caster have been revised.
+      - Target range/self shape=radius/emanation will now auto place the template on the caster (the size of the template will scale with the size of the caster's token due to a dnd5e enhancement)
+      - Target range/self shape=radius/emanation - no template which will auto target tokens within range of the target. 
+      - To avoid targeting the caster in the template put the special target "self" in the target type setting.
+* For some items (dragon slayer, life stealer, wounding) there is a new way to mange those items. The items in the sample items compendium are "generator" items (which utilise a very clever idea from the dungeon master's guide foundry module) which allow you to drag the generator's effect (an enchantment) to a target weapon which will imbue it with the relevant changes. 
+
+### 12.4.27
+* Midi-qol has been appv2ified, due to @michael many thanks for all his work to do this.
+* Fix for tool rolls not returning the right sort of rolls and throwing errors in various cases.
+* Clean up of initiative handling to be less intrusive - uses the newish dnd5e.preConfigureInitiative hook instead.
+* Reinstated flags.dnd5e.initiativeHalfProficiency both as an active effect change and as a special traits setting.
+* Fix for onUseMacro calls triggered by postTemplatePlaced not triggering.
+* Fix for spell sniper and sharp shooter. Spell Sniper and Sharp Shooter can be set from the special traits popup on the character sheet or via active effects.
+  * flags.midi-qol.sharpShooter is deprecated in favour of flags.dnd5e.sharpShooter.
+* Midi now implements it's own flanking/flanked conditions and supports CPR's conditions if they are present in addition to continuing to support convenient effects flanking/flanked.
+  - The GM can choose to disable midi flanking/flanked checking and apply the effects by hand from the token HUD which midi will still use when rolling an attack.
+* New setting for gm/players requires an item that consumes ammunition to have at least 1 of the ammunition to be able to use the item. If insufficient ammunition exists when starting the roll configure dialog will be displayed to let you select different ammunition, if there is still insufficient ammo the item use will be aborted.
+
+Known issues
+* Roll statistics is not implemented for dnd5e v4 yet, roll statistics settings are not displayed at present
+* Active defense not working.
+
 ### 12.4.26
 * Sneak attack bonus now inherits the properties of the weapon that did the attack, i.e. magic etc.
 * Fix for untarget options getting overwritten by GM settings.
@@ -12,8 +142,8 @@
 * Using a legendary action won't be treated as a reaction when checking AoO is enabled.
 * Rolling a death save will no longer trigger an error in bonusDialog.
 * Fix for error being thrown when placing templates in some cases.
-* Renable apply damage buttons for players if set. Only targets they own will be displayed in the targets they can apply damage to.
-* Fix for reach propterty usage - still uses item's range rather than activities range.
+* Reenable apply damage buttons for players if set. Only targets they own will be displayed in the targets they can apply damage to.
+* Fix for reach property usage - still uses item's range rather than activities range.
 * A review of all the midi sample items which should work in v4.
 * Fix for shove item to use Athletics for the attacker.
 * Change so that attacks that do negative damage (i.e. healing) don't trigger isDamaged reactions.

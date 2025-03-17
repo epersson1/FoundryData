@@ -40,6 +40,9 @@ export class CustomActorSheet extends ActorSheet {
     get template() {
         return `systems/${game.system.id}/templates/actor/actor-${this.actor.type}-sheet.hbs`;
     }
+    get title() {
+        return super.title + (this.actor.templateSystem.isModified ? ' *' : '');
+    }
     /* -------------------------------------------- */
     /** @override */
     async getData() {
@@ -65,17 +68,23 @@ export class CustomActorSheet extends ActorSheet {
      * @ignore
      */
     async _renderInner(data) {
+        if (this.actor.templateSystem.isModified) {
+            this.submit();
+        }
         let html = await super._renderInner(data);
         // Append built sheet to html
         html.find('.custom-system-customHeader').append(data.headerPanel);
         html.find('.custom-system-customBody').append(data.bodyPanel);
         return html;
     }
-    async forceSubmit(...args) {
-        return super._onSubmit(...args);
-    }
-    async _onSubmit(...args) {
-        return this.actor.templateSystem.handleSheetSubmit(...args);
+    async _onSubmit(event, options) {
+        if (game.settings.get(game.system.id, 'manualEntitySaving') && event.type === 'change') {
+            return this.actor.templateSystem.handleSheetSubmit();
+        }
+        else {
+            this.actor.templateSystem.isModified = false;
+            return super._onSubmit(event, options);
+        }
     }
     /** @override */
     async _onDropItem(event, data) {
@@ -116,8 +125,9 @@ Hooks.on('renderCustomActorSheet', function (app, html, data) {
     html.find('.editor-content[data-edit]').each((i, div) => app._activateEditor(div));
     html.find('*').on('focus', (ev) => {
         focusedElt = ev.currentTarget.id;
+        globalThis.focusedApp = app.id;
     });
-    if (focusedElt) {
+    if (focusedElt && globalThis.focusedApp === app.id) {
         html.find('#' + focusedElt.replaceAll('.', '\\.')).trigger('focus');
     }
 });

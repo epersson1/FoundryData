@@ -115,6 +115,11 @@
                 }
             },
             "DynamicTable": {
+                "AddMultipleRowsDialog": {
+                    "AddMultipleRows": "Add multiple rows",
+                    "HowManyRows": "How many rows?",
+                    "RowCountError": "Row count should be a positive integer."
+                },
                 "CanAddRow": "Can players add rows in the table?",
                 "ConfirmDialogOnDelete": "Show confirmation dialog on row delete",
                 "DeleteRowDialog": {
@@ -158,6 +163,7 @@
                 }
             },
             "InputComponent": {
+                "CustomSizeInvalid": "Custom size must be an integer greater or equal to 5",
                 "Label": "Label"
             },
             "ItemContainer": {
@@ -294,6 +300,8 @@
             },
             "Size": {
                 "Auto": "Auto",
+                "Custom": "Custom",
+                "CustomSizeTitle": "Custom size",
                 "Gigantic": "Gigantic",
                 "Large": "Large",
                 "Larger": "Larger",
@@ -430,10 +438,6 @@
                 "Name": "Show hidden rolls",
                 "Hint": "This setting will show the hidden rolls to GMs for verification purposes."
             },
-            "DelayEntitySaving": {
-                "Name": "Delay entity saving",
-                "Hint": "On big sheets, you may want to delay entity saving if sheet reloading takes too much time. This will wait until fields are deselected before saving everything at once."
-            },
             "LoggingLevel": {
                 "Name": "System Logging Level",
                 "Hint": "Will log everything below the set level. On big systems, setting this on debug can slow down the interface.",
@@ -453,6 +457,10 @@
             "MinimumRoleTemplateReload": {
                 "Name": "Minimum Role to reload a sheet",
                 "Hint": "The minimum role required to select a Template and reload a Sheet."
+            },
+            "ManualEntitySaving": {
+                "Name": "Manual entity saving",
+                "Hint": "On big sheets, you may want to disable automatic entity saving if sheet reloading takes too much time. This will add a save button to the sheets to manually save them. The sheets will be automatically saved when a linked item is added, deleted or saved, or when it is closed."
             }
         },
         "Sheets": {

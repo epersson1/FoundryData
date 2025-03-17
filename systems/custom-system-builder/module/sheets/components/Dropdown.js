@@ -156,6 +156,7 @@ class Dropdown extends InputComponent {
             formulaKeyOptions: json.formulaKeyOptions,
             formulaLabelOptions: json.formulaLabelOptions,
             size: json.size,
+            customSize: json.customSize,
             cssClass: json.cssClass,
             role: json.role,
             permission: json.permission,
@@ -254,6 +255,21 @@ class Dropdown extends InputComponent {
                     break;
             }
         });
+        $(html)
+            .find('#selectSize')
+            .on('change', (event) => {
+            const target = $(event.currentTarget);
+            const customSizeBlock = $('.custom-system-size-custom');
+            const slideValue = 200;
+            switch (target.val()) {
+                case 'custom':
+                    customSizeBlock.slideDown(slideValue);
+                    break;
+                default:
+                    customSizeBlock.slideUp(slideValue);
+                    break;
+            }
+        });
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -311,6 +327,9 @@ class Dropdown extends InputComponent {
             formulaKeyOptions: formulaKeyOptions,
             formulaLabelOptions: formulaLabelOptions
         };
+        if (fieldData.size === 'custom') {
+            fieldData.customSize = parseInt(String(html.find('#selectCustomSize').val()));
+        }
         this.validateConfig(fieldData);
         return fieldData;
     }

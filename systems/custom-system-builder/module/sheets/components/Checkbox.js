@@ -88,6 +88,7 @@ class Checkbox extends InputComponent {
             templateAddress: templateAddress,
             label: json.label,
             size: json.size,
+            customSize: json.customSize,
             defaultChecked: json.defaultChecked,
             cssClass: json.cssClass,
             role: json.role,
@@ -124,6 +125,24 @@ class Checkbox extends InputComponent {
         }));
         return mainElt;
     }
+    /** Attaches event-listeners to the html of the config-form */
+    static attachListenersToConfigForm(html) {
+        $(html)
+            .find('#checkboxSize')
+            .on('change', (event) => {
+            const target = $(event.currentTarget);
+            const customSizeBlock = $('.custom-system-size-custom');
+            const slideValue = 200;
+            switch (target.val()) {
+                case 'custom':
+                    customSizeBlock.slideDown(slideValue);
+                    break;
+                default:
+                    customSizeBlock.slideUp(slideValue);
+                    break;
+            }
+        });
+    }
     /**
      * Extracts configuration from submitted HTML form
      * @param html The submitted form
@@ -137,6 +156,9 @@ class Checkbox extends InputComponent {
             size: html.find('#checkboxSize').val()?.toString() ?? 'full-size',
             defaultChecked: html.find('#checkboxDefaultChecked').is(':checked')
         };
+        if (fieldData.size === 'custom') {
+            fieldData.customSize = parseInt(String(html.find('#checkboxCustomSize').val()));
+        }
         this.validateConfig(fieldData);
         return fieldData;
     }

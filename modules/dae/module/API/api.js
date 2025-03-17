@@ -10,7 +10,7 @@ import { ValidSpec, wildcardEffects } from '../Systems/DAESystem.js';
 import { enumerateBaseValues } from '../dae.js';
 const API = {
     ActiveEffects(object = {}, options = {}) {
-        return new ActiveEffects(object, options);
+        return new ActiveEffects({ document: object });
     },
     addAutoFields(fields) {
         return addAutoFields(fields);

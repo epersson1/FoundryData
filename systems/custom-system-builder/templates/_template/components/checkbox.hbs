@@ -16,6 +16,14 @@
     </select>
 </div>
 
+<div class="custom-system-size-custom" style="{{#unless (eq size "custom")}}display:none{{/unless}}">
+    <div class='custom-system-form-field'>
+        <label for='checkboxCustomSize'>{{localize 'CSB.ComponentProperties.Size.CustomSizeTitle'}}*</label>
+        <input id='checkboxCustomSize' data-key='customSize' type="number" value="{{customSize}}" />
+    </div>
+</div>
+
+
 <div class='custom-system-form-field'>
     <label for='checkboxDefaultChecked'>{{localize 'CSB.ComponentProperties.CheckedByDefault'}}</label>
     <input id='checkboxDefaultChecked' type='checkbox' data-key='defaultChecked' {{checked defaultChecked}} />

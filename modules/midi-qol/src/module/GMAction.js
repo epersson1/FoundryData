@@ -1,6 +1,6 @@
 import { checkRule, configSettings, safeGetGameSetting } from "./settings.js";
 import { i18n, log, warn, gameStats, getCanvas, error, debugEnabled, debugCallTiming, debug, GameSystemConfig, MODULE_ID } from "../midi-qol.js";
-import { canSense, completeItemUse, getToken, getTokenDocument, gmOverTimeEffect, fromActorUuid, MQfromUuidSync, promptReactions, hasUsedAction, hasUsedBonusAction, hasUsedReaction, removeActionUsed, removeBonusActionUsed, removeReactionUsed, isEffectExpired, expireEffects, getAppliedEffects, CERemoveEffect, CEAddEffectWith, getActor, completeItemUseV2, completeActivityUse } from "./utils.js";
+import { canSense, completeItemUse, getToken, getTokenDocument, gmOverTimeEffect, fromActorUuid, promptReactions, hasUsedAction, hasUsedBonusAction, hasUsedReaction, removeActionUsed, removeBonusActionUsed, removeReactionUsed, isEffectExpired, expireEffects, getAppliedEffects, CERemoveEffect, CEAddEffectWith, getActor, completeItemUseV2, completeActivityUse, localActivityOverTimeEffect, isValidTarget } from "./utils.js";
 import { ddbglPendingFired } from "./chatMessageHandling.js";
 import { Workflow } from "./Workflow.js";
 import { bonusCheck } from "./patching.js";
@@ -27,7 +27,7 @@ export let setupSocket = () => {
 	socketlibSocket.register("confirmDamageRollCompleteMiss", confirmDamageRollCompleteMiss);
 	socketlibSocket.register("cancelWorkflow", cancelWorkflow);
 	socketlibSocket.register("createActor", createActor);
-	socketlibSocket.register("createChatMessage", createChatMessage);
+	socketlibSocket.register("createChatMessage", _createChatMessage);
 	socketlibSocket.register("createEffects", createEffects);
 	socketlibSocket.register("createReverseDamageCard", createReverseDamageCard);
 	socketlibSocket.register("D20Roll", _D20Roll);
@@ -37,7 +37,7 @@ export let setupSocket = () => {
 	socketlibSocket.register("deleteItemEffects", deleteItemEffects);
 	socketlibSocket.register("deleteToken", deleteToken);
 	socketlibSocket.register("gmOverTimeEffect", _gmOverTimeEffect);
-	socketlibSocket.register("log", log);
+	socketlibSocket.register("localActivityOverTimeEffect", _localActivityOverTimeEffect);
 	socketlibSocket.register("monksTokenBarSaves", monksTokenBarSaves);
 	socketlibSocket.register("moveToken", _moveToken);
 	socketlibSocket.register("moveTokenAwayFromPoint", _moveTokenAwayFromPoint);
@@ -63,6 +63,7 @@ export let setupSocket = () => {
 	socketlibSocket.register("updateUndoChatCardUuidsById", updateUndoChatCardUuidsById);
 	socketlibSocket.register("removeActionBonusReaction", removeActionBonusReaction);
 	socketlibSocket.register("rollActionSave", rollActionSave);
+	socketlibSocket.register("toggleStatusEffect", _toggleStatusEffect);
 	// socketlibSocket.register("canSense", _canSense);
 };
 async function _removeWorkflow(workflowId) {
@@ -99,6 +100,7 @@ export class SaferSocket {
 			case "rollConcentration":
 			case "removeEffect":
 			case "removeActionBonusReaction":
+			case "toggleStatusEffect":
 				return true;
 			case "addConvenientEffect":
 			case "createActor":
@@ -137,7 +139,7 @@ export class SaferSocket {
 	async executeAsGM(handler, ...args) {
 		if (!this.canCall(handler))
 			return false;
-		return await untimedExecuteAsGM(handler, ...args);
+		return await unTimedExecuteAsGM(handler, ...args);
 	}
 	async executeAsUser(handler, userId, ...args) {
 		if (!this.canCall(handler))
@@ -170,7 +172,7 @@ export class SaferSocket {
 		return await this.#_socketlibSocket.executeForUsers(handler, recipients, ...args);
 	}
 }
-export async function removeActionBonusReaction(data) {
+async function removeActionBonusReaction(data) {
 	const actor = fromActorUuid(data.actorUuid);
 	if (!actor)
 		return;
@@ -184,10 +186,11 @@ export async function removeActionBonusReaction(data) {
 }
 // Remove a single effect. Allow anyone to call this.
 async function _removeEffect(data) {
-	const effect = MQfromUuidSync(data.effectUuid);
+	const effect = fromUuidSync(data.effectUuid);
 	if (!effect)
 		return;
-	return effect.delete();
+	//@ts-expect-error
+	return effect.delete({});
 }
 async function _removeCEEffect(data) {
 	return CERemoveEffect({ effectName: data.effectName, uuid: data.uuid });
@@ -197,8 +200,8 @@ async function _removeCEEffect(data) {
 async function cancelWorkflow(data) {
 	const workflow = Workflow.getWorkflow(data.workflowId);
 	if (workflow?.itemCardUuid !== data.itemCardUuid) {
-		// @ts-expect-error
 		const itemCard = await fromUuid(data.itemCardUuid);
+		//@ts-expect-error
 		if (itemCard)
 			itemCard.delete();
 		return undefined;
@@ -208,26 +211,15 @@ async function cancelWorkflow(data) {
 	return undefined;
 }
 async function confirmDamageRollComplete(data) {
-	// @ts-expect-error
-	const itemCard = fromUuidSync(data.itemCardUuid);
-	// @ts-expect-error
-	let activity = fromUuidSync(data.activityUuid);
-	let workflow = Workflow.getWorkflow(data.activityUuid);
-	if (!activity && itemCard) // no activity means it was a synthetic item's activity
-		// @ts-expect-error no dnd5e-types
-		activity = itemCard.getAssociatedActivity(); // recover the activity from the chat message item data
-	// @ts-expect-error
-	if (!workflow)
-		workflow = activity?.workflow;
+	const workflow = Workflow.getWorkflow(data.workflowId);
+	const activity = workflow?.activity;
 	if (!workflow || workflow.itemCardUuid !== data.itemCardUuid) {
-		/* Confirm this needs to be awaited
-		*/
-		Workflow.removeItemCardAttackDamageButtons(data.itemCardId, { removeAttackButtons: true, removeDamageButtons: true }).then(() => Workflow.removeItemCardConfirmRollButton(data.itemCardId));
+		// Confirm this needs to be awaited
+		Workflow.removeItemCardButtons(data.itemCardId, { removeAttackButtons: true, removeDamageButtons: true, removeConfirmButtons: true });
 		return undefined;
 	}
 	const hasHits = workflow.hitTargets.size > 0 || workflow.hitTargetsEC.size > 0;
 	if ((workflow.currentAction === workflow.WorkflowState_AttackRollComplete) || hasHits &&
-		// @ts-expect-error no dnd5e-types
 		activity?.hasDamage && (!workflow.damageRoll || workflow.currentAction !== workflow.WorkflowState_ConfirmRoll)) {
 		return "midi-qol | You must roll damage before completing the roll - you can only confirm miss until then";
 	}
@@ -239,22 +231,12 @@ async function confirmDamageRollComplete(data) {
 	return workflow.performState(workflow.WorkflowState_RollConfirmed);
 }
 async function confirmDamageRollCompleteHit(data) {
-	// @ts-expect-error
-	const itemCard = fromUuidSync(data.itemCardUuid);
-	// @ts-expect-error
-	let activity = fromUuidSync(data.activityUuid);
-	let workflow = Workflow.getWorkflow(data.activityUuid);
-	if (!activity && itemCard) // no activity means it was a synthetic item's activity
-		// @ts-expect-error no dnd5e-types
-		activity = itemCard.getAssociatedActivity(); // recover the activity from the chat message item data
-	// @ts-expect-error
-	if (!workflow)
-		workflow = activity?.workflow;
+	const workflow = Workflow.getWorkflow(data.workflowId);
+	const activity = workflow?.activity;
 	if (!workflow || workflow.itemCardUuid !== data.itemCardUuid) {
-		Workflow.removeItemCardAttackDamageButtons(data.itemCardId, { removeAttackButtons: true, removeDamageButtons: true }).then(() => Workflow.removeItemCardConfirmRollButton(data.itemCardId));
+		Workflow.removeItemCardButtons(data.itemCardId, { removeAttackButtons: true, removeDamageButtons: true, removeConfirmButtons: true });
 		return undefined;
 	}
-	// @ts-expect-error no dnd5e-types
 	if ((activity?.hasDamage && !workflow.damageRoll) ||
 		workflow.currentAction !== workflow.WorkflowState_ConfirmRoll) {
 		return "midi-qol | You must roll damage before completing the roll - you can only confirm miss until then";
@@ -279,21 +261,12 @@ async function confirmDamageRollCompleteHit(data) {
 	return await workflow.performState(workflow.WorkflowState_RollConfirmed);
 }
 async function confirmDamageRollCompleteMiss(data) {
-	// @ts-expect-error
-	const itemCard = fromUuidSync(data.itemCardUuid);
-	// @ts-expect-error
-	let activity = fromUuidSync(data.activityUuid);
-	let workflow = Workflow.getWorkflow(data.activityUuid);
-	if (!activity && itemCard) // no activity means it was a synthetic item's activity
-		// @ts-expect-error no dnd5e-types
-		activity = itemCard.getAssociatedActivity(); // recover the activity from the chat message item data
-	// @ts-expect-error
-	if (!workflow)
-		workflow = activity?.workflow;
+	const workflow = Workflow.getWorkflow(data.workflowId);
+	const activity = workflow?.activity;
 	if (!workflow || workflow.itemCardUuid !== data.itemCardUuid) {
 		/* Confirm this needs to be awaited
 		*/
-		Workflow.removeItemCardAttackDamageButtons(data.itemCardId, { removeDamageButtons: true, removeAttackButtons: true }).then(() => Workflow.removeItemCardConfirmRollButton(data.itemCardId));
+		Workflow.removeItemCardButtons(data.itemCardId, { removeDamageButtons: true, removeAttackButtons: true, removeConfirmButtons: true });
 		return undefined;
 	}
 	if (workflow.hitTargets.size > 0 || workflow.hitTargetsEC.size > 0) {
@@ -315,7 +288,7 @@ async function confirmDamageRollCompleteMiss(data) {
 function paranoidCheck(action, actor, data) {
 	return true;
 }
-export async function removeEffects(data) {
+async function removeEffects(data) {
 	debug("removeEffects started");
 	let removeFunc = async () => {
 		try {
@@ -335,12 +308,12 @@ export async function removeEffects(data) {
 			warn("removeFunc: remove effects completed");
 		}
 	};
-	// Using the seamphore queue leads to quite a few potential cases of deadlock - disabling for now
+	// Using the semaphore queue leads to quite a few potential cases of deadlock - disabling for now
 	// if (globalThis.DAE?.actionQueue) return globalThis.DAE.actionQueue.add(removeFunc)
 	// else return removeFunc();
 	return removeFunc();
 }
-export async function removeEffectUuids(data) {
+async function removeEffectUuids(data) {
 	debug("removeEffects started");
 	let removeFunc = async () => {
 		try {
@@ -365,7 +338,7 @@ export async function removeEffectUuids(data) {
 	// else return removeFunc();
 	return removeFunc();
 }
-export async function createEffects(data) {
+async function createEffects(data) {
 	const actor = fromActorUuid(data.actorUuid);
 	for (let effect of data.effects) { // override default foundry behaviour of blank being transfer
 		if (effect.transfer === undefined)
@@ -373,26 +346,30 @@ export async function createEffects(data) {
 	}
 	return await actor?.createEmbeddedDocuments("ActiveEffect", data.effects, data.options);
 }
-export async function updateEffects(data) {
+async function updateEffects(data) {
 	const actor = fromActorUuid(data.actorUuid);
 	return actor?.updateEmbeddedDocuments("ActiveEffect", data.updates);
 }
-export function removeActorStats(data) {
+async function _toggleStatusEffect(data) {
+	const actor = fromActorUuid(data.actorUuid);
+	return actor.toggleStatusEffect(data.statusId, data.options);
+}
+function removeActorStats(data) {
 	return gameStats.GMremoveActorStats(data.actorId);
 }
-export function GMupdateEntityStats(data) {
+function GMupdateEntityStats(data) {
 	return gameStats.GMupdateEntity(data);
 }
 export async function timedExecuteAsGM(toDo, data) {
 	if (!debugCallTiming)
-		return untimedExecuteAsGM(toDo, data);
+		return unTimedExecuteAsGM(toDo, data);
 	const start = Date.now();
 	data.playerId = game.user?.id;
-	const returnValue = await untimedExecuteAsGM(toDo, data);
+	const returnValue = await unTimedExecuteAsGM(toDo, data);
 	log(`executeAsGM: ${toDo} elapsed: ${Date.now() - start}ms`);
 	return returnValue;
 }
-export async function untimedExecuteAsGM(toDo, ...args) {
+export async function unTimedExecuteAsGM(toDo, ...args) {
 	if (!socketlibSocket)
 		return undefined;
 	const myScene = game.user?.viewedScene;
@@ -404,30 +381,30 @@ export async function untimedExecuteAsGM(toDo, ...args) {
 }
 export async function timedAwaitExecuteAsGM(toDo, data) {
 	if (!debugCallTiming)
-		return await untimedExecuteAsGM(toDo, data);
+		return await unTimedExecuteAsGM(toDo, data);
 	const start = Date.now();
-	const returnValue = await untimedExecuteAsGM(toDo, data);
+	const returnValue = await unTimedExecuteAsGM(toDo, data);
 	log(`await executeAsGM: ${toDo} elapsed: ${Date.now() - start}ms`);
 	return returnValue;
 }
-export async function _gmUnsetFlag(data) {
-	let actor = MQfromUuidSync(data.actorUuid);
+async function _gmUnsetFlag(data) {
+	let actor = fromUuidSync(data.actorUuid);
 	actor = actor.actor ?? actor;
 	if (!actor)
 		return undefined;
 	return actor.unsetFlag(data.base, data.key);
 }
-export async function _gmSetFlag(data) {
-	let actor = MQfromUuidSync(data.actorUuid);
+async function _gmSetFlag(data) {
+	let actor = fromUuidSync(data.actorUuid);
 	actor = actor.actor ?? actor;
 	if (!actor)
 		return undefined;
 	return actor.setFlag(data.base, data.key, data.value);
 }
 // Seems to work doing it on the client instead.
-export async function _canSense(data) {
-	const token = MQfromUuidSync(data.tokenUuid)?.object;
-	const target = MQfromUuidSync(data.targetUuid)?.object;
+async function _canSense(data) {
+	const token = fromUuidSync(data.tokenUuid)?.object;
+	const target = fromUuidSync(data.targetUuid)?.object;
 	if (!target || !token)
 		return true;
 	const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
@@ -445,19 +422,33 @@ export async function _canSense(data) {
 			rotation: token.document.rotation,
 			visionMode: token.document.sight.visionMode,
 			color: globalThis.Color.from(token.document.sight.color),
+			//@ts-expect-error TODO check isPreview
 			isPreview: !!token._original,
 			blinded: token.document.hasStatusEffect(CONFIG.specialStatusEffects.BLIND)
 		});
 	}
 	return await canSense(token, target);
 }
-export async function _gmOverTimeEffect(data) {
+async function _gmOverTimeEffect(data) {
 	const actor = fromActorUuid(data.actorUuid);
-	const effect = MQfromUuidSync(data.effectUuid);
-	log("Called _gmOvertime", actor.name, effect.name);
+	const effect = fromUuidSync(data.effectUuid);
+	log("Called _gmOvertime", actor?.name, effect?.name);
 	return gmOverTimeEffect(actor, effect, data.startTurn, data.options);
 }
-export async function _bonusCheck(data) {
+async function _localActivityOverTimeEffect(data) {
+	const actor = await fromUuid(data.actorUuid);
+	const effect = await fromUuid(data.effectUuid);
+	if (!actor || !effect) {
+		const message = `localActivityOverTimeEffect | actor or effect not found actor: ${data.actorUuid} effect: ${data.effectUuid}`;
+		console.error(message);
+		TroubleShooter.recordError(new Error("GMAction failed"), message);
+		return undefined;
+	}
+	;
+	log("Called _localActivityOverTimeEffect", actor?.name, effect?.name);
+	return localActivityOverTimeEffect(actor, effect, data.startTurn, data.options);
+}
+async function _bonusCheck(data) {
 	const tokenOrActor = await fromUuid(data.actorUuid);
 	const actor = tokenOrActor?.actor ?? tokenOrActor;
 	const roll = Roll.fromJSON(data.result);
@@ -466,12 +457,12 @@ export async function _bonusCheck(data) {
 	else
 		return null;
 }
-export async function _applyEffects(data) {
+async function _applyEffects(data) {
 	let result;
 	try {
 		const workflow = Workflow.getWorkflow(data.workflowId);
 		if (!workflow)
-			return result;
+			throw new Error(`_applyEffects | workflowId: ${data.workflowId} - workflow not found`);
 		workflow.forceApplyEffects = true;
 		const targets = new Set();
 		//@ts-ignore
@@ -497,9 +488,13 @@ async function _completeActivityUse(data) {
 	let actor = await fromUuid(actorUuid);
 	if (actor.actor)
 		actor = actor.actor;
+	if (config.midiOptions?.targetsToUse) {
+		const targets = config.midiOptions.targetsToUse.map(t => fromUuidSync(t)).filter(t => isValidTarget(t));
+		config.midiOptions.targetsToUse = new Set(targets);
+	}
 	const workflow = await completeActivityUse(activityUuid, config, dialog, message);
 	if (data.config.midiOptions?.workflowData)
-		return workflow?.getMacroData({ noWorkflowReference: true }); // can't return the workflow
+		return workflow?.getMacroData();
 	else
 		return true;
 }
@@ -521,7 +516,7 @@ async function _completeItemUseV2(data) {
 	ownedItem.applyActiveEffects();
 	const workflow = await completeItemUseV2(ownedItem, config, dialog, message);
 	if (data.config?.midiOptions?.workflowData)
-		return workflow.getMacroData({ noWorkflowReference: true }); // can't return the workflow
+		return workflow.getMacroData();
 	else
 		return true;
 }
@@ -543,18 +538,20 @@ async function _completeItemUse(data) {
 	ownedItem.applyActiveEffects();
 	const workflow = await completeItemUse(ownedItem, config, options);
 	if (data.options?.workflowData)
-		return workflow.getMacroData({ noWorkflowReference: true }); // can't return the workflow
+		return workflow.getMacroData();
 	else
 		return true;
 }
 async function updateActor(data) {
-	let actor = MQfromUuidSync(data.actorUuid);
+	let actor = fromUuidSync(data.actorUuid);
 	if (!actor)
 		return;
 	if (data.actorData) {
-		console.warn(`midi-qol | updateActor actorData deprecated. Call await MidiQOL.socket().execuateAsGM("updateActor"({ updates }) instead`);
+		console.warn(`midi-qol | updateActor actorData deprecated. Call await MidiQOL.socket().executeAsGM("updateActor"({ updates }) instead`);
+		// @ts-expect-error types has update data as never
 		await actor.update(data.actorData);
 	}
+	//@ts-expect-error types has update data as never
 	if (data.updates)
 		await actor.update(data.updates);
 }
@@ -567,21 +564,24 @@ async function deleteToken(data) {
 	// @ts-expect-error
 	const token = await fromUuid(data.tokenUuid);
 	if (token) { // token will be a token document.
+		//@ts-expect-error
 		token.delete();
 	}
 }
-export async function deleteEffectsByUuid(data) {
+async function deleteEffectsByUuid(data) {
 	for (let effectUuid of data.effectsToDelete) {
-		const effect = MQfromUuidSync(effectUuid);
+		const effect = fromUuidSync(effectUuid);
 		if (effect !== undefined && !isEffectExpired(effect)) {
 			if (effect.transfer)
+				//@ts-expect-error
 				await effect.update({ disabled: true });
 			else
+				//@ts-expect-error
 				await effect.delete();
 		}
 	}
 }
-export async function deleteEffects(data) {
+async function deleteEffects(data) {
 	const actor = fromActorUuid(data.actorUuid);
 	if (!actor)
 		return;
@@ -602,14 +602,14 @@ export async function deleteEffects(data) {
 		return [];
 	}
 }
-export async function deleteItemEffects(data) {
+async function deleteItemEffects(data) {
 	debug("deleteItemEffects: started", globalThis.DAE?.actionQueue);
 	let deleteFunc = async () => {
 		let effectsToDelete;
 		try {
 			let { targets, origin, ignore, options } = data;
 			for (let idData of targets) {
-				let actor = idData.tokenUuid ? fromActorUuid(idData.tokenUuid) : idData.actorUuid ? MQfromUuidSync(idData.actorUuid) : undefined;
+				let actor = idData.tokenUuid ? fromActorUuid(idData.tokenUuid) : idData.actorUuid ? fromUuidSync(idData.actorUuid) : undefined;
 				if (actor?.actor)
 					actor = actor.actor;
 				if (!actor) {
@@ -677,21 +677,23 @@ async function addConvenientEffect(options) {
 	// await game.dfreds.effectInterface?.addEffect({ effectName, uuid: actorUuid, origin });
 }
 async function _addDependent(data) {
-	const document = MQfromUuidSync(data.documentUuid);
+	const document = fromUuidSync(data.documentUuid);
+	// @ts-expect-error .addDependent
 	if (!document || !document.addDependent) {
 		console.error("GMAction.addDependent | document not found or does not support addDependent", data.documentUuid);
 		return undefined;
 	}
-	const dependent = MQfromUuidSync(data.dependentUuid);
+	const dependent = fromUuidSync(data.dependentUuid);
 	if (!dependent) {
 		console.error("GMAction.addDependent | dependent not found", data.dependentUuid);
 		return undefined;
 	}
+	//@ts-expect-error .addDependent
 	return document.addDependent(dependent);
 }
 async function localDoReactions(data) {
 	if (data.options.itemUuid) {
-		data.options.item = MQfromUuidSync(data.options.itemUuid);
+		data.options.item = fromUuidSync(data.options.itemUuid);
 	}
 	// reactonItemUuidList can't used since magic items don't have a uuid, so must always look them up locally.
 	const result = await promptReactions(data.tokenUuid, data.reactionActivityList, data.triggerTokenUuid, data.reactionFlavor, data.triggerType, data.options);
@@ -707,12 +709,12 @@ export function initGMActionSetup() {
 	traitList.dr = "dr";
 	traitList.dv = "dv";
 }
-export async function createChatMessage(data) {
+async function _createChatMessage(data) {
 	const messageData = foundry.utils.getProperty(data, "chatData.messageData") ?? {};
 	messageData.user = game.user?.id;
 	return await ChatMessage.create(data.chatData);
 }
-export async function _D20Roll(data) {
+async function _D20Roll(data) {
 	const actor = fromActorUuid(data.targetUuid);
 	if (!actor) {
 		error(`GMAction.D20Roll | no actor for ${data.targetUuid}`);
@@ -744,12 +746,13 @@ export async function _D20Roll(data) {
 		resolve(result ?? {});
 	});
 }
-export async function rollConcentration(data) {
-	const actor = MQfromUuidSync(data.actorUuid);
+async function rollConcentration(data) {
+	const actor = fromUuidSync(data.actorUuid);
 	if (!actor) {
 		error(`GMAction.rollConcentration | no actor for ${data.actorUuid}`);
 		return {};
 	}
+	//@ts-expect-error no dnd5e types
 	return actor.rollConcentration({ target: data.target, legacy: false }, {}, { create: data.create, whisper: data.whisper, rollMode: data.rollMode });
 }
 async function rollAbilityV2(data) {
@@ -774,30 +777,30 @@ workflowOptions: object
 workflowId: string
 
 */
-	let config = { midiOptions: data.options };
-	switch (data.request) {
-		case "save":
-			config.ability = data.ability;
-			break;
-		case "check":
-			config.ability = data.ability;
-			break;
-		case "skill":
-			config.skill = data.ability;
-			break;
-		case "tool":
-			config.tool = data.ability;
-			break;
-	}
-	;
+	let config = { midiOptions: data.options, advantage: data.advantage, disadvantage: data.disadvantage, isMagicSave: data.isMagicSave, isConcentrationCheck: data.isConcentrationCheck, rollDC: data.rollDC, saveItemUuid: data.saveItemUuid, workflowOptions: data.workflowOptions, workflowId: data.workflowId };
+	if (data.ability)
+		config.ability = data.ability;
+	if (data.skill)
+		config.skill = data.skill;
+	if (data.tool)
+		config.tool = data.tool;
+	if (data.proficiency)
+		config.prof = data.proficiency;
 	let dialog = { configure: !data.options.fastForward };
-	let message = { create: data.options.chatMessage };
+	let message = { create: data.options.chatMessage ?? data.options.create, rollMode: data.options.rollMode };
 	if (data.request === "tool") {
-		const requestedTool = data.ability;
-		const tool = actor.items.find(i => i.type === "tool" && i.system.type.baseItem === requestedTool);
+		const requestedTool = data.tool;
+		let tool = actor.items.get(data.options.itemId);
+		if (!tool)
+			tool = actor.items.find(i => i.type === "tool" && i.system.type.baseItem === requestedTool);
 		if (!tool) { // no tool of the requested type - auto fail
 			//@ts-expect-error
 			return [await new CONFIG.Dice.D20Roll("-1").roll()];
+		}
+		else {
+			config.bonus = tool?.system.bonus ?? 0;
+			config.prof = tool?.system.prof;
+			config.item = tool;
 		}
 	}
 	return new Promise(async (resolve) => {
@@ -820,7 +823,7 @@ workflowId: string
 		if (data.request === "save")
 			result = await actor.rollSavingThrow(config, dialog, message);
 		else if (data.request === "check")
-			result = await actor.rollAbilityTest(config, dialog, message);
+			result = await actor.rollAbilityCheck(config, dialog, message);
 		else if (data.request === "skill")
 			result = await actor.rollSkill(config, dialog, message);
 		else if (data.request === "tool")
@@ -830,7 +833,7 @@ workflowId: string
 		resolve(result ?? {});
 	});
 }
-export async function rollAbility(data) {
+async function rollAbility(data) {
 	if (data.request === "abil")
 		data.request = "check";
 	if (data.request === "test")
@@ -868,7 +871,7 @@ export async function rollAbility(data) {
 		resolve(result ?? {});
 	});
 }
-export function monksTokenBarSaves(data) {
+function monksTokenBarSaves(data) {
 	// let tokens = data.tokens.map((tuuid: any) => new Token(MQfromUuid(tuuid)));
 	// TODO come back and see what things can be passed to this.
 	//@ts-ignore MonksTokenBar
@@ -911,7 +914,7 @@ async function prepareDamageListItems(data, templateData, tokenIdList, createPro
 		let tokenDocument;
 		let actor;
 		if (tokenUuid) {
-			tokenDocument = MQfromUuidSync(tokenUuid);
+			tokenDocument = fromUuidSync(tokenUuid);
 			actor = tokenDocument?.actor ?? tokenDocument ?? fromActorUuid(actorUuid);
 		}
 		else
@@ -973,7 +976,7 @@ async function prepareDamageListItems(data, templateData, tokenIdList, createPro
 			if (createPromises && doHits && (data.autoApplyDamage.includes("yes") || data.forceApply)) {
 				//recover the options used when calculating the damage
 				if (Hooks.call("dnd5e.preApplyDamage", actor, amount, updates, damageItem.calcDamageOptions ?? {}) !== false) {
-					// The actopr update - when no changes are made will update the passed options with a target
+					// The actor update - when no changes are made will update the passed options with a target
 					await actor.update(updates, foundry.utils.mergeObject(damageItem.calcDamageOptions, data.updateOptions ?? {}, { inplace: false }));
 					Hooks.call("dnd5e.applyDamage", actor, amount, damageItem.calcDamageOptions ?? {});
 				}
@@ -1117,7 +1120,7 @@ async function createPlayerDamageCard(data) {
 			speaker: { scene: getCanvas()?.scene?.id, alias: data.charName, user: game.user?.id, actor: data.actorId },
 			content: content,
 			// whisper: ChatMessage.getWhisperRecipients("players").filter(u => u.active).map(u => u.id),
-			flags: { "midiqol": { "undoDamage": prepareDamagelistToJSON(tokenIdList) } }
+			flags: { "midiqol": { "undoDamage": prepareDamageListToJSON(tokenIdList) } }
 		};
 		chatData.style = CONST.CHAT_MESSAGE_STYLES.OTHER;
 		if (data.flagTags)
@@ -1154,7 +1157,7 @@ async function createGMReverseDamageCard(data, doHits = true) {
 			speaker: { scene: getCanvas()?.scene?.id, alias: game.user?.name, user: game.user?.id },
 			content: content,
 			whisper: ChatMessage.getWhisperRecipients("GM").filter(u => u.active).map(u => u.id),
-			flags: { "midiqol": { "undoDamage": prepareDamagelistToJSON(tokenIdList) } }
+			flags: { "midiqol": { "undoDamage": prepareDamageListToJSON(tokenIdList) } }
 		};
 		chatData.style = CONST.CHAT_MESSAGE_STYLES.OTHER;
 		if (data.flagTags)
@@ -1170,10 +1173,10 @@ export let processUndoDamageCard = (message, html, data) => {
 	let button = html.find("#all-reverse");
 	button.click((ev) => {
 		(async () => {
-			const undoDamageData = foundry.utils.getProperty(message, "flags.midiqol.undoDamage");
+			const undoDamageData = recoverDamageListFromJSON(foundry.utils.getProperty(message, "flags.midiqol.undoDamage"));
 			if (undoDamageData)
 				for (let { actorUuid, oldTempHP, oldHP, totalDamage, newHP, newTempHP, oldVitality, newVitality, damageDetail, updateOptions, calcDamageOptions } of undoDamageData) {
-					recoverDamageDetailFromJSON(damageDetail);
+					// recoverDamageDetailFromJSON(damageDetail);
 					if (!actorUuid)
 						continue;
 					const applyButton = html.find(`#apply-${actorUuid.replaceAll(".", "")}`);
@@ -1183,9 +1186,9 @@ export let processUndoDamageCard = (message, html, data) => {
 					reverseButton.children()[0].classList.remove("midi-qol-enable-damage-button");
 					reverseButton.children()[0].classList.add("midi-qol-disable-damage-button");
 					let actor = fromActorUuid(actorUuid);
-					log(`Setting HP back to ${oldTempHP} and ${oldHP}`, actor);
+					log(`Setting HP back to ${oldTempHP} and ${oldHP} ${actor.name} ${actorUuid}`);
 					const update = { "system.attributes.hp.temp": oldTempHP ?? 0, "system.attributes.hp.value": oldHP ?? 0 };
-					// const context = foundry.utils.mergeObject(message.flags.midiqol.updateContext ?? {}, { dhp: (oldHP ?? 0) - (actor.system.attributes.hp.value ?? 0), damageDetail }, { inplace: false });
+					// const context = foundry.utils.mergeObject(message.flags.midi-qol.updateContext ?? {}, { dhp: (oldHP ?? 0) - (actor.system.attributes.hp.value ?? 0), damageDetail }, { inplace: false });
 					const vitalityResource = checkRule("vitalityResource");
 					if (typeof vitalityResource === "string" && foundry.utils.getProperty(actor, vitalityResource.trim()) !== undefined) {
 						update[vitalityResource.trim()] = oldVitality;
@@ -1199,7 +1202,7 @@ export let processUndoDamageCard = (message, html, data) => {
 	button = html.find("#all-apply");
 	button.click((ev) => {
 		(async () => {
-			const undoDamageData = foundry.utils.getProperty(message, "flags.midiqol.undoDamage");
+			const undoDamageData = recoverDamageListFromJSON(foundry.utils.getProperty(message, "flags.midiqol.undoDamage"));
 			if (undoDamageData)
 				for (let { actorUuid, oldTempHP, oldHP, totalDamage, newHP, newTempHP, damageDetail, updateOptions, calcDamageOptions, oldVitality, newVitality } of undoDamageData) {
 					if (!actorUuid)
@@ -1211,7 +1214,7 @@ export let processUndoDamageCard = (message, html, data) => {
 					const reverseButton = html.find(`#reverse-${actorUuid.replaceAll(".", "")}`);
 					reverseButton.children()[0].classList.remove("midi-qol-disable-damage-button");
 					reverseButton.children()[0].classList.add("midi-qol-enable-damage-button");
-					log(`Setting HP to ${newTempHP} and ${newHP}`);
+					log(`Setting HP to ${newTempHP} and ${newHP} ${actor.name} ${actorUuid}`);
 					const update = { "system.attributes.hp.temp": newTempHP ?? 0, "system.attributes.hp.value": newHP ?? 0 };
 					const vitalityResource = checkRule("vitalityResource");
 					if (typeof vitalityResource === "string" && foundry.utils.getProperty(actor, vitalityResource.trim()) !== undefined) {
@@ -1223,11 +1226,11 @@ export let processUndoDamageCard = (message, html, data) => {
 				}
 		})();
 	});
-	const undoDamageData = foundry.utils.getProperty(message, "flags.midiqol.undoDamage");
+	const undoDamageData = recoverDamageListFromJSON(foundry.utils.getProperty(message, "flags.midiqol.undoDamage"));
 	undoDamageData?.forEach(({ actorUuid, oldTempHP, oldHP, totalDamage, newHP, newTempHP, oldVitality, newVitality, damageDetail, calcDamageOptions, updateOptions }) => {
 		if (!actorUuid)
 			return;
-		recoverDamageDetailFromJSON(damageDetail);
+		// recoverDamageDetailFromJSON(damageDetail);
 		// ids should not have "." in the or it's id.class
 		let button = html.find(`#reverse-${actorUuid.replaceAll(".", "")}`);
 		// button.click((ev: { stopPropagation: () => void; }) => {
@@ -1239,7 +1242,7 @@ export let processUndoDamageCard = (message, html, data) => {
 			otherButton.children()[0].classList.add("midi-qol-enable-damage-button");
 			(async () => {
 				let actor = fromActorUuid(actorUuid);
-				log(`Setting HP back to ${oldTempHP} and ${oldHP}`);
+				log(`Setting HP back to ${oldTempHP} and ${oldHP} ${actor.name} ${actorUuid}`);
 				const update = { "system.attributes.hp.temp": oldTempHP ?? 0, "system.attributes.hp.value": oldHP ?? 0 };
 				const vitalityResource = checkRule("vitalityResource");
 				if (typeof vitalityResource === "string" && foundry.utils.getProperty(actor, vitalityResource.trim()) !== undefined) {
@@ -1264,13 +1267,13 @@ export let processUndoDamageCard = (message, html, data) => {
 			(async () => {
 				const calcOptions = foundry.utils.mergeObject(calcDamageOptions ?? {}, updateOptions ?? {}, { inplace: false });
 				let actor = fromActorUuid(actorUuid);
-				log(`Setting HP to ${newTempHP} and ${newHP}`);
+				log(`Setting HP to ${newTempHP} and ${newHP} ${actor.name} ${actorUuid}`);
 				if (mults[multiplierString]) {
 					multiplier = mults[multiplierString];
 					await actor.applyDamage(damageDetail, foundry.utils.mergeObject(calcOptions, { multiplier: calcOptions.multiplier * multiplier }, { inplace: false }));
 				}
 				else {
-					log(`Setting HP to ${newTempHP} and ${newHP}`);
+					log(`Setting HP to ${newTempHP} and ${newHP} ${actor.name} ${actorUuid}`);
 					const update = { "system.attributes.hp.temp": newTempHP ?? 0, "system.attributes.hp.value": newHP ?? 0 };
 					const vitalityResource = checkRule("vitalityResource");
 					if (typeof vitalityResource === "string" && foundry.utils.getProperty(actor, vitalityResource.trim()) !== undefined) {
@@ -1286,9 +1289,10 @@ export let processUndoDamageCard = (message, html, data) => {
 	return true;
 };
 async function _moveToken(data) {
-	const tokenDocument = MQfromUuidSync(data.tokenUuid);
+	const tokenDocument = fromUuidSync(data.tokenUuid);
 	if (!tokenDocument)
 		return;
+	//@ts-expect-error types thinks update data is of type never
 	return tokenDocument.update({ x: data.newCenter?.x ?? 0, y: data.newCenter?.y ?? 0 }, { animate: data.animate ?? true });
 }
 async function _moveTokenAwayFromPoint(data) {
@@ -1313,7 +1317,7 @@ async function _moveTokenAwayFromPoint(data) {
 	//@ts-expect-error
 	return targetTokenDocument.update({ x: newCenter?.x ?? 0, y: newCenter?.y ?? 0 }, { animate: data.animate ?? true });
 }
-export async function rollActionSave(data) {
+async function rollActionSave(data) {
 	let { request, actorUuid, abilities, options, content, title, saveDC } = data;
 	let saveResult = await new Promise(async (resolve, reject) => {
 		const buttons = [];
@@ -1372,9 +1376,19 @@ export async function rollActionSave(data) {
 	});
 	return saveResult;
 }
-export function prepareDamagelistToJSON(damageList) {
+export function prepareDamageListToJSON(damageList) {
 	const newDL = foundry.utils.deepClone(damageList);
 	for (let damageItem of newDL) {
+		let options = damageItem.calcDamageOptions;
+		if (options.downgrade instanceof Set) {
+			options.downgrade = Array.from(options.downgrade);
+		}
+		if (options.ignore)
+			for (let key of Object.keys(options.ignore)) {
+				if (options.ignore[key] instanceof Set) {
+					options.ignore[key] = Array.from(options.ignore[key]);
+				}
+			}
 		for (let damageDetail of [damageItem.damageDetail ?? [], damageItem.rawDamageDetail ?? [], ...(Object.values(damageItem.damageDetails ?? {}))]) {
 			if (damageDetail instanceof Array)
 				prepareDamageDetailToJSON(damageDetail);
@@ -1382,16 +1396,22 @@ export function prepareDamagelistToJSON(damageList) {
 	}
 	return newDL;
 }
-export function prepareDamageDetailToJSON(damageDetail) {
+function prepareDamageDetailToJSON(damageDetail) {
 	for (let damageLine of damageDetail) {
 		if (damageLine.properties instanceof Set) {
 			damageLine.properties = Array.from(damageLine.properties);
 		}
 	}
 }
-export function recoverDamageListFromJSON(damageList) {
+function recoverDamageListFromJSON(damageList) {
 	const newDL = foundry.utils.deepClone(damageList);
 	for (let damageItem of newDL) {
+		const options = damageItem.calcDamageOptions;
+		if (options.downgrade)
+			options.downgrade = new Set(options.downgrade);
+		if (options.ignore)
+			for (let key of Object.keys(options.ignore))
+				options.ignore[key] = new Set(options.ignore[key]);
 		for (let damageDetail of [damageItem.damageDetail ?? [], damageItem.rawDamageDetail ?? [], ...Object.values(damageItem.damageDetails ?? [])]) {
 			if (damageDetail instanceof Array)
 				recoverDamageDetailFromJSON(damageDetail);
@@ -1399,7 +1419,7 @@ export function recoverDamageListFromJSON(damageList) {
 	}
 	return newDL;
 }
-export function recoverDamageDetailFromJSON(damageDetail) {
+function recoverDamageDetailFromJSON(damageDetail) {
 	if (damageDetail instanceof Array) {
 		for (let damageLine of damageDetail) {
 			if (damageLine.properties instanceof Array) {

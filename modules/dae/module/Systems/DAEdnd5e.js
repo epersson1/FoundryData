@@ -1,6 +1,6 @@
 import { ArrayField, BooleanField, NumberField, ObjectField, SchemaField, StringField, daeSpecialDurations, debug, debugEnabled, error, i18n, i18nFormat, warn } from "../../dae.js";
 import { addAutoFields, isEnchantment } from "../apps/DAEActiveEffectConfig.js";
-import { actionQueue, actorFromUuid, addEffectChange, applyDaeEffects, atlActive, daeSystemClass, effectIsTransfer, enumerateBaseValues, getSelfTarget, geti18nOptions, libWrapper, noDupDamageMacro, removeEffectChange } from "../dae.js";
+import { actionQueue, actorFromUuid, addEffectChange, applyDaeEffects, atlActive, daeSystemClass, effectIsTransfer, enumerateBaseValues, getSelfTarget, getStaticID, geti18nOptions, libWrapper, noDupDamageMacro, removeEffectChange } from "../dae.js";
 import { DAESystem, ValidSpec, wildcardEffects } from "./DAESystem.js";
 var d20Roll;
 var dice;
@@ -261,6 +261,8 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
             else
                 console.error("Unexpected field ", key, modelField);
         }
+        //@ts-expect-error
+        const GameSystemConfig = game.system.config;
         if (!baseValues["system.attributes.prof"])
             baseValues["system.attributes.prof"] = [new NumberField(), -1];
         if (!baseValues["system.details.level"])
@@ -336,7 +338,7 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
                 baseValues[`system.tools.${vehicleKey}.value`] = [new NumberField(), CONST.ACTIVE_EFFECT_MODES.OVERRIDE];
             }
         }
-        // move all the characteer flags to specials so that the can be custom effects only
+        // move all the character flags to specials so that the can be custom effects only
         let charFlagKeys = Object.keys(daeSystemClass.systemConfig.characterFlags);
         charFlagKeys.forEach(key => {
             let theKey = `flags.${game.system?.id}.${key}`;
@@ -361,9 +363,6 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
         delete baseValues[`flags.${game.system?.id}.powerCriticalThreshold`];
         delete baseValues[`flags.${game.system?.id}.meleeCriticalDamageDice`];
         delete baseValues[`flags.${game.system?.id}.spellCriticalThreshold`];
-        //TODO work out how to evaluate this to a number in prepare data - it looks like this is wrong
-        if (foundry.utils.getProperty(this.getActorDataModelFields(actorType), "bonuses.fields.spell"))
-            baseValues["system.bonuses.spell.dc"] = [new NumberField(), -1];
         Object.keys(baseValues).forEach(key => {
             // can't modify many spell details.
             if (key.includes("system.spells")) {
@@ -374,11 +373,11 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
             for (let spellSpec of (foundry.utils.getProperty(actorModelSchemaFields, "spells.initialKeys") ?? []))
                 baseValues[`system.spells.${spellSpec}.override`] = [new NumberField(), -1];
         }
-        // removed - required so that init.bonus can work (prepapreinitiative called after derived effects
+        // removed - required so that init.bonus can work (prepareInitiative called after derived effects
         // delete baseValues["system.attributes.init.total"];
         delete baseValues["system.attributes.init.mod"];
         // delete baseValues["system.attributes.init.bonus"];
-        // leaving this in base values works because prepareInitiative is called after applicaiton of derived effects
+        // leaving this in base values works because prepareInitiative is called after application of derived effects
         delete baseValues["flags"];
         baseValues["system.traits.ci.all"] = [new BooleanField(), modes.CUSTOM];
         if (!baseValues["system.traits.ci.value"])
@@ -404,6 +403,9 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
         baseValues["system.attributes.encumbrance.multipliers.maximum"] = [new StringField(), -1];
         baseValues["system.attributes.encumbrance.multipliers.overall"] = [new StringField(), -1];
         baseValues["system.traits.size"] = [new StringField(), CONST.ACTIVE_EFFECT_MODES.OVERRIDE];
+        if (GameSystemConfig.languages) {
+            baseValues["system.traits.languages.all"] = [new BooleanField(), -1];
+        }
     }
     static modifySpecials(actorType, specials, characterSpec) {
         super.modifySpecials(actorType, specials, characterSpec);
@@ -438,11 +440,6 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
         specials["system.attributes.movement.hover"] = [new NumberField(), ACTIVE_EFFECT_MODES.CUSTOM];
         specials["system.attributes.ac.EC"] = [new NumberField(), -1];
         specials["system.attributes.ac.AR"] = [new NumberField(), -1];
-        if (GameSystemConfig.languages) {
-            specials["system.traits.languages.all"] = [new BooleanField(), ACTIVE_EFFECT_MODES.CUSTOM];
-            specials["system.traits.languages.value"] = [new StringField(), -1];
-            specials["system.traits.languages.custom"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        }
         if (foundry.utils.getProperty(actorModelSchemaFields, "resources")) {
             specials["system.resources.primary.max"] = [new NumberField(), -1];
             specials["system.resources.primary.label"] = [new StringField(), -1];
@@ -472,7 +469,7 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
                 specials["system.abilities.san.value"] = [new NumberField(), -1];
             }
         }
-        specials[`flags.${game.system?.id}.initiativeHalfProf`] = [new BooleanField(), ACTIVE_EFFECT_MODES.CUSTOM];
+        // specials[`flags.${game.system?.id}.initiativeHalfProf`] = [new BooleanField(), ACTIVE_EFFECT_MODES.CUSTOM];
         specials[`flags.${game.system?.id}.initiativeDisadv`] = [new BooleanField(), ACTIVE_EFFECT_MODES.CUSTOM];
         if (game.modules?.get("tidy5e-sheet")?.active)
             specials["system.details.maxPreparedSpells"] = [new NumberField(), -1];
@@ -558,23 +555,13 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
         // @ts-expect-error
         if (GameSystemConfig.conditionEffects && GameSystemConfig.conditionEffects["halfHealth"] && game.settings?.get("dae", "DAEAddHalfHealthEffect")) {
             GameSystemConfig.conditionEffects["halfHealth"].add("halfHealthEffect");
-            //@ts-expect-error
-            if (game.version >= 12) {
-                CONFIG.statusEffects.push({
-                    id: "halfHealthEffect",
-                    name: i18n("dae.halfHealthEffectLabel"),
-                    img: "systems/dnd5e/icons/svg/damage/healing.svg",
-                    flags: { dnd5e: { halfHealth: true } }
-                });
-            }
-            else {
-                CONFIG.statusEffects.push({
-                    id: "halfHealthEffect",
-                    name: i18n("dae.halfHealthEffectLabel"),
-                    icon: "systems/dnd5e/icons/svg/damage/healing.svg",
-                    flags: { dnd5e: { halfHealth: true } }
-                });
-            }
+            CONFIG.statusEffects.push({
+                id: "halfHealthEffect",
+                _id: getStaticID("halfHealthEffect"),
+                name: i18n("dae.halfHealthEffectLabel"),
+                img: "modules/dae/icons/half-health.webp",
+                flags: { dnd5e: { halfHealth: true } }
+            });
         }
         // enchantments don't seem to get their world time set when applied to an item
         Hooks.on("preCreateActiveEffect", (candidate, data, options, user) => {
@@ -671,30 +658,26 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
             "system.bonuses.spell.damage": { attacks: this.spellAttacks, selector: "damage" },
         };
         daeSystemClass.daeActionTypeKeys = Object.keys(daeSystemClass.systemConfig.itemActionTypes);
+        /*
         daeSystemClass.systemConfig.characterFlags["DamageBonusMacro"] = {
-            type: String,
-            name: "Damage Bonus Macro",
-            hint: "Macro to use for damage bonus",
-            section: "Midi QOL"
+          type: String,
+          name: "Damage Bonus Macro",
+          hint: "Macro to use for damage bonus",
+          section: "Midi QOL"
         };
-        daeSystemClass.systemConfig.characterFlags["initiativeHalfProficiency"] = {
-            type: Boolean,
-            name: "Half Proficiency for Initiative",
-            hint: "add 1/2 proficiency to initiative",
-            section: "Midi QOL"
-        };
+        // daeSystemClass.systemConfig.characterFlags["initiativeHalfProficiency"] = {
+        //   type: Boolean,
+        //   name: "Half Proficiency for Initiative",
+        //   hint: "add 1/2 proficiency to initiative",
+        //   section: "Midi QOL"
+        // };
         daeSystemClass.systemConfig.characterFlags["initiativeDisadv"] = {
-            type: Boolean,
-            name: "Disadvantage on Initiative",
-            hint: "Provided by fears or magical items",
-            section: "Feats"
+          type: Boolean,
+          name: "Disadvantage on Initiative",
+          hint: "Disadvantage on Initiative",
+          section: "Midi QOL"
         };
-        daeSystemClass.systemConfig.characterFlags["spellSniper"] = {
-            type: Boolean,
-            name: "Spell Sniper",
-            hint: "Provided by fears or magical items",
-            section: "Midi QOL"
-        };
+        */
     }
     static effectDisabled(actor, effect, itemData = null) {
         effect.determineSuppression();
@@ -702,7 +685,7 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
         return disabled;
     }
     static enumerateLanguages(systemLanguages) {
-        const languages = {};
+        const languages = { "ALL": "All" };
         Object.keys(systemLanguages).forEach(lang => {
             if (typeof systemLanguages[lang] === "string") {
                 languages[lang] = i18n(systemLanguages[lang]);
@@ -995,7 +978,7 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
                 return true;
             case "system.traits.languages.all":
                 if (actor.system.traits.languages.value instanceof Set)
-                    foundry.utils.setProperty(actor, "system.traits.languages.value", new Set(Object.keys(systemConfig.languages)));
+                    foundry.utils.setProperty(actor, "system.traits.languages.value", new Set(Object.keys(DAESystemDND5E.enumerateLanguages(daeSystemClass.systemConfig.languages))));
                 else
                     foundry.utils.setProperty(actor, "system.traits.languages.value", Object.keys(systemConfig.languages));
                 return true;
@@ -1102,13 +1085,6 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
                 }
                 ;
                 return true;
-            // case "system.abilities.str.dc":
-            // case "system.abilities.dex.dc":
-            // case "system.abilities.int.dc":
-            // case "system.abilities.wis.dc":
-            // case "system.abilities.cha.dc":
-            // case "system.abilities.con.dc":
-            case "system.bonuses.spell.dc":
             case "system.attributes.powerForceLightDC":
             case "system.attributes.powerForceDarkDC":
             case "system.attributes.powerForceUnivDC":
@@ -1132,10 +1108,6 @@ export class DAESystemDND5E extends CONFIG.DAE.systemClass {
                 }
                 else
                     return;
-                // Spellcasting DC - can't see how to implement this anymore
-                // const ad = actor.system;
-                // const spellcastingAbility = ad.abilities[ad.attributes.spellcasting];
-                // ad.attributes.spelldc = spellcastingAbility ? spellcastingAbility.dc : 8 + ad.attributes.prof;
                 return true;
             case "flags.dae":
                 let list = change.value.split(" ");
@@ -1213,7 +1185,7 @@ function prepareData(wrapped) {
         // Apply special statuses that changed to active tokens
         let tokens;
         for (const [statusId, wasActive] of specialStatuses) {
-            const isActive = this.statuses.has(statusId) && !this.system.traits.ci.value.has(statusId);
+            const isActive = this.statuses.has(statusId) && !this.system.traits?.ci.value.has(statusId);
             if (isActive === wasActive)
                 continue;
             if (!tokens)
@@ -1255,16 +1227,25 @@ const getTargetType = field => {
         return "string";
 };
 function _baseItemApplyEffects() {
+    // It seems that this is called with embedded preparation when first initialising and also when cloning.
+    // Since we can't tell if it will later get called from prepareData the best we can do is apply all effects now
+    return doItemApplyEffects.bind(this)(undefined, undefined, {});
     if (this.isOwned)
         return doItemApplyEffects.bind(this)(undefined, [...ValidSpec.itemSpecs["union"].derivedSpecKeys, ...ValidSpec.itemSpecs["union"].excludeKeys], {});
     else // item is a sidebar.compendium item so don't ignore anything
         return doItemApplyEffects.bind(this)(undefined, undefined, {});
 }
 function _itemApplyActiveEffects() {
+    // since baseItemApplyEffects will apply all effects we can't do it gain here
+    return;
     return doItemApplyEffects.bind(this)(ValidSpec.itemSpecs["union"].derivedSpecKeys, ValidSpec.itemSpecs["union"].excludeKeys, this.overrides ?? {});
 }
 function doItemApplyEffects(includeKeys, excludeKeys, overrides) {
-    // Organize non-disabled effects by their application priority
+    if (this.actor?._embeddedPreparation) { // embedded preparation means this is only called once after actor preparation - so allow all effects to be applied 
+        includeKeys = undefined;
+        excludeKeys = undefined;
+    }
+    // Organize non-disabled changes by their application priority
     let changes = [];
     for (const effect of this.allApplicableEffects()) {
         if (!effect.active)

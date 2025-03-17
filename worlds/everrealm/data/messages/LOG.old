@@ -1,7 +1,6 @@
-2025/02/04-11:16:43.942 273c Recovering log #28
-2025/02/04-11:16:43.951 273c Delete type=0 #28
-2025/02/04-11:16:43.952 273c Delete type=3 #27
-2025/02/04-12:25:17.862 6f8 Level-0 table #32: started
-2025/02/04-12:25:17.862 6f8 Level-0 table #32: 0 bytes OK
-2025/02/04-12:25:17.865 6f8 Delete type=0 #30
-2025/02/04-12:25:17.883 6f8 Manual compaction at level-0 from '!messages!vAcU4mdesoWtFAP4' @ 72057594037927935 : 1 .. '!messages!vAcU4mdesoWtFAP4' @ 0 : 0; will stop at (end)
+2025/03/09-16:24:44.961 42b0 Log #34: 1 ops saved to Table #35 OK
+2025/03/09-16:24:44.961 42b0 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/messages/000034.log: OK
+2025/03/09-16:24:44.961 42b0 Table #24: 1 entries OK
+2025/03/09-16:24:44.962 42b0 Table #35: 1 entries OK
+2025/03/09-16:24:44.981 42b0 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/messages/MANIFEST-000033: OK
+2025/03/09-16:24:45.006 42b0 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/messages; recovered 2 files; 3195 bytes. Some data may have been lost. ****

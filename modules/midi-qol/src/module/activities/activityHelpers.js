@@ -3,7 +3,7 @@ import { Workflow } from "../Workflow.js";
 import { TargetConfirmationDialog } from "../apps/TargetConfirmation.js";
 import { configSettings, safeGetGameSetting, targetConfirmation } from "../settings.js";
 import { installedModules } from "../setupModules.js";
-import { getFlankingEffect, CERemoveEffect, sumRolls, computeTemplateShapeDistance, getToken, MQfromUuidSync, checkActivityRange, checkDefeated, checkIncapacitated, computeCoverBonus, getSpeaker, hasWallBlockingCondition, isTargetable, tokenForActor, getActivityAutoTargetAction, getAoETargetType, doReactions, getUnitDist } from "../utils.js";
+import { getFlankingEffect, CERemoveEffect, sumRolls, computeTemplateShapeDistance, getToken, MQfromUuidSync, checkActivityRange, checkDefeated, checkIncapacitated, computeCoverBonus, getSpeaker, hasWallBlockingCondition, isValidTarget, tokenForActor, getActivityAutoTargetAction, getAoETargetType, doReactions, getUnitDist, updateUserTargets } from "../utils.js";
 const { DialogV2 } = foundry.applications.api;
 export async function confirmWorkflow(existingWorkflow) {
 	const validStates = [existingWorkflow.WorkflowState_Completed, existingWorkflow.WorkflowState_Start, existingWorkflow.WorkflowState_RollFinished];
@@ -13,7 +13,7 @@ export async function confirmWorkflow(existingWorkflow) {
 		if (configSettings.autoCompleteWorkflow) {
 			existingWorkflow.aborted = true;
 			await existingWorkflow.performState(existingWorkflow.WorkflowState_Cleanup);
-			await Workflow.removeWorkflow(existingWorkflow.uuid);
+			await Workflow.removeWorkflow(existingWorkflow.id);
 		}
 		else if (existingWorkflow.currentAction === existingWorkflow.WorkflowState_WaitForDamageRoll && existingWorkflow.hitTargets.size === 0) {
 			existingWorkflow.aborted = true;
@@ -35,11 +35,11 @@ export async function confirmWorkflow(existingWorkflow) {
 			})) {
 				case "complete":
 					await existingWorkflow.performState(existingWorkflow.WorkflowState_Cleanup);
-					await Workflow.removeWorkflow(existingWorkflow.uuid);
+					await Workflow.removeWorkflow(existingWorkflow.id);
 					break;
 				case "discard":
 					await existingWorkflow.performState(existingWorkflow.WorkflowState_Abort);
-					Workflow.removeWorkflow(existingWorkflow.uuid);
+					Workflow.removeWorkflow(existingWorkflow.id);
 					break;
 				case "undo":
 					await existingWorkflow.performState(existingWorkflow.WorkflowState_Cancel);
@@ -76,7 +76,7 @@ export function setDamageRollMinTerms(rolls) {
 }
 export async function doActivityReactions(activity, workflow) {
 	const promises = [];
-	if (!foundry.utils.getProperty(activity, `flags.${MODULE_ID}.noProvokeReaction`)) {
+	if (!foundry.utils.getProperty(activity, `flags.${MODULE_ID}.noProvokeReaction`) && !workflow?.workflowOptions.noProvokeReaction) {
 		for (let targetToken of workflow.targets) {
 			promises.push(new Promise(async (resolve) => {
 				//@ts-expect-error targetToken Type
@@ -102,7 +102,7 @@ export function activityConsumptionHook(activity, usageConfig, messageConfig, up
 	// console.error("activityConsumptionHook", activity, usageConfig, messageConfig, updates);
 	return true;
 }
-function activityRequiresPostTemplateConfiramtion(activity) {
+function activityRequiresPostTemplateConfirmation(activity) {
 	// const isRangeTargeting = ["ft", "m"].includes(activity.range?.units) && ["creature", "ally", "enemy"].includes(activity.target?.affects.type);
 	if (activity.target?.template?.type) {
 		return true;
@@ -111,7 +111,7 @@ function activityRequiresPostTemplateConfiramtion(activity) {
 	}
 	return false;
 }
-function itemRequiresPostTemplateConfiramtion(activity) {
+function itemRequiresPostTemplateConfirmation(activity) {
 	const isRangeTargeting = ["ft", "m"].includes(activity.item.system.range?.units) && ["creature", "ally", "enemy"].includes(activity.target?.affects.type);
 	if (activity.target?.template?.type) {
 		return true;
@@ -124,27 +124,24 @@ function itemRequiresPostTemplateConfiramtion(activity) {
 export function requiresTargetConfirmation(activity, options) {
 	if (!activity.item)
 		debugger;
-	if (options.workflowOptions?.targetConfirmation === "none")
+	// fix for very silly value choice in midi properties.
+	if (["none", "never"].includes(options.workflowOptions?.targetConfirmation))
 		return false;
 	if (options.workflowOptions?.targetConfirmation === "always")
 		return true;
 	if (["enchant", "summon"].includes(activity.type))
 		return false;
-	// check lateTargeting as well - legacy.
-	// For old version of dnd5e-scriptlets
-	if (options.workflowdialogOptions?.lateTargeting === "none")
-		return false;
-	if (options.workflowdialogOptions?.lateTargeting === "always")
-		return true;
-	if (activity.target?.affects.type === "self")
-		return false;
 	if (activity.target?.affects?.choice)
 		return true;
+	if (["", "self", undefined].includes(activity.target?.affects?.type) && ["", undefined, "self"].includes(activity.range?.units))
+		return false;
+	if (activity.target?.affects.type === "self")
+		return false;
 	if (options.workflowOptions?.attackPerTarget === true)
 		return false;
-	if (activity.midiProperties?.confirmTargets === "always")
+	if ((activity.forcedTargetConfirmation ?? activity.midiProperties?.confirmTargets) === "always")
 		return true;
-	if (activity.midiProperties?.confirmTargets === "never")
+	if ((activity.forcedTargetConfirmation ?? activity.midiProperties?.confirmTargets) === "never")
 		return false;
 	let numTargets = game.user?.targets?.size ?? 0;
 	if (numTargets === 0 && configSettings.enforceSingleWeaponTarget && activity.item.type === "weapon")
@@ -158,7 +155,7 @@ export function requiresTargetConfirmation(activity, options) {
 		}
 		if (activity.attack && targetConfirmation.hasAttack) {
 			if (debugEnabled > 0)
-				warn("target confirmation triggered by targetCofirnmation.hasAttack");
+				warn("target confirmation triggered by targetConfirmation.hasAttack");
 			return true;
 		}
 		if (activity.target?.affects.type === "creature" && targetConfirmation.hasCreatureTarget) {
@@ -194,7 +191,7 @@ export function requiresTargetConfirmation(activity, options) {
 				return true;
 			}
 		}
-		if (targetConfirmation.mixedDispositiion && numTargets > 0 && game.user?.targets) {
+		if (targetConfirmation.mixedDisposition && numTargets > 0 && game.user?.targets) {
 			const dispositions = new Set();
 			for (let target of game.user?.targets) {
 				if (target)
@@ -246,17 +243,16 @@ export function requiresTargetConfirmation(activity, options) {
 	return false;
 }
 export async function preTemplateTargets(activity, options) {
-	if (activityRequiresPostTemplateConfiramtion(activity))
+	if (activityRequiresPostTemplateConfirmation(activity))
 		return true;
 	if (requiresTargetConfirmation(activity, options))
 		return await resolveTargetConfirmation(activity, options) === true;
 	return true;
 }
 export async function postTemplateConfirmTargets(activity, options, workflow) {
-	if (!activityRequiresPostTemplateConfiramtion(activity)) {
+	if (!activityRequiresPostTemplateConfirmation(activity)) {
 		if (game.user?.targets) {
-			activity.workflow.setTargets(game.user?.targets);
-			activity.targets = new Set(game.user?.targets);
+			workflow.setTargets(game.user?.targets);
 		}
 		return true;
 	}
@@ -265,13 +261,11 @@ export async function postTemplateConfirmTargets(activity, options, workflow) {
 		result = await resolveTargetConfirmation(activity, options);
 		if (result && game.user?.targets) {
 			workflow.setTargets(game.user?.targets);
-			activity.targets = new Set(game.user?.targets);
 		}
 		return result === true;
 	}
 	if (game.user?.targets) {
-		activity.workflow.setTargets(game.user?.targets);
-		activity.targets = new Set(game.user?.targets);
+		workflow.setTargets(game.user?.targets);
 	}
 	return true;
 }
@@ -359,7 +353,7 @@ function isTokenInside(template, token, wallsBlockTargeting) {
 	const templatePos = template.document ? { x: template.document.x, y: template.document.y } : { x: template.x, y: template.y };
 	if (configSettings.optionalRules.wallsBlockRange !== "none" && hasWallBlockingCondition(token))
 		return false;
-	if (!isTargetable(token))
+	if (!isValidTarget(token))
 		return false;
 	// Check for center of  each square the token uses.
 	// e.g. for large tokens all 4 squares
@@ -419,7 +413,7 @@ function isTokenInside(template, token, wallsBlockTargeting) {
 	return false;
 }
 export function isAoETargetable(targetToken, options = { ignoreSelf: false, AoETargetType: "any" }) {
-	if (!isTargetable(targetToken))
+	if (!isValidTarget(targetToken))
 		return false;
 	const autoTarget = options.autoTarget ?? configSettings.autoTarget;
 	const selfToken = getToken(options.selfToken);
@@ -467,7 +461,7 @@ export function templateTokens(templateDetails, selfTokenRef = "", ignoreSelf = 
 	const selfToken = getToken(selfTokenRef);
 	let targetIds = [];
 	let targetTokens = [];
-	game.user?.updateTokenTargets([]);
+	updateUserTargets([]);
 	if (autoTarget === "walledtemplates" && game.modules?.get("walledtemplates")?.active) {
 		//@ts-expect-error
 		if (foundry.utils.getProperty(templateDetails?.item, "flags.walledtemplates.noAutotarget"))
@@ -489,21 +483,21 @@ export function templateTokens(templateDetails, selfTokenRef = "", ignoreSelf = 
 			}
 		}
 	}
-	game.user?.updateTokenTargets(targetIds);
+	updateUserTargets(targetIds);
 	game.user?.broadcastActivity({ targets: targetIds });
 	return targetTokens;
 }
 // this is bound to a workflow when called - most of the time
 export function selectTargets(templateDocument, data, user) {
 	// const workflow = this?.currentAction ? this : Workflow.getWorkflow(templateDocument.flags?.dnd5e?.origin);
-	const activity = this;
+	const activity = this?.activity;
 	if (debugEnabled > 0)
-		warn("selectTargets ", activity, templateDocument, data, user);
+		warn("selectTargets ", this, templateDocument, data, user);
 	const selfToken = getToken(activity.actor);
 	const ignoreSelf = (activity?.target.affects.special ?? "").split(";").some(spec => spec === "self");
 	let AoETargetType = getAoETargetType(activity);
 	let targeting = getActivityAutoTargetAction(activity);
-	if ((game.user?.targets.size === 0 || activity.workflow?.workflowOptions.forceTemplateTargeting || user !== game.user?.id || installedModules.get("levelsvolumetrictemplates")) && targeting !== "none") {
+	if ((game.user?.targets.size === 0 || this?.workflowOptions.forceTemplateTargeting || user !== game.user?.id || installedModules.get("levelsvolumetrictemplates")) && targeting !== "none") {
 		let mTemplate = MQfromUuidSync(templateDocument.uuid)?.object;
 		if (templateDocument?.object && !installedModules.get("levelsvolumetrictemplates")) {
 			if (!mTemplate.shape) {
@@ -524,13 +518,12 @@ export function selectTargets(templateDocument, data, user) {
 			VolumetricTemplates.compute3Dtemplate(templateDocument.object, canvas?.tokens?.placeables);
 		}
 	}
-	// TODO fix this so the workflow is not required (store the template reference somewhere else)
-	if (activity.workflow) {
-		activity.workflow.templateId = templateDocument?.id;
-		activity.workflow.templateUuid = templateDocument?.uuid;
+	if (this) {
+		this.templateId = templateDocument?.id;
+		this.templateUuid = templateDocument?.uuid;
 	}
 	if (targeting === "none") { // this is no good
-		Hooks.callAll("midi-qol-targeted", activity.workflow?.targets);
+		Hooks.callAll("midi-qol-targeted", this?.targets);
 		return true;
 	}
 	game.user?.targets?.forEach(token => {
@@ -539,21 +532,18 @@ export function selectTargets(templateDocument, data, user) {
 		if (activity.target?.affects.count && (game.user?.targets?.size ?? 0) > activity.target?.affects?.count)
 			token.setTarget(false, { user: game.user, releaseOthers: false });
 	});
-	if (activity.workflow.workflowType === "TrapWorkflow")
+	if (this?.workflowType === "TrapWorkflow")
 		return;
 	if (debugEnabled > 0)
-		warn("selectTargets ", activity.workflow?.suspended, activity.workflow?.needTemplate, templateDocument);
-	if (activity.workflow?.needTemplate) {
-		activity.workflow.needTemplate = false;
-		if (activity.workflow?.suspended)
-			activity.workflow.unSuspend.bind(activity.workflow)({ templateDocument });
+		warn("selectTargets ", this?.suspended, this?.needTemplate, templateDocument);
+	if (this?.needTemplate) {
+		this.needTemplate = false;
+		if (this.suspended)
+			this.unSuspend.bind(this)({ templateDocument });
 	}
 	return;
 }
 ;
-export function preRollDamageHook(item, rollConfig) {
-	return true;
-}
 // If we are blocking the roll let anyone waiting on the roll know it is complete
 function blockRoll(item, workflow) {
 	if (item) {
@@ -563,4 +553,15 @@ function blockRoll(item, workflow) {
 		Hooks.callAll(hookName, workflow);
 	}
 	return false;
+}
+/**
+* Get currently selected tokens in the scene or user's character's tokens.
+* @returns {Token5e[]}
+*/
+export function getSceneTargets() {
+	let targets = canvas?.tokens?.controlled.filter(t => t.actor) ?? [];
+	//@ts-expect-error getActiveTokens can return Token[] or TokenDocument[] and types assumes TokenDocument[]
+	if (!targets.length && game.user?.character)
+		targets = game.user.character.getActiveTokens();
+	return targets;
 }

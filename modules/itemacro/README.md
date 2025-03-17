@@ -5,11 +5,15 @@
 [![Patreon](https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/foundryworkshop)
 [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/forien)
 
-This is a FoundryVTT module for the **DnD5e, WFRPP4e, SFRPG, SWADE, Old-School Essentials, Dungeon World, and Simple Worldbuilding** (as of now) systems. It allow macros to be saved inside of an item and for various different ways to execute macros.  
+This is a FoundryVTT module for the multiple systems (list below). It allow macros to be saved inside of an item and for various different ways to execute macros.  
 
 You can execute the macro from the "item" class using the executeMacro(...args) function, from the character sheet (if the settings are satisfied to do so), from the hotbar using the default rollItemMacro function for your system (if the settings are satisfied to do so), or from token-action-hud.
 
 # Installation
+
+_**Item Macro v2.1.0 onwards will not work with DnD 5e 3.3.1**_   
+_If you do not use the newest version of the DnD 5e system, please do not update Item Macro and install v2.0.1 instead using [this manifest link](https://github.com/Foundry-Workshop/Item-Macro/releases/download/v2.0.1/module.json)._  
+_You can read more about these changes in [v2.1.0 Release](https://github.com/Foundry-Workshop/Item-Macro/releases/tag/v2.1.0) notes._
 
 _**Item Macro v1.11.0 onwards will not work with DnD 5e 2.4.**_   
 _If you do not use the newest version of the DnD 5e system, please do not update Item Macro and install v1.10.5 instead using [this manifest link](https://github.com/Foundry-Workshop/Item-Macro/releases/download/v1.10.5/module.json)._  
@@ -20,6 +24,26 @@ _You can read more about these changes in [v1.11.0 Release](https://github.com/F
 3. Install module using one of the two approaches:
    - Search for the Module and install using the Module Manager, or
    - In the Manifest URL field paste: `https://github.com/Foundry-Workshop/Item-Macro/releases/latest/download/module.json`.
+
+# Supported systems
+
+Item Macro can be run on any system, but unless there is direct support for your system, you will only be able to trigger Item Macros manually (via Item Macro Config), or programatically (via normal Macros etc.)
+
+- [Shadow of the Demon Lord](https://foundryvtt.com/packages/demonlord)
+- [Dungeons & Dragons Fifth Edition](https://foundryvtt.com/packages/dnd5e)
+- [Dragonbane](https://foundryvtt.com/packages/dragonbane)
+- [Dungeon Crawl Classics](https://foundryvtt.com/packages/ddc)
+- [Dungeon World](https://foundryvtt.com/packages/dungeonworld)
+- [Old-School Essentials](https://foundryvtt.com/packages/ose)
+- [Pathfinder Second Edition](https://foundryvtt.com/packages/pf2e)
+- [Shadowrun 5th Edition](https://foundryvtt.com/packages/shadowrun5e)
+- [Starfinder](https://foundryvtt.com/packages/sfrpg)
+- [Savage Worlds Adventure Edition](https://foundryvtt.com/packages/swade)
+- [Symbaroum](https://foundryvtt.com/packages/symbaroum)
+- [Warhammer Fantasy Roleplay 4th Edition](https://foundryvtt.com/packages/wfrp4e)
+- [Simple Worldbuilding System](https://foundryvtt.com/packages/worldbuilding)
+- [World of Darkness 20th Edition](https://foundryvtt.com/packages/worldofdarkness)
+- [Worls Without Number](https://foundryvtt.com/packages/wwn)
 
 # Usage
 

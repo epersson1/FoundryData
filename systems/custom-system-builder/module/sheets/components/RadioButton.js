@@ -110,6 +110,7 @@ class RadioButton extends InputComponent {
             templateAddress: templateAddress,
             label: json.label,
             size: json.size,
+            customSize: json.customSize,
             group: json.group,
             value: json.value,
             defaultChecked: json.defaultChecked,
@@ -147,6 +148,24 @@ class RadioButton extends InputComponent {
         }));
         return mainElt;
     }
+    /** Attaches event-listeners to the html of the config-form */
+    static attachListenersToConfigForm(html) {
+        $(html)
+            .find('#radioButtonSize')
+            .on('change', (event) => {
+            const target = $(event.currentTarget);
+            const customSizeBlock = $('.custom-system-size-custom');
+            const slideValue = 200;
+            switch (target.val()) {
+                case 'custom':
+                    customSizeBlock.slideDown(slideValue);
+                    break;
+                default:
+                    customSizeBlock.slideUp(slideValue);
+                    break;
+            }
+        });
+    }
     /**
      * Extracts configuration from submitted HTML form
      * @param html The submitted form
@@ -162,6 +181,9 @@ class RadioButton extends InputComponent {
             value: html.find('#radioButtonValue').val()?.toString() ?? '',
             defaultChecked: html.find('#radioButtonDefaultChecked').is(':checked')
         };
+        if (fieldData.size === 'custom') {
+            fieldData.customSize = parseInt(String(html.find('#radioButtonCustomSize').val()));
+        }
         this.validateConfig(fieldData);
         return fieldData;
     }

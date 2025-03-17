@@ -19,6 +19,7 @@ import { inRange, getRangeForDocument, cloneTileMesh, inDistance } from "./helpe
 import { setupWarnings } from "./warnings.js";
 import {LevelsMigration} from "./migration.js";
 import {showWelcome} from "./showWelcome.js";
+import {LevelsFogManager} from "./handlers/FogManager.js";
 
 //warnings
 
@@ -26,6 +27,11 @@ Hooks.on("ready", () => {
     if (!game.user.isGM) return;
 
     setupWarnings();
+});
+
+Hooks.on("setup", () => {
+    CONFIG.Canvas.fogManager = LevelsFogManager;
+    canvas.fog = new LevelsFogManager();
 });
 
 Object.defineProperty(globalThis, "_levels", {
@@ -242,6 +248,18 @@ Hooks.on("init", () => {
         },
     });
 
+    game.settings.register(CONFIG.Levels.MODULE_ID, "multilevelFogFolder", {
+        name: game.i18n.localize("levels.settings.multilevelFogFolder.name"),
+        hint: game.i18n.localize("levels.settings.multilevelFogFolder.hint"),
+        scope: "world",
+        config: true,
+        type: String,
+        default: "LevelsMultiLevelFog",
+        onChange: () => {
+            CONFIG.Levels.settings.cacheSettings();
+        },
+    });
+
     game.settings.register(CONFIG.Levels.MODULE_ID, "migrateOnStartup", {
         name: game.i18n.localize("levels.settings.migrateOnStartup.name"),
         hint: game.i18n.localize("levels.settings.migrateOnStartup.hint"),
@@ -251,6 +269,7 @@ Hooks.on("init", () => {
         default: true,
         requiresReload: true,
     });
+
 });
 
 Hooks.on("updateTile", (tile, updates) => {
@@ -451,7 +470,7 @@ Hooks.on("renderTokenHUD", (data, hud, drawData) => {
 
 Hooks.on("preCreateMeasuredTemplate", (template) => {
     const templateData = CONFIG.Levels.handlers.TemplateHandler.getTemplateData();
-    if (template.elevation) return;
+    if (template.elevation || template.flags["levels-3d-preview"]) return;
     template.updateSource({
         elevation: templateData.elevation,
         flags: { levels: { special: templateData.special } },

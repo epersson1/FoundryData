@@ -115,6 +115,11 @@
                 }
             },
             "DynamicTable": {
+                "AddMultipleRowsDialog": {
+                    "AddMultipleRows": "Ajouter plusieurs lignes",
+                    "HowManyRows": "Combien de lignes ?",
+                    "RowCountError": "Le nombre de lignes doit être un nombre entier positif."
+                },
                 "CanAddRow": "Les joueurs peuvent-ils ajouter des lignes dans le tableau ?",
                 "ConfirmDialogOnDelete": "Afficher la boîte de dialogue de confirmation lors de la suppression d'une ligne",
                 "DeleteRowDialog": {
@@ -158,6 +163,7 @@
                 }
             },
             "InputComponent": {
+                "CustomSizeInvalid": "La taille personnalisée du composant doit être un entier supérieur ou égal à 5",
                 "Label": "Libellé"
             },
             "ItemContainer": {
@@ -294,6 +300,8 @@
             },
             "Size": {
                 "Auto": "Auto",
+                "Custom": "Personnalisée",
+                "CustomSizeTitle": "Taille personnalisée",
                 "Gigantic": "Gigantesque",
                 "Large": "Grand",
                 "Larger": "Très grand",
@@ -430,10 +438,6 @@
                 "Name": "Afficher les jets cachés",
                 "Hint": "Ce paramètre permet d'afficher les jets cachés dans les messages de chat au MJ uniquement."
             },
-            "DelayEntitySaving": {
-                "Name": "Décaler la sauvegarde des entités.",
-                "Hint": "Sur les grosses fiches, vous pouvez décaler la sauvegarde des champs si le rechargement de la fiche prends trop de temps. Cela attends que tous les champs soient déselectionnés avant de sauvegarder toute la fiche d'un coup."
-            },
             "LoggingLevel": {
                 "Name": "Niveau de journalisation du système",
                 "Hint": "Les messages sous le niveau sélectionné seront journalisés. Sur les gros systèmes, tout afficher peut ralentir le rechargement des fiches.",
@@ -453,6 +457,10 @@
             "MinimumRoleTemplateReload": {
                 "Name": "Rôle minimum pour recharger un modèle",
                 "Hint": "Le rôle minimum pour sélectionner un modèle et recharger une fiche."
+            },
+            "ManualEntitySaving": {
+                "Name": "Sauvegarde manuelle des entités",
+                "Hint": "Sur les grosses fiches, vous pouvez désactiver la sauvegarde automatique des champs si le rechargement de la fiche prends trop de temps. Cette option ajoute un bouton sur les fiches pour les sauvegarder manuellement. Les fiches seront automatiquement sauvegardées à l'ajout, la suppression ou la modification d'un objet lié, ou lors de leur fermeture."
             }
         },
         "Sheets": {
