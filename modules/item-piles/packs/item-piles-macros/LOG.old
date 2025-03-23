@@ -1,3 +1,5 @@
-2025/03/09-16:47:49.807 29d4 Recovering log #83
-2025/03/09-16:47:49.844 29d4 Delete type=0 #83
-2025/03/09-16:47:49.844 29d4 Delete type=3 #82
+2025/03/22-18:15:12.503 1480 Log #87: 0 ops saved to Table #88 OK
+2025/03/22-18:15:12.505 1480 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\item-piles\packs\item-piles-macros/000087.log: OK
+2025/03/22-18:15:12.514 1480 Table #11: 1 entries OK
+2025/03/22-18:15:12.519 1480 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\item-piles\packs\item-piles-macros/MANIFEST-000086: OK
+2025/03/22-18:15:12.525 1480 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\item-piles\packs\item-piles-macros; recovered 1 files; 1487 bytes. Some data may have been lost. ****

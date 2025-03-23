@@ -1,3 +1,4 @@
-2025/03/09-16:47:46.799 29dc Recovering log #179
-2025/03/09-16:47:46.834 29dc Delete type=0 #179
-2025/03/09-16:47:46.834 29dc Delete type=3 #178
+2025/03/22-18:15:10.122 2610 Log #183: 0 ops saved to Table #184 OK
+2025/03/22-18:15:10.122 2610 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/cards/000183.log: OK
+2025/03/22-18:15:10.122 2610 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/cards/MANIFEST-000182: OK
+2025/03/22-18:15:10.135 2610 **** Repaired leveldb C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/cards; recovered 0 files; 0 bytes. Some data may have been lost. ****

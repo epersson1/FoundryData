@@ -1,3 +1,5 @@
-2025/03/09-16:47:48.494 29e0 Recovering log #9
-2025/03/09-16:47:48.524 29e0 Delete type=0 #9
-2025/03/09-16:47:48.524 29e0 Delete type=3 #8
+2025/03/22-18:15:11.776 2610 Log #13: 0 ops saved to Table #14 OK
+2025/03/22-18:15:11.781 2610 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\spells/000013.log: OK
+2025/03/22-18:15:11.804 2610 Table #5: 383 entries OK
+2025/03/22-18:15:11.811 2610 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\spells/MANIFEST-000012: OK
+2025/03/22-18:15:11.820 2610 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\spells; recovered 1 files; 469995 bytes. Some data may have been lost. ****

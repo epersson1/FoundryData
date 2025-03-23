@@ -1,3 +1,5 @@
-2025/03/09-16:47:48.924 29dc Recovering log #9
-2025/03/09-16:47:48.974 29dc Delete type=0 #9
-2025/03/09-16:47:48.974 29dc Delete type=3 #8
+2025/03/22-18:15:12.111 2610 Log #13: 0 ops saved to Table #14 OK
+2025/03/22-18:15:12.113 2610 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\monsterfeatures/000013.log: OK
+2025/03/22-18:15:12.121 2610 Table #5: 252 entries OK
+2025/03/22-18:15:12.121 2610 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\monsterfeatures/MANIFEST-000012: OK
+2025/03/22-18:15:12.133 2610 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\monsterfeatures; recovered 1 files; 186343 bytes. Some data may have been lost. ****

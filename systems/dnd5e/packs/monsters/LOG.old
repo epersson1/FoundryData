@@ -1,3 +1,5 @@
-2025/03/09-16:47:48.238 29dc Recovering log #9
-2025/03/09-16:47:48.264 29dc Delete type=0 #9
-2025/03/09-16:47:48.264 29dc Delete type=3 #8
+2025/03/22-18:15:11.568 5cac Log #13: 0 ops saved to Table #14 OK
+2025/03/22-18:15:11.570 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\monsters/000013.log: OK
+2025/03/22-18:15:11.591 5cac Table #5: 2301 entries OK
+2025/03/22-18:15:11.591 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\monsters/MANIFEST-000012: OK
+2025/03/22-18:15:11.604 5cac **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\monsters; recovered 1 files; 2779376 bytes. Some data may have been lost. ****

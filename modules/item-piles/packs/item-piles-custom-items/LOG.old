@@ -1,3 +1,5 @@
-2025/03/09-16:47:49.734 29dc Recovering log #83
-2025/03/09-16:47:49.774 29dc Delete type=0 #83
-2025/03/09-16:47:49.774 29dc Delete type=3 #82
+2025/03/22-18:15:12.465 2630 Log #87: 0 ops saved to Table #88 OK
+2025/03/22-18:15:12.467 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\item-piles\packs\item-piles-custom-items/000087.log: OK
+2025/03/22-18:15:12.469 2630 Table #11: 7 entries OK
+2025/03/22-18:15:12.474 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\item-piles\packs\item-piles-custom-items/MANIFEST-000086: OK
+2025/03/22-18:15:12.479 2630 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\item-piles\packs\item-piles-custom-items; recovered 1 files; 8869 bytes. Some data may have been lost. ****

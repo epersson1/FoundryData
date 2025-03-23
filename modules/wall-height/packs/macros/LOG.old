@@ -1,3 +1,5 @@
-2025/03/09-16:47:50.539 29d8 Recovering log #2415
-2025/03/09-16:47:50.582 29d8 Delete type=0 #2415
-2025/03/09-16:47:50.582 29d8 Delete type=3 #2414
+2025/03/22-18:15:12.856 2630 Log #2419: 0 ops saved to Table #2420 OK
+2025/03/22-18:15:12.859 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\wall-height\packs\macros/002419.log: OK
+2025/03/22-18:15:12.867 2630 Table #2325: 7 entries OK
+2025/03/22-18:15:12.872 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\wall-height\packs\macros/MANIFEST-002418: OK
+2025/03/22-18:15:12.877 2630 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\wall-height\packs\macros; recovered 1 files; 2520 bytes. Some data may have been lost. ****

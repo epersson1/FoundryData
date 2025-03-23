@@ -1,3 +1,5 @@
-2025/03/09-16:47:48.689 29d4 Recovering log #9
-2025/03/09-16:47:48.734 29d4 Delete type=0 #9
-2025/03/09-16:47:48.734 29d4 Delete type=3 #8
+2025/03/22-18:15:11.955 5cac Log #13: 0 ops saved to Table #14 OK
+2025/03/22-18:15:11.958 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\subclasses/000013.log: OK
+2025/03/22-18:15:11.960 5cac Table #5: 12 entries OK
+2025/03/22-18:15:11.966 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\subclasses/MANIFEST-000012: OK
+2025/03/22-18:15:11.971 5cac **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\subclasses; recovered 1 files; 18244 bytes. Some data may have been lost. ****

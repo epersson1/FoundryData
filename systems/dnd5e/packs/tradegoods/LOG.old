@@ -1,3 +1,5 @@
-2025/03/09-16:47:48.438 29d4 Recovering log #9
-2025/03/09-16:47:48.474 29d4 Delete type=0 #9
-2025/03/09-16:47:48.484 29d4 Delete type=3 #8
+2025/03/22-18:15:11.735 2630 Log #13: 0 ops saved to Table #14 OK
+2025/03/22-18:15:11.740 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\tradegoods/000013.log: OK
+2025/03/22-18:15:11.741 2630 Table #5: 23 entries OK
+2025/03/22-18:15:11.747 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\tradegoods/MANIFEST-000012: OK
+2025/03/22-18:15:11.753 2630 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\tradegoods; recovered 1 files; 12014 bytes. Some data may have been lost. ****

@@ -1,3 +1,5 @@
-2025/03/09-16:47:50.044 29d4 Recovering log #315
-2025/03/09-16:47:50.099 29d4 Delete type=0 #315
-2025/03/09-16:47:50.099 29d4 Delete type=3 #314
+2025/03/22-18:15:12.664 2610 Log #319: 0 ops saved to Table #320 OK
+2025/03/22-18:15:12.666 2610 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\midi-qol\packs\sampleitems/000319.log: OK
+2025/03/22-18:15:12.670 2610 Table #307: 155 entries OK
+2025/03/22-18:15:12.676 2610 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\midi-qol\packs\sampleitems/MANIFEST-000318: OK
+2025/03/22-18:15:12.682 2610 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\midi-qol\packs\sampleitems; recovered 1 files; 284129 bytes. Some data may have been lost. ****

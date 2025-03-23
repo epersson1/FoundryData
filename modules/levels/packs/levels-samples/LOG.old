@@ -1,3 +1,5 @@
-2025/03/09-16:47:49.956 29d8 Recovering log #3588
-2025/03/09-16:47:49.997 29d8 Delete type=0 #3588
-2025/03/09-16:47:49.997 29d8 Delete type=3 #3587
+2025/03/22-18:15:12.605 1480 Log #3592: 0 ops saved to Table #3593 OK
+2025/03/22-18:15:12.607 1480 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\levels\packs\levels-samples/003592.log: OK
+2025/03/22-18:15:12.609 1480 Table #3460: 405 entries OK
+2025/03/22-18:15:12.615 1480 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\levels\packs\levels-samples/MANIFEST-003591: OK
+2025/03/22-18:15:12.621 1480 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\levels\packs\levels-samples; recovered 1 files; 60780 bytes. Some data may have been lost. ****

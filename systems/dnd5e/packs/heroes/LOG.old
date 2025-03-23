@@ -1,3 +1,5 @@
-2025/03/09-16:47:48.134 29d4 Recovering log #9
-2025/03/09-16:47:48.164 29d4 Delete type=0 #9
-2025/03/09-16:47:48.164 29d4 Delete type=3 #8
+2025/03/22-18:15:11.483 5cac Log #13: 0 ops saved to Table #14 OK
+2025/03/22-18:15:11.487 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\heroes/000013.log: OK
+2025/03/22-18:15:11.523 5cac Table #5: 397 entries OK
+2025/03/22-18:15:11.529 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\heroes/MANIFEST-000012: OK
+2025/03/22-18:15:11.533 5cac **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\heroes; recovered 1 files; 472400 bytes. Some data may have been lost. ****

@@ -1,3 +1,6 @@
-2025/03/09-16:47:47.214 29d4 Recovering log #198
-2025/03/09-16:47:47.244 29d4 Delete type=0 #198
-2025/03/09-16:47:47.244 29d4 Delete type=3 #196
+2025/03/22-18:15:10.602 2610 Log #202: 0 ops saved to Table #203 OK
+2025/03/22-18:15:10.604 2610 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/items/000202.log: OK
+2025/03/22-18:15:10.617 2610 Table #191: 28 entries OK
+2025/03/22-18:15:10.628 2610 Table #197: 28 entries OK
+2025/03/22-18:15:10.632 2610 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/items/MANIFEST-000201: OK
+2025/03/22-18:15:10.643 2610 **** Repaired leveldb C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/items; recovered 2 files; 73940 bytes. Some data may have been lost. ****

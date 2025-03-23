@@ -1,44 +1,7 @@
-2025/03/09-16:47:47.644 29d8 Recovering log #440
-2025/03/09-16:47:47.673 29d8 Delete type=0 #440
-2025/03/09-16:47:47.673 29d8 Delete type=3 #438
-2025/03/09-17:12:31.876 1884 Level-0 table #445: started
-2025/03/09-17:12:32.081 1884 Level-0 table #445: 4099496 bytes OK
-2025/03/09-17:12:32.102 1884 Delete type=0 #443
-2025/03/09-18:09:52.564 1884 Compacting 1@0 + 1@1 files
-2025/03/09-18:09:52.667 1884 Generated table #446@0: 2276 keys, 293905 bytes
-2025/03/09-18:09:52.667 1884 Compacted 1@0 + 1@1 files => 293905 bytes
-2025/03/09-18:09:52.687 1884 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/03/09-18:09:52.695 1884 Delete type=2 #441
-2025/03/09-18:09:52.703 1884 Delete type=2 #445
-2025/03/09-18:21:42.847 1884 Level-0 table #448: started
-2025/03/09-18:21:42.955 1884 Level-0 table #448: 4004161 bytes OK
-2025/03/09-18:21:42.990 1884 Delete type=0 #444
-2025/03/09-18:29:45.373 1884 Level-0 table #450: started
-2025/03/09-18:29:45.474 1884 Level-0 table #450: 4005837 bytes OK
-2025/03/09-18:29:45.498 1884 Delete type=0 #447
-2025/03/09-18:39:57.817 1884 Level-0 table #452: started
-2025/03/09-18:39:57.873 1884 Level-0 table #452: 3980831 bytes OK
-2025/03/09-18:39:57.898 1884 Delete type=0 #449
-2025/03/09-18:42:28.401 1884 Compacting 3@0 + 1@1 files
-2025/03/09-18:42:28.438 1884 Generated table #453@0: 2323 keys, 309609 bytes
-2025/03/09-18:42:28.438 1884 Compacted 3@0 + 1@1 files => 309609 bytes
-2025/03/09-18:42:28.454 1884 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/03/09-18:42:28.454 1884 Delete type=2 #446
-2025/03/09-18:42:28.455 1884 Delete type=2 #448
-2025/03/09-18:42:28.455 1884 Delete type=2 #450
-2025/03/09-18:42:28.455 1884 Delete type=2 #452
-2025/03/09-19:07:18.553 1884 Level-0 table #455: started
-2025/03/09-19:07:18.629 1884 Level-0 table #455: 4010528 bytes OK
-2025/03/09-19:07:18.654 1884 Delete type=0 #451
-2025/03/09-19:53:18.350 1884 Compacting 1@0 + 1@1 files
-2025/03/09-19:53:18.474 1884 Generated table #456@0: 2329 keys, 313512 bytes
-2025/03/09-19:53:18.474 1884 Compacted 1@0 + 1@1 files => 313512 bytes
-2025/03/09-19:53:18.532 1884 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/03/09-19:53:18.538 1884 Delete type=2 #453
-2025/03/09-19:53:18.547 1884 Delete type=2 #455
-2025/03/09-19:55:52.697 1884 Level-0 table #458: started
-2025/03/09-19:55:52.957 1884 Level-0 table #458: 4042555 bytes OK
-2025/03/09-19:55:53.002 1884 Delete type=0 #454
-2025/03/09-20:53:47.586 1884 Level-0 table #460: started
-2025/03/09-20:53:47.678 1884 Level-0 table #460: 4007789 bytes OK
-2025/03/09-20:53:47.703 1884 Delete type=0 #457
+2025/03/22-18:15:11.013 2630 Log #465: 416 ops saved to Table #467 OK
+2025/03/22-18:15:11.016 2630 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/scenes/000465.log: OK
+2025/03/22-18:15:11.024 2630 Table #464: 2285 entries OK
+2025/03/22-18:15:11.037 2630 Table #466: 976 entries OK
+2025/03/22-18:15:11.043 2630 Table #467: 416 entries OK
+2025/03/22-18:15:11.043 2630 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/scenes/MANIFEST-000461: OK
+2025/03/22-18:15:11.051 2630 **** Repaired leveldb C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/scenes; recovered 3 files; 5307003 bytes. Some data may have been lost. ****
