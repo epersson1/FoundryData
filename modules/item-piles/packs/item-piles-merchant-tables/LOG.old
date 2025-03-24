@@ -1,5 +1,5 @@
-2025/03/22-18:15:12.424 2630 Log #87: 0 ops saved to Table #88 OK
-2025/03/22-18:15:12.425 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\item-piles\packs\item-piles-merchant-tables/000087.log: OK
-2025/03/22-18:15:12.428 2630 Table #11: 350 entries OK
-2025/03/22-18:15:12.433 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\item-piles\packs\item-piles-merchant-tables/MANIFEST-000086: OK
-2025/03/22-18:15:12.438 2630 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\item-piles\packs\item-piles-merchant-tables; recovered 1 files; 50514 bytes. Some data may have been lost. ****
+2025/03/23-17:21:54.907 2ebc Log #90: 0 ops saved to Table #91 OK
+2025/03/23-17:21:54.907 2ebc Archiving D:\Foundry\FoundryVTT\Data\modules\item-piles\packs\item-piles-merchant-tables/000090.log: OK
+2025/03/23-17:21:54.907 2ebc Table #11: 350 entries OK
+2025/03/23-17:21:54.939 2ebc Archiving D:\Foundry\FoundryVTT\Data\modules\item-piles\packs\item-piles-merchant-tables/MANIFEST-000089: OK
+2025/03/23-17:21:54.961 2ebc **** Repaired leveldb D:\Foundry\FoundryVTT\Data\modules\item-piles\packs\item-piles-merchant-tables; recovered 1 files; 50514 bytes. Some data may have been lost. ****

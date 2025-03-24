@@ -1,5 +1,5 @@
-2025/03/22-18:15:11.854 5cac Log #13: 0 ops saved to Table #14 OK
-2025/03/22-18:15:11.857 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\backgrounds/000013.log: OK
-2025/03/22-18:15:11.857 5cac Table #5: 5 entries OK
-2025/03/22-18:15:11.863 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\backgrounds/MANIFEST-000012: OK
-2025/03/22-18:15:11.869 5cac **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\backgrounds; recovered 1 files; 4904 bytes. Some data may have been lost. ****
+2025/03/23-17:21:53.687 17d4 Log #16: 0 ops saved to Table #17 OK
+2025/03/23-17:21:53.687 17d4 Archiving D:\Foundry\FoundryVTT\Data\systems\dnd5e\packs\backgrounds/000016.log: OK
+2025/03/23-17:21:53.703 17d4 Table #5: 5 entries OK
+2025/03/23-17:21:53.728 17d4 Archiving D:\Foundry\FoundryVTT\Data\systems\dnd5e\packs\backgrounds/MANIFEST-000015: OK
+2025/03/23-17:21:53.758 17d4 **** Repaired leveldb D:\Foundry\FoundryVTT\Data\systems\dnd5e\packs\backgrounds; recovered 1 files; 4904 bytes. Some data may have been lost. ****

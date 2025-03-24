@@ -1,8 +1,5 @@
-2025/03/22-18:15:10.185 5cac Log #218: 18 ops saved to Table #219 OK
-2025/03/22-18:15:10.187 5cac Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/messages/000218.log: OK
-2025/03/22-18:15:10.190 5cac Table #206: 55 entries OK
-2025/03/22-18:15:10.192 5cac Table #212: 55 entries OK
-2025/03/22-18:15:10.200 5cac Table #217: 360 entries OK
-2025/03/22-18:15:10.200 5cac Table #219: 18 entries OK
-2025/03/22-18:15:10.205 5cac Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/messages/MANIFEST-000216: OK
-2025/03/22-18:15:10.213 5cac **** Repaired leveldb C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/messages; recovered 4 files; 599592 bytes. Some data may have been lost. ****
+2025/03/23-17:21:51.238 17d4 Log #221: 0 ops saved to Table #223 OK
+2025/03/23-17:21:51.238 17d4 Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/messages/000221.log: OK
+2025/03/23-17:21:51.238 17d4 Table #222: 292 entries OK
+2025/03/23-17:21:51.266 17d4 Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/messages/MANIFEST-000220: OK
+2025/03/23-17:21:51.282 17d4 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/messages; recovered 1 files; 225465 bytes. Some data may have been lost. ****

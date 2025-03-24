@@ -1,5 +1,5 @@
-2025/03/22-18:15:11.568 5cac Log #13: 0 ops saved to Table #14 OK
-2025/03/22-18:15:11.570 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\monsters/000013.log: OK
-2025/03/22-18:15:11.591 5cac Table #5: 2301 entries OK
-2025/03/22-18:15:11.591 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\monsters/MANIFEST-000012: OK
-2025/03/22-18:15:11.604 5cac **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\monsters; recovered 1 files; 2779376 bytes. Some data may have been lost. ****
+2025/03/23-17:21:53.117 17d4 Log #16: 0 ops saved to Table #17 OK
+2025/03/23-17:21:53.117 17d4 Archiving D:\Foundry\FoundryVTT\Data\systems\dnd5e\packs\monsters/000016.log: OK
+2025/03/23-17:21:53.147 17d4 Table #5: 2301 entries OK
+2025/03/23-17:21:53.250 17d4 Archiving D:\Foundry\FoundryVTT\Data\systems\dnd5e\packs\monsters/MANIFEST-000015: OK
+2025/03/23-17:21:53.271 17d4 **** Repaired leveldb D:\Foundry\FoundryVTT\Data\systems\dnd5e\packs\monsters; recovered 1 files; 2779376 bytes. Some data may have been lost. ****

@@ -1,5 +1,5 @@
-2025/03/22-18:15:10.780 2630 Log #191: 0 ops saved to Table #192 OK
-2025/03/22-18:15:10.783 2630 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/macros/000191.log: OK
-2025/03/22-18:15:10.792 2630 Table #145: 12 entries OK
-2025/03/22-18:15:10.792 2630 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/macros/MANIFEST-000190: OK
-2025/03/22-18:15:10.806 2630 **** Repaired leveldb C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/macros; recovered 1 files; 2693 bytes. Some data may have been lost. ****
+2025/03/23-17:21:51.908 2ebc Log #194: 0 ops saved to Table #195 OK
+2025/03/23-17:21:51.908 2ebc Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/macros/000194.log: OK
+2025/03/23-17:21:51.918 2ebc Table #145: 12 entries OK
+2025/03/23-17:21:51.937 2ebc Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/macros/MANIFEST-000193: OK
+2025/03/23-17:21:51.958 2ebc **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/macros; recovered 1 files; 2693 bytes. Some data may have been lost. ****

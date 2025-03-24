@@ -1,5 +1,5 @@
-2025/03/22-18:15:12.759 5cac Log #10: 0 ops saved to Table #11 OK
-2025/03/22-18:15:12.760 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\plutonium\packs\macros/000010.log: OK
-2025/03/22-18:15:12.768 5cac Table #5: 6 entries OK
-2025/03/22-18:15:12.773 5cac Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\plutonium\packs\macros/MANIFEST-000009: OK
-2025/03/22-18:15:12.778 5cac **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\plutonium\packs\macros; recovered 1 files; 822 bytes. Some data may have been lost. ****
+2025/03/23-17:21:55.662 2ebc Log #13: 0 ops saved to Table #14 OK
+2025/03/23-17:21:55.662 2ebc Archiving D:\Foundry\FoundryVTT\Data\modules\plutonium\packs\macros/000013.log: OK
+2025/03/23-17:21:55.672 2ebc Table #5: 6 entries OK
+2025/03/23-17:21:55.678 2ebc Archiving D:\Foundry\FoundryVTT\Data\modules\plutonium\packs\macros/MANIFEST-000012: OK
+2025/03/23-17:21:55.698 2ebc **** Repaired leveldb D:\Foundry\FoundryVTT\Data\modules\plutonium\packs\macros; recovered 1 files; 822 bytes. Some data may have been lost. ****
