@@ -37,7 +37,6 @@ export default class PNPCharacter extends PNPActorBase {
     }, {}));
 
     // Basic Character Information
-    schema.gift = new fields.StringField({ required: true, blank: true });  
     schema.kingdom = new fields.StringField({ required: true, blank: true });
     schema.pronouns = new fields.StringField({ required: true, blank: true });
     schema.money = new fields.NumberField({ required: true, blank: true, initial: 0});

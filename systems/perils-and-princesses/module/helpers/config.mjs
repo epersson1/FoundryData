@@ -68,3 +68,10 @@ PNP.skills = {
   wayfinding: 'PNP.Skill.Wayfinding.long',
   winemaking: 'PNP.Skill.Winemaking.long'
 }
+
+PNP.ranges = {
+  at_hand: "PNP.Range.At_Hand.long",
+  nearby: "PNP.Range.Nearby.long",
+  stones_throw: "PNP.Range.Stones_Throw.long",
+  over_yonder: "PNP.Range.Over_Yonder.long",
+};

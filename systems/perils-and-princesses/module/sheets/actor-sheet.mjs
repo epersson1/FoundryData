@@ -118,6 +118,7 @@ export class PNPActorSheet extends ActorSheet {
     const gear = [];
     const features = [];
     const weapons = [];
+    let gift = null;
 
     // Iterate through items, allocating to containers
     for (let i of context.items) {
@@ -131,7 +132,9 @@ export class PNPActorSheet extends ActorSheet {
       // Append to features.
       else if (i.type === 'feature') {
         features.push(i);
-      }
+      } else if (i.type === 'gift') {
+        gift = i;
+      } 
     }
     // Filter for sheet display
     const innateAbilities = features.filter(ability => ability.system.innate);
@@ -143,6 +146,7 @@ export class PNPActorSheet extends ActorSheet {
     context.features = features;
     context.innateAbilities = innateAbilities;
     context.specialAbilities = specialAbilities;
+    context.gift = gift
   }
 
   /* -------------------------------------------- */
@@ -209,6 +213,26 @@ export class PNPActorSheet extends ActorSheet {
         const index = Number(li.data("index"));
         this._removeSkill(index);
     });
+
+    // Picnic & Rest
+    html.find(".take-picnic").click(this._takePicnic.bind(this));
+    html.find('.rest-button').click(this._takeRest.bind(this));
+
+    // Delete Gift
+    html.on('click', '.gift-delete', async (ev) => {
+      const button = $(ev.currentTarget); // The clicked button
+      const itemId = button.data('item-id'); // Get the item ID directly from the button's data-item-id
+      // Get the item by ID from the actor's items
+      const item = this.actor.items.get(itemId)
+
+      if (item) {
+        await item.delete(); // Delete the item from the actor's inventory
+        this.render(false); // Re-render the sheet to reflect the change
+      } else {
+        ui.notifications.warn("Gift not found.");
+      }
+    });
+
   }
 
   /**
@@ -259,17 +283,30 @@ export class PNPActorSheet extends ActorSheet {
 
     // Handle rolls that supply the formula directly.
     if (dataset.roll) {
-      let label = dataset.label ? `${dataset.label} Test` : '';
-      let roll = new Roll(dataset.roll, this.actor.getRollData());
+      // Extract the ability key from the dataset if it's provided
+      // THIS IS A HACK AND SHOULD PROBABLY BE FIXED.
+      const abilityKey = Object.entries(CONFIG.PNP.abilities).find(
+        ([key, localizationKey]) => game.i18n.localize(localizationKey) === dataset.label
+      )?.[0];
+
+      const abilityValue = this.actor.system.abilities?.[abilityKey]?.value;
+      let label = dataset.label ? `${dataset.label} Test (DC ${abilityValue})` : '';
+
+      // Default to the roll from dataset (usually "1d20")
+      let rollFormula = dataset.roll;
+      // If there's an ability key and the actor has an ailment for it, use 2d20kh1
+      if (abilityKey && this.actor.system.abilities?.[abilityKey].ailment) {
+        rollFormula = '2d20kh1';
+      }
+
+      const roll = new Roll(rollFormula, this.actor.getRollData());
       roll.toMessage({
         speaker: ChatMessage.getSpeaker({ actor: this.actor }),
         flavor: label,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      return roll;
     }
   }
-
   async _addSkill() {
     const actorData = this.actor.system;
     
@@ -309,12 +346,107 @@ export class PNPActorSheet extends ActorSheet {
             cancel: { label: "Cancel" }
         }
     }).render(true);
-}
+  }
 
-async _removeSkill(index) {
-    const skills = this.actor.system.skills;
-    skills.splice(index, 1);
-    await this.actor.update({ "system.skills": skills });
-}
+  async _removeSkill(index) {
+      const skills = this.actor.system.skills;
+      skills.splice(index, 1);
+      await this.actor.update({ "system.skills": skills });
+  }
+
+  async _takePicnic() {
+    const heartDice = this.actor.system.attributes.heartDice;
+    // Calculate the number of available gift dice (those with `giftDice.index == false`).
+    const availableDice = heartDice.filter(die => die === true).length;
+
+    if (availableDice === 0) {
+      return ui.notifications.warn("You have no Heart Dice available.");
+    }
+
+    const content = `
+      <form>
+        <div class="form-group">
+          <label>How many Heart Dice do you want to roll? (max: ${availableDice})</label>
+          <input type="number" id="numHeartDice" name="numHeartDice" min="1" max="${availableDice}" value="${availableDice}"/>
+        </div>
+      </form>
+    `;
+
+    new Dialog({
+      title: "Take a Picnic",
+      content,
+      buttons: {
+        roll: {
+          label: "Roll",
+          callback: async (html) => {
+            const num = parseInt(html.find('#numHeartDice').val());
+            if (isNaN(num) || num < 1 || num > availableDice) {
+              return ui.notifications.warn("Invalid number of dice.");
+            }
+
+            // Roll the dice
+            const roll = new Roll(`${num}d4`);
+            await roll.evaluate({ async: true });
+
+            // Update HP
+            const currentHP = this.actor.system.health.value;
+            const maxHP = this.actor.system.health.max;
+            const healed = roll.total;
+            const newHP = Math.min(currentHP + healed, maxHP);
+
+            await this.actor.update({ "system.health.value": newHP });
+
+            // Mark used Heart Dice
+            const newHeartDice = [...heartDice];
+            let spent = 0;
+            for (let i = newHeartDice.length; i > 0; i--) {
+              if (newHeartDice[i] === true && spent < num) {
+                newHeartDice[i] = false;
+                spent++;
+              }
+            }
+            await this.actor.update({ "system.attributes.heartDice": newHeartDice });
+
+            // Send roll message
+            roll.toMessage({
+              speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+              flavor: `Took a Picnic and healed ${healed} HP`,
+            });
+          }
+        },
+        cancel: {
+          label: "Cancel"
+        }
+      },
+      default: "roll"
+    }).render(true);
+  }
+
+  async _takeRest() {
+    const updates = {};
+  
+    // 1. Restore all Health to max
+    const maxHealth = this.actor.system.health.max;
+    updates["system.health.value"] = maxHealth;
+  
+    // 2. Restore all Gift Dice (set all to true)
+    const giftDiceCount = this.actor.system.attributes.giftDice.length;
+    updates["system.attributes.giftDice"] = Array(giftDiceCount).fill(true);
+  
+    // 3. Restore all Heart Dice (set all to true)
+    const heartDiceCount = this.actor.system.attributes.heartDice.length;
+    updates["system.attributes.heartDice"] = Array(heartDiceCount).fill(true);
+  
+    // Apply all updates
+    await this.actor.update(updates);
+  
+    // Send a chat message to all players
+    const speaker = ChatMessage.getSpeaker({ actor: this.actor });
+    ChatMessage.create({
+      speaker,
+      content: `<strong>${this.actor.name}</strong> takes a rest.`,
+      style: CONST.CHAT_MESSAGE_STYLES.OTHER,
+    });
+  }
 }
 

@@ -1,15 +1,15 @@
-2025/03/25-14:31:02.958 1f94 Recovering log #20
-2025/03/25-14:31:02.967 1f94 Delete type=0 #20
-2025/03/25-14:31:02.967 1f94 Delete type=3 #18
-2025/03/26-15:07:22.737 390c Level-0 table #26: started
-2025/03/26-15:07:22.769 390c Level-0 table #26: 1333 bytes OK
-2025/03/26-15:07:22.773 390c Delete type=0 #24
-2025/03/26-15:07:22.783 390c Manual compaction at level-0 from '!messages!71TrLBiDInYLK0sU' @ 72057594037927935 : 1 .. '!messages!tEXbhObkLlzcIgMp' @ 0 : 0; will stop at (end)
-2025/03/26-15:07:22.818 390c Manual compaction at level-1 from '!messages!71TrLBiDInYLK0sU' @ 72057594037927935 : 1 .. '!messages!tEXbhObkLlzcIgMp' @ 0 : 0; will stop at '!messages!ipRymTs3uNsAnVhj' @ 24 : 1
-2025/03/26-15:07:22.818 390c Compacting 1@1 + 1@2 files
-2025/03/26-15:07:22.826 390c Generated table #27@1: 22 keys, 7122 bytes
-2025/03/26-15:07:22.826 390c Compacted 1@1 + 1@2 files => 7122 bytes
-2025/03/26-15:07:22.829 390c compacted to: files[ 0 0 1 0 0 0 0 ]
-2025/03/26-15:07:22.830 390c Delete type=2 #22
-2025/03/26-15:07:22.832 390c Delete type=2 #26
-2025/03/26-15:07:22.841 390c Manual compaction at level-1 from '!messages!ipRymTs3uNsAnVhj' @ 24 : 1 .. '!messages!tEXbhObkLlzcIgMp' @ 0 : 0; will stop at (end)
+2025/03/26-20:41:10.820 360 Recovering log #32
+2025/03/26-20:41:10.849 360 Delete type=0 #32
+2025/03/26-20:41:10.849 360 Delete type=3 #31
+2025/03/26-23:11:53.057 42a0 Level-0 table #36: started
+2025/03/26-23:11:53.082 42a0 Level-0 table #36: 18827 bytes OK
+2025/03/26-23:11:53.107 42a0 Delete type=0 #34
+2025/03/26-23:11:53.173 42a0 Manual compaction at level-0 from '!messages!1xPZjSNFH7yF7KEu' @ 72057594037927935 : 1 .. '!messages!ydrvjV1vJE4R64Qa' @ 0 : 0; will stop at '!messages!gfzhqIzyPtB2VvBy' @ 25 : 1
+2025/03/26-23:11:53.173 42a0 Compacting 3@0 + 0@1 files
+2025/03/26-23:11:53.222 42a0 Generated table #37@0: 12 keys, 3313 bytes
+2025/03/26-23:11:53.222 42a0 Compacted 3@0 + 0@1 files => 3313 bytes
+2025/03/26-23:11:53.240 42a0 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/03/26-23:11:53.240 42a0 Delete type=2 #27
+2025/03/26-23:11:53.240 42a0 Delete type=2 #30
+2025/03/26-23:11:53.240 42a0 Delete type=2 #36
+2025/03/26-23:11:53.340 42a0 Manual compaction at level-0 from '!messages!gfzhqIzyPtB2VvBy' @ 25 : 1 .. '!messages!ydrvjV1vJE4R64Qa' @ 0 : 0; will stop at (end)

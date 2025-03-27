@@ -83,13 +83,14 @@
             />
           </div>
           <div class='grid-span-2'>
-            <label class='resource-label'>Roll Modifier</label>
-            <input
-              type='text'
-              name='system.roll.diceBonus'
-              value='{{system.roll.diceBonus}}'
-              data-dtype='String'
-            />
+            <label class='resource-label'>Range</label>
+            <select name='system.range' data-dtype='String'>
+              {{#each config.ranges as |label key|}}
+                <option value='{{localize label}}'>
+                  {{localize label}}
+                </option>
+              {{/each}}
+            </select>
           </div>
         </div>
 

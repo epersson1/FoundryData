@@ -1,15 +1,15 @@
-2025/03/25-14:31:03.040 1f94 Recovering log #18
-2025/03/25-14:31:03.050 1f94 Delete type=0 #18
-2025/03/25-14:31:03.051 1f94 Delete type=3 #16
-2025/03/26-15:07:22.845 390c Level-0 table #23: started
-2025/03/26-15:07:22.853 390c Level-0 table #23: 4696 bytes OK
-2025/03/26-15:07:22.857 390c Delete type=0 #21
-2025/03/26-15:07:22.872 390c Manual compaction at level-0 from '!items!6k8PIueKCZghHwOq' @ 72057594037927935 : 1 .. '!items!m3FZ0lcDSMzzJInC' @ 0 : 0; will stop at (end)
-2025/03/26-15:07:22.872 390c Manual compaction at level-1 from '!items!6k8PIueKCZghHwOq' @ 72057594037927935 : 1 .. '!items!m3FZ0lcDSMzzJInC' @ 0 : 0; will stop at '!items!rqgaO6Ck7ZKnleXs' @ 15 : 1
-2025/03/26-15:07:22.872 390c Compacting 1@1 + 1@2 files
-2025/03/26-15:07:22.900 390c Generated table #24@1: 4 keys, 1157 bytes
-2025/03/26-15:07:22.900 390c Compacted 1@1 + 1@2 files => 1157 bytes
-2025/03/26-15:07:22.903 390c compacted to: files[ 0 0 1 0 0 0 0 ]
-2025/03/26-15:07:22.904 390c Delete type=2 #13
-2025/03/26-15:07:22.904 390c Delete type=2 #23
-2025/03/26-15:07:22.943 390c Manual compaction at level-1 from '!items!rqgaO6Ck7ZKnleXs' @ 15 : 1 .. '!items!m3FZ0lcDSMzzJInC' @ 0 : 0; will stop at (end)
+2025/03/26-20:41:10.960 2da8 Recovering log #29
+2025/03/26-20:41:10.991 2da8 Delete type=0 #29
+2025/03/26-20:41:10.992 2da8 Delete type=3 #28
+2025/03/26-23:11:53.373 42a0 Level-0 table #33: started
+2025/03/26-23:11:53.417 42a0 Level-0 table #33: 1125 bytes OK
+2025/03/26-23:11:53.431 42a0 Delete type=0 #31
+2025/03/26-23:11:53.466 42a0 Manual compaction at level-0 from '!items!6k8PIueKCZghHwOq' @ 72057594037927935 : 1 .. '!items!m3FZ0lcDSMzzJInC' @ 0 : 0; will stop at '!items!7NWe7r6vYQyK1lfa' @ 43 : 1
+2025/03/26-23:11:53.466 42a0 Compacting 3@0 + 0@1 files
+2025/03/26-23:11:53.522 42a0 Generated table #34@0: 5 keys, 1383 bytes
+2025/03/26-23:11:53.522 42a0 Compacted 3@0 + 0@1 files => 1383 bytes
+2025/03/26-23:11:53.556 42a0 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/03/26-23:11:53.557 42a0 Delete type=2 #24
+2025/03/26-23:11:53.557 42a0 Delete type=2 #27
+2025/03/26-23:11:53.557 42a0 Delete type=2 #33
+2025/03/26-23:11:53.607 42a0 Manual compaction at level-0 from '!items!7NWe7r6vYQyK1lfa' @ 43 : 1 .. '!items!m3FZ0lcDSMzzJInC' @ 0 : 0; will stop at (end)

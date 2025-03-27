@@ -50,6 +50,12 @@
       "Wayfinding": { "long": "Wayfinding" },
       "Winemaking": { "long": "Winemaking" }
     },
+    "Range": {
+      "At_Hand": { "long": "At Hand" },
+      "Nearby":{ "long": "Nearby" },
+      "Stones_Throw": { "long": "Stone's Throw" },
+      "Over_Yonder": { "long": "Over Yonder" }
+    },
     "SheetLabels": {
       "Actor": "PNP Actor Sheet",
       "Item": "PNP Item Sheet"

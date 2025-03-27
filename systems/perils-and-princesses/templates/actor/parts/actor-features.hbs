@@ -10,7 +10,6 @@
             <div class="ability flexrow flex-group-center">
               <label for="system.abilities.{{key}}.value" class="resource-label rollable flexlarge align-left" data-roll="d20" data-label="{{localize (lookup @root.config.abilities key)}}">{{localize (lookup @root.config.abilities key)}}</label>
               <input type="text" name="system.abilities.{{key}}.value" value="{{ability.value}}" data-dtype="Number"/>
-              <span class="ability-mod rollable" data-roll="d20" data-label="{{localize (lookup @root.config.abilities key)}}"><img src="systems/perils-and-princesses/assets/character_sheet/dice-twenty-faces-twenty.png" alt="Roll d20" width="20" height="20"></span>
               <div class="ailment flexrow flex-group-center">
                 <label for="system.abilities.{{key}}.ailment" class="ailment-label">
                   {{localize (lookup @root.config.ailments key)}}
@@ -38,18 +37,28 @@
               <label for="system.armor.value" class="resource-label">Armor:</label>
               <input type="number" name="system.armor.value" value="{{system.armor.value}}" data-dtype="Number" />
             </div>
+
+            <div class="resource flex-group-center">
+              <label for="system.health.value" class="resource-label">Heart Points</label>
+              <div class="resource-content flexrow flex-center flex-between">
+              <input type="text" name="system.health.value" value="{{system.health.value}}" data-dtype="Number"/>
+              <span> / </span>
+              <input type="text" name="system.health.max" value="{{system.health.max}}" data-dtype="Number"/>
+              </div>
+            </div>
         </div>
         </section>
-
-        <!-- Stuff -->
-        <section class="grid">
-          <label class="resource-label">My Stuff</label>
-        </section>
-        <section class="main grid-span-2">
+  </section>
+      <!-- Stuff -->
+      <section class="main">
+        <h3>{{localize 'My Stuff'}}</h3>
+      </section>
+      <section class="grid grid-3col">
+        <section class="grid-span-1">
             {{> "systems/perils-and-princesses/templates/actor/parts/actor-items.hbs"}}
         </section>
         <!-- Weapons -->
-        <section class="main grid-span-1">
+        <section class="grid-span-2">
             <label class="resource-label"></label>
             {{> "systems/perils-and-princesses/templates/actor/parts/actor-weapons.hbs"}}
             <!-- Money -->

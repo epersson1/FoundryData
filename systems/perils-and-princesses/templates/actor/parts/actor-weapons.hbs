@@ -1,6 +1,8 @@
 <ol class='items-list'>
   <li class='item flexrow items-header'>
     <div class='item-name'>{{localize 'Weapon'}}</div>
+    <div class='item-formula'>{{localize 'Dmg Die'}}</div>
+    <div class='item-name'>{{localize 'Range'}}</div>
     <div class='item-controls'>
       <a
         class='item-control item-create'
@@ -27,6 +29,8 @@
         </div>
         <h4>{{item.name}}</h4>
       </div>
+      <div class='item-formula'>{{item.system.formula}}</div>
+      <div class='item-name'>{{item.system.range}}</div>
       <div class='item-controls'>
         <a
           class='item-control item-edit'

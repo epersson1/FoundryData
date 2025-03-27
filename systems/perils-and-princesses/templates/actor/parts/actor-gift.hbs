@@ -1,19 +1,33 @@
-<div class="row-container">
-  <div class="row flex-group-center">
-    <label for="system.attributes.level.value" class="resource-label">Level</label>
-    <div class="resource-content flexrow flex-center flex-between">
-      <input type="text" name="system.attributes.level.value" value="{{system.attributes.level.value}}" data-dtype="Number"/>
-    </div>
-  </div>
-  <div class="row flex-group-center">
-    <label class="resource-label">Gift Dice:</label>
-    <div class="heart-dice flexrow flex-center flex-between">
-      {{#each system.attributes.giftDice as |used index|}}
-        <input type="checkbox" name="system.attributes.giftDice.{{index}}" {{checked used}} data-dtype="Boolean"/>
-      {{/each}}
-    </div>
-  </div>
-</div>
+<div class="resources grid grid-3col">
+        <div class="resource flex-group-center">
+          <label for="system.attributes.level.value" class="resource-label">Level</label>
+          <div class="resource-content flexrow flex-center flex-between">
+            <input type="text" name="system.attributes.level.value" value="{{system.attributes.level.value}}" data-dtype="Number"/>
+          </div>
+        </div>
+
+        <div class="resource flex-group-center">
+          <label class="resource-label">Gift Dice:</label>
+          <div class="heart-dice flexrow flex-center flex-between">
+            {{#each system.attributes.giftDice as |used index|}}
+              <input type="checkbox" name="system.attributes.giftDice.{{index}}" {{checked used}} data-dtype="Boolean"/>
+            {{/each}}
+          </div>
+        </div>
+
+        <div class="resource flex-group-center">
+          <label class="resource-label">Gift</label>
+          <div class="resource-content flexrow flex-center flex-between">
+            {{#if gift}}
+              <span>{{gift.name}}</span>
+              <a class="item-control gift-delete" data-item-id="{{gift._id}}" title="{{localize 'DOCUMENT.Delete' type='Gift'}}"><i class="fas fa-trash"></i></a>
+              
+            {{else}}
+              <span class="hint">No Gift Assigned</span>
+            {{/if}}
+          </div>
+        </div>
+      </div>
 
 
 <h3>Innate Abilities</h3>
@@ -107,12 +121,12 @@
 
 <!--Curses/Trauma-->
 <div class="resources grid grid-3col">
-  <div class="resource flex-group-center">
+  <div class="resource grid-span-2">
     {{!-- Editors must receive enriched text data from getData to properly handle rolls --}}
       <label class="resource-label">Curses and Injuries</label>
       {{editor enrichedCurses target="system.curses" engine="prosemirror" button=true editable=editable}}
   </div>
-  <div class="resource flex-group-center">
+  <div class="resource grid-span-1">
     <label class="resource-label">Trauma:</label>
     <div class="heart-dice flexrow flex-center flex-between">
       {{#each system.attributes.trauma as |used index|}}

@@ -114,6 +114,10 @@
   grid-column-start: 12;
 }
 
+.grid-span-1 {
+  grid-column-end: span 1;
+}
+
 .grid-span-2 {
   grid-column-end: span 2;
 }
@@ -349,9 +353,12 @@
   padding-left: 5px;
   text-align: left;
 }
+
 .perils-and-princesses .item-formula {
-  flex: 0 0 200px;
+  flex: 0 0 auto;
   padding: 0 8px;
+  font-size: 13px;
+  color: #191813;
 }
 .perils-and-princesses .effects .item .effect-source,
 .perils-and-princesses .effects .item .effect-duration,
