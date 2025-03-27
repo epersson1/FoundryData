@@ -1,6 +1,11 @@
-2025/03/09-16:24:45.432 3c18 Log #33: 25 ops saved to Table #34 OK
-2025/03/09-16:24:45.433 3c18 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/items/000033.log: OK
-2025/03/09-16:24:45.433 3c18 Table #31: 6 entries OK
-2025/03/09-16:24:45.433 3c18 Table #34: 25 entries OK
-2025/03/09-16:24:45.456 3c18 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/items/MANIFEST-000032: OK
-2025/03/09-16:24:45.481 3c18 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/items; recovered 2 files; 53377 bytes. Some data may have been lost. ****
+2025/03/24-20:18:27.527 3878 Delete type=3 #1
+2025/03/24-20:26:42.232 4de0 Level-0 table #44: started
+2025/03/24-20:26:42.232 4de0 Level-0 table #44: 0 bytes OK
+2025/03/24-20:26:42.235 4de0 Delete type=0 #42
+2025/03/24-20:26:42.240 4de0 Manual compaction at level-0 from '!items!0rFffLRsamLUruX9' @ 72057594037927935 : 1 .. '!items!z80pHq9bUkbTn0QC' @ 0 : 0; will stop at '!items!z80pHq9bUkbTn0QC' @ 97 : 1
+2025/03/24-20:26:42.240 4de0 Compacting 1@0 + 0@1 files
+2025/03/24-20:26:42.245 4de0 Generated table #45@0: 25 keys, 49144 bytes
+2025/03/24-20:26:42.245 4de0 Compacted 1@0 + 0@1 files => 49144 bytes
+2025/03/24-20:26:42.247 4de0 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/03/24-20:26:42.247 4de0 Delete type=2 #39
+2025/03/24-20:26:42.254 4de0 Manual compaction at level-0 from '!items!z80pHq9bUkbTn0QC' @ 97 : 1 .. '!items!z80pHq9bUkbTn0QC' @ 0 : 0; will stop at (end)

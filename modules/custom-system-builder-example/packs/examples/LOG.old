@@ -1,3 +1,8 @@
-2025/02/04-12:26:03.232 9774 Recovering log #65
-2025/02/04-12:26:03.242 9774 Delete type=0 #65
-2025/02/04-12:26:03.242 9774 Delete type=3 #63
+2025/03/24-20:18:27.982 3878 Recovering log #72
+2025/03/24-20:18:27.990 3878 Delete type=0 #72
+2025/03/24-20:18:27.990 3878 Delete type=3 #70
+2025/03/24-20:26:42.340 4de0 Level-0 table #77: started
+2025/03/24-20:26:42.340 4de0 Level-0 table #77: 0 bytes OK
+2025/03/24-20:26:42.343 4de0 Delete type=0 #75
+2025/03/24-20:26:42.343 4de0 Manual compaction at level-0 from '!adventures!OWwZR5DpjPlCHntC' @ 72057594037927935 : 1 .. '!adventures!OWwZR5DpjPlCHntC' @ 0 : 0; will stop at (end)
+2025/03/24-20:26:42.344 4de0 Manual compaction at level-1 from '!adventures!OWwZR5DpjPlCHntC' @ 72057594037927935 : 1 .. '!adventures!OWwZR5DpjPlCHntC' @ 0 : 0; will stop at (end)

@@ -1,0 +1,8 @@
+2025/03/25-14:31:03.152 2dac Recovering log #18
+2025/03/25-14:31:03.161 2dac Delete type=0 #18
+2025/03/25-14:31:03.161 2dac Delete type=3 #16
+2025/03/26-15:07:22.987 390c Level-0 table #23: started
+2025/03/26-15:07:22.989 390c Level-0 table #23: 0 bytes OK
+2025/03/26-15:07:22.995 390c Delete type=0 #21
+2025/03/26-15:07:22.995 390c Manual compaction at level-0 from '!users!xPKWrd3mrGVuBMaA' @ 72057594037927935 : 1 .. '!users!xPKWrd3mrGVuBMaA' @ 0 : 0; will stop at (end)
+2025/03/26-15:07:22.997 390c Manual compaction at level-1 from '!users!xPKWrd3mrGVuBMaA' @ 72057594037927935 : 1 .. '!users!xPKWrd3mrGVuBMaA' @ 0 : 0; will stop at (end)

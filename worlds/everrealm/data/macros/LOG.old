@@ -1,4 +1,5 @@
-2025/03/09-16:24:45.637 42b0 Log #30: 0 ops saved to Table #31 OK
-2025/03/09-16:24:45.638 42b0 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/macros/000030.log: OK
-2025/03/09-16:24:45.656 42b0 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/macros/MANIFEST-000029: OK
-2025/03/09-16:24:45.681 42b0 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/macros; recovered 0 files; 0 bytes. Some data may have been lost. ****
+2025/03/24-20:18:27.611 5e04 Delete type=3 #1
+2025/03/24-20:26:42.188 4de0 Level-0 table #39: started
+2025/03/24-20:26:42.188 4de0 Level-0 table #39: 0 bytes OK
+2025/03/24-20:26:42.193 4de0 Delete type=0 #37
+2025/03/24-20:26:42.215 4de0 Manual compaction at level-0 from 'undefined' @ 72057594037927935 : 1 .. 'undefined' @ 0 : 0; will stop at (end)

@@ -1,0 +1,14 @@
+{
+  "title": "(DEV) Perils and Princesses",
+  "id": "dev-perils-and-princesses",
+  "system": "perils-and-princesses",
+  "joinTheme": "default",
+  "coreVersion": "12.331",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "systemVersion": "2.0.0",
+  "lastPlayed": "Wed Mar 26 2025 15:07:39 GMT-0400 (Eastern Daylight Time)",
+  "playtime": 143059
+}

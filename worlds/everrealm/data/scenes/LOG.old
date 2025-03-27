@@ -1,4 +1,5 @@
-2025/03/09-16:24:45.987 3c18 Log #30: 0 ops saved to Table #31 OK
-2025/03/09-16:24:45.987 3c18 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/scenes/000030.log: OK
-2025/03/09-16:24:46.006 3c18 Archiving D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/scenes/MANIFEST-000029: OK
-2025/03/09-16:24:46.031 3c18 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/everrealm/data/scenes; recovered 0 files; 0 bytes. Some data may have been lost. ****
+2025/03/24-20:18:27.744 5e04 Delete type=3 #1
+2025/03/24-20:26:42.250 4de0 Level-0 table #39: started
+2025/03/24-20:26:42.250 4de0 Level-0 table #39: 0 bytes OK
+2025/03/24-20:26:42.254 4de0 Delete type=0 #37
+2025/03/24-20:26:42.277 4de0 Manual compaction at level-0 from 'undefined' @ 72057594037927935 : 1 .. 'undefined' @ 0 : 0; will stop at (end)

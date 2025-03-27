@@ -1,0 +1,87 @@
+<div class="tab features" data-group="primary" data-tab="features">
+      <section class="grid grid-3col">
+        <aside class="sidebar">
+
+          {{!-- The grid classes are defined in scss/global/_grid.scss. To use,
+          use both the "grid" and "grid-Ncol" class where "N" can be any number
+          from 1 to 12 and will create that number of columns.  --}}
+          <div class="abilities flexcol">
+            {{#each system.abilities as |ability key|}}
+            <div class="ability flexrow flex-group-center">
+              <label for="system.abilities.{{key}}.value" class="resource-label rollable flexlarge align-left" data-roll="d20" data-label="{{localize (lookup @root.config.abilities key)}}">{{localize (lookup @root.config.abilities key)}}</label>
+              <input type="text" name="system.abilities.{{key}}.value" value="{{ability.value}}" data-dtype="Number"/>
+              <span class="ability-mod rollable" data-roll="d20" data-label="{{localize (lookup @root.config.abilities key)}}"><img src="systems/perils-and-princesses/assets/character_sheet/dice-twenty-faces-twenty.png" alt="Roll d20" width="20" height="20"></span>
+              <div class="ailment flexrow flex-group-center">
+                <label for="system.abilities.{{key}}.ailment" class="ailment-label">
+                  {{localize (lookup @root.config.ailments key)}}
+                </label>
+                <input type="checkbox" name="system.abilities.{{key}}.ailment" {{checked ability.ailment}} />
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </aside>
+
+        {{!-- For the main features list, span the right two columns --}}
+        <section class="main grid-span-2">
+          <div class="resources grid grid-2col">
+            {{!-- Heart Dice --}}
+            <div class="heart-dice flex-group-center">
+              <label class="resource-label">Heart Dice:</label>
+              {{#each system.attributes.heartDice as |used index|}}
+                <input type="checkbox" name="system.attributes.heartDice.{{index}}" {{checked used}} data-dtype="Boolean"/>
+              {{/each}}
+            </div>
+
+            <!-- Armor -->
+            <div class="resouce flex-group-center">
+              <label for="system.armor.value" class="resource-label">Armor:</label>
+              <input type="number" name="system.armor.value" value="{{system.armor.value}}" data-dtype="Number" />
+            </div>
+        </div>
+        </section>
+
+        <!-- Stuff -->
+        <section class="grid">
+          <label class="resource-label">My Stuff</label>
+        </section>
+        <section class="main grid-span-2">
+            {{> "systems/perils-and-princesses/templates/actor/parts/actor-items.hbs"}}
+        </section>
+        <!-- Weapons -->
+        <section class="main grid-span-1">
+            <label class="resource-label"></label>
+            {{> "systems/perils-and-princesses/templates/actor/parts/actor-weapons.hbs"}}
+            <!-- Money -->
+          <div>
+            <label for="system.money" class="resource-label">Money:</label>
+            <input type="number" name="system.money" value="{{system.money}}" data-dtype="Number"/>
+          </div>
+          <div>
+            <ol class="items-list">
+            <li class="items-header flexrow">
+              <div class="item-name">{{localize "Talents"}}</div>
+              <div class="skill-controls">
+                <a class="skill-control skill-add" title="{{localize 'Add Skill'}}">
+                  <i class="fas fa-plus"></i>
+                </a>
+              </div>
+            </li>
+
+            {{#each system.skills as |skill index|}}
+              <li class="item flexrow" data-index="{{index}}">
+                <div class="skill-name">
+                  <h4>{{localize (lookup @root.config.skills skill)}}</h4>
+                </div>
+                <div class="skill-controls">
+                  <a class="skill-control skill-remove" title="{{localize 'Remove Skill'}}">
+                    <i class="fas fa-trash"></i>
+                  </a>
+                </div>
+              </li>
+            {{/each}}
+          </ol>
+          </div>
+        </section>
+      </section>
+    </div>
