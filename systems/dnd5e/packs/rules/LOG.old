@@ -1,5 +1,5 @@
-2025/03/22-18:15:12.163 2630 Log #13: 0 ops saved to Table #14 OK
-2025/03/22-18:15:12.164 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\rules/000013.log: OK
-2025/03/22-18:15:12.166 2630 Table #5: 448 entries OK
-2025/03/22-18:15:12.173 2630 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\rules/MANIFEST-000012: OK
-2025/03/22-18:15:12.181 2630 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\systems\dnd5e\packs\rules; recovered 1 files; 359063 bytes. Some data may have been lost. ****
+2025/03/23-17:21:54.347 17d4 Log #16: 0 ops saved to Table #17 OK
+2025/03/23-17:21:54.347 17d4 Archiving D:\Foundry\FoundryVTT\Data\systems\dnd5e\packs\rules/000016.log: OK
+2025/03/23-17:21:54.359 17d4 Table #5: 448 entries OK
+2025/03/23-17:21:54.388 17d4 Archiving D:\Foundry\FoundryVTT\Data\systems\dnd5e\packs\rules/MANIFEST-000015: OK
+2025/03/23-17:21:54.408 17d4 **** Repaired leveldb D:\Foundry\FoundryVTT\Data\systems\dnd5e\packs\rules; recovered 1 files; 359063 bytes. Some data may have been lost. ****

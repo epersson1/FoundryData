@@ -1,5 +1,5 @@
-2025/03/22-18:15:12.369 2610 Log #184: 0 ops saved to Table #185 OK
-2025/03/22-18:15:12.371 2610 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\fxmaster\packs\macros/000184.log: OK
-2025/03/22-18:15:12.381 2610 Table #102: 5 entries OK
-2025/03/22-18:15:12.387 2610 Archiving C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\fxmaster\packs\macros/MANIFEST-000183: OK
-2025/03/22-18:15:12.393 2610 **** Repaired leveldb C:\Users\nellery\AppData\Local\FoundryVTT\Data\modules\fxmaster\packs\macros; recovered 1 files; 1632 bytes. Some data may have been lost. ****
+2025/03/23-17:21:54.788 104c Log #187: 0 ops saved to Table #188 OK
+2025/03/23-17:21:54.788 104c Archiving D:\Foundry\FoundryVTT\Data\modules\fxmaster\packs\macros/000187.log: OK
+2025/03/23-17:21:54.804 104c Table #102: 5 entries OK
+2025/03/23-17:21:54.828 104c Archiving D:\Foundry\FoundryVTT\Data\modules\fxmaster\packs\macros/MANIFEST-000186: OK
+2025/03/23-17:21:54.858 104c **** Repaired leveldb D:\Foundry\FoundryVTT\Data\modules\fxmaster\packs\macros; recovered 1 files; 1632 bytes. Some data may have been lost. ****

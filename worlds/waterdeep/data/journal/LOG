@@ -1,7 +1,1 @@
-2025/03/22-18:15:10.743 5cac Delete type=3 #1
-2025/03/23-16:43:50.653 1db0 Compacting 2@0 + 0@1 files
-2025/03/23-16:43:50.707 1db0 Generated table #211@0: 125 keys, 290630 bytes
-2025/03/23-16:43:50.707 1db0 Compacted 2@0 + 0@1 files => 290630 bytes
-2025/03/23-16:43:50.709 1db0 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/03/23-16:43:50.709 1db0 Delete type=2 #207
-2025/03/23-16:43:50.710 1db0 Delete type=2 #208
+2025/03/23-17:21:51.900 17d4 Delete type=3 #1

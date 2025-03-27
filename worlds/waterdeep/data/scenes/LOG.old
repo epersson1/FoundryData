@@ -1,7 +1,6 @@
-2025/03/22-18:15:11.013 2630 Log #465: 416 ops saved to Table #467 OK
-2025/03/22-18:15:11.016 2630 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/scenes/000465.log: OK
-2025/03/22-18:15:11.024 2630 Table #464: 2285 entries OK
-2025/03/22-18:15:11.037 2630 Table #466: 976 entries OK
-2025/03/22-18:15:11.043 2630 Table #467: 416 entries OK
-2025/03/22-18:15:11.043 2630 Archiving C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/scenes/MANIFEST-000461: OK
-2025/03/22-18:15:11.051 2630 **** Repaired leveldb C:/Users/nellery/AppData/Local/FoundryVTT/Data/worlds/waterdeep/data/scenes; recovered 3 files; 5307003 bytes. Some data may have been lost. ****
+2025/03/23-17:21:52.238 17d4 Log #469: 978 ops saved to Table #471 OK
+2025/03/23-17:21:52.238 17d4 Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/scenes/000469.log: OK
+2025/03/23-17:21:52.238 17d4 Table #470: 2286 entries OK
+2025/03/23-17:21:52.238 17d4 Table #471: 978 entries OK
+2025/03/23-17:21:52.269 17d4 Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/scenes/MANIFEST-000468: OK
+2025/03/23-17:21:52.288 17d4 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/scenes; recovered 2 files; 815974 bytes. Some data may have been lost. ****
