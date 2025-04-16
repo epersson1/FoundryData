@@ -1,0 +1,109 @@
+{{! Features Tab }}
+<section
+  class='tab features {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='features'
+>
+  <section class='grid grid-3col'>
+    <section class="main grid-span-1">
+
+      {{!-- The grid classes are defined in scss/global/_grid.scss. To use,
+      use both the "grid" and "grid-Ncol" class where "N" can be any number
+      from 1 to 12 and will create that number of columns.  --}}
+      <div class="abilities flexcol">
+        {{#each system.abilities as |ability key|}}
+        <div class="ability flexrow">
+          <label 
+            for="system.abilities.{{key}}.value" 
+            class="resource-label rollable flexlarge align-left" 
+            data-action='roll'
+            data-roll="d20" 
+            data-label="{{localize (lookup @root.config.abilities key)}}"
+            >{{localize (lookup @root.config.abilities key)}}
+          </label>
+          <input 
+            type="text" 
+            name="system.abilities.{{key}}.value" 
+            value="{{ability.value}}" 
+            data-dtype="Number"
+            class="ability-score"
+          />
+          <div class="ability flexrow">
+            <label for="system.abilities.{{key}}.ailment" class="ability-label">
+              {{localize (lookup @root.config.ailments key)}}
+            </label>
+            <input type="checkbox" name="system.abilities.{{key}}.ailment" {{checked ability.ailment}} />
+          </div>
+        </div>
+        {{/each}}
+      </div>
+    </section>
+
+    {{! For the main features list, span the right two columns }}
+    <section class="main grid-span-2">
+          <div class="resources grid grid-2col">
+            {{!-- Heart Dice --}}
+            <label class="resource-label">Heart Dice:</label>
+            <div class="heart-dice flex-group-center">
+              {{#each system.attributes.heartDice as |used index|}}
+               <label class="hdCheckBox"><input type="checkbox" name="system.attributes.heartDice.{{index}}" {{checked used}} data-dtype="Boolean"/><span>&#10084;</span></label>
+                <span></span>
+              {{/each}}
+            </div>
+
+            <!-- Armor -->
+            <div class="resource flex-group-center">
+              <label for="system.armor.value" class="resource-label">Armor:</label>
+              <input type="number" name="system.armor.value" value="{{system.armor.value}}" data-dtype="Number" />
+            </div>
+
+            <!-- HP -->
+            <div class="resource flex-group-center">
+              <label for="system.health.value" class="resource-label">Heart Points</label>
+              <div class="resource-content flexrow flex-center flex-between">
+              <input type="text" name="system.health.value" value="{{system.health.value}}" data-dtype="Number"/>
+              <span> / </span>
+              <input type="text" name="system.health.max" value="{{system.health.max}}" data-dtype="Number"/>
+              </div>
+            </div>
+        </div>
+        </section>
+  </section>
+  <!-- Stuff -->
+  <section class="grid grid-3col">
+    <section class="grid-span-1">
+      <label class="resource-label"></label>
+        <!-- Money -->
+      <div>
+        <label for="system.money" class="resource-label">Money:</label>
+        <input type="number" name="system.money" value="{{system.money}}" data-dtype="Number"/>
+      </div>
+    </section>
+    <section class="grid-span-2">
+      <div>
+        <ol class="items-list">
+        <li class="items-header flexrow">
+          <div class="item-name">{{localize "Talents"}}</div>
+          <div class="item-controls">
+            <a class="item-control item-add" data-action='addSkill' title="{{localize 'Add Skill'}}">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </li>
+        {{#each system.attributes.skills as |skill index|}}
+              <li class="item flexrow" data-index="{{index}}">
+                <div class="item-name">
+                  {{localize (lookup @root.config.skills skill)}}
+                </div>
+                <div class="item-controls">
+                  <a class="item-control item-remove" data-action='removeSkill' title="{{localize 'Remove Skill'}}">
+                    <i class="fas fa-trash"></i>
+                  </a>
+                </div>
+              </li>
+            {{/each}}
+      </ol>
+      </div>
+    </section>
+  </section>
+</section>

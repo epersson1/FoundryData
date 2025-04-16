@@ -1,0 +1,7 @@
+2025/04/14-11:15:53.690 3e40 Recovering log #28
+2025/04/14-11:15:53.725 3e40 Delete type=0 #28
+2025/04/14-11:15:53.725 3e40 Delete type=3 #26
+2025/04/14-11:16:12.011 3ffc Level-0 table #33: started
+2025/04/14-11:16:12.011 3ffc Level-0 table #33: 0 bytes OK
+2025/04/14-11:16:12.047 3ffc Delete type=0 #31
+2025/04/14-11:16:12.097 3ffc Manual compaction at level-0 from 'undefined' @ 72057594037927935 : 1 .. 'undefined' @ 0 : 0; will stop at (end)

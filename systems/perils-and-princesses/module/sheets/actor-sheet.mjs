@@ -1,112 +1,225 @@
-import {
-  onManageActiveEffect,
-  prepareActiveEffectCategories,
-} from '../helpers/effects.mjs';
+import { prepareActiveEffectCategories } from '../helpers/effects.mjs';
+
+const { api, sheets } = foundry.applications;
 
 /**
  * Extend the basic ActorSheet with some very simple modifications
- * @extends {ActorSheet}
+ * @extends {ActorSheetV2}
  */
-export class PNPActorSheet extends ActorSheet {
-  /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ['perils-and-princesses', 'sheet', 'actor'],
-      width: 600,
-      height: 600,
-      tabs: [
-        {
-          navSelector: '.sheet-tabs',
-          contentSelector: '.sheet-body',
-          initial: 'features',
-        },
-      ],
-    });
+export class PNPActorSheet extends api.HandlebarsApplicationMixin(
+  sheets.ActorSheetV2
+) {
+  constructor(options = {}) {
+    super(options);
+    this.#dragDrop = this.#createDragDropHandlers();
   }
+  
+  /** @override */
+  static DEFAULT_OPTIONS = {
+    classes: ['perils-and-princesses', 'actor'],
+    position: {
+      width: 600,
+      height: 650,
+    },
+    window: { resizable: true },
+    actions: {
+      onEditImage: this._onEditImage,
+      viewDoc: this._viewDoc,
+      createDoc: this._createDoc,
+      deleteDoc: this._deleteDoc,
+      toggleEffect: this._toggleEffect,
+      roll: this._onRoll,
+      takePicnic: this._takePicnic,
+      takeRest: this._takeRest,
+      addSkill: this._addSkill,
+      removeSkill: this._removeSkill
+    },
+    // Custom property that's merged into `this.options`
+    dragDrop: [{ dragSelector: '[data-drag]', dropSelector: null }],
+    form: {
+      submitOnChange: true,
+    },
+  };
+
+  // TODO: Change these once you've modified templates structure
+  /** @override */
+  static PARTS = {
+    header: {
+      template: 'systems/perils-and-princesses/templates/actor/header.hbs',
+    },
+    tabs: {
+      // Foundry-provided generic template
+      template: 'templates/generic/tab-navigation.hbs',
+    },
+    features: {
+      template: 'systems/perils-and-princesses/templates/actor/features.hbs',
+      scrollable: [""],
+    },
+    biography: {
+      template: 'systems/perils-and-princesses/templates/actor/biography.hbs',
+      scrollable: [""],
+    },
+    gear: {
+      template: 'systems/perils-and-princesses/templates/actor/gear.hbs',
+      scrollable: [""],
+    },
+    spells: {
+      template: 'systems/perils-and-princesses/templates/actor/spells.hbs',
+      scrollable: [""],
+    },
+    gift: {
+      template: 'systems/perils-and-princesses/templates/actor/gift.hbs',
+      scrollable: [""],
+    },
+  };
 
   /** @override */
-  get template() {
-    return `systems/perils-and-princesses/templates/actor/actor-${this.actor.type}-sheet.hbs`;
+  _configureRenderOptions(options) {
+    super._configureRenderOptions(options);
+    // Not all parts always render
+    options.parts = ['header', 'tabs', 'biography'];
+    // Don't show the other tabs if only limited view
+    if (this.document.limited) return;
+    // Control which parts show based on document subtype
+    switch (this.document.type) {
+      case 'character':
+        options.parts.push('features', 'gear', 'gift', 'spells');
+        break;
+      case 'npc':
+        options.parts.push('gear', 'gift');
+        break;
+    }
   }
 
   /* -------------------------------------------- */
 
   /** @override */
-  async getData() {
-    // Retrieve the data structure from the base sheet. You can inspect or log
-    // the context variable to see the structure, but some key properties for
-    // sheets are the actor object, the data object, whether or not it's
-    // editable, the items array, and the effects array.
-    const context = super.getData();
+  async _prepareContext(options) {
+    // Output initialization
+    const context = {
+      // Validates both permissions and compendium status
+      editable: this.isEditable,
+      owner: this.document.isOwner,
+      limited: this.document.limited,
+      // Add the actor document.
+      actor: this.actor,
+      // Add the actor's data to context.data for easier access, as well as flags.
+      system: this.actor.system,
+      flags: this.actor.flags,
+      // Adding a pointer to CONFIG.BOILERPLATE
+      config: CONFIG.PNP,
+      tabs: this._getTabs(options.parts),
+    };
 
-    // Use a safe clone of the actor data for further operations.
-    const actorData = this.document.toPlainObject();
-
-    // Add the actor's data to context.data for easier access, as well as flags.
-    context.system = actorData.system;
-    context.flags = actorData.flags;
-
-    // Adding a pointer to CONFIG.PNP
-    context.config = CONFIG.PNP;
-
-    // Prepare character data and items.
-    if (actorData.type == 'character') {
-      this._prepareItems(context);
-      this._prepareCharacterData(context);
-    }
-
-    // Prepare NPC data and items.
-    if (actorData.type == 'npc') {
-      this._prepareItems(context);
-    }
-
-    // Enrich biography info for display
-    // Enrichment turns text like `[[/r 1d20]]` into buttons
-    context.enrichedBiography = await TextEditor.enrichHTML(
-      this.actor.system.biography,
-      {
-        // Whether to show secret blocks in the finished html
-        secrets: this.document.isOwner,
-        // Data to fill in for inline rolls
-        rollData: this.actor.getRollData(),
-        // Relative UUID resolution
-        relativeTo: this.actor,
-      }
-    );
-
-    // Enrich curse/injury info for display
-    // Enrichment turns text like `[[/r 1d20]]` into buttons
-    context.enrichedCurses = await TextEditor.enrichHTML(
-      this.actor.system.curses,
-      {
-        // Whether to show secret blocks in the finished html
-        secrets: this.document.isOwner,
-        // Data to fill in for inline rolls
-        rollData: this.actor.getRollData(),
-        // Relative UUID resolution
-        relativeTo: this.actor,
-      }
-    );
-
-    // Prepare active effects
-    context.effects = prepareActiveEffectCategories(
-      // A generator that returns all effects stored on the actor
-      // as well as any items
-      this.actor.allApplicableEffects()
-    );
+    // Offloading context prep to a helper function
+    this._prepareItems(context);
 
     return context;
   }
 
-  /**
-   * Character-specific context modifications
-   *
-   * @param {object} context The context object to mutate
-   */
-  _prepareCharacterData(context) {
-    // This is where you can enrich character-specific editor fields
-    // or setup anything else that's specific to this type
+  /** @override */
+  async _preparePartContext(partId, context) {
+    switch (partId) {
+      case 'features':
+      case 'spells':
+      case 'gear':
+        context.tab = context.tabs[partId];
+        break;
+      case 'biography':
+        context.tab = context.tabs[partId];
+        // Enrich biography info for display
+        // Enrichment turns text like `[[/r 1d20]]` into buttons
+        context.enrichedBiography = await TextEditor.enrichHTML(
+          this.actor.system.biography,
+          {
+            // Whether to show secret blocks in the finished html
+            secrets: this.document.isOwner,
+            // Data to fill in for inline rolls
+            rollData: this.actor.getRollData(),
+            // Relative UUID resolution
+            relativeTo: this.actor,
+          }
+        );
+        break;
+      case 'gift':
+        context.tab = context.tabs[partId];
+        // Prepare active effects
+        context.effects = prepareActiveEffectCategories(
+          // A generator that returns all effects stored on the actor
+          // as well as any items
+          this.actor.allApplicableEffects()
+        );
+        break;
+        case 'curse':
+          context.enrichedCurses = await TextEditor.enrichHTML(
+            this.actor.system.curses,
+            {
+              // Whether to show secret blocks in the finished html
+              secrets: this.document.isOwner,
+              // Data to fill in for inline rolls
+              rollData: this.actor.getRollData(),
+              // Relative UUID resolution
+              relativeTo: this.actor,
+            }
+          );
+    }
+    return context;
   }
+
+  /**
+   * Generates the data for the generic tab navigation template
+   * @param {string[]} parts An array of named template parts to render
+   * @returns {Record<string, Partial<ApplicationTab>>}
+   * @protected
+   */
+  _getTabs(parts) {
+    // If you have sub-tabs this is necessary to change
+    const tabGroup = 'primary';
+    // Default tab for first time it's rendered this session
+    if (!this.tabGroups[tabGroup]) this.tabGroups[tabGroup] = 'features';
+    return parts.reduce((tabs, partId) => {
+      const tab = {
+        cssClass: '',
+        group: tabGroup,
+        // Matches tab property to
+        id: '',
+        // FontAwesome Icon, if you so choose
+        icon: '',
+        // Run through localization
+        label: 'PNP.Actor.Tabs.',
+      };
+      switch (partId) {
+        case 'header':
+        case 'tabs':
+          return tabs;
+        case 'features':
+          tab.id = 'features';
+          tab.label += 'Features';
+          break;
+        case 'biography':
+          tab.id = 'biography';
+          tab.label += 'Biography';
+          break;
+        case 'gear':
+          tab.id = 'gear';
+          tab.label += 'Gear';
+          break;
+        case 'spells':
+          tab.id = 'spells';
+          tab.label += 'Spells';
+          break;
+        case 'gift':
+          tab.id = 'gift';
+          tab.label += 'Gift';
+          break;
+      }
+      if (this.tabGroups[tabGroup] === tab.id) tab.cssClass = 'active';
+      tabs[partId] = tab;
+      return tabs;
+    }, {});
+  }
+
+
 
   /**
    * Organize and classify Items for Actor sheets.
@@ -121,18 +234,21 @@ export class PNPActorSheet extends ActorSheet {
     let gift = null;
 
     // Iterate through items, allocating to containers
-    for (let i of context.items) {
-      i.img = i.img || Item.DEFAULT_ICON;
+    for (let i of this.document.items) {
       // Append to gear.
-      if (i.type === 'item') {
+      if (i.type === 'gear') {
         gear.push(i);
-      } else if (i.type == 'weapon') {
+      } 
+      // Append to weapons.
+      else if (i.type == 'weapon') {
         weapons.push(i)
       }
       // Append to features.
       else if (i.type === 'feature') {
         features.push(i);
-      } else if (i.type === 'gift') {
+      } 
+      // Modify gift.
+      else if (i.type === 'gift') {
         gift = i;
       } 
     }
@@ -140,100 +256,138 @@ export class PNPActorSheet extends ActorSheet {
     const innateAbilities = features.filter(ability => ability.system.innate);
     const specialAbilities = features.filter(ability => !ability.system.innate);
 
-    // Assign and return
-    context.gear = gear;
-    context.weapons = weapons;
-    context.features = features;
+    // Sort then assign
+    context.gear = gear.sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    context.features = features.sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    context.weapons = weapons.sort((a, b) => (a.sort || 0) - (b.sort || 0));
     context.innateAbilities = innateAbilities;
     context.specialAbilities = specialAbilities;
     context.gift = gift
   }
 
-  /* -------------------------------------------- */
+  /**
+   * Actions performed after any render of the Application.
+   * Post-render steps are not awaited by the render process.
+   * @param {ApplicationRenderContext} context      Prepared context data
+   * @param {RenderOptions} options                 Provided render options
+   * @protected
+   * @override
+   */
+  _onRender(context, options) {
+    this.#dragDrop.forEach((d) => d.bind(this.element));
+    this.#disableOverrides();
+    // You may want to add other special handling here
+    // Foundry comes with a large number of utility classes, e.g. SearchFilter
+    // That you may want to implement yourself.
+  }
 
-  /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
+   /**************
+   *
+   *   ACTIONS
+   *
+   **************/
 
-    // Render the item sheet for viewing/editing prior to the editable check.
-    html.on('click', '.item-edit', (ev) => {
-      const li = $(ev.currentTarget).parents('.item');
-      const item = this.actor.items.get(li.data('itemId'));
-      item.sheet.render(true);
+  /**
+   * Handle changing a Document's image.
+   *
+   * @this BoilerplateActorSheet
+   * @param {PointerEvent} event   The originating click event
+   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
+   * @returns {Promise}
+   * @protected
+   */
+  static async _onEditImage(event, target) {
+    const attr = target.dataset.edit;
+    const current = foundry.utils.getProperty(this.document, attr);
+    const { img } =
+      this.document.constructor.getDefaultArtwork?.(this.document.toObject()) ??
+      {};
+    const fp = new FilePicker({
+      current,
+      type: 'image',
+      redirectToRoot: img ? [img] : [],
+      callback: (path) => {
+        this.document.update({ [attr]: path });
+      },
+      top: this.position.top + 40,
+      left: this.position.left + 10,
     });
+    return fp.browse();
+  }
 
-    // -------------------------------------------------------------
-    // Everything below here is only needed if the sheet is editable
-    if (!this.isEditable) return;
+  /**
+   * Renders an embedded document's sheet
+   *
+   * @this BoilerplateActorSheet
+   * @param {PointerEvent} event   The originating click event
+   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
+   * @protected
+   */
+  static async _viewDoc(event, target) {
+    const doc = this._getEmbeddedDocument(target);
+    doc.sheet.render(true);
+  }
 
-    // Add Inventory Item
-    html.on('click', '.item-create', this._onItemCreate.bind(this));
+  /**
+   * Handles item deletion
+   *
+   * @this BoilerplateActorSheet
+   * @param {PointerEvent} event   The originating click event
+   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
+   * @protected
+   */
+  static async _deleteDoc(event, target) {
+    const doc = this._getEmbeddedDocument(target);
+    await doc.delete();
+  }
 
-    // Delete Inventory Item
-    html.on('click', '.item-delete', (ev) => {
-      const li = $(ev.currentTarget).parents('.item');
-      const item = this.actor.items.get(li.data('itemId'));
-      item.delete();
-      li.slideUp(200, () => this.render(false));
-    });
-
-    // Active Effect management
-    html.on('click', '.effect-control', (ev) => {
-      const row = ev.currentTarget.closest('li');
-      const document =
-        row.dataset.parentId === this.actor.id
-          ? this.actor
-          : this.actor.items.get(row.dataset.parentId);
-      onManageActiveEffect(ev, document);
-    });
-
-    // Rollable abilities.
-    html.on('click', '.rollable', this._onRoll.bind(this));
-
-    // Drag events for macros.
-    if (this.actor.isOwner) {
-      let handler = (ev) => this._onDragStart(ev);
-      html.find('li.item').each((i, li) => {
-        if (li.classList.contains('inventory-header')) return;
-        li.setAttribute('draggable', true);
-        li.addEventListener('dragstart', handler, false);
-      });
+  /**
+   * Handle creating a new Owned Item or ActiveEffect for the actor using initial data defined in the HTML dataset
+   *
+   * @this BoilerplateActorSheet
+   * @param {PointerEvent} event   The originating click event
+   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
+   * @private
+   */
+  static async _createDoc(event, target) {
+    // Retrieve the configured document class for Item or ActiveEffect
+    const docCls = getDocumentClass(target.dataset.documentClass);
+    // Prepare the document creation data by initializing it a default name.
+    const docData = {
+      name: docCls.defaultName({
+        // defaultName handles an undefined type gracefully
+        type: target.dataset.type,
+        parent: this.actor,
+      }),
+    };
+    // Loop through the dataset and add it to our docData
+    for (const [dataKey, value] of Object.entries(target.dataset)) {
+      // These data attributes are reserved for the action handling
+      if (['action', 'documentClass'].includes(dataKey)) continue;
+      // Nested properties require dot notation in the HTML, e.g. anything with `system`
+      // An example exists in spells.hbs, with `data-system.spell-level`
+      // which turns into the dataKey 'system.spellLevel'
+      foundry.utils.setProperty(docData, dataKey, value);
     }
 
-    // Add a skill
-    html.find(".skill-add").click(ev => {
-      ev.preventDefault();
-      this._addSkill();
-    });
-
-    // Remove a skill
-    html.find(".skill-remove").click(ev => {
-        ev.preventDefault();
-        const li = $(ev.currentTarget).closest(".skill");
-        const index = Number(li.data("index"));
-        this._removeSkill(index);
-    });
-
-    // Picnic & Rest
-    html.find(".take-picnic").click(this._takePicnic.bind(this));
-    html.find('.rest-button').click(this._takeRest.bind(this));
-
-    // Delete Gift
-    html.on('click', '.gift-delete', async (ev) => {
-      const button = $(ev.currentTarget); // The clicked button
-      const itemId = button.data('item-id'); // Get the item ID directly from the button's data-item-id
-      // Get the item by ID from the actor's items
-      const item = this.actor.items.get(itemId)
-
-      if (item) {
-        await item.delete(); // Delete the item from the actor's inventory
-        this.render(false); // Re-render the sheet to reflect the change
-      } else {
-        ui.notifications.warn("Gift not found.");
-      }
-    });
-
+    // Finally, create the embedded document!
+    await docCls.create(docData, { parent: this.actor });
   }
+
+  /**
+   * Determines effect parent to pass to helper
+   *
+   * @this BoilerplateActorSheet
+   * @param {PointerEvent} event   The originating click event
+   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
+   * @private
+   */
+  static async _toggleEffect(event, target) {
+    const effect = this._getEmbeddedDocument(target);
+    await effect.update({ disabled: !effect.disabled });
+  }
+
+  /* -------------------------------------------- */
 
   /**
    * Handle creating a new Owned Item for the actor using initial data defined in the HTML dataset
@@ -264,60 +418,439 @@ export class PNPActorSheet extends ActorSheet {
 
   /**
    * Handle clickable rolls.
-   * @param {Event} event   The originating click event
-   * @private
+   *
+   * @this PNPActorSheet
+   * @param {PointerEvent} event   The originating click event
+   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
+   * @protected
    */
-  _onRoll(event) {
+  static async _onRoll(event, target) {
     event.preventDefault();
-    const element = event.currentTarget;
-    const dataset = element.dataset;
+    const dataset = target.dataset;
 
     // Handle item rolls.
-    if (dataset.rollType) {
-      if (dataset.rollType == 'item') {
-        const itemId = element.closest('.item').dataset.itemId;
-        const item = this.actor.items.get(itemId);
+    switch (dataset.rollType) {
+      case 'item' || 'feature':
+        const item = this._getEmbeddedDocument(target);
         if (item) return item.roll();
-      }
+
     }
 
     // Handle rolls that supply the formula directly.
     if (dataset.roll) {
-      // Extract the ability key from the dataset if it's provided
-      // THIS IS A HACK AND SHOULD PROBABLY BE FIXED.
       const abilityKey = Object.entries(CONFIG.PNP.abilities).find(
         ([key, localizationKey]) => game.i18n.localize(localizationKey) === dataset.label
       )?.[0];
-
+    
       const abilityValue = this.actor.system.abilities?.[abilityKey]?.value;
       let label = dataset.label ? `${dataset.label} Test (DC ${abilityValue})` : '';
+    
+      new Dialog({
+        title: `Roll ${label}`,
+        content: `<p>Select roll type:</p>`,
+        buttons: {
+          adv: {
+            label: "Advantage",
+            callback: async () => {
+              let roll = new Roll("2d20kh1", this.actor.getRollData());
+              await roll.toMessage({
+                speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+                flavor: `${label} (Advantage)`,
+                rollMode: game.settings.get('core', 'rollMode'),
+              });
+            }
+          },
+          norm: {
+            label: "Normal",
+            callback: async () => {
+              let roll = new Roll("1d20", this.actor.getRollData());
+              await roll.toMessage({
+                speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+                flavor: `${label} (Normal)`,
+                rollMode: game.settings.get('core', 'rollMode'),
+              });
+            }
+          },
+          dis: {
+            label: "Disadvantage",
+            callback: async () => {
+              let roll = new Roll("2d20kl1", this.actor.getRollData());
+              await roll.toMessage({
+                speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+                flavor: `${label} (Disadvantage)`,
+                rollMode: game.settings.get('core', 'rollMode'),
+              });
+            }
+          }
+        },
+        default: "norm"
+      }).render(true);
+    }
+    
+  }
+  
+   /** Helper Functions */
 
-      // Default to the roll from dataset (usually "1d20")
-      let rollFormula = dataset.roll;
-      // If there's an ability key and the actor has an ailment for it, use 2d20kh1
-      if (abilityKey && this.actor.system.abilities?.[abilityKey].ailment) {
-        rollFormula = '2d20kh1';
-      }
+  /**
+   * Fetches the embedded document representing the containing HTML element
+   *
+   * @param {HTMLElement} target    The element subject to search
+   * @returns {Item | ActiveEffect} The embedded Item or ActiveEffect
+   */
+  _getEmbeddedDocument(target) {
+    const docRow = target.closest('li[data-document-class]');
+    if (docRow === null) {
+      return this.actor.items.get(target.getAttribute('data-item-id'))
+    }
+    else if (docRow.dataset.documentClass === 'Item') {
+      return this.actor.items.get(docRow.dataset.itemId);
+    } else if (docRow.dataset.documentClass === 'ActiveEffect') {
+      const parent =
+        docRow.dataset.parentId === this.actor.id
+          ? this.actor
+          : this.actor.items.get(docRow?.dataset.parentId);
+      return parent.effects.get(docRow?.dataset.effectId);
+    } else return console.warn('Could not find document class');
+  }
 
-      const roll = new Roll(rollFormula, this.actor.getRollData());
-      roll.toMessage({
-        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-        flavor: label,
-        rollMode: game.settings.get('core', 'rollMode'),
-      });
+  /***************
+   *
+   * Drag and Drop
+   *
+   ***************/
+
+  /**
+   * Define whether a user is able to begin a dragstart workflow for a given drag selector
+   * @param {string} selector       The candidate HTML selector for dragging
+   * @returns {boolean}             Can the current user drag this selector?
+   * @protected
+   */
+  _canDragStart(selector) {
+    // game.user fetches the current user
+    return this.isEditable;
+  }
+
+  /**
+   * Define whether a user is able to conclude a drag-and-drop workflow for a given drop selector
+   * @param {string} selector       The candidate HTML selector for the drop target
+   * @returns {boolean}             Can the current user drop on this selector?
+   * @protected
+   */
+  _canDragDrop(selector) {
+    // game.user fetches the current user
+    return this.isEditable;
+  }
+
+  /**
+   * Callback actions which occur at the beginning of a drag start workflow.
+   * @param {DragEvent} event       The originating DragEvent
+   * @protected
+   */
+  _onDragStart(event) {
+    const docRow = event.currentTarget.closest('li');
+    if ('link' in event.target.dataset) return;
+
+    // Chained operation
+    let dragData = this._getEmbeddedDocument(docRow)?.toDragData();
+
+    if (!dragData) return;
+
+    // Set data transfer
+    event.dataTransfer.setData('text/plain', JSON.stringify(dragData));
+  }
+
+  /**
+   * Callback actions which occur when a dragged element is over a drop target.
+   * @param {DragEvent} event       The originating DragEvent
+   * @protected
+   */
+  _onDragOver(event) {}
+
+  /**
+   * Callback actions which occur when a dragged element is dropped on a target.
+   * @param {DragEvent} event       The originating DragEvent
+   * @protected
+   */
+  async _onDrop(event) {
+    const data = TextEditor.getDragEventData(event);
+    const actor = this.actor;
+    const allowed = Hooks.call('dropActorSheetData', actor, this, data);
+    if (allowed === false) return;
+
+    // Handle different data types
+    switch (data.type) {
+      case 'ActiveEffect':
+        return this._onDropActiveEffect(event, data);
+      case 'Actor':
+        return this._onDropActor(event, data);
+      case 'Item':
+        return this._onDropItem(event, data);
+      case 'Folder':
+        return this._onDropFolder(event, data);
     }
   }
-  async _addSkill() {
+
+  /**
+   * Handle the dropping of ActiveEffect data onto an Actor Sheet
+   * @param {DragEvent} event                  The concluding DragEvent which contains drop data
+   * @param {object} data                      The data transfer extracted from the event
+   * @returns {Promise<ActiveEffect|boolean>}  The created ActiveEffect object or false if it couldn't be created.
+   * @protected
+   */
+  async _onDropActiveEffect(event, data) {
+    const aeCls = getDocumentClass('ActiveEffect');
+    const effect = await aeCls.fromDropData(data);
+    if (!this.actor.isOwner || !effect) return false;
+    if (effect.target === this.actor)
+      return this._onSortActiveEffect(event, effect);
+    return aeCls.create(effect, { parent: this.actor });
+  }
+
+  /**
+   * Handle a drop event for an existing embedded Active Effect to sort that Active Effect relative to its siblings
+   *
+   * @param {DragEvent} event
+   * @param {ActiveEffect} effect
+   */
+  async _onSortActiveEffect(event, effect) {
+    /** @type {HTMLElement} */
+    const dropTarget = event.target.closest('[data-effect-id]');
+    if (!dropTarget) return;
+    const target = this._getEmbeddedDocument(dropTarget);
+
+    // Don't sort on yourself
+    if (effect.uuid === target.uuid) return;
+
+    // Identify sibling items based on adjacent HTML elements
+    const siblings = [];
+    for (const el of dropTarget.parentElement.children) {
+      const siblingId = el.dataset.effectId;
+      const parentId = el.dataset.parentId;
+      if (
+        siblingId &&
+        parentId &&
+        (siblingId !== effect.id || parentId !== effect.parent.id)
+      )
+        siblings.push(this._getEmbeddedDocument(el));
+    }
+
+    // Perform the sort
+    const sortUpdates = SortingHelpers.performIntegerSort(effect, {
+      target,
+      siblings,
+    });
+
+    // Split the updates up by parent document
+    const directUpdates = [];
+
+    const grandchildUpdateData = sortUpdates.reduce((items, u) => {
+      const parentId = u.target.parent.id;
+      const update = { _id: u.target.id, ...u.update };
+      if (parentId === this.actor.id) {
+        directUpdates.push(update);
+        return items;
+      }
+      if (items[parentId]) items[parentId].push(update);
+      else items[parentId] = [update];
+      return items;
+    }, {});
+
+    // Effects-on-items updates
+    for (const [itemId, updates] of Object.entries(grandchildUpdateData)) {
+      await this.actor.items
+        .get(itemId)
+        .updateEmbeddedDocuments('ActiveEffect', updates);
+    }
+
+    // Update on the main actor
+    return this.actor.updateEmbeddedDocuments('ActiveEffect', directUpdates);
+  }
+
+  /**
+   * Handle dropping of an Actor data onto another Actor sheet
+   * @param {DragEvent} event            The concluding DragEvent which contains drop data
+   * @param {object} data                The data transfer extracted from the event
+   * @returns {Promise<object|boolean>}  A data object which describes the result of the drop, or false if the drop was
+   *                                     not permitted.
+   * @protected
+   */
+  async _onDropActor(event, data) {
+    if (!this.actor.isOwner) return false;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Handle dropping of an item reference or item data onto an Actor Sheet
+   * @param {DragEvent} event            The concluding DragEvent which contains drop data
+   * @param {object} data                The data transfer extracted from the event
+   * @returns {Promise<Item[]|boolean>}  The created or updated Item instances, or false if the drop was not permitted.
+   * @protected
+   */
+  async _onDropItem(event, data) {
+    if (!this.actor.isOwner) return false;
+    const item = await Item.implementation.fromDropData(data);
+
+    // Handle item sorting within the same Actor
+    if (this.actor.uuid === item.parent?.uuid)
+      return this._onSortItem(event, item);
+
+    // Create the owned item
+    return this._onDropItemCreate(item, event);
+  }
+
+  /**
+   * Handle dropping of a Folder on an Actor Sheet.
+   * The core sheet currently supports dropping a Folder of Items to create all items as owned items.
+   * @param {DragEvent} event     The concluding DragEvent which contains drop data
+   * @param {object} data         The data transfer extracted from the event
+   * @returns {Promise<Item[]>}
+   * @protected
+   */
+  async _onDropFolder(event, data) {
+    if (!this.actor.isOwner) return [];
+    const folder = await Folder.implementation.fromDropData(data);
+    if (folder.type !== 'Item') return [];
+    const droppedItemData = await Promise.all(
+      folder.contents.map(async (item) => {
+        if (!(document instanceof Item)) item = await fromUuid(item.uuid);
+        return item;
+      })
+    );
+    return this._onDropItemCreate(droppedItemData, event);
+  }
+
+  /**
+   * Handle the final creation of dropped Item data on the Actor.
+   * This method is factored out to allow downstream classes the opportunity to override item creation behavior.
+   * @param {object[]|object} itemData      The item data requested for creation
+   * @param {DragEvent} event               The concluding DragEvent which provided the drop data
+   * @returns {Promise<Item[]>}
+   * @private
+   */
+  async _onDropItemCreate(itemData, event) {
+    itemData = itemData instanceof Array ? itemData : [itemData];
+    return this.actor.createEmbeddedDocuments('Item', itemData);
+  }
+
+  /**
+   * Handle a drop event for an existing embedded Item to sort that Item relative to its siblings
+   * @param {Event} event
+   * @param {Item} item
+   * @private
+   */
+  _onSortItem(event, item) {
+    // Get the drag source and drop target
+    const items = this.actor.items;
+    const dropTarget = event.target.closest('[data-item-id]');
+    if (!dropTarget) return;
+    const target = items.get(dropTarget.dataset.itemId);
+
+    // Don't sort on yourself
+    if (item.id === target.id) return;
+
+    // Identify sibling items based on adjacent HTML elements
+    const siblings = [];
+    for (let el of dropTarget.parentElement.children) {
+      const siblingId = el.dataset.itemId;
+      if (siblingId && siblingId !== item.id)
+        siblings.push(items.get(el.dataset.itemId));
+    }
+
+    // Perform the sort
+    const sortUpdates = SortingHelpers.performIntegerSort(item, {
+      target,
+      siblings,
+    });
+    const updateData = sortUpdates.map((u) => {
+      const update = u.update;
+      update._id = u.target._id;
+      return update;
+    });
+
+    // Perform the update
+    return this.actor.updateEmbeddedDocuments('Item', updateData);
+  }
+
+  /** The following pieces set up drag handling and are unlikely to need modification  */
+
+  /**
+   * Returns an array of DragDrop instances
+   * @type {DragDrop[]}
+   */
+  get dragDrop() {
+    return this.#dragDrop;
+  }
+
+  // This is marked as private because there's no real need
+  // for subclasses or external hooks to mess with it directly
+  #dragDrop;
+
+  /**
+   * Create drag-and-drop workflow handlers for this Application
+   * @returns {DragDrop[]}     An array of DragDrop handlers
+   * @private
+   */
+  #createDragDropHandlers() {
+    return this.options.dragDrop.map((d) => {
+      d.permissions = {
+        dragstart: this._canDragStart.bind(this),
+        drop: this._canDragDrop.bind(this),
+      };
+      d.callbacks = {
+        dragstart: this._onDragStart.bind(this),
+        dragover: this._onDragOver.bind(this),
+        drop: this._onDrop.bind(this),
+      };
+      return new DragDrop(d);
+    });
+  }
+
+  /********************
+   *
+   * Actor Override Handling
+   *
+   ********************/
+
+  /**
+   * Submit a document update based on the processed form data.
+   * @param {SubmitEvent} event                   The originating form submission event
+   * @param {HTMLFormElement} form                The form element that was submitted
+   * @param {object} submitData                   Processed and validated form data to be used for a document update
+   * @returns {Promise<void>}
+   * @protected
+   * @override
+   */
+  async _processSubmitData(event, form, submitData) {
+    const overrides = foundry.utils.flattenObject(this.actor.overrides);
+    for (let k of Object.keys(overrides)) delete submitData[k];
+    await this.document.update(submitData);
+  }
+
+  /**
+   * Disables inputs subject to active effects
+   */
+  #disableOverrides() {
+    const flatOverrides = foundry.utils.flattenObject(this.actor.overrides);
+    for (const override of Object.keys(flatOverrides)) {
+      const input = this.element.querySelector(`[name="${override}"]`);
+      if (input) {
+        input.disabled = true;
+      }
+    }
+  }
+
+  static async _addSkill() {
     const actorData = this.actor.system;
     
     // Ensure there is room for another skill
-    if (actorData.skills.length >= 5) {
+    if (actorData.attributes.skills.length >= 5) {
         ui.notifications.warn("You can only select up to 5 skills.");
         return;
     }
 
     // Get available skills that aren't selected
-    const availableSkills = Object.keys(CONFIG.PNP.skills).filter(skill => !actorData.skills.includes(skill));
+    const availableSkills = Object.keys(CONFIG.PNP.skills).filter(skill => !actorData.attributes.skills.includes(skill));
 
     // Create a dialog to select a skill
     const content = `<form>
@@ -338,8 +871,8 @@ export class PNPActorSheet extends ActorSheet {
                 callback: async (html) => {
                     const selectedSkill = html.find("#skill-select").val();
                     if (selectedSkill) {
-                        actorData.skills.push(selectedSkill);
-                        await this.actor.update({ "system.skills": actorData.skills });
+                        actorData.attributes.skills.push(selectedSkill);
+                        await this.actor.update({ "system.attributes.skills": actorData.attributes.skills });
                     }
                 }
             },
@@ -348,16 +881,17 @@ export class PNPActorSheet extends ActorSheet {
     }).render(true);
   }
 
-  async _removeSkill(index) {
-      const skills = this.actor.system.skills;
+  static async _removeSkill(index) {
+      const skills = this.actor.system.attributes.skills;
       skills.splice(index, 1);
-      await this.actor.update({ "system.skills": skills });
+      await this.actor.update({ "system.attributes.skills": skills });
   }
 
-  async _takePicnic() {
+  static async _takePicnic(event, target) {
     const heartDice = this.actor.system.attributes.heartDice;
-    // Calculate the number of available gift dice (those with `giftDice.index == false`).
-    const availableDice = heartDice.filter(die => die === true).length;
+
+    // Calculate the number of available gift dice (those with `heartDice[index] === true`).
+    const availableDice = Object.values(heartDice).filter(die => die === true).length;
 
     if (availableDice === 0) {
       return ui.notifications.warn("You have no Heart Dice available.");
@@ -379,38 +913,46 @@ export class PNPActorSheet extends ActorSheet {
         roll: {
           label: "Roll",
           callback: async (html) => {
-            const num = parseInt(html.find('#numHeartDice').val());
+            let num = parseInt(html.find('#numHeartDice').val());
             if (isNaN(num) || num < 1 || num > availableDice) {
               return ui.notifications.warn("Invalid number of dice.");
             }
 
             // Roll the dice
             const roll = new Roll(`${num}d4`);
-            await roll.evaluate({ async: true });
+            await roll.evaluate();
 
             // Update HP
             const currentHP = this.actor.system.health.value;
             const maxHP = this.actor.system.health.max;
             const healed = roll.total;
             const newHP = Math.min(currentHP + healed, maxHP);
-
             await this.actor.update({ "system.health.value": newHP });
 
             // Mark used Heart Dice
-            const newHeartDice = [...heartDice];
-            let spent = 0;
-            for (let i = newHeartDice.length; i > 0; i--) {
-              if (newHeartDice[i] === true && spent < num) {
-                newHeartDice[i] = false;
-                spent++;
+            const keys = Object.keys(heartDice); // Get all the keys (as strings)
+            for (let i = keys.length - 1; i >= 0; i--) {
+              const key = keys[i];
+              if (num === 0) break;
+              if (heartDice[key] === true) {
+                heartDice[key] = false;
+                num--;
               }
             }
-            await this.actor.update({ "system.attributes.heartDice": newHeartDice });
+
+            await this.actor.update({ "system.attributes.heartDice": heartDice });
+
+            const speaker = ChatMessage.getSpeaker({ actor: this.actor, token: this.actor.token });
+            const tokenImg = this.actor?.token?.texture?.src || this.actor?.img || "icons/svg/mystery-man.svg"; // Fallback image
 
             // Send roll message
             roll.toMessage({
-              speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-              flavor: `Took a Picnic and healed ${healed} HP`,
+              speaker: speaker,
+              flavor: `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <img src="${tokenImg}" alt="Token Image" width="36" height="36" style="border-radius: 50%;">
+                  <div>${this.actor.name} took a picnic and regained ${healed} HP.</div>
+                </div>`,
             });
           }
         },
@@ -420,22 +962,32 @@ export class PNPActorSheet extends ActorSheet {
       },
       default: "roll"
     }).render(true);
+
   }
 
-  async _takeRest() {
+  static async _takeRest(event, target) {
     const updates = {};
+    const systemData = this.actor.system
   
     // 1. Restore all Health to max
-    const maxHealth = this.actor.system.health.max;
+    const maxHealth = systemData.health.max;
     updates["system.health.value"] = maxHealth;
   
-    // 2. Restore all Gift Dice (set all to true)
-    const giftDiceCount = this.actor.system.attributes.giftDice.length;
-    updates["system.attributes.giftDice"] = Array(giftDiceCount).fill(true);
+    // 2. Restore all Gift Dice (set all to true as an object)
+    const giftDiceCount = Object.keys(systemData.attributes.giftDice).length;
+    const giftDice = {};
+    for (let i = 0; i < giftDiceCount; i++) {
+      giftDice[i] = true;
+    }
+    updates["system.attributes.giftDice"] = giftDice;
   
-    // 3. Restore all Heart Dice (set all to true)
-    const heartDiceCount = this.actor.system.attributes.heartDice.length;
-    updates["system.attributes.heartDice"] = Array(heartDiceCount).fill(true);
+    // 3. Restore all Heart Dice (set all to true as an object)
+    const heartDiceCount = Object.keys(systemData.attributes.heartDice).length;
+    const heartDice = {};
+    for (let i = 0; i < heartDiceCount; i++) {
+      heartDice[i] = true;
+    }
+    updates["system.attributes.heartDice"] = heartDice;
   
     // Apply all updates
     await this.actor.update(updates);
@@ -448,5 +1000,6 @@ export class PNPActorSheet extends ActorSheet {
       style: CONST.CHAT_MESSAGE_STYLES.OTHER,
     });
   }
+  
 }
 

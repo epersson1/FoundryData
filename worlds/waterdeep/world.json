@@ -9,6 +9,44 @@
     "verified": "12"
   },
   "systemVersion": "4.3.6",
-  "lastPlayed": "Sun Mar 23 2025 17:21:52 GMT-0400 (Eastern Daylight Time)",
-  "playtime": 29893
+  "lastPlayed": "Sun Apr 13 2025 22:07:56 GMT-0400 (Eastern Daylight Time)",
+  "playtime": 39677,
+  "packs": [
+    {
+      "type": "Item",
+      "label": "Table-Backing Items",
+      "name": "srd5e-table-backing-item",
+      "path": "packs/srd5e-table-backing-item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "type": "Cards",
+      "label": "Table-Backing Cardss",
+      "name": "srd5e-table-backing-cards",
+      "path": "packs/srd5e-table-backing-cards",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "type": "RollTable",
+      "label": "Table-Backing RollTables",
+      "name": "srd5e-table-backing-rolltable",
+      "path": "packs/srd5e-table-backing-rolltable",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    }
+  ]
 }

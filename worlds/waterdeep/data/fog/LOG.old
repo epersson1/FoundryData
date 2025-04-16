@@ -1,7 +1,11 @@
-2025/03/23-17:21:51.468 2ebc Log #240: 4 ops saved to Table #241 OK
-2025/03/23-17:21:51.468 2ebc Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/fog/000240.log: OK
-2025/03/23-17:21:51.487 2ebc Table #237: 22 entries OK
-2025/03/23-17:21:51.487 2ebc Table #238: 6 entries OK
-2025/03/23-17:21:51.487 2ebc Table #241: 4 entries OK
-2025/03/23-17:21:51.516 2ebc Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/fog/MANIFEST-000239: OK
-2025/03/23-17:21:51.533 2ebc **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/fog; recovered 3 files; 630342 bytes. Some data may have been lost. ****
+2025/04/06-19:58:26.024 3a9c Recovering log #243
+2025/04/06-19:58:26.024 3a9c Level-0 table #246: started
+2025/04/06-19:58:26.068 3a9c Level-0 table #246: 215571 bytes OK
+2025/04/06-19:58:26.117 3a9c Delete type=0 #243
+2025/04/06-19:58:26.120 3a9c Delete type=3 #242
+2025/04/06-22:49:13.924 342c Compacting 1@0 + 1@1 files
+2025/04/06-22:49:14.031 342c Generated table #248@0: 29 keys, 562265 bytes
+2025/04/06-22:49:14.031 342c Compacted 1@0 + 1@1 files => 562265 bytes
+2025/04/06-22:49:14.087 342c compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/04/06-22:49:14.088 342c Delete type=2 #244
+2025/04/06-22:49:14.093 342c Delete type=2 #246

@@ -5,24 +5,30 @@ import { PNPItem } from './documents/item.mjs';
 import { PNPActorSheet } from './sheets/actor-sheet.mjs';
 import { PNPItemSheet } from './sheets/item-sheet.mjs';
 // Import helper/utility classes and constants.
-import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { PNP } from './helpers/config.mjs';
-// Import DataModel classes
-import * as models from './data/_module.mjs';
 
 /* -------------------------------------------- */
 /*  Init Hook                                   */
 /* -------------------------------------------- */
 
-Hooks.once('init', function () {
-  // Add utility classes to the global game object so that they're more easily
-  // accessible in global contexts.
-  game.perilsandprincesses = {
+// Add key classes to the global scope so they can be more easily used
+// by downstream developers
+globalThis.perilsandprincesses = {
+  documents: {
     PNPActor,
     PNPItem,
+  },
+  applications: {
+    PNPActorSheet,
+    PNPItemSheet,
+  },
+  utils: {
     rollItemMacro,
-  };
+  },
+};
 
+
+Hooks.once('init', function () {
   // Add custom constants for configuration.
   CONFIG.PNP = PNP;
 
@@ -37,22 +43,12 @@ Hooks.once('init', function () {
 
   // Define custom Document and DataModel classes
   CONFIG.Actor.documentClass = PNPActor;
-
-  // Note that you don't need to declare a DataModel
-  // for the base actor/item classes - they are included
-  // with the Character/NPC as part of super.defineSchema()
-  CONFIG.Actor.dataModels = {
-    character: models.PNPCharacter,
-    npc: models.PNPNPC
-  }
   CONFIG.Item.documentClass = PNPItem;
-  CONFIG.Item.dataModels = {
-    item: models.PNPItem,
-    feature: models.PNPFeature,
-    spell: models.PNPSpell,
-    gift: models.PNPGift,
-    weapon: models.PNPWeapon
-  }
+
+  // Active Effects are never copied to the Actor,
+  // but will still apply to the Actor from within the Item
+  // if the transfer property on the Active Effect is true.
+  CONFIG.ActiveEffect.legacyTransferral = false;
 
   // Active Effects are never copied to the Actor,
   // but will still apply to the Actor from within the Item
@@ -70,9 +66,6 @@ Hooks.once('init', function () {
     makeDefault: true,
     label: 'PNP.SheetLabels.Item',
   });
-
-  // Preload Handlebars templates.
-  return preloadHandlebarsTemplates();
 });
 
 /* -------------------------------------------- */
@@ -84,14 +77,21 @@ Handlebars.registerHelper('toLowerCase', function (str) {
   return str.toLowerCase();
 });
 
+Handlebars.registerHelper("plainText", function (html) {
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = html || "";
+  return tempDiv.textContent || tempDiv.innerText || "";
+});
+
 /* -------------------------------------------- */
 /*  Ready Hook                                  */
 /* -------------------------------------------- */
 
 Hooks.once('ready', function () {
   // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
-  Hooks.on('hotbarDrop', (bar, data, slot) => createItemMacro(data, slot));
+  Hooks.on('hotbarDrop', (bar, data, slot) => createDocMacro(data, slot));
 });
+
 
 /* -------------------------------------------- */
 /*  Hotbar Macros                               */
@@ -104,7 +104,7 @@ Hooks.once('ready', function () {
  * @param {number} slot     The hotbar slot to use
  * @returns {Promise}
  */
-async function createItemMacro(data, slot) {
+async function createDocMacro(data, slot) {
   // First, determine if this is a valid owned item.
   if (data.type !== 'Item') return;
   if (!data.uuid.includes('Actor.') && !data.uuid.includes('Token.')) {

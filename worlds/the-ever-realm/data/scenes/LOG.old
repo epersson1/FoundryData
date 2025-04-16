@@ -1,0 +1,7 @@
+2025/04/09-20:44:27.812 2e3c Recovering log #27
+2025/04/09-20:44:27.849 2e3c Delete type=0 #27
+2025/04/09-20:44:27.850 2e3c Delete type=3 #25
+2025/04/09-23:46:29.753 1f20 Level-0 table #32: started
+2025/04/09-23:46:29.753 1f20 Level-0 table #32: 0 bytes OK
+2025/04/09-23:46:29.844 1f20 Delete type=0 #30
+2025/04/09-23:46:30.086 1f20 Manual compaction at level-0 from '!scenes!D70K7GNTAlXrptIs' @ 72057594037927935 : 1 .. '!scenes.drawings!D70K7GNTAlXrptIs.hZattG21haz75HG7' @ 0 : 0; will stop at (end)

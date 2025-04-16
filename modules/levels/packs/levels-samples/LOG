@@ -1,1 +1,13 @@
-2025/03/23-17:21:55.438 17d4 Delete type=3 #1
+2025/04/13-19:24:48.631 3034 Recovering log #3600
+2025/04/13-19:24:48.667 3034 Delete type=0 #3600
+2025/04/13-19:24:48.667 3034 Delete type=3 #3599
+2025/04/13-22:08:04.443 7f4 Level-0 table #3604: started
+2025/04/13-22:08:04.450 7f4 Level-0 table #3604: 0 bytes OK
+2025/04/13-22:08:04.485 7f4 Delete type=0 #3602
+2025/04/13-22:08:04.651 7f4 Manual compaction at level-0 from '!scenes!i1noRqT20RD5stIK' @ 72057594037927935 : 1 .. '!scenes.walls!zksLSgRdh6f8jiUO.z5ptMNOLPqAgK6MH' @ 0 : 0; will stop at '!scenes.walls!zksLSgRdh6f8jiUO.z5ptMNOLPqAgK6MH' @ 1674 : 1
+2025/04/13-22:08:04.651 7f4 Compacting 1@0 + 0@1 files
+2025/04/13-22:08:04.770 7f4 Generated table #3605@0: 405 keys, 60780 bytes
+2025/04/13-22:08:04.770 7f4 Compacted 1@0 + 0@1 files => 60780 bytes
+2025/04/13-22:08:04.827 7f4 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/04/13-22:08:04.835 7f4 Delete type=2 #3460
+2025/04/13-22:08:05.000 7f4 Manual compaction at level-0 from '!scenes.walls!zksLSgRdh6f8jiUO.z5ptMNOLPqAgK6MH' @ 1674 : 1 .. '!scenes.walls!zksLSgRdh6f8jiUO.z5ptMNOLPqAgK6MH' @ 0 : 0; will stop at (end)

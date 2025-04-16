@@ -1,5 +1,3 @@
-2025/03/23-17:21:55.569 104c Log #235: 0 ops saved to Table #236 OK
-2025/03/23-17:21:55.569 104c Archiving D:\Foundry\FoundryVTT\Data\modules\monks-active-tiles\packs\active-tile-macros/000235.log: OK
-2025/03/23-17:21:55.578 104c Table #156: 10 entries OK
-2025/03/23-17:21:55.607 104c Archiving D:\Foundry\FoundryVTT\Data\modules\monks-active-tiles\packs\active-tile-macros/MANIFEST-000234: OK
-2025/03/23-17:21:55.622 104c **** Repaired leveldb D:\Foundry\FoundryVTT\Data\modules\monks-active-tiles\packs\active-tile-macros; recovered 1 files; 7002 bytes. Some data may have been lost. ****
+2025/04/06-19:58:29.492 288c Recovering log #238
+2025/04/06-19:58:29.526 288c Delete type=0 #238
+2025/04/06-19:58:29.526 288c Delete type=3 #237

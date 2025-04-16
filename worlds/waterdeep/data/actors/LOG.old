@@ -1,6 +1,11 @@
-2025/03/23-17:21:51.017 17d4 Log #241: 192 ops saved to Table #243 OK
-2025/03/23-17:21:51.017 17d4 Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/actors/000241.log: OK
-2025/03/23-17:21:51.017 17d4 Table #242: 676 entries OK
-2025/03/23-17:21:51.028 17d4 Table #243: 192 entries OK
-2025/03/23-17:21:51.049 17d4 Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/actors/MANIFEST-000240: OK
-2025/03/23-17:21:51.066 17d4 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/actors; recovered 2 files; 1570104 bytes. Some data may have been lost. ****
+2025/04/06-19:58:25.346 36c4 Recovering log #245
+2025/04/06-19:58:25.349 36c4 Level-0 table #248: started
+2025/04/06-19:58:25.416 36c4 Level-0 table #248: 473567 bytes OK
+2025/04/06-19:58:25.485 36c4 Delete type=0 #245
+2025/04/06-19:58:25.485 36c4 Delete type=3 #244
+2025/04/06-19:58:27.339 342c Compacting 1@0 + 1@1 files
+2025/04/06-19:58:27.477 342c Generated table #250@0: 768 keys, 1237611 bytes
+2025/04/06-19:58:27.477 342c Compacted 1@0 + 1@1 files => 1237611 bytes
+2025/04/06-19:58:27.508 342c compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/04/06-19:58:27.508 342c Delete type=2 #246
+2025/04/06-19:58:27.516 342c Delete type=2 #248

@@ -1,5 +1,3 @@
-2025/03/23-17:21:51.819 17d4 Log #210: 0 ops saved to Table #212 OK
-2025/03/23-17:21:51.819 17d4 Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/journal/000210.log: OK
-2025/03/23-17:21:51.819 17d4 Table #211: 125 entries OK
-2025/03/23-17:21:51.837 17d4 Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/journal/MANIFEST-000209: OK
-2025/03/23-17:21:51.858 17d4 **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/journal; recovered 1 files; 290630 bytes. Some data may have been lost. ****
+2025/04/06-19:58:26.293 288c Recovering log #214
+2025/04/06-19:58:26.334 288c Delete type=0 #214
+2025/04/06-19:58:26.334 288c Delete type=3 #213

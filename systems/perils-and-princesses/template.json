@@ -1,8 +1,77 @@
 {
   "Actor": {
-    "types": ["character", "npc"]
+    "types": ["character", "npc"],
+    "htmlFields": ["biography"],
+    "templates": {
+      "base": {
+        "health": {
+          "value": 6,
+          "min": 0,
+          "max": 6
+        },
+        "biography": ""
+      }
+    },
+    "character": {
+      "htmlFields": ["curses"],
+      "templates": ["base"],
+      "attributes": {
+        "level": {
+          "value": 1
+        },
+        "kingdom": "",
+        "pronouns": "",
+        "money": "",
+        "curses": "",
+        "skills": [],
+        "trauma": []
+      },
+      "abilities": {
+        "resolve": {
+          "value": 10,
+          "ailment": false
+        },
+        "wits": {
+          "value": 10,
+          "ailment": false
+        },
+        "grace": {
+          "value": 10,
+          "ailment": false
+        }
+      }
+    },
+    "npc": {
+      "templates": ["base"],
+      "cr": 0
+    }
   },
   "Item": {
-    "types": ["item", "gift", "feature", "spell", "weapon"]
+    "types": ["gear", "feature", "spell", "gift", "weapon"],
+    "htmlFields": ["description"],
+    "templates": {
+      "base": {
+        "description": ""
+      }
+    },
+    "gear": {
+      "templates": ["base"],
+      "quantity": 1,
+      "weight": 0,
+      "formula": "d20"
+    },
+    "feature": {
+      "templates": ["base"],
+      "innate": false
+    },
+    "spell": {
+      "templates": ["base"],
+      "spellLevel": 1
+    },
+    "weapon": {
+      "templates": ["base"],
+      "weight": 0,
+      "formula": "d8"
+    }
   }
 }

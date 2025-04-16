@@ -1,8 +1,5 @@
-2025/03/23-17:21:52.527 104c Log #208: 2 ops saved to Table #209 OK
-2025/03/23-17:21:52.527 104c Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/users/000208.log: OK
-2025/03/23-17:21:52.538 104c Table #194: 8 entries OK
-2025/03/23-17:21:52.538 104c Table #204: 43 entries OK
-2025/03/23-17:21:52.549 104c Table #206: 6 entries OK
-2025/03/23-17:21:52.549 104c Table #209: 2 entries OK
-2025/03/23-17:21:52.566 104c Archiving D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/users/MANIFEST-000207: OK
-2025/03/23-17:21:52.588 104c **** Repaired leveldb D:/Foundry/FoundryVTT/Data/worlds/waterdeep/data/users; recovered 4 files; 25100 bytes. Some data may have been lost. ****
+2025/04/06-19:58:27.085 3a9c Recovering log #211
+2025/04/06-19:58:27.085 3a9c Level-0 table #214: started
+2025/04/06-19:58:27.143 3a9c Level-0 table #214: 7010 bytes OK
+2025/04/06-19:58:27.309 3a9c Delete type=0 #211
+2025/04/06-19:58:27.309 3a9c Delete type=3 #210

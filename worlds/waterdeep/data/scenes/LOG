@@ -1,7 +1,23 @@
-2025/03/23-17:21:52.319 17d4 Delete type=3 #1
-2025/03/23-17:21:52.834 3418 Compacting 2@0 + 0@1 files
-2025/03/23-17:21:52.918 3418 Generated table #474@0: 2353 keys, 304342 bytes
-2025/03/23-17:21:52.918 3418 Compacted 2@0 + 0@1 files => 304342 bytes
-2025/03/23-17:21:52.938 3418 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/03/23-17:21:52.938 3418 Delete type=2 #470
-2025/03/23-17:21:52.938 3418 Delete type=2 #471
+2025/04/13-19:24:45.860 2fc0 Recovering log #479
+2025/04/13-19:24:45.865 2fc0 Level-0 table #482: started
+2025/04/13-19:24:45.900 2fc0 Level-0 table #482: 555177 bytes OK
+2025/04/13-19:24:45.958 2fc0 Delete type=0 #479
+2025/04/13-19:24:45.958 2fc0 Delete type=3 #475
+2025/04/13-19:24:46.333 7f4 Compacting 2@0 + 1@1 files
+2025/04/13-19:24:46.442 7f4 Generated table #484@0: 2379 keys, 311167 bytes
+2025/04/13-19:24:46.442 7f4 Compacted 2@0 + 1@1 files => 311167 bytes
+2025/04/13-19:24:46.474 7f4 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/04/13-19:24:46.474 7f4 Delete type=2 #478
+2025/04/13-19:24:46.474 7f4 Delete type=2 #480
+2025/04/13-19:24:46.475 7f4 Delete type=2 #482
+2025/04/13-22:08:07.089 7f4 Level-0 table #486: started
+2025/04/13-22:08:07.177 7f4 Level-0 table #486: 159248 bytes OK
+2025/04/13-22:08:07.232 7f4 Delete type=0 #483
+2025/04/13-22:08:07.523 7f4 Manual compaction at level-0 from '!scenes!Nj7588Tle5eAV5wc' @ 72057594037927935 : 1 .. '!scenes.walls!yPc3Cf5hJ2d7ZQs5.zlashxFbpTyjyOHo' @ 0 : 0; will stop at '!scenes.tokens!R7zZwGPYRmJdyM31.drfFTg2rVLveDKf4' @ 72941 : 1
+2025/04/13-22:08:07.523 7f4 Compacting 1@0 + 1@1 files
+2025/04/13-22:08:07.654 7f4 Generated table #487@0: 2389 keys, 315094 bytes
+2025/04/13-22:08:07.654 7f4 Compacted 1@0 + 1@1 files => 315094 bytes
+2025/04/13-22:08:07.677 7f4 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/04/13-22:08:07.680 7f4 Delete type=2 #484
+2025/04/13-22:08:07.683 7f4 Delete type=2 #486
+2025/04/13-22:08:07.763 7f4 Manual compaction at level-0 from '!scenes.tokens!R7zZwGPYRmJdyM31.drfFTg2rVLveDKf4' @ 72941 : 1 .. '!scenes.walls!yPc3Cf5hJ2d7ZQs5.zlashxFbpTyjyOHo' @ 0 : 0; will stop at (end)

@@ -1,1 +1,18 @@
-2025/03/23-17:21:51.316 17d4 Delete type=3 #1
+2025/04/13-19:24:43.976 27fc Recovering log #228
+2025/04/13-19:24:43.976 27fc Level-0 table #230: started
+2025/04/13-19:24:44.043 27fc Level-0 table #230: 24815 bytes OK
+2025/04/13-19:24:44.159 27fc Delete type=0 #228
+2025/04/13-19:24:44.159 27fc Delete type=3 #226
+2025/04/13-22:08:05.632 7f4 Level-0 table #233: started
+2025/04/13-22:08:05.682 7f4 Level-0 table #233: 10761 bytes OK
+2025/04/13-22:08:05.710 7f4 Delete type=0 #231
+2025/04/13-22:08:06.100 7f4 Manual compaction at level-0 from '!messages!02gWFa4dTxlkMQLk' @ 72057594037927935 : 1 .. '!messages!zyhjmSUsY97Xjq6V' @ 0 : 0; will stop at '!messages!r4Tymzw3MHqOdm2j' @ 2439 : 1
+2025/04/13-22:08:06.100 7f4 Compacting 4@0 + 0@1 files
+2025/04/13-22:08:06.262 7f4 Generated table #234@0: 405 keys, 305524 bytes
+2025/04/13-22:08:06.280 7f4 Compacted 4@0 + 0@1 files => 305524 bytes
+2025/04/13-22:08:06.379 7f4 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/04/13-22:08:06.404 7f4 Delete type=2 #222
+2025/04/13-22:08:06.428 7f4 Delete type=2 #227
+2025/04/13-22:08:06.477 7f4 Delete type=2 #230
+2025/04/13-22:08:06.477 7f4 Delete type=2 #233
+2025/04/13-22:08:06.646 7f4 Manual compaction at level-0 from '!messages!r4Tymzw3MHqOdm2j' @ 2439 : 1 .. '!messages!zyhjmSUsY97Xjq6V' @ 0 : 0; will stop at (end)

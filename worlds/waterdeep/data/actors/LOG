@@ -1,7 +1,22 @@
-2025/03/23-17:21:51.107 17d4 Delete type=3 #1
-2025/03/23-17:21:52.687 3418 Compacting 2@0 + 0@1 files
-2025/03/23-17:21:52.784 3418 Generated table #246@0: 733 keys, 1184437 bytes
-2025/03/23-17:21:52.784 3418 Compacted 2@0 + 0@1 files => 1184437 bytes
-2025/03/23-17:21:52.833 3418 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/03/23-17:21:52.833 3418 Delete type=2 #242
-2025/03/23-17:21:52.834 3418 Delete type=2 #243
+2025/04/13-19:24:43.380 3034 Recovering log #249
+2025/04/13-19:24:43.384 3034 Level-0 table #252: started
+2025/04/13-19:24:43.477 3034 Level-0 table #252: 130964 bytes OK
+2025/04/13-19:24:43.580 3034 Delete type=0 #249
+2025/04/13-19:24:43.601 3034 Delete type=3 #247
+2025/04/13-19:24:46.239 7f4 Compacting 1@0 + 1@1 files
+2025/04/13-19:24:46.317 7f4 Generated table #254@0: 762 keys, 1222975 bytes
+2025/04/13-19:24:46.317 7f4 Compacted 1@0 + 1@1 files => 1222975 bytes
+2025/04/13-19:24:46.332 7f4 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/04/13-19:24:46.333 7f4 Delete type=2 #250
+2025/04/13-19:24:46.333 7f4 Delete type=2 #252
+2025/04/13-22:08:05.422 7f4 Level-0 table #256: started
+2025/04/13-22:08:05.551 7f4 Level-0 table #256: 44821 bytes OK
+2025/04/13-22:08:05.631 7f4 Delete type=0 #253
+2025/04/13-22:08:05.746 7f4 Manual compaction at level-0 from '!actors!059qXa3iPEybQMr5' @ 72057594037927935 : 1 .. '!actors.items.effects!wmRQnm6Cp6OtiHID.kwjwDkwDc9ifnAmb.K4xQzXl1Z4zMnyOa' @ 0 : 0; will stop at '!actors.items!Cjz55H2jxfkN5EOR.xuuAdiQ7fhAAXS1z' @ 8338 : 0
+2025/04/13-22:08:05.746 7f4 Compacting 1@0 + 1@1 files
+2025/04/13-22:08:06.027 7f4 Generated table #257@0: 754 keys, 1212361 bytes
+2025/04/13-22:08:06.027 7f4 Compacted 1@0 + 1@1 files => 1212361 bytes
+2025/04/13-22:08:06.051 7f4 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/04/13-22:08:06.074 7f4 Delete type=2 #254
+2025/04/13-22:08:06.100 7f4 Delete type=2 #256
+2025/04/13-22:08:06.646 7f4 Manual compaction at level-0 from '!actors.items!Cjz55H2jxfkN5EOR.xuuAdiQ7fhAAXS1z' @ 8338 : 0 .. '!actors.items.effects!wmRQnm6Cp6OtiHID.kwjwDkwDc9ifnAmb.K4xQzXl1Z4zMnyOa' @ 0 : 0; will stop at (end)

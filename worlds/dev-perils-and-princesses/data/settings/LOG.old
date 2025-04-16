@@ -1,18 +1,14 @@
-2025/03/26-20:41:11.272 2da8 Recovering log #34
-2025/03/26-20:41:11.272 2da8 Level-0 table #36: started
-2025/03/26-20:41:11.296 2da8 Level-0 table #36: 442 bytes OK
-2025/03/26-20:41:11.332 2da8 Delete type=0 #34
-2025/03/26-20:41:11.332 2da8 Delete type=3 #33
-2025/03/26-23:11:53.640 42a0 Level-0 table #39: started
-2025/03/26-23:11:53.688 42a0 Level-0 table #39: 442 bytes OK
-2025/03/26-23:11:53.706 42a0 Delete type=0 #37
-2025/03/26-23:11:53.790 42a0 Manual compaction at level-0 from '!settings!13koNCQPt1z1i90i' @ 72057594037927935 : 1 .. '!settings!sfMrq3lndEMrg5OO' @ 0 : 0; will stop at '!settings!igvEgnCIpxFnwdl6' @ 10 : 1
-2025/03/26-23:11:53.790 42a0 Compacting 4@0 + 0@1 files
-2025/03/26-23:11:53.863 42a0 Generated table #40@0: 4 keys, 981 bytes
-2025/03/26-23:11:53.865 42a0 Compacted 4@0 + 0@1 files => 981 bytes
-2025/03/26-23:11:53.948 42a0 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/03/26-23:11:53.948 42a0 Delete type=2 #29
-2025/03/26-23:11:53.948 42a0 Delete type=2 #32
-2025/03/26-23:11:53.974 42a0 Delete type=2 #36
-2025/03/26-23:11:53.975 42a0 Delete type=2 #39
-2025/03/26-23:11:53.978 42a0 Manual compaction at level-0 from '!settings!igvEgnCIpxFnwdl6' @ 10 : 1 .. '!settings!sfMrq3lndEMrg5OO' @ 0 : 0; will stop at (end)
+2025/04/14-11:12:57.338 38d0 Recovering log #159
+2025/04/14-11:12:57.371 38d0 Delete type=0 #159
+2025/04/14-11:12:57.371 38d0 Delete type=3 #157
+2025/04/14-11:15:48.792 3ffc Level-0 table #165: started
+2025/04/14-11:15:48.824 3ffc Level-0 table #165: 1047 bytes OK
+2025/04/14-11:15:48.842 3ffc Delete type=0 #163
+2025/04/14-11:15:48.867 3ffc Manual compaction at level-0 from '!settings!13koNCQPt1z1i90i' @ 72057594037927935 : 1 .. '!settings!vDkzip9IKFvThFit' @ 0 : 0; will stop at '!settings!jJs4Q2Lftpu13v5S' @ 55 : 1
+2025/04/14-11:15:48.867 3ffc Compacting 1@0 + 1@1 files
+2025/04/14-11:15:48.966 3ffc Generated table #166@0: 9 keys, 3813 bytes
+2025/04/14-11:15:48.966 3ffc Compacted 1@0 + 1@1 files => 3813 bytes
+2025/04/14-11:15:48.992 3ffc compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/04/14-11:15:48.993 3ffc Delete type=2 #161
+2025/04/14-11:15:48.993 3ffc Delete type=2 #165
+2025/04/14-11:15:48.993 3ffc Manual compaction at level-0 from '!settings!jJs4Q2Lftpu13v5S' @ 55 : 1 .. '!settings!vDkzip9IKFvThFit' @ 0 : 0; will stop at (end)
