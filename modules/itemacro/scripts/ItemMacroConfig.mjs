@@ -1,81 +1,88 @@
-import {logger} from "./logger.mjs";
+import ItemMacro  from "./ItemMacro.mjs";
+import {logger}   from "./logger.mjs";
 import {settings} from "./settings.mjs";
-import ItemMacro from "./ItemMacro.mjs";
 
-export class ItemMacroConfig extends MacroConfig {
-  /*
-    Override
-  */
-  static get defaultOptions() {
-    return mergeObject(super.defaultOptions, {
-      template: "modules/itemacro/templates/macro-config.html",
-      classes: ["macro-sheet", "sheet"]
-    });
+/**
+ * @extends {MacroConfig}
+ */
+export class ItemMacroConfig extends foundry.applications.sheets.MacroConfig {
+  /** @override */
+  static DEFAULT_OPTIONS = {
+    actions: {
+      execute: ItemMacroConfig._onExecute
+    },
+  };
+
+  #item;
+
+  /** @override */
+  constructor({document, item}, ...args) {
+    super({document}, ...args);
+    this.#item = item;
   }
 
   static _init(app, html, data) {
-    logger.debug("ItemMacroConfig.mjs | _init  | ", {app, html, data});
+    const document = app.document;
+    logger.debug("ItemMacroConfig.mjs | _init  | ", {app, html, data, document});
 
-    if ((settings.value("visibilty") && app.object.isOwner) || game.user.isGM) {
-      let openButton = $(`<a class="open-itemacro" title="itemacro"><i class="fas fa-sd-card"></i>${settings.value("icon") ? "" : "Item Macro"}</a>`);
+    if ((settings.value("visibilty") && document.isOwner) || game.user.isGM) {
+      const openButton = $(`<a class="open-itemacro" title="itemacro"><i class="fas fa-sd-card"></i>${settings.value(
+        "icon") ? "" : "Item Macro"}</a>`);
 
-      openButton.click(async (event) => {
-        let Macro = null;
-        let Item = await fromUuid(app.document.uuid);
+      openButton.click(ItemMacroConfig.openConfig.bind(this, document));
 
-        for (let key in app.document.apps) {
-          let obj = app.document.apps[key];
-          if (obj instanceof ItemMacroConfig) {
-            Macro = obj;
-            break;
-          }
-        }
-        if (!Macro)
-          Macro = new ItemMacroConfig(Item.getMacro(), {item: Item});
-        Macro.render(true);
-
-        logger.debug("ItemMacroConfig.mjs | _init click  | ", {event, Macro, Item});
-      });
-
-      html.closest('.app').find('.open-itemacro').remove();
-      let titleElement = html.closest('.app').find('.window-title');
+      html.closest(".app").find(".open-itemacro").remove();
+      const titleElement = html.closest(".app").find(".window-title");
       openButton.insertAfter(titleElement);
     }
   }
 
-  /*
-    Override
-  */
-  _onEditImage(event) {
-    logger.debug("ItemMacroConfig.mjs | _onEditImage  | ", {event});
-    return ui.notifications.error(settings.i18n("error.editImage"));
+  static getHeaderControlsApplicationV2(sheet, buttons) {
+    const document = sheet.document;
+    logger.debug("ItemMacroConfig.mjs | getHeaderControlsApplicationV2 | ", {sheet, document, buttons});
+
+    if (!(document instanceof Item)) return;
+    if (!((settings.value("visibilty") && document.isOwner) || game.user.isGM)) return;
+
+    buttons.push({
+      icon: "fa-solid fa-sd-card",
+      label: "Item Macro",
+      onClick: ItemMacroConfig.openConfig.bind(this, document),
+    });
   }
 
-  /*
-    Override
-  */
-  async _updateObject(event, formData) {
-    logger.debug("ItemMacroConfig.mjs | _updateObject  | ", {event, formData});
-    await this.updateMacro(formData);
+  static async openConfig(item) {
+    let macro = null;
+
+    for (let key in item.apps) {
+      let obj = item.apps[key];
+      if (obj instanceof ItemMacroConfig) {
+        macro = obj;
+        break;
+      }
+    }
+
+    if (!macro)
+      macro = new ItemMacroConfig({document: item.getMacro(), item});
+
+    macro.render(true);
+
+    logger.debug("ItemMacroConfig.mjs | #onButtonClick  | ", {macro, item});
   }
 
-  /*
-    Override
-  */
-  async _onExecute(event) {
-    event.preventDefault();
-    let item = this.options.item;
-    let command = this._element[0].querySelectorAll('textarea')[0].value;
-    let type = this._element[0].querySelectorAll('select')[1].value;
+  /** @override */
+  async _processSubmitData(event, form, submitData, options) {
+    logger.debug("ItemMacroConfig.mjs | _processSubmitData  | ", {event, form, submitData, options});
+    await this.updateMacro(submitData);
+  }
 
-    logger.debug("ItemMacroConfig.mjs | _onExecute  | ", {event, item, command, type});
-
-    await this.updateMacro({command, type});
-    item.executeMacro(event);
+  static async _onExecute(event) {
+    await this.submit();
+    this.#item.executeMacro(event);
   }
 
   async updateMacro({command, type}) {
-    const item = this.options.item;
+    const item = this.#item;
     const oldMacro = item.getMacro();
 
     const newMacro = new ItemMacro({
@@ -84,7 +91,7 @@ export class ItemMacroConfig extends MacroConfig {
       scope: "global",
       command,
       author: game.user.id,
-    }, {item})
+    }, {item});
 
     await item.setMacro(newMacro);
 

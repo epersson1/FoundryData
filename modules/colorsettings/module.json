@@ -1,53 +1,56 @@
 {
-  "title": "lib - Color Settings",
-  "description": "Library that allows modules to add color settings and forms.",
-  "version": "3.0.3",
-  "library": true,
-  "esmodules": [
-    "colorSetting.js"
-  ],
-  "languages": [
-    {
-      "lang": "pt-BR",
-      "name": "Português (Brasil)",
-      "path": "lang/pt-BR.json",
-      "flags": {}
-    },
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "lang/en.json",
-      "flags": {}
-    },
-    {
-      "lang": "es",
-      "name": "Español",
-      "path": "lang/es.json",
-      "flags": {}
-    },
-    {
-      "lang": "ja",
-      "name": "日本語",
-      "path": "lang/ja.json",
-      "flags": {}
+    "title": "lib - Color Settings",
+    "name": "colorsettings",
+    "description": "Library that allows modules to add color settings and forms.",
+    "version": "3.0.4",
+    "library": true,
+    "esmodules": [
+        "colorSetting.js"
+    ],
+    "languages": [
+        {
+            "lang": "pt-BR",
+            "name": "Português (Brasil)",
+            "path": "lang/pt-BR.json",
+            "flags": {}
+        },
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "lang/en.json",
+            "flags": {}
+        },
+        {
+            "lang": "es",
+            "name": "Español",
+            "path": "lang/es.json",
+            "flags": {}
+        },
+        {
+            "lang": "ja",
+            "name": "日本語",
+            "path": "lang/ja.json",
+            "flags": {}
+        }
+    ],
+    "socket": true,
+    "url": "https://github.com/ardittristan/VTTColorSettings",
+    "manifest": "https://raw.githubusercontent.com/ardittristan/VTTColorSettings/master/module.json",
+    "download": "https://github.com/ardittristan/VTTColorSettings/releases/download/3.0.4/colorSettings.zip",
+    "styles": [
+        "css/colorpicker.css"
+    ],
+    "id": "colorsettings",
+    "authors": [
+        {
+            "name": "ardittristan#0001",
+            "flags": {}
+        }
+    ],
+    "minimumCoreVersion": "10",
+    "compatibleCoreVersion": "13",
+    "compatibility": {
+        "minimum": 10,
+        "verified": 11
     }
-  ],
-  "socket": true,
-  "url": "https://github.com/ardittristan/VTTColorSettings",
-  "manifest": "https://raw.githubusercontent.com/ardittristan/VTTColorSettings/master/module.json",
-  "download": "https://github.com/ardittristan/VTTColorSettings/releases/latest/download/colorSettings.zip",
-  "styles": [
-    "css/colorpicker.css"
-  ],
-  "id": "colorsettings",
-  "authors": [
-    {
-      "name": "ardittristan#0001",
-      "flags": {}
-    }
-  ],
-  "compatibility": {
-    "minimum": "10",
-    "verified": "12"
-  }
 }

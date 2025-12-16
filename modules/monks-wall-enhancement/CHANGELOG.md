@@ -1,16 +1,54 @@
+# Version 13.04
+
+Fixing an issue where toggling the walls to always show wasn't able to toggle them off again
+
+# Version 13.03
+
+Adding snap tolerance for minimum distance to snap to a close grid point
+
+Fixing issue with moving a wall point and having it snap to a close grid point
+
+Fixing issue with snapping to a close grid point in Gridless
+
+Fixed deprecation warning for PointSourcePolygon
+
+Fixed deprecation warning For SceneControlTool onClick
+
+Fixed context menu for scenes in compendium
+
+Fixed issue with converting walls to the currently selected wall type
+
+Fixed issue with displaying the correct icon when switching back to the wall tools
+
+Fixed issue with editing a scene asking too often to adjust the walls in a scene
+
+Adding polish translation
+
+Adding Italian translation
+
+# Version 13.02
+
+Fixed wall pop out when multiple scenes are opened
+
+Potentially fixed the Adjust Walls message from repeatedly appearing
+
+# Version 13.01
+
+v13 compatibility
+
 # Version 12.02
 
 Fixed spelling mistake
 
 Tried to add some clarification on showing walls to players when the GM wants to see it on the token layer
 
-Tried to make the function that detects one way doors a little more effecient to prevent it causing lag.
+Tried to make the function that detects one way doors a little more efficient to prevent it causing lag.
 
 Fixed issue with detecting visibility of a wall
 
 Added a setting to allow for the snap to grid to use mid points and not just the vertices
 
-Added setting to swap the wall direction on a double right click, or flip the wall itself while holdinging down the ctrl key and double right clicking the wall.
+Added setting to swap the wall direction on a double right click, or flip the wall itself while holding down the ctrl key and double right clicking the wall.
 
 Prevented door sounds when using the close all doors function
 

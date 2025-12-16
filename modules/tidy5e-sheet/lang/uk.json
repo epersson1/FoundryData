@@ -6,7 +6,7 @@
     "TIDY5E.Group.HideMemberTabInfoPanel": "Сховати панель інформації",
     "TIDY5E.ShortRest": "Короткий Відпочинок",
     "TIDY5E.Actions": {
-        "TabName": "Дії",
+        "TabName": "Дія",
         "OverriddenSetOverrideTrue": "Додати до списку дій (Shift+Клік, щоб очистити перевизначення)",
         "ResetActionDefault": "Скинути дію за замовчуванням",
         "SetOverrideFalse": "Прибрати зі списку дій",
@@ -42,7 +42,6 @@
     "TIDY5E.OneDnDExhaustion9": "-9 до всіх кидків К20 та КС ряткидків від чарів",
     "TIDY5E.StandardVehicleExhaustion6": "Пункти Здоров'я падають до 0 і транспорт ламається",
     "TIDY5E.NoSpecialSenses": "Без Незвичайних Відчуттів",
-    "TIDY5E.Group.RemoveMemberFromGroup": "Видалити учасника з групи",
     "TIDY5E.Group.ShowMemberTabInfoPanel": "Показати панель інформації",
     "TIDY5E.Group.EmptyMembersTabHint": "Ця група порожня. Перетягніть актора з бічної панелі, щоб додати учасника.",
     "TIDY5E.RestHint": "Відпочинок",
@@ -98,7 +97,7 @@
     "TIDY5E.Class.Barbarian": "Варвар",
     "TIDY5E.Class.Bard": "Бард",
     "TIDY5E.Class.Cleric": "Клірик",
-    "TIDY5E.Class.Custom": "Користувацький",
+    "TIDY5E.Class.Custom": "Користувацький клас",
     "TIDY5E.Class.Druid": "Друїд",
     "TIDY5E.Class.Fighter": "Боєць",
     "TIDY5E.Class.Paladin": "Паладин",
@@ -113,14 +112,16 @@
         "ButtonTooltip": "Конфігурація макс. к-сті підготовлених чар",
         "MoreFormulas": "Більше формул"
     },
-    "TIDY5E.TabSelection": {
+    "TIDY5E.TabConfiguration": {
         "Title": "Вибір вкладки: {documentName}",
         "MenuOptionText": "Вибір вкладки",
-        "AvailableHeader": "Доступні вкладки",
-        "SelectedHeader": "Вибрані вкладки",
+        "AvailableHeader": "Приховані вкладки",
+        "SelectedHeader": "Видимі вкладки",
         "UnsupportedDocumentErrorMessage": "Тип документа {documentType} наразі не налаштовано для вибору вкладки.",
         "AtLeastOneRequiredErrorMessage": "Необхідна принаймні одна вкладка.",
-        "Explanation": "Будь-які вкладки, налаштовані так, що користувач або аркуш не можуть їх бачити (наприклад, вкладку «Журнал» вимкнено в налаштуваннях), не відображатимуться на аркуші, навіть якщо їх вибрано."
+        "Explanation": "Будь-які вкладки, налаштовані так, що користувач або аркуш не можуть їх бачити (наприклад, вкладку «Журнал» вимкнено в налаштуваннях), не відображатимуться на аркуші, навіть якщо їх вибрано.",
+        "SelectionTab.Title": "Вибір Вкладки",
+        "VisibilityTab.Title": "Видимість Вкладок"
     },
     "TIDY5E.ButtonConfirm.Text": "Підтвердити",
     "TIDY5E.Listbox": {
@@ -138,7 +139,7 @@
         "tabLabel": "НІП"
     },
     "TIDY5E.WorldSettings.TabVehicle": {
-        "tabLabel": "Транспорт"
+        "tabLabel": "Машина"
     },
     "TIDY5E.WorldSettings.TabExhaustion": {
         "tabLabel": "Виснаження"
@@ -210,11 +211,11 @@
         "header": "Аркуші НІП"
     },
     "TIDY5E.UserSettings.TabVehicles": {
-        "tabLabel": "Транспорт",
+        "tabLabel": "Машини",
         "header": "Аркуші транспорту"
     },
     "TIDY5E.UserSettings.TabActionsList": {
-        "tabLabel": "Дії"
+        "tabLabel": "Список дій"
     },
     "TIDY5E.Settings.ItemCardsForAllItems": {
         "name": "Показувати картки елементів у всіх відображеннях",
@@ -239,13 +240,6 @@
     "TIDY5E.Settings.UseDefaultSheetHpTabbing": {
         "name": "Використовувати усталену табуляцію для введення ПЗ",
         "hint": "Аркуш 5e за замовчуванням дозволяє переходити від введення Пунктів Здоров'я до введення Тимчасових Пунктів Здоров'я. Увімкнення цієї функції повторює цю поведінку. Цей параметр ігнорується, якщо «Використовувати підтримку клавіатури з підвищеною доступністю» вимкнено."
-    },
-    "TIDY5E.Settings.SheetTheme": {
-        "hint": "Тема ваших аркушів.",
-        "default": "Усталена",
-        "light": "Світла",
-        "dark": "Темна",
-        "name": "Колірна тема"
     },
     "TIDY5E.Settings.UseClassicControls": {
         "name": "Використовувати класичні елементи керування списком",
@@ -379,10 +373,6 @@
         "hint": "Чари іноді можуть містити спеціальні дані з інших модулів, які можуть бути корисним для перенесення в сувій заклинань. Увімкніть, щоб скопіювати всі дані на основі прапорців у сувій заклинань після створення.",
         "name": "Додати прапорці у створення сувоїв чар"
     },
-    "TIDY5E.Settings.DefaultTheme": {
-        "name": "Усталена колірна тема",
-        "hint": "Усталена тема для всіх користувачів, які не вибрали конкретну тему."
-    },
     "TIDY5E.Settings.ShowInspirationOnHover": {
         "name": "Показувати індикатор натхнення лише при наведенні",
         "hint": "Показує індикатор натхнення лише при наведенні на портрет."
@@ -418,7 +408,7 @@
         "name": "Блокування валюти",
         "hint": "Не дозволяє нікому окрім ГМа змінювати кількість валюти персонажа."
     },
-    "TIDY5E.Settings.ActionList.Header": "Дії",
+    "TIDY5E.Settings.ActionList.Header": "Список дії",
     "TIDY5E.Settings.ColorPickerInnate": {
         "name": "Вроджені"
     },
@@ -483,10 +473,6 @@
     "TIDY5E.Settings.LockLevelSelector": {
         "name": "Блокування селектора рівня",
         "hint": "Не дозволяє нікому окрім ГМа змінювати рівень персонажа."
-    },
-    "TIDY5E.Settings.LockConfigureSheet": {
-        "name": "Блокування вибору аркуша",
-        "hint": "Не дозволяє нікому окрім ГМа змінювати тип аркуша."
     },
     "TIDY5E.Settings.LockItemQuantity": {
         "hint": "Не дозволяє нікому окрім ГМа змінювати кількість предметів.",
@@ -661,7 +647,10 @@
             "sectionTitle": "Вибране персонажа",
             "selectionDialogTitle": "Перенесення: вибране персонажа до системи"
         },
-        "chatNotification": "Доступна нове перенесення Tidy 5e Sheets. Дивіться налаштування Tidy 5e Sheets, щоб переглянути доступні перенесення."
+        "chatNotification": "Доступна нове перенесення Tidy 5e Sheets. Дивіться налаштування Tidy 5e Sheets, щоб переглянути доступні перенесення.",
+        "Journal": {
+            "explanation1": "Звернення інтернет-інтерфейсу Тиді 5e Sheets змінило журнал на стільки записів, скільки ви хочете. Для цього необхідно перейти з старої структури журналу до нової розширюваної структури. Дані старого журналу не будуть помітні в оновлених листах 5e."
+        }
     },
     "TIDY5E.Settings.About": {
         "buttonLabel": "Про Tidy 5e Sheets",
@@ -670,28 +659,18 @@
         "MaintainerParagraph": "Tidy 5e Sheets підтримуються {urlStart}kgar{urlEnd}.",
         "FinancialSupportHeader": "Як підтримати Tidy 5e Sheets",
         "FinancialSupportParagraph": "Якщо вам подобається Tidy 5e Sheets і ви хочете підтримати його фінансово, ось кілька способів це зробити:",
-        "BuyMeACoffeeLink": "{urlStart}Buy Me a Coffee{urlEnd}",
+        "BuyMeACoffeeLink": "{urlStart}Купи мені кави{urlEnd}",
         "KoFiLink": "{urlStart}Ko-Fi{urlEnd}",
         "logoAltText": "Щит з чотирма зірками та написом «Tidy 5e» спереду.",
         "GithubParagraph": "У вас є ідея? Щось не так? Створіть {urlStart}Github Issue{urlEnd}.",
         "DiscordParagraph": "{urlStart}Tidy 5e Sheets Discord Server{urlEnd}: Обговорення ідей щодо нових функцій, допомога від інших та відстежування прогресу у розробці цього модуля.",
-        "LocalizationParagraph": "{urlStart}Weblate{urlEnd}: Ви локалізуєте веб-контент? Tidy 5e Sheets потрібна ваша допомога! Перейдіть на сайт Weblate, щоб побачити наш прогрес у локалізації різними мовами. Цей модуль приймає нові мовні переклади та зміни до існуючих перекладів. Переклад українською виконаний з дотриманням правил перекладу 5e від спільноти \"Інріум\". Хоч переклад і не машинний, він був виконаний однією людиною та живлений чистим ентузіазмом. Тому якщо ви бачите помилку - не полініться, перейдіть за посиланням, знайдіть рядок з помилкою та виправте! Поширюймо українську разом!",
+        "LocalizationParagraph": "{urlStart}Weblate{urlEnd}: Ви локалізуєте веб-контент? Tidy 5e Sheets потребує вашої допомоги! Перейдіть на веб-сайт Weblate, щоб переглянути наш прогрес локалізації різними мовами. Цей модуль приймає переклади новими мовами та зміни до існуючих перекладів.",
         "name": "Про нас",
         "PatreonLink": "{urlStart}Patreon{urlEnd}"
     },
-    "TIDY5E.Settings.PermanentlyUnlockCharacterSheetForGM": {
-        "name": "Аркуш персонажа: завжди розблокований для ГМа",
-        "title": "Цей аркуш завжди розблокований для ГМа, незалежно від налаштування блокування.",
-        "hint": "Поводитися з аркушем персонажа так, ніби він завжди розблокований, незалежно від налаштувань блокування. ГМ завжди може редагувати персонажа, але він також може і перемикати блокування/розблокування для гравця, який цим персонажем володіє."
-    },
-    "TIDY5E.Settings.PermanentlyUnlockVehicleSheetForGM": {
-        "name": "Аркуш Транспорту: завжди розблокований для ГМа",
-        "title": "Цей аркуш завжди розблокований для ГМа, незалежно від налаштування блокування.",
-        "hint": "Поводитися з аркушем транспорту так, ніби він завжди розблокований, незалежно від налаштувань блокування. ГМ завжди може редагувати транспорт, але він також може і перемикати блокування/розблокування для гравця, який цим транспортом володіє."
-    },
     "TIDY5E.ThemeSettings": {
         "SheetMenu": {
-            "hint": "Налаштувати кольори аркушів Tidy 5e.",
+            "hint": "Тільки класичні охайні аркуші: Налаштуйте кольори охайних аркушів.",
             "name": "Налаштування теми Tidy",
             "buttonLabel": "Налаштування теми"
         },
@@ -707,7 +686,25 @@
             "useDefaultDarkColors": "Усталена темна",
             "importSuccess": "Тему успішно імпортовано!",
             "explanation": "Виберіть колір, який ви хочете використовувати для кожної опції. Значення «#00000000» еквівалентне вимкненню кольору."
-        }
+        },
+        "hint": "Налаштуйте свій аркуш, щоб створити занурюючий досвід, який доповнює вашу гру.",
+        "AccentColor.title": "Акцентний колір",
+        "HeaderBackground.title": "Фон заголовка",
+        "PortraitShape": {
+            "title": "{type} Форма портрета",
+            "option.round": "Круглий",
+            "option.transparent": "Прозорий",
+            "option.square": "Квадратний",
+            "option.token": "Токен"
+        },
+        "RarityColors.title": "Рідкісні кольори",
+        "RarityColors.UseSaturatedColors.name": "Використовуйте насичені кольори рідкості",
+        "RarityColors.UseSaturatedColors.hint": "У деяких випадках Tidy 5e буде десантувати рідкість кольорів для зменшення напруги очей, особливо з текстом. Виберіть цю опцію, щоб використовувати повністю насичений колір рідкості.",
+        "SheetTheme.title": "Тема аркуша",
+        "SheetTheme.hint": "Для найкращих результатів виберіть колір біля центру кольорової палітри.",
+        "SpellcastingMethodColors.title": "Кольори режиму підготовки заклинань",
+        "ActorHeaderBackground.title": "Фон заголовка актора",
+        "ItemSidebarBackground.title": "Фон бічної панелі елемента"
     },
     "TIDY5E.FavoriteSpellLevelLabel": "Чари рівня {number}",
     "TIDY5E.TotalCrewCount": "Всього екіпажу",
@@ -727,11 +724,6 @@
         "explanation": "Виберіть усі типи документів, для яких ви бажаєте, щоб Tidy 5e Sheets використовувався за замовчуванням.",
         "hint": "Якщо ви хочете встановити Tidy 5e Sheets за замовчуванням для одного або декількох типів документів, але основне меню налаштувань аркушів за замовчуванням не працює належним чином, скористайтеся цим меню, щоб вибрати потрібні вам параметри.",
         "buttonLabel": "Зробити аркуш Tidy усталеним"
-    },
-    "TIDY5E.Settings.PermanentlyUnlockNPCSheetForGM": {
-        "hint": "Поводитися з аркушем неігрового персонажа так, ніби він завжди розблокований, незалежно від налаштувань блокування. ГМ завжди може редагувати НІП, але він також може і перемикати блокування/розблокування для гравця, який цим НІПом володіє.",
-        "title": "Цей аркуш завжди розблокований для ГМа, незалежно від налаштування блокування.",
-        "name": "Аркуш НІП: завжди розблокований для ГМа"
     },
     "TIDY5E.ItemFilters.CanUse": "Можна використати",
     "TIDY5E.ItemFilters.Category.Miscellaneous": "Різне",
@@ -756,7 +748,8 @@
         "SectionSelectorCreateNewSection": "Створити новий розділ",
         "SectionSelectorExistingSections": "Існуючі розділи",
         "SectionSelectorSaveNewSection": "Зберегти новий розділ",
-        "SectionSelectorNewSectionName": "Назва нового розілу"
+        "SectionSelectorNewSectionName": "Назва нового розілу",
+        "SectionSelectorChooseTabSectionTooltip": "Виберіть розділ {tabName}"
     },
     "TIDY5E.Tidy5eSettings": "Налаштування аркушівTidy 5e",
     "TIDY5E.Settings.Debug": {
@@ -820,7 +813,7 @@
         "hint": "Задає усталений тип кидку, який використовується при кидках рятунку смерті.",
         "name": "Усталений кидок рятунку смерті"
     },
-    "TIDY5E.Containers.HoldsNumberUnits": "{holdsElementStart}Holds{holdsElementEnd} {numberElementStart}{number}{numberElementEnd} {unitsElementStart}{units}{unitsElementEnd}",
+    "TIDY5E.Containers.HoldsNumberUnits": "{holdsElementStart}Holds{holdsElementEnd} {numberElementStart}{number}{numberElementEnd} {unitsElementStart}{units}{unitsElementEnd}'",
     "TIDY5E.Facilities.Hirelings.Label": "Найманці",
     "TIDY5E.Facilities.Defenders.Label": "Охоронці",
     "TIDY5E.Activities.Cast.SourceHintText": "З {itemName}",
@@ -847,10 +840,138 @@
         "hint": "Натисніть цю клавішу (наприклад, клавішу «t») під час перегляду інформаційної картки, щоб вивести її на екран."
     },
     "TIDY5E.BrokenLink": "Непрацююче посилання",
-    "TIDY5E.WorldSettings.IncludeTidySectionFieldsInDefaultSheets": {
-        "name": "Включати поля розділів Tidy до аркушів за замовчуванням",
-        "hint": "Включає дані розділів Tidy та розділи дій до аркуша елемента за замовчуванням."
+    "TIDY5E.ContextMenuActionView": "Переглянути",
+    "TIDY5E.ContextMenuActionPinToAttributes": "Закріпити на атрибутах",
+    "TIDY5E.ContextMenuActionUnpinFromAttributes": "Відкріпити від атрибутів",
+    "TIDY5E.ContextMenuActionShowLimitedUses": "Показати обмежене використання",
+    "TIDY5E.ContextMenuActionShowQuantity": "Показати кількість",
+    "TIDY5E.Utilities.SpellPips": "Спель Піпс",
+    "TIDY5E.Utilities.SpellValueMax": "Значення заклинання/макс",
+    "TIDY5E.RollRecharge.Label": "Перезарядка",
+    "TIDY5E.SortMethod.AlphabeticalAscending.Tooltip": "Сортувати за алфавітом за зростанням",
+    "TIDY5E.SortMethod.AlphabeticalDescending.Tooltip": "Сортувати за алфавітом спадання",
+    "TIDY5E.SortMenu.OptionPriority": "Пріоритет",
+    "TIDY5E.ConfigureTab.Title": "Налаштувати {tabName}",
+    "TIDY5E.DisplayOptions.Title": "Параметри відображення",
+    "TIDY5E.DisplayOptions.ShowContainerRow.Label": "Показати рядок контейнера",
+    "TIDY5E.Hidden": "Прихований",
+    "TIDY5E.Options.Title": "Опції",
+    "TIDY5E.Visible": "Видно",
+    "TIDY5E.Tidy5eNpcSheetQuadrone": "Охайний аркуш NPC 5e",
+    "TIDY5E.Tidy5eGroupSheetQuadrone": "Охайний аркуш групи 5e",
+    "TIDY5E.Tidy5eCharacterSheetQuadrone": "Охайна таблиця персонажів 5e",
+    "TIDY5E.Tidy5eItemSheetQuadrone": "Охайний аркуш 5e",
+    "TIDY5E.Tidy5eVehicleSheetQuadrone": "Паспорт транспортного засобу Tidy 5e",
+    "TIDY5E.Tidy5eContainerSheetQuadrone": "Контейнерний лист Tidy 5e",
+    "TIDY5E.ItemSheet.PactLevelCastLabel": "Виконати в {ordinal}",
+    "TIDY5E.AddSpecific": "Додати {name}",
+    "TIDY5E.Ability.EditScore.label": "Редагувати партитуру",
+    "TIDY5E.HitDice.Max.Label": "Кубики максимального влучання",
+    "TIDY5E.HitDice.Abbreviation": "HD",
+    "TIDY5E.HitDice.Current.Label": "Поточні кубики хітів",
+    "TIDY5E.CharacterTraits.Title": "Риси характеру",
+    "TIDY5E.SidebarPinnedTab.Title": "Закріплено",
+    "TIDY5E.Utilities.SpellSlotTrackingModeTitle": "Відстеження слотів заклинань",
+    "TIDY5E.StatblockTabName": "Статблок",
+    "TIDY5E.JournalEntry.NewTitle": "Запис журналу {number}",
+    "TIDY5E.ContextMenuActionSetAsInspirationSource": "Встановити як джерело натхнення",
+    "TIDY5E.ContextMenuActionRemoveAsInspirationSource": "Видалити як джерело натхнення",
+    "TIDY5E.ContextMenuActionAddToSheetTab": "Додайте на вкладку Лист",
+    "TIDY5E.ContextMenuActionRemoveFromSheetTab": "Видаліть з вкладки Лист",
+    "TIDY5E.InspirationSource.ItemIsSourceTooltip": "Джерело натхнення",
+    "TIDY5E.SettingsMenu.WorldThemeSettings": {
+        "name": "Налаштування теми",
+        "label": "Налаштування налаштувань теми",
+        "hint": "Тільки нові охайні аркуші: встановіть налаштування теми за замовчуванням для вашого ігрового світу. Вони стосуються всіх типів аркушів."
     },
-    "TIDY5E.ItemSummaryCommands.ShowDescriptionInChatLabel": "Інформація",
-    "TIDY5E.ItemSummaryCommands.ShowDescriptionInChatTooltip": "Показати опис у чаті"
+    "TIDY5E.SettingsMenu.Homebrew": {
+        "name": "Домашня пива",
+        "label": "Налаштувати Homebrew",
+        "hint": "Увімкнути та налаштувати параметри домашнього пива, надані цим модулем."
+    },
+    "TIDY5E.SettingsMenu.TabConfiguration": {
+        "name": "Вкладки аркушів",
+        "label": "Налаштування вкладок аркушів",
+        "hint": "Тільки нові охайні аркуші: Налаштуйте, які вкладки видно для всіх аркушів актора та предметів."
+    },
+    "TIDY5E.Settings.BankedInspiration.title": "Банкуване натхнення",
+    "TIDY5E.Settings.EnableBankedInspiration": {
+        "name": "Увімкнути банківське натхнення",
+        "hint": "Увімкніть цю опцію, щоб дозволити користувачеві встановити елемент функції як джерело натхнення. Шукайте опцію як пункт контекстного меню на елементах функцій із використанням."
+    },
+    "TIDY5E.Settings.BankedInspirationGmOnly": {
+        "name": "Управління натхненням - лише GM",
+        "hint": "Увімкнути цю опцію обмежити банкітне управління натхненням для GM."
+    },
+    "TIDY5E.Utilities.CastActivitySpellGroupingTitle": "Угрупування заклинань з акторської діяльності",
+    "TIDY5E.Utilities.CastActivitySpellGroupingOptionAdditional": "Розділ додаткових заклинань",
+    "TIDY5E.Utilities.CastActivitySpellGroupingOptionPerItem": "Розділ на предмет",
+    "TIDY5E.SortMethod.AlphabeticalAscending.Label": "Висхід",
+    "TIDY5E.SortMethod.AlphabeticalDescending.Label": "Низхідний",
+    "TIDY5E.ItemSheet.FeatureOriginLabel": "Особливості походження",
+    "TIDY5E.Notifications.FirstTimeWelcome1": "Вітаємо Вас в \"Tidy 5e Sheets\"! Щоб почати, вам потрібно змінити {sheetLinkStart}лист{sheetLinkEnd} (або {allSheetsLinkStart]всі ваші лісти{allSheets LinkEnd}!) для використання версії Tidy. Дізнайтеся більше про цей модуль і що він може зробити на {wikiLinkStart}офіційному вікі{wikiLinkEnd}.",
+    "TIDY5E.SheetLock.Empty.Hint": "Спочатку додайте клас і перші елементи. Потім скористайтеся меню елементів або клацніть правою кнопкою миші та виберіть «Додати до вкладки аркуша», щоб додати їх сюди.",
+    "TIDY5E.EmptyFavorites": "Клацніть правою кнопкою миші та додайте до обраного або перетягніть сюди будь-що з аркуша для швидкого доступу.",
+    "TIDY5E.EmptyTools": "Відсутність навичок володіння інструментами.",
+    "TIDY5E.Utilities.IncludeSpellbookInNpcStatblockTab": "Додати розділи книги заклинань на вкладку Statblock",
+    "TIDY5E.UseSpecificDefaultValue.Label": "Використовувати значення за замовчуванням ({value})",
+    "TIDY5E.Utilities.ShowLegendaryTrackersOnNpcStatblock": "Показувати легендарні/лігвові трекери на вкладці Statblock",
+    "TIDY5E.Tidy5eEncounterSheetClassic": "Класичний аркуш зустрічей Tidy 5e",
+    "TIDY5E.Tidy5eEncounterSheetQuadrone": "Охайний аркуш зустрічей 5e",
+    "TIDY5E.AggregateSkill.HighMeasure": "Високий",
+    "TIDY5E.AggregateSkill.LowMeasure": "Низький",
+    "TIDY5E.Settings.UseGroupSheetMemberSecurity": {
+        "name": "Використання безпеки учасників групового аркуша",
+        "hint": "Дозволяє GM контролювати, яку інформацію про членів групи користувач може бачити в аркуші групи. Якщо гравець не має дозволу на доступ до члена групи, аркуш групи не показує цього члена або його сукупну інформацію. З обмеженим дозволом користувач може бачити ім'я члена, але ніякої іншої інформації. З дозволом «Спостерігач» або вище користувач може бачити всю інформацію аркуша групи про члена."
+    },
+    "TIDY5E.Group.PrimaryParty.Label": "Основна партія",
+    "TIDY5E.CombatTabName": "Бойові дії",
+    "TIDY5E.Difficulty": "Складність",
+    "TIDY5E.Encounter": {
+        "CombatantsSection.Title": "Комбатанти",
+        "Combat.IncludeInCombat.Tooltip": "Включити до бойових дій",
+        "Combat.ExcludeFromCombat.Tooltip": "Виключити з бойових дій",
+        "AddMember.Label": "Додати учасника",
+        "AddPlaceholderToCombatTracker.Label": "Додати до поточної зустрічі як тимчасовий фрагмент",
+        "AddPlaceholder.Label": "Створити бойовий заповнювач",
+        "DeletePlaceholder.Label": "Видалити заповнювач",
+        "DifficultyTarget.Label": "Цільова складність",
+        "AddAllPlaceholders.Label": "Додати всі як заповнювачі",
+        "PrerollInitiative": "Ініціатива перед переглядом",
+        "NewPlaceholder.Name": "Новий заповнювач",
+        "NewPlaceholder.SubtitlePlaceholderText": "Примітка щодо цього заповнювача",
+        "AddCombatants.MustHaveEncounter.Message": "Потрібно вибрати зустріч, щоб додати її до трекера зустрічей",
+        "CombatVisibility.Hidden.Label": "Приховано від гравців після додавання до трекера",
+        "CombatVisibility.Visible.Label": "Видиме для гравців після додавання до трекера",
+        "InitiativeCount.Label": "Додати кількість ініціатив {count}",
+        "PlaceholderNameField.PlaceholderText": "Назва заповнювача",
+        "PlaceholderNotesField.PlaceholderText": "Нотатки"
+    },
+    "TIDY5E.Actor.Characteristics": "Характеристики",
+    "TIDY5E.Show": "Показати",
+    "TIDY5E.Hide": "Приховати",
+    "TIDY5E.LegendaryLairToolbar": "Легендарна/Лігво панель інструментів",
+    "TIDY5E.SpellbookSections": "Розділи книги заклинань",
+    "TIDY5E.UserDefaultPrefix": "Користувач за замовчуванням: {value}",
+    "TIDY5E.DisplayOptionsGlobalDefault.Title": "Глобальні параметри відображення за замовчуванням",
+    "TIDY5E.Character.Sidebar.Title": "Бічна панель персонажа гравця",
+    "TIDY5E.ContextMenuActionPin": "Закріпити вгорі",
+    "TIDY5E.ContextMenuActionUnpin": "Відкріпити зверху",
+    "TIDY5E.HeaderControlConfiguration": {
+        "LocationMenu": "Меню",
+        "LocationHeader": "Заголовок"
+    },
+    "TIDY5E.SettingsMenu.HeaderControlConfiguration": {
+        "name": "Елементи керування заголовком",
+        "label": "Налаштування елементів керування заголовком",
+        "hint": "Тільки для нових упорядкованих аркушів: налаштуйте розташування елементів керування заголовком аркуша."
+    },
+    "TIDY5E.GMOnly.Title": "Тільки для GM",
+    "TIDY5E.SheetPin": {
+        "Label": "Штифт для листа",
+        "LabelPl": "Штифти для листів"
+    },
+    "TIDY5E.Utilities.ShowSheetPins": "Показати шпильки аркушів",
+    "TIDY5E.InspirationAdd": "Додати натхнення",
+    "TIDY5E.InspirationRemove": "Вилучити натхнення"
 }

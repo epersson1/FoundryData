@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,8 +20,7 @@
 }
 
 .custom-system-user-input {
-    flex-grow: 1;
-    flex-shrink: 0.5;
+    flex: 1;
     margin: 0 5px !important;
 }
 

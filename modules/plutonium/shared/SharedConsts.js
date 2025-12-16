@@ -11,4 +11,6 @@ export class SharedConsts {
 	static MODULE_LOCATION = `modules/${SharedConsts.MODULE_ID}`;
 
 	static SYSTEM_ID_DND5E = "dnd5e";
+	static SYSTEM_ID_DND4E = "dnd4e";
+	static SYSTEM_ID_LANCER = "lancer";
 }

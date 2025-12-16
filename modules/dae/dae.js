@@ -4,24 +4,15 @@ import { preloadTemplates } from './module/preloadTemplates.js';
 import { daeSetupActions, daeInitActions, fetchParams } from "./module/dae.js";
 import { daeReadyActions } from "./module/dae.js";
 import { setupSocket } from './module/GMAction.js';
-import { checkLibWrapperVersion } from './module/migration.js';
 import { setupPatching, initPatching } from './module/patching.js';
 import API from './module/API/api.js';
-//@ts-expect-error
-export const CONFIG = globalThis.CONFIG;
-export const ArrayField = foundry.data.fields.ArrayField;
-export const ObjectField = foundry.data.fields.ObjectField;
-export const BooleanField = foundry.data.fields.BooleanField;
-export const NumberField = foundry.data.fields.NumberField;
-export const StringField = foundry.data.fields.StringField;
-export const SchemaField = foundry.data.fields.SchemaField;
+export let debugEnabled;
 export let setDebugLevel = (debugText) => {
     debugEnabled = { "none": 0, "warn": 1, "debug": 2, "all": 3 }[debugText] || 0;
     // 0 = none, warnings = 1, debug = 2, all = 3
     if (debugEnabled >= 3)
         CONFIG.debug.hooks = true;
 };
-export var debugEnabled;
 // 0 = none, warnings = 1, debug = 2, all = 3
 export let debug = (...args) => { if (debugEnabled > 1)
     console.log("DEBUG: dae | ", ...args); };
@@ -37,56 +28,50 @@ export function i18n(key) {
 export function i18nFormat(key, data) {
     return game.i18n?.format(key, data) ?? key;
 }
-export let daeAlternateStatus;
-export var gameSystemCompatible = "maybe"; // no, yes, partial, maybe
-export var daeUntestedSystems;
+export let gameSystemCompatible = "maybe"; // no, yes, maybe
+export let daeUntestedSystems;
 export const MODULE_ID = "dae";
 /* ------------------------------------ */
 /* Initialize module					*/
 /* ------------------------------------ */
-Hooks.once('init', async function () {
+Hooks.once('init', () => {
     // CONFIG.ActiveEffect.legacyTransferral = false;
     debug('Init setup actions');
-    const daeFlags = game.modules?.get("dae")?.flags ?? {};
-    const systemDaeFlag = game.system?.flags?.daeCompatible;
-    // @ts-expect-error
-    if (daeFlags.compatible?.includes(game.system?.id) || systemDaeFlag === true)
+    const systemDaeFlag = game.system.flags?.daeCompatible;
+    if (["dnd5e"].includes(game.system.id) || systemDaeFlag === true)
         gameSystemCompatible = "yes";
-    // @ts-expect-error
-    else if (daeFlags.incompatible?.includes(game.system?.id) || systemDaeFlag === false)
+    else if (["pf2e"].includes(game.system.id) || systemDaeFlag === false)
         gameSystemCompatible = "no";
     if (gameSystemCompatible === "no") {
-        console.error(`DAE is not compatible with ${game.system?.title} module disabled`);
+        console.error(`DAE is not compatible with ${game.system.title} - module disabled`);
     }
     else {
         registerSettings();
-        // @ts-expect-error
-        daeUntestedSystems = game.settings?.get("dae", "DAEUntestedSystems") === true;
+        daeUntestedSystems = game.settings.get("dae", "DAEUntestedSystems") === true;
         if (gameSystemCompatible === "yes" || daeUntestedSystems) {
             if (gameSystemCompatible === "maybe")
-                console.warn(`DAE compatibility warning for ${game.system?.title} is not tested with DAE`);
+                console.warn(`DAE compatibility warning for ${game.system.title}: not tested with DAE`);
             daeInitActions();
             initPatching();
             fetchParams();
-            // Preload Handlebars templates
-            await preloadTemplates();
+            // Preload Handlebars templates - async but no use awaiting
+            preloadTemplates();
         }
     }
     ;
 });
-export var daeSpecialDurations;
-export var daeMacroRepeats;
-Hooks.once('ready', async function () {
+export let daeSpecialDurations;
+export let daeMacroRepeats;
+Hooks.once('ready', () => {
     if (gameSystemCompatible !== "no" && (gameSystemCompatible === "yes" || daeUntestedSystems)) {
         if ("maybe" === gameSystemCompatible) {
             if (game.user?.isGM)
-                ui.notifications?.warn(`DAE is has not been tested with ${game.system?.title}. Disable DAE if there are problems`);
+                ui.notifications?.warn(`DAE is has not been tested with ${game.system.title}. Disable DAE if there are problems`);
         }
-        checkLibWrapperVersion();
         fetchParams();
         debug("ready setup actions");
         daeSpecialDurations = { "None": "" };
-        if (game.modules?.get("times-up")?.active && foundry.utils.isNewerVersion(game.modules?.get("times-up")?.version ?? "0", "0.0.9")) {
+        if (game.modules.get("times-up")?.active && foundry.utils.isNewerVersion(game.modules.get("times-up")?.version ?? "0", "0.0.9")) {
             daeSpecialDurations["turnStart"] = i18n("dae.turnStart");
             daeSpecialDurations["turnEnd"] = i18n("dae.turnEnd");
             daeSpecialDurations["turnStartSource"] = i18n("dae.turnStartSource");
@@ -107,18 +92,19 @@ Hooks.once('ready', async function () {
         createDAEMacros();
     }
     else if (gameSystemCompatible === "maybe" && !daeUntestedSystems) {
-        ui.notifications?.error(`DAE is not certified compatible with ${game.system?.id} - enable Untested Systems in DAE settings to enable`);
+        ui.notifications?.error(`DAE is not certified compatible with ${game.system.id} - enable Untested Systems in DAE settings to enable`);
     }
     else {
-        ui.notifications?.error(`DAE is not compatible with ${game.system?.id} - module disabled`);
+        ui.notifications?.error(`DAE is not compatible with ${game.system.id} - module disabled`);
     }
+    Hooks.callAll("dae.ready", API);
 });
 /* ------------------------------------ */
 /* Setup module							*/
 /* ------------------------------------ */
-Hooks.once('setup', function () {
+Hooks.once('setup', () => {
     if (gameSystemCompatible === "no" || (gameSystemCompatible === "maybe" && !daeUntestedSystems)) {
-        ui.notifications?.warn(`DAE disabled for ${game.system?.title} - to enable choose Allow Untested Systems from the DAE settings`);
+        ui.notifications?.warn(`DAE disabled for ${game.system.title} - to enable choose Allow Untested Systems from the DAE settings`);
     }
     else {
         // Do anything after initialization but before ready
@@ -126,16 +112,22 @@ Hooks.once('setup', function () {
         daeSetupActions();
         setupPatching();
         // Set API
-        const data = game.modules?.get("dae");
+        const data = game.modules.get("dae");
         data.api = API;
-        globalThis.DAE = game.modules?.get("dae")?.api;
+        globalThis.DAE = API;
         setupSocket();
-        Hooks.callAll("DAE.setupComplete");
+        if ("DAE.setupComplete" in Hooks.events) {
+            foundry.utils.logCompatibilityWarning("The `DAE.setupComplete` hook has been deprecated and replaced with `dae.setupComplete`.", { since: "DAE 13.0.7", until: "DAE 14.0.0" });
+            Hooks.callAll("DAE.setupComplete");
+        }
+        Hooks.callAll("dae.setupComplete", API);
     }
 });
+// TODO (Michael): Do we really need this? Very similar to just using `DialogV2.confirm`
+// It's only here as a convenience to macro writers and I would not be surprised if it is not used at all
 export async function confirmAction(toCheck, confirmFunction, title = i18n("dae.confirm")) {
+    foundry.utils.logCompatibilityWarning("`confirmAction` is deprecated and will be removed in a future release. Please use `DialogV2.confirm` instead.", { since: "DAE 13.0.11", until: "DAE 13.1.0" });
     if (toCheck || await foundry.applications.api.DialogV2.confirm({
-        // @ts-expect-error types issue
         window: { title },
         content: `<p>${i18n("dae.sure")}</p>`,
         rejectClose: false
@@ -149,25 +141,25 @@ const DAEMacros = [
         name: "DAE: Clear Scene DAE Passive Effects",
         checkVersion: true,
         version: "11.2.1",
-        commandText: `await game.modules?.get("dae").api.removeScenePassiveEffects()`
+        commandText: `await game.modules.get("dae").api.removeScenePassiveEffects()`
     },
     {
         name: "DAE: Clear All Actors DAE Passive Effects",
         checkVersion: true,
         version: "11.2.1",
-        commandText: `await game.modules?.get("dae").api.removeActorsPassiveEffects()`
+        commandText: `await game.modules.get("dae").api.removeActorsPassiveEffects()`
     },
     {
         name: "DAE: Clear All Compendium DAE Passive Effects",
         checkVersion: true,
         version: "11.2.1",
-        commandText: `await game.modules?.get("dae").api.removeCompendiaPassiveEffects()`
+        commandText: `await game.modules.get("dae").api.removeCompendiaPassiveEffects()`
     },
     {
         name: "DAE: Clear All Scenes DAE Passive Effects",
         checkVersion: true,
         version: "11.2.1",
-        commandText: `await game.modules?.get("dae").api.removeAllScenesPassiveEffects()`
+        commandText: `await game.modules.get("dae").api.removeAllScenesPassiveEffects()`
     },
     {
         name: "DAE: Create Sample DAEConditionalEffects",
@@ -177,8 +169,10 @@ const DAEMacros = [
         CONFIG.Item.documentClass.create([itemData]);`
     }
 ];
+// TODO (Michael) Is this necessary? If so, is this the ideal way of doing this?
+// I'm open to suggestions
 export async function createDAEMacros() {
-    if (game?.user?.isGM) {
+    if (game.user?.isGM) {
         const daeVersion = "11.2.0";
         for (let macroSpec of DAEMacros) {
             try {
@@ -186,12 +180,15 @@ export async function createDAEMacros() {
                 if (existingMacros.length > 0) {
                     for (let macro of existingMacros) {
                         if (macroSpec.checkVersion
-                            && !foundry.utils.isNewerVersion(macroSpec.version, (macro.flags["dae-version"] ?? "0.0.0")))
+                            && !foundry.utils.isNewerVersion(macroSpec.version, (macro.flags?.dae?.version ?? "0.0.0")))
                             continue; // already up to date
                         await macro.update({
                             command: macroSpec.commandText,
-                            // @ts-expect-error
-                            "flags.dae-version": macroSpec.version
+                            flags: {
+                                dae: {
+                                    version: macroSpec.version
+                                }
+                            }
                         });
                     }
                 }
@@ -206,17 +203,18 @@ export async function createDAEMacros() {
                         command: macroSpec.commandText,
                         folder: null,
                         sort: 0,
-                        permission: {
-                            default: 1,
-                        },
-                        flags: { "dae-version": macroSpec.version ?? daeVersion }
+                        flags: {
+                            dae: {
+                                version: macroSpec.version ?? daeVersion
+                            }
+                        }
                     };
                     await Macro.createDocuments([macroData]);
                     log(`Macro ${macroData.name} created`);
                 }
             }
             catch (err) {
-                const message = `createDAEMacros | falied to create macro ${macroSpec.name}`;
+                const message = `createDAEMacros | failed to create macro ${macroSpec.name}`;
                 error(err, message);
             }
         }

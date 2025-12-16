@@ -1,17 +1,15 @@
-import { debugEnabled, warn } from "../../midi-qol.js";
-import { ReplaceDefaultActivities, configSettings } from "../settings.js";
+import { debugEnabled, GameSystemConfig, warn } from "../../midi-qol.js";
+import { replaceDefaultActivities, configSettings } from "../settings.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
-export var MidiForwardActivity;
-export var MidiForwardSheet;
+export let MidiForwardActivity;
+export let MidiForwardSheet;
 export function setupForwardActivity() {
 	if (debugEnabled > 0)
 		warn("MidiQOL | ForwardActivity | setupForwardActivity | Called");
 	//@ts-expect-error
-	const GameSystemConfig = game.system.config;
-	//@ts-expect-error
 	MidiForwardSheet = defineMidiForwardSheetClass(game.system.applications.activity.ForwardSheet);
 	MidiForwardActivity = defineMidiForwardActivityClass(GameSystemConfig.activityTypes.forward.documentClass);
-	if (ReplaceDefaultActivities) {
+	if (replaceDefaultActivities) {
 		// GameSystemConfig.activityTypes["dnd5eForward"] = GameSystemConfig.activityTypes.forward;
 		GameSystemConfig.activityTypes.forward = { documentClass: MidiForwardActivity };
 	}
@@ -25,7 +23,7 @@ let defineMidiForwardSheetClass = (baseClass) => {
 };
 let defineMidiForwardActivityClass = (ActivityClass) => {
 	return class MidiForwardActivity extends MidiActivityMixin(ActivityClass) {
-		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.FORWARD"];
+		static LOCALIZATION_PREFIXES = ["midi-qol.FORWARD", ...super.LOCALIZATION_PREFIXES];
 		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.FORWARD.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
@@ -37,6 +35,25 @@ let defineMidiForwardActivityClass = (ActivityClass) => {
 		get possibleOtherActivity() {
 			return false;
 		}
+		get effects() { return []; }
+		;
+		/** @override */
+		async use(usage = {}, dialog = {}, message = {}) {
+			const usageConfig = foundry.utils.mergeObject({
+				cause: {
+					activity: this.relativeUUID
+				},
+				consume: {
+					resources: false,
+					spellSlot: false
+				}
+			}, usage);
+			// @ts-expect-error no dnd5e-types
+			const activity = this.item.system.activities.get(this.activity.id);
+			if (!activity)
+				ui.notifications?.error("DND5E.FORWARD.Warning.NoActivity", { localize: true });
+			return activity?.use(usageConfig, dialog, message);
+		}
 		get isSelfTriggerableOnly() {
 			return false;
 		}
@@ -45,6 +62,8 @@ let defineMidiForwardActivityClass = (ActivityClass) => {
 		}
 		get forcedTargetConfirmation() {
 			return "never";
+		}
+		async _triggerSubsequentActions(config, results) {
 		}
 	};
 };

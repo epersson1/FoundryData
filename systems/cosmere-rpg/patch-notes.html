@@ -1,0 +1,29 @@
+<div><h3>Patch 2.0.3</h3>
+<p><sup>2025-11-15</sup></p>
+<p>This patch fixes some larger remaining bugs of the V13 release, addressing issues with the event system, talent trees, and sheets.  </p>
+<p><strong>Note.</strong> Patch <code>2.0.2</code> contained an issue with our internal data models that could cause problems when deleting entries from collection fields (such as removing an expertise or deleting an event rule). Patch <code>2.0.2</code> has been made unavailable from Foundry.</p>
+<h4>🛠️ Full Changelog</h4>
+<p>🐛 <strong>Bug Fixes</strong></p>
+<ul>
+<li>Fixed an issue causing context menus to appear in the wrong location and sometimes be inaccessible  </li>
+<li>Resolved a problem where the width of embedded Talent Trees would not account for the name  </li>
+<li>Corrected the event system’s <code>update-item</code> handler so it no longer requires an item to be configured when the target is set to Equipped Weapon or Equipped Armour </li>
+<li>Fixed an issue causing you to be unable to update event system handlers fields, due to failing data validation</li>
+<li>Adjusted actor sheet styling to prevent the portrait’s shadow from exceeding its bounds, resulting in a black box</li>
+<li>Updated improvised weapons to be correctly configured as Special Weapons in the <em>Stormlight Starter Rules</em></li>
+</ul>
+<br>
+
+<hr>
+<h3>Patch 2.0.1</h3>
+<p><sup>2025-10-30</sup></p>
+<p>This is a small patch addressing some of the issues found in the initial V13 release.</p>
+<h4>🛠️ Full Changelog</h4>
+<p>🐛 <strong>Bug Fixes</strong></p>
+<ul>
+<li>Fixed an issue causing Active Effect changes to be unintentionally persisted when updating ProseMirror fields (Biography, Appearance, Notes) on actor sheets</li>
+<li>Resolved a bug that caused header controls to be duplicated on actor sheets</li>
+<li>Removed the window drop shadow to prevent display issues in Firefox</li>
+<li>Fixed an issue where the selected roll mode was not being respected when rolling any Item (talent, action, etc.) from an actor sheet</li>
+</ul>
+</div>

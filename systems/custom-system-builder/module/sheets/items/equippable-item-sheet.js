@@ -1,34 +1,37 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-import { CustomItem } from '../../documents/item.js';
+/**
+ * @ignore
+ * @module
+ */
+import CustomItem from '../../documents/CustomItem.js';
 import Logger from '../../Logger.js';
+import { isBaseSheetTemplateEntity } from '../../definitions.js';
+var ItemSheet = foundry.appv1.sheets.ItemSheet;
 /**
  * Extend the basic ItemSheet
  * @abstract
- * @extends {ItemSheet}
+ * @extends {foundry.appv1.sheets.ItemSheet}
  * @ignore
  */
 export class EquippableItemSheet extends ItemSheet {
-    /**
-     * A convenience reference to the Item document
-     */
+    hasBeenRenderedOnce = false;
     get item() {
-        return this['object'];
+        return super.item;
     }
     constructor(item, options) {
-        options.resizable = !item.system.display.fix_size;
+        options.resizable = !item.system.display?.fix_size;
         super(item, options);
-        this._hasBeenRenderedOnce = false;
     }
     /** @override */
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
-            classes: ['custom-system', 'sheet', 'item'],
+            classes: ['custom-system', 'sheet', 'item', 'item-v1'],
             template: 'systems/' + game.system.id + '/templates/item/item-sheet.hbs',
             width: 600,
             height: 600,
@@ -83,10 +86,16 @@ export class EquippableItemSheet extends ItemSheet {
         // sheets are the actor object, the data object, whether or not it's
         // editable, the items array, and the effects array.
         const baseContext = super.getData();
-        const context = await baseContext.item.templateSystem.getSheetData(baseContext);
-        context.isEmbedded = context.item.isEmbedded;
-        context.isEditable = this.isEditable;
-        context.canEditModifiers = context.item.canEditModifiers;
+        if (!(baseContext.item instanceof CustomItem)) {
+            throw new Error('Tried to render an ActiveEffectContainerSheet without a CustomItem');
+        }
+        const context = {
+            ...baseContext,
+            ...(await baseContext.item.templateSystem.getSheetData()),
+            isEmbedded: baseContext.item.isEmbedded,
+            isEditable: this.isEditable,
+            canEditModifiers: baseContext.item.canEditModifiers
+        };
         return context;
     }
     /**
@@ -94,16 +103,19 @@ export class EquippableItemSheet extends ItemSheet {
      * @ignore
      */
     render(force, options = {}) {
-        if (!this._hasBeenRenderedOnce) {
-            this.position.width = this.item.system.display.width;
-            this.position.height = this.item.system.display.height;
-            this._hasBeenRenderedOnce = true;
+        if (isBaseSheetTemplateEntity(this.item)) {
+            if (!this.hasBeenRenderedOnce) {
+                this.position.width = this.item.system.display.width;
+                this.position.height = this.item.system.display.height;
+                this.hasBeenRenderedOnce = true;
+            }
+            this.options.resizable = !this.item.system.display.fix_size;
         }
-        this.options.resizable = !this.item.system.display.fix_size;
         if (this.item.system.container) {
             const parentCollection = this.item.getParentCollection();
-            parentCollection.get(this.item.system.container).prepareData();
-            parentCollection.get(this.item.system.container).render(false);
+            const container = parentCollection.get(this.item.system.container);
+            void container.prepareData();
+            void container.render(false);
         }
         return super.render(force, options);
     }
@@ -119,15 +131,15 @@ export class EquippableItemSheet extends ItemSheet {
     }
     /**
      * Render the inner application content
-     * @param {object} data         The data used to render the inner template
-     * @returns {Promise<jQuery>}   A promise resolving to the constructed jQuery object
+     * @param data         The data used to render the inner template
+     * @returns  A promise resolving to the constructed jQuery object
      * @private
      * @override
      * @ignore
      */
     async _renderInner(data) {
         if (this.item.templateSystem.isModified) {
-            this.submit();
+            await this.submit();
         }
         const html = await super._renderInner(data);
         // Append built sheet to html
@@ -140,92 +152,98 @@ export class EquippableItemSheet extends ItemSheet {
         this.item.templateSystem.activateListeners(html);
         super.activateListeners(html);
     }
-    /** @override */
-    async _onDrop(event) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore Wrong protected tag in types
-        const data = TextEditor.getDragEventData(event);
-        if (data.type === 'Item') {
+    async performDrop(event) {
+        const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
+        if (data && data.type === 'Item') {
             if (this.actor && !this.actor.isOwner)
                 return false;
             const item = await CustomItem.fromDropData(data);
-            Logger.debug('Got item data ' + item.name);
-            // Building list of container ids of the new item position, from nearest to farthest up
-            const targetContainerTree = [
-                this.item.id,
-                ...this.item.getAllContainerIds(),
-                ...(this.actor ? [this.actor.id] : [])
-            ];
-            // If the item is in the new container list, we cannot update it (it would contain itself)
-            if (targetContainerTree.includes(item._id)) {
-                ui.notifications.error(game.i18n.localize('CSB.UserMessages.CannotMoveItemInItself'));
-                Logger.error(game.i18n.localize('CSB.UserMessages.CannotMoveItemInItself'));
-                return;
-            }
-            // Calculating if the item is moved in the same entity, meaning it has an item containing both the old container and the new one
-            const targetParentActor = this.actor;
-            const originalParentActor = item.parent;
-            let originalContainerTree = [];
-            let originalContainer = undefined;
-            // If the item had a container, we fetch it
-            if (item.system.container) {
-                if (originalParentActor) {
-                    originalContainer = originalParentActor.items.get(item.system.container);
+            if (CustomItem.isEquippableItem(item)) {
+                Logger.debug('Got item data ' + item.name);
+                // Building list of container ids of the new item position, from nearest to farthest up
+                const targetContainerTree = [
+                    this.item.id,
+                    ...this.item.getAllContainerIds(),
+                    ...(this.actor ? [this.actor.id] : [])
+                ];
+                // If the item is in the new container list, we cannot update it (it would contain itself)
+                if (targetContainerTree.includes(item._id)) {
+                    ui.notifications.error(game.i18n.localize('CSB.UserMessages.CannotMoveItemInItself'));
+                    Logger.error(game.i18n.localize('CSB.UserMessages.CannotMoveItemInItself'));
+                    return;
                 }
-                else {
-                    originalContainer = game.items.get(item.system.container);
-                }
-                // And we get the old container list
-                originalContainerTree = [originalContainer.id, ...originalContainer.getAllContainerIds()];
-            }
-            // We add the old actor id to the list, if in an actor, to move items from the actor to an item in the actor
-            if (originalParentActor) {
-                originalContainerTree.push(originalParentActor.id);
-            }
-            // If an id in the original container list matches an id in the new container list, we shoudl move the item instead of copying it
-            const isMove = originalContainerTree.some((id) => {
-                return targetContainerTree.includes(id);
-            });
-            if (isMove) {
-                const itemOrigin = originalContainer ?? originalParentActor;
-                Logger.info(`Moving item ${item.name} from ${itemOrigin?.name ?? 'item sidebar'} to ${this.item.name}${this.actor ? ` in ${this.actor.name}` : ''}`);
-                return CustomItem.updateDocuments([
-                    {
-                        _id: item._id,
-                        system: { container: this.item.id }
+                // Calculating if the item is moved in the same entity, meaning it has an item containing both the old container and the new one
+                const targetParentActor = this.actor;
+                const originalParentActor = item.parent;
+                let originalContainerTree = [];
+                let originalContainer = undefined;
+                // If the item had a container, we fetch it
+                if (item.system.container) {
+                    if (originalParentActor) {
+                        originalContainer = originalParentActor.items.get(item.system.container);
                     }
-                ], { parent: targetParentActor }).then(() => {
-                    itemOrigin?.render(false);
-                    this.render(false);
+                    else {
+                        originalContainer = game.items.get(item.system.container);
+                    }
+                    // And we get the old container list
+                    originalContainerTree = [originalContainer.id, ...originalContainer.getAllContainerIds()];
+                }
+                // We add the old actor id to the list, if in an actor, to move items from the actor to an item in the actor
+                if (originalParentActor) {
+                    originalContainerTree.push(originalParentActor.id);
+                }
+                // If an id in the original container list matches an id in the new container list, we shoudl move the item instead of copying it
+                const isMove = originalContainerTree.some((id) => {
+                    return targetContainerTree.includes(id);
                 });
+                if (isMove) {
+                    const itemOrigin = originalContainer ?? originalParentActor;
+                    Logger.info(`Moving item ${item.name} from ${itemOrigin?.name ?? 'item sidebar'} to ${this.item.name}${this.actor ? ` in ${this.actor.name}` : ''}`);
+                    return CustomItem.updateDocuments([
+                        {
+                            _id: item._id,
+                            system: { container: this.item.id }
+                        }
+                    ], { parent: targetParentActor }).then(() => {
+                        itemOrigin?.render(false);
+                        this.render(false);
+                    });
+                }
+                Logger.info(`Creating item ${item.name} in item ${this.item.name}`);
+                return this._onDropItemCreate(item, event);
             }
-            Logger.info(`Creating item ${item.name} in item ${this.item.name}`);
-            return this._onDropItemCreate(item, event);
         }
+    }
+    /** @override */
+    _onDrop(event) {
+        void this.performDrop(event);
     }
     /**
      * Handle the final creation of dropped Item data on the Actor.
      * @protected
      */
     async _onDropItemCreate(itemData, _event) {
-        const items = itemData instanceof Array ? itemData : [itemData];
+        const items = (itemData instanceof Array ? itemData : [itemData]).filter((item) => CustomItem.isEquippableItem(item));
+        if (!CustomItem.isEquippableItem(this.item)) {
+            return [];
+        }
         // Create the owned items & contents as normal
         const toCreate = await CustomItem.createWithContents(items, this.item);
-        Logger.info('Created items ' + toCreate.map((item) => item._id));
+        Logger.info('Created items ' + toCreate.map((item) => item._id).join(', '));
         const newItemPromise = CustomItem.createDocuments(toCreate, {
             pack: this.actor?.pack,
             parent: this.actor,
             keepId: true
         });
-        newItemPromise.then(() => {
-            this.render(false);
+        void newItemPromise.then(() => {
+            void this.render(false);
         });
         return newItemPromise;
     }
 }
 let focusedElt;
 /* Insert tabs & header on sheet rendering */
-Hooks.on('renderEquippableItemSheet', function (app, html, _data) {
+Hooks.on('renderEquippableItemSheet', function (app, html) {
     // Register in-sheet rich text editors
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore Going around the protected modifier on this

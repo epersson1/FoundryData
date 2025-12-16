@@ -1,7 +1,9 @@
-import { geti18nOptions } from "../../midi-qol.js";
+import { MODULE_ID, i18n } from "../../midi-qol.js";
 import { Workflow } from "../Workflow.js";
 import { getCurrentSourceMacros, OnUseMacro, OnUseMacros } from "./Item.js";
-const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+var ApplicationV2 = foundry.applications.api.ApplicationV2;
+import { onUseMacroOptions } from "../settings.js";
+const { HandlebarsApplicationMixin } = foundry.applications.api;
 export class ActorOnUseMacrosConfig extends HandlebarsApplicationMixin(ApplicationV2) {
 	document;
 	constructor(options) {
@@ -17,7 +19,7 @@ export class ActorOnUseMacrosConfig extends HandlebarsApplicationMixin(Applicati
 		}
 	};
 	// TODO: dragDrop? dropSelector .key
-	static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+	static DEFAULT_OPTIONS = {
 		window: {
 			resizable: false,
 			title: "midi-qol.ActorOnUseMacros"
@@ -29,16 +31,12 @@ export class ActorOnUseMacrosConfig extends HandlebarsApplicationMixin(Applicati
 		form: {
 			closeOnSubmit: false,
 			submitOnClose: true
+		},
+		actions: {
+			add: this.#onAddMacro,
+			delete: this.#onDeleteMacro
 		}
-	}, { inplace: false });
-	async _onRender(context, options) {
-		await super._onRender(context, options);
-		if (this.isEditable) {
-			for (const control of Array.from(this.element.querySelectorAll(".macro-control"))) {
-				control.addEventListener("click", this.onMacroControl.bind(this));
-			}
-		}
-	}
+	};
 	get isEditable() {
 		if (this.document.pack) {
 			const pack = game.packs?.get(this.document.pack);
@@ -54,40 +52,51 @@ export class ActorOnUseMacrosConfig extends HandlebarsApplicationMixin(Applicati
 			context.onUseMacroParts = new OnUseMacros(context.onUseMacroName);
 		else
 			context.onUseMacroParts = new OnUseMacros(null);
-		context.MacroPassOptions = foundry.utils.mergeObject(geti18nOptions("onUseMacroOptions"), Workflow.stateHooks);
+		context.MacroPassOptions = foundry.utils.mergeObject(onUseMacroOptions, Workflow.stateHooks);
+		Object.keys(context.MacroPassOptions).forEach((k) => {
+			context.MacroPassOptions[k] = i18n(context.MacroPassOptions[k]);
+		});
 		return context;
 	}
 	_onDragStart(ev) { }
 	_onDrop(ev) {
 		ev.preventDefault();
-		const data = TextEditor.getDragEventData(ev);
+		const data = foundry.applications.ux.TextEditor.getDragEventData(ev);
 		if (data.uuid)
 			ev.target.value += data.uuid;
 	}
-	async onMacroControl(event) {
-		event?.preventDefault();
-		const a = event?.currentTarget;
+	static async #onAddMacro() {
+		if (!this.isEditable)
+			return;
 		const macros = getCurrentSourceMacros(this.document);
-		const formMacros = Object.entries(new FormDataExtended(this.element.querySelector("form"))?.object) ?? [];
+		const formMacros = Object.entries(new foundry.applications.ux.FormDataExtended(this.element.querySelector("form"))?.object) ?? [];
 		for (const [k, v] of formMacros) {
 			foundry.utils.setProperty(macros, k.split('.').slice(1).join('.'), v);
 		}
-		if (a?.classList.contains("add-macro")) {
-			// Add new macro component
-			macros.items.push(new OnUseMacro(""));
+		macros.items.push(new OnUseMacro(""));
+		await this.document.setFlag(MODULE_ID, "onUseMacroName", macros.toString());
+		this.render({ force: true });
+	}
+	static async #onDeleteMacro(event) {
+		if (!this.isEditable)
+			return;
+		const macros = getCurrentSourceMacros(this.document);
+		const formMacros = Object.entries(new foundry.applications.ux.FormDataExtended(this.element.querySelector("form"))?.object) ?? [];
+		for (const [k, v] of formMacros) {
+			foundry.utils.setProperty(macros, k.split('.').slice(1).join('.'), v);
 		}
-		else if (a?.classList.contains("delete-macro")) {
-			// Remove a macro component
-			const li = a.closest(".macro-change");
-			macros.items.splice(Number(li.dataset.macropart), 1);
-		}
-		// @ts-expect-error can't know about flags
-		await this.document.update({ "flags.midi-qol.onUseMacroName": macros.toString() });
-		if (event)
-			this.render({ force: true });
+		const li = event.target.closest("[data-macroPart]");
+		macros.items.splice(Number(li.dataset.macropart), 1);
+		await this.document.setFlag(MODULE_ID, "onUseMacroName", macros.toString());
+		this.render({ force: true });
 	}
 	async _preClose(options) {
-		await this.onMacroControl();
-		return;
+		await super._preClose(options);
+		const macros = getCurrentSourceMacros(this.document);
+		const formMacros = Object.entries(new foundry.applications.ux.FormDataExtended(this.element.querySelector("form"))?.object) ?? [];
+		for (const [k, v] of formMacros) {
+			foundry.utils.setProperty(macros, k.split('.').slice(1).join('.'), v);
+		}
+		await this.document.setFlag(MODULE_ID, "onUseMacroName", macros.toString());
 	}
 }

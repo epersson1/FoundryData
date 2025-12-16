@@ -1,0 +1,61 @@
+{
+    "id": "pdf-sheet",
+    "name": "pdf-sheet",
+    "title": "Export Sheet to PDF",
+    "description": "A system agnostic module for exporting character sheets to a form-fillable and printable PDF!",
+    "authors": [
+        {
+            "name": "Arcanist",
+            "url": "https://arcanist.me",
+            "email": "arcanistzed@gmail.com",
+            "discord": "arcanist#4317",
+            "reddit": "u/arcanistzed"
+        }
+    ],
+    "url": "https://github.com/arcanistzed/pdf-sheet",
+    "license": "https://github.com/arcanistzed/pdf-sheet/blob/main/LICENSE",
+    "readme": "https://github.com/arcanistzed/pdf-sheet/blob/main/README.md",
+    "bugs": "https://github.com/arcanistzed/pdf-sheet/issues/new/choose",
+    "changelog": "https://github.com/arcanistzed/pdf-sheet/blob/main/CHANGELOG.md",
+    "flags": {
+        "allowBugReporter": true
+    },
+    "version": "0.24.15",
+    "compatibility": {
+        "minimum": "0.7.9",
+        "verified": "12"
+    },
+    "minimumCoreVersion": "0.7.9",
+    "compatibleCoreVersion": "12",
+    "scripts": [
+        "scripts/pdfsheet.js",
+        "scripts/libraries/pdfform.js/minipdf.js",
+        "scripts/libraries/pdfform.js/pdfform.js",
+        "scripts/libraries/pako/dist/pako.min.js",
+        "scripts/libraries/file-saver/dist/FileSaver.min.js"
+    ],
+    "styles": [
+        "styles/pdfsheet.css"
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "languages/en.json"
+        },
+        {
+            "lang": "fr",
+            "name": "Français",
+            "path": "languages/fr.json"
+        },
+        {
+            "lang": "pt-BR",
+            "name": "Português (BR)",
+            "path": "languages/pt-br.json"
+        }
+    ],
+    "manifest": "https://github.com/arcanistzed/pdf-sheet/releases/latest/download/module.json",
+    "download": "https://github.com/arcanistzed/pdf-sheet/releases/download/0.24.15/module.zip",
+    "manifestPlusVersion": "1.2.0",
+    "media": []
+}

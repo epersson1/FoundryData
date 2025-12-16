@@ -41,7 +41,7 @@ Object.defineProperty(globalThis, "_levels", {
     },
 });
 
-Tile.prototype.inTriggeringRange = function (token) {
+foundry.canvas.placeables.Tile.prototype.inTriggeringRange = function (token) {
     const bottom = this.document.elevation;
     let top = this.document.flags?.levels?.rangeTop ?? Infinity;
     if (game.Levels3DPreview?._active) {
@@ -56,7 +56,7 @@ Tile.prototype.inTriggeringRange = function (token) {
 };
 
 
-Object.defineProperty(WeatherEffects.prototype, "elevation", {
+Object.defineProperty(foundry.canvas.layers.WeatherEffects.prototype, "elevation", {
     get: function () {
         return canvas?.scene?.flags?.levels?.weatherElevation ?? Infinity;
     },
@@ -280,8 +280,10 @@ Hooks.on("updateTile", (tile, updates) => {
 });
 
 Hooks.on("renderTileConfig", (app, html, data) => {
-    const isInjected = html.find(`input[name="flags.${CONFIG.Levels.MODULE_ID}.rangeTop"]`).length > 0;
+    const isInjected = html.querySelector(`input[name="flags.${CONFIG.Levels.MODULE_ID}.rangeTop"]`);
     if (isInjected) return;
+
+    html = $(html);
 
     const injHtml = injectConfig.inject(app, html, {
         moduleId: "levels",
@@ -349,7 +351,7 @@ Hooks.on("renderTileConfig", (app, html, data) => {
 
 Hooks.on("renderAmbientLightConfig", (app, html, data) => {
     if(html.querySelector(`[name="flags.levels.rangeTop"]`)) return;
-    const injHtml = injectConfig.inject(app, html, {
+    const injHtml = injectConfig.inject(app, $(html), {
         moduleId: "levels",
         inject: 'input[name="config.dim"]',
         rangeTop: {
@@ -440,31 +442,11 @@ Hooks.on("renderMeasuredTemplateConfig", (app, html, data) => {
     });
 });
 
-Hooks.on("renderDrawingHUD", (data, hud, drawData) => {
-    let drawing = data.object.document;
-    if (drawing.getFlag(CONFIG.Levels.MODULE_ID, "drawingMode")) {
-        let active = drawing.getFlag(CONFIG.Levels.MODULE_ID, "stairLocked") || false;
-        let toggleStairbtn = `<div class="control-icon${active ? " active" : ""}" id="toggleStair">
-              <i class="fas fa-lock" width="36" height="36" title='${game.i18n.localize("levels.drawingHud.title")}'></i>
-                              </div>`;
-        const controlIcons = hud.find("div.control-icon");
-        controlIcons.last().after(toggleStairbtn);
-        $(hud.find(`div[id="toggleStair"]`)).on("click", test);
-        function test() {
-            console.log("test");
-            active = !active;
-            drawing.setFlag(CONFIG.Levels.MODULE_ID, "stairLocked", !(drawing.getFlag(CONFIG.Levels.MODULE_ID, "stairLocked") || false));
-            let hudbtn = hud.find(`div[id="toggleStair"]`);
-            if (active) hudbtn.addClass("active");
-            else hudbtn.removeClass("active");
-        }
-    }
-});
 
 Hooks.on("renderTokenHUD", (data, hud, drawData) => {
     if (CONFIG.Levels.settings.get("lockElevation") && !game.user.isGM) {
-        const controlIcons = hud.find(`div[class="attribute elevation"]`);
-        $(controlIcons[0]).remove();
+        const controlIcons = hud.querySelector(`[class="attribute elevation"]`);
+        controlIcons?.remove();
     }
 });
 

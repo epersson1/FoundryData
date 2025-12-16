@@ -1,0 +1,36 @@
+<form>
+    {{#each movementRates as |movement|}}
+        <div class="form-group {{#if (eq movement.type "walk")}}max{{/if}}">
+            {{#if (not (eq movement.type "walk"))}}
+            <label>{{localize movement.label}}</label>
+            {{/if}}
+            <div class="form-fields">
+                <input name="{{concat movement.type ".value"}}"
+                    type="number"
+                    value="{{derived movement.rate}}"
+                    min="0"
+                    step="1"
+                    {{#if (eq movement.mode 'derived')}}
+                    readonly
+                    {{/if}}
+                >
+            </div>
+        </div>
+
+        {{#if (eq movement.type "walk")}}
+        <div class="form-group">
+            <label>{{localize "GENERIC.Mode"}}</label>
+            <div class="form-fields">
+                <select name="{{concat movement.type ".mode"}}">
+                    {{selectOptions @root.modes selected=movement.mode localize=true}}
+                </select>
+            </div>
+        </div>
+        {{/if}}
+    {{/each}}
+    <div class="form-group submit">
+        <button data-action="update-movement" type="submit">
+            {{localize "GENERIC.Button.Update"}}
+        </button>
+    </div>
+</form>

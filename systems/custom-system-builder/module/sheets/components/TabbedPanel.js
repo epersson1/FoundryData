@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,15 +11,21 @@
  */
 import Container from './Container.js';
 import Tab from './Tab.js';
-import templateFunctions from '../template-functions.js';
+import TabEditorDialog from '../../applications/TabEditorDialog.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
 /**
  * Tabbed Panel component
  * @ignore
  */
 class TabbedPanel extends Container {
+    /**
+     * Can container accept dropped components ?
+     */
+    static droppable = false;
+    _contents;
     constructor(props) {
         super(props);
-        this._contents = props.contents;
+        this._contents = props.contents ?? [];
     }
     get contents() {
         return this._contents;
@@ -39,8 +45,7 @@ class TabbedPanel extends Container {
             activeKey = String(game.user.getFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.activeTab'));
         }
         catch (_e) {
-            // Do nothing on error
-            null;
+            // Nothing should happen
         }
         if (renderableTabs.filter((tab) => tab.key === activeKey).length === 0) {
             activeKey = renderableTabs?.[0]?.key;
@@ -51,7 +56,7 @@ class TabbedPanel extends Container {
         // Generating nav
         const tabNav = $('<nav></nav>');
         const tabsLink = {};
-        tabNav.addClass('sheet-tabs tabs');
+        tabNav.addClass('custom-tabs');
         for (const tab of renderableTabs) {
             tabsContent[tab.key] = await tab.render(entity, isEditable, options);
             tabSection.append(tabsContent[tab.key]);
@@ -68,96 +73,56 @@ class TabbedPanel extends Container {
                 tabsContent[tab.key].addClass('active');
                 tabsLink[activeKey].removeClass('active');
                 tabLink.addClass('active');
-                game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.activeTab', tab.key);
+                void game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.activeTab', tab.key);
                 activeKey = tab.key;
             });
             tabsLink[tab.key] = tabLink;
-            if (entity.isTemplate) {
+            tabSpan.append(tabLink);
+            if (TemplateSystem.isBuilderTemplateSystem(entity)) {
                 const sortLeftTabButton = $('<a><i class="fas fa-caret-left custom-system-clickable"></i></a>');
                 sortLeftTabButton.addClass('item custom-system-sort-left');
                 sortLeftTabButton.attr('title', game.i18n.localize('CSB.ComponentProperties.TabbedPanel.SortTabToLeft'));
                 sortLeftTabButton.on('click', () => {
-                    tab.sortBeforeInParent(entity);
+                    void tab.sortBeforeInParent(entity);
                 });
-                tabSpan.append(sortLeftTabButton);
-            }
-            tabSpan.append(tabLink);
-            if (entity.isTemplate) {
+                tabLink.before(sortLeftTabButton);
                 const sortRightTabButton = $('<a><i class="fas fa-caret-right custom-system-clickable"></i></a>');
                 sortRightTabButton.addClass('item custom-system-sort-right');
                 sortRightTabButton.attr('title', game.i18n.localize('CSB.ComponentProperties.TabbedPanel.SortTabToRight'));
                 sortRightTabButton.on('click', () => {
-                    tab.sortAfterInParent(entity);
+                    void tab.sortAfterInParent(entity);
                 });
-                tabSpan.append(sortRightTabButton);
+                tabLink.after(sortRightTabButton);
             }
             tabNav.append(tabSpan);
         }
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             const controlSpan = $('<span></span>');
             const addTabButton = $('<a><i class="fas fa-plus-circle custom-system-clickable"></i></a>');
             addTabButton.addClass('item');
             addTabButton.addClass('custom-system-builder-add-tab');
             addTabButton.attr('title', game.i18n.localize('CSB.ComponentProperties.TabbedPanel.AddTab'));
             addTabButton.on('click', () => {
-                // Create dialog for tab edition
-                templateFunctions.editTab(({ name, key, role = CONST.USER_ROLES.NONE, permission = CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE, visibilityFormula = '', tooltip = '' }) => {
-                    // This is called on dialog validation
-                    // Checking for duplicate keys
-                    const existingTab = this.contents.filter((tab) => tab.key === key);
-                    if (existingTab.length > 0) {
-                        ui.notifications.error(game.i18n.format('CSB.UserMessages.TabbedPanel.DuplicateTabKey', { KEY: key }));
-                    }
-                    else {
-                        // Adding the new tab to the template
-                        this.contents.push(Tab.fromJSON({
-                            name: name,
-                            key: key,
-                            cssClass: '',
-                            role: role,
-                            permission: permission,
-                            visibilityFormula: visibilityFormula,
-                            tooltip: tooltip,
-                            type: 'tabbedPanel',
-                            contents: []
-                        }, this.templateAddress + '-contents-' + this.contents.length, this));
-                        this.save(entity);
-                    }
-                });
+                void new TabEditorDialog(this, entity).render({ force: true });
             });
             const editTabButton = $('<a><i class="fas fa-edit custom-system-clickable"></i></a>');
             editTabButton.addClass('item');
             editTabButton.addClass('custom-system-builder-edit-tab');
             editTabButton.attr('title', game.i18n.localize('CSB.ComponentProperties.TabbedPanel.EditTab'));
             editTabButton.on('click', () => {
-                const tab = this.contents.filter((tab) => tab.key === activeKey)[0];
-                // Create dialog for tab edition
-                templateFunctions.editTab(({ name, key, role = CONST.USER_ROLES.NONE, permission = CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE, visibilityFormula = '', tooltip = '' }) => {
-                    // This is called on dialog validation
-                    // Checking for duplicate keys
-                    const existingTab = this.contents.filter((tab) => tab.key === key);
-                    if (existingTab.length > 0 && key !== activeKey) {
-                        game.i18n.format('CSB.UserMessages.TabbedPanel.DuplicateTabKeEdit', { KEY: key });
-                    }
-                    else {
-                        // Updating tab data
-                        tab.update(entity, {
-                            name: name,
-                            tooltip: tooltip,
-                            key: key,
-                            role: role,
-                            permission: permission,
-                            visibilityFormula: visibilityFormula
-                        });
-                    }
-                }, tab.toJSON());
+                if (activeKey) {
+                    const tab = this.contents.filter((tab) => tab.key === activeKey)[0];
+                    void new TabEditorDialog(this, entity, tab).render({ force: true });
+                }
             });
             const deleteTabButton = $('<a><i class="fas fa-trash custom-system-clickable"></i></a>');
             deleteTabButton.addClass('item');
             deleteTabButton.addClass('custom-system-builder-delete-tab');
             deleteTabButton.attr('title', game.i18n.localize('CSB.ComponentProperties.TabbedPanel.DeleteTab'));
             deleteTabButton.on('click', () => {
-                this.contents.filter((tab) => tab.key === activeKey)[0].delete(entity);
+                if (activeKey) {
+                    void this.contents.filter((tab) => tab.key === activeKey)[0].delete(entity);
+                }
             });
             controlSpan.append(addTabButton);
             controlSpan.append(editTabButton);
@@ -186,15 +151,10 @@ class TabbedPanel extends Container {
      */
     static fromJSON(json, templateAddress, parent) {
         const tabbedPanel = new TabbedPanel({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
+            ...json,
             contents: [],
-            cssClass: json.cssClass,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            parent: parent,
+            templateAddress: templateAddress
         });
         tabbedPanel._contents =
             json?.contents?.map((tab, index) => Tab.fromJSON(tab, templateAddress + '-contents-' + index, tabbedPanel)) ?? [];
@@ -217,9 +177,12 @@ class TabbedPanel extends Container {
         return game.i18n.localize('CSB.ComponentProperties.ComponentType.TabbedPanel');
     }
     /** Get configuration form for component creation / edition */
-    static async getConfigForm(existingComponent) {
-        const mainElt = $('<div></div>');
-        mainElt.append(await renderTemplate(`systems/${game.system.id}/templates/_template/components/tabbed-panel.hbs`, existingComponent));
+    static async getConfigForm(_entity, appId, existingComponent) {
+        const mainElt = document.createElement('div');
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/components/tabbed-panel.hbs`, {
+            ...existingComponent,
+            appId
+        });
         return mainElt;
     }
     /**
@@ -229,14 +192,10 @@ class TabbedPanel extends Container {
      * @returns The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
-        return super.extractConfig(html);
+    static extractConfig(configData, html) {
+        return super.extractConfig(configData, html);
     }
 }
-/**
- * Can container accept dropped components ?
- */
-TabbedPanel.droppable = false;
 /**
  * @ignore
  */

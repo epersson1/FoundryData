@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,11 +11,28 @@
  */
 import ExtensibleTable from './ExtensibleTable.js';
 import { getLocalizedAlignmentList } from '../../utils.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
 /**
  * Class ConditionalModifierList
  * @ignore
  */
 class ConditionalModifierList extends ExtensibleTable {
+    /** Should table header be displayed? */
+    _headDisplay;
+    /** Should info icon be displayed with tooltips with modifier descriptions? */
+    _infoDisplay;
+    /** Label of the selection column */
+    _selectionLabel;
+    /** Alignment of the selection column */
+    _selectionAlign;
+    /** Label of the group column */
+    _groupLabel;
+    /** Alignment of the group column */
+    _groupAlign;
+    /** Which groups can be displayed */
+    _groupFilter;
+    /** Formula defining which groups can be displayed. Overrides _groupFilter */
+    _groupFilterFormula;
     constructor(props) {
         super(props);
         this._headDisplay = props.headDisplay;
@@ -40,10 +57,10 @@ class ConditionalModifierList extends ExtensibleTable {
         const jQElement = await super._getElement(entity, isEditable, options);
         const tableElement = $('<table></table>');
         const tableBody = $('<tbody></tbody>');
-        if (entity.isTemplate) {
-            tableBody.append(this._createTemplateColumns());
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
+            tableBody.append(this._createTemplateColumns(this.escapeHTML));
         }
-        else {
+        else if (TemplateSystem.isAppliedTemplateSystem(entity)) {
             let sortedConditionalModifiers = entity.getSortedConditionalModifiers();
             let groupFilter;
             if (this._groupFilterFormula && this._groupFilterFormula !== '') {
@@ -101,23 +118,9 @@ class ConditionalModifierList extends ExtensibleTable {
      */
     static fromJSON(json, templateAddress, parent) {
         return new ConditionalModifierList({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
-            cssClass: json.cssClass,
-            head: json.head,
-            headDisplay: json.headDisplay,
-            infoDisplay: json.infoDisplay,
-            selectionLabel: json.selectionLabel,
-            selectionAlign: json.selectionAlign,
-            groupLabel: json.groupLabel,
-            groupAlign: json.groupAlign,
-            groupFilter: json.groupFilter,
-            groupFilterFormula: json.groupFilterFormula,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
+            ...json,
             parent: parent,
+            templateAddress: templateAddress,
             contents: [],
             rowLayout: {},
             deleteWarning: false
@@ -140,22 +143,25 @@ class ConditionalModifierList extends ExtensibleTable {
         return game.i18n.localize('CSB.ComponentProperties.ComponentType.ConditionalModifierList');
     }
     /** Get configuration form for component creation / edition */
-    static async getConfigForm(existingComponent, entity) {
-        const predefinedValues = { ...existingComponent };
-        predefinedValues.headDisplay = predefinedValues?.headDisplay ?? true;
-        predefinedValues.head = predefinedValues?.head ?? true;
-        predefinedValues.selectionLabel =
-            predefinedValues?.selectionLabel ??
-                game.i18n.localize('CSB.ComponentProperties.ConditionalModifierList.SelectionColumnNameDefault');
-        predefinedValues.groupLabel =
-            predefinedValues?.groupLabel ??
-                game.i18n.localize('CSB.ComponentProperties.ConditionalModifierList.GroupColumnNameDefault');
-        predefinedValues.availableGroups = this._getAvailableGroups(entity).map((group) => ({
-            group,
-            checked: predefinedValues.groupFilter?.includes(group) ?? false
-        }));
-        const mainElt = $('<div></div>');
-        mainElt.append(await renderTemplate('systems/' + game.system.id + '/templates/_template/components/conditionalModifierList.hbs', { ...predefinedValues, ALIGNMENTS: getLocalizedAlignmentList() }));
+    static async getConfigForm(entity, appId, existingComponent) {
+        const predefinedValues = {
+            headDisplay: existingComponent?.headDisplay ?? true,
+            head: existingComponent?.head ?? true,
+            selectionLabel: existingComponent?.selectionLabel ??
+                game.i18n.localize('CSB.ComponentProperties.ConditionalModifierList.SelectionColumnNameDefault'),
+            groupLabel: existingComponent?.groupLabel ??
+                game.i18n.localize('CSB.ComponentProperties.ConditionalModifierList.GroupColumnNameDefault')
+        };
+        const mainElt = document.createElement('div');
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate('systems/' + game.system.id + '/templates/_template/components/conditionalModifierList.hbs', {
+            ...predefinedValues,
+            availableGroups: this._getAvailableGroups(entity).map((group) => ({
+                group,
+                checked: existingComponent?.groupFilter?.includes(group) ?? false
+            })),
+            ALIGNMENTS: getLocalizedAlignmentList(),
+            appId
+        });
         return mainElt;
     }
     /**
@@ -165,27 +171,23 @@ class ConditionalModifierList extends ExtensibleTable {
      * @returns The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
+    static extractConfig(rawConfigData, html) {
+        const configData = rawConfigData;
         return {
-            ...super.extractConfig(html),
-            headDisplay: html.find('#modifierHeadDisplay').is(':checked'),
-            head: html.find('#modifierHead').is(':checked'),
-            infoDisplay: html.find('#modifierInfoDisplay').is(':checked'),
-            selectionLabel: html.find('#modifierSelectionLabel').val()?.toString() ?? '',
-            selectionAlign: html.find('#modifierSelectionAlign').val()?.toString() ?? 'left',
-            groupLabel: html.find('#modifierGroupLabel').val()?.toString() ?? '',
-            groupAlign: html.find('#modifierGroupAlign').val()?.toString() ?? 'left',
-            groupFilterFormula: html.find('#groupFilterFormula').val()?.toString() ?? '',
-            groupFilter: html
-                .find('input[name=groupFilter]:checked')
-                .map(function () {
-                return $(this).val()?.toString() ?? '';
-            })
-                .get()
+            ...super.extractConfig(configData, html),
+            headDisplay: configData.headDisplay ?? true,
+            head: configData.head ?? true,
+            infoDisplay: configData.infoDisplay ?? false,
+            selectionLabel: configData.selectionLabel ?? '',
+            selectionAlign: configData.selectionAlign ?? 'left',
+            groupLabel: configData.groupLabel ?? '',
+            groupAlign: configData.groupAlign ?? 'left',
+            groupFilterFormula: configData.groupFilterFormula ?? '',
+            groupFilter: (configData.groupFilter ?? []).filter((group) => group !== null)
         };
     }
     /** Creates the header-row of the table */
-    _createTemplateColumns() {
+    _createTemplateColumns(escapeHTML = false) {
         const firstRow = $('<tr></tr>');
         for (let i = 0; i < 2; i++) {
             const cell = $('<td></td>');
@@ -206,7 +208,12 @@ class ConditionalModifierList extends ExtensibleTable {
                 cell.addClass('custom-system-cell-boldTitle');
             }
             const colNameSpan = $('<span></span>');
-            colNameSpan.append(i === 0 ? this._selectionLabel : this._groupLabel);
+            if (escapeHTML) {
+                colNameSpan.text(i === 0 ? this._selectionLabel : this._groupLabel);
+            }
+            else {
+                colNameSpan.append(i === 0 ? this._selectionLabel : this._groupLabel);
+            }
             cell.append(colNameSpan);
             firstRow.append(cell);
         }
@@ -255,20 +262,18 @@ class ConditionalModifierList extends ExtensibleTable {
         return tableRow;
     }
     async _createIsSelectedCell(key, entity) {
-        if (entity.system.activeConditionalModifierGroups === undefined) {
-            entity.system.activeConditionalModifierGroups = [];
-        }
+        entity.system.activeConditionalModifierGroups ??= [];
         const input = $('<input type="checkbox"/>');
         input.addClass('custom-system-conditional-modifier');
         input.prop('checked', entity.system.activeConditionalModifierGroups.includes(key) ?? false);
-        input.on('click', async () => {
+        input.on('click', () => {
             if (input.is(':checked')) {
                 entity.system.activeConditionalModifierGroups.push(key);
             }
             else {
                 entity.system.activeConditionalModifierGroups = entity.system.activeConditionalModifierGroups.filter((group) => group !== key);
             }
-            await entity.entity.update({
+            void entity.entity.update({
                 system: {
                     activeConditionalModifierGroups: entity.system.activeConditionalModifierGroups
                 }
@@ -299,17 +304,18 @@ class ConditionalModifierList extends ExtensibleTable {
         data.append(infoIcon);
         return data;
     }
-    /** Gets all available conditional modifier groups in all the items plus those set on the active effects of this template */
+    /** Gets all available conditional modifier groups in all the items plus those set on the status effects of this template */
     static _getAvailableGroups(entity) {
         const availableGroups = new Set();
-        game.items.map((item) => item.system.modifiers)
+        game.items
+            .map((item) => item.system.modifiers)
             .deepFlatten()
             .filter((modifier) => modifier?.conditionalGroup)
             .forEach((modifier) => {
             availableGroups.add(modifier.conditionalGroup);
         });
-        if (entity.system.activeEffects) {
-            Object.entries(entity.system.activeEffects).forEach(([_, modifiers]) => {
+        if (entity.system.statusEffects) {
+            Object.entries(entity.system.statusEffects).forEach(([_, modifiers]) => {
                 modifiers
                     .filter((modifier) => modifier?.conditionalGroup)
                     .forEach((modifier) => {

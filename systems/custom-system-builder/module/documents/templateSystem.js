@@ -1,11 +1,13 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-import { CustomActor } from './actor.js';
+import { isBaseTemplateEntity, isFullTemplateEntity } from '../definitions.js';
+import CustomActor from './CustomActor.js';
+import CustomItem from './CustomItem.js';
 import { castToPrimitive, getGameCollection, getGameCollectionAsTemplateSystems, removeNull } from '../utils.js';
 import { UncomputableError } from '../errors/UncomputableError.js';
 import { isComputableElement } from '../interfaces/ComputableElement.js';
@@ -18,12 +20,58 @@ import templateFunctions from '../sheets/template-functions.js';
 import Panel from '../sheets/components/Panel.js';
 import Logger from '../Logger.js';
 import { applyModifiers } from '../interfaces/Modifier.js';
-import CustomDialog from '../applications/custom-dialog.js';
-import { applyActiveEffect, getAppliedActiveEffectsByEffectChangeKey } from './activeEffect.js';
+import DisplaySettingsDialog from '../applications/DisplaySettingsDialog.js';
+import HiddenAttributesDialog from '../applications/HiddenAttributesDialog.js';
+import AttributeBarsDialog from '../applications/AttributeBarsDialog.js';
+import ReloadTemplatesDialog from '../applications/ReloadTemplateDialog.js';
+import CustomDialogV2 from '../applications/CustomDialogV2.js';
 /**
  * Agnostic template system used in Actors & Items
  */
 class TemplateSystem {
+    entity;
+    static isBuilderTemplateSystem(entity) {
+        return (!!entity &&
+            entity instanceof TemplateSystem &&
+            (CustomActor.isTemplateActor(entity.entity) || CustomItem.isTemplateItem(entity.entity)));
+    }
+    static isAppliedTemplateSystem(entity) {
+        return (!!entity &&
+            entity instanceof TemplateSystem &&
+            (CustomActor.isCharacterActor(entity.entity) || CustomItem.isEquippableItem(entity.entity)));
+    }
+    static isFullBuilderTemplateSystem(entity) {
+        return (!!entity &&
+            entity instanceof TemplateSystem &&
+            (CustomActor.isTemplateActor(entity.entity) || CustomItem.isEquippableItemTemplate(entity.entity)));
+    }
+    static isFullTemplateSystem(entity) {
+        return this.isAppliedTemplateSystem(entity) || this.isFullBuilderTemplateSystem(entity);
+    }
+    /**
+     * Unique version number to know when to reload Panels
+     */
+    _templateSystemUniqueVersion;
+    /**
+     * Indicates if this document has been modified
+     */
+    _modificationFlag;
+    /**
+     * Header part
+     */
+    customHeader;
+    /**
+     * Body part
+     */
+    customBody;
+    /**
+     * Component map
+     */
+    _componentMap;
+    /**
+     * Timeout object before saving the sheet if delayed is on
+     */
+    saveTimeout;
     /**
      * @param entity The entity linked to this TemplateSystem
      */
@@ -34,8 +82,10 @@ class TemplateSystem {
     }
     /**
      * Is the entity a Template?
+     * @deprecated
      */
     get isTemplate() {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return this.entity.isTemplate;
     }
     /**
@@ -68,6 +118,7 @@ class TemplateSystem {
             case '_equippableItemTemplate':
             case 'subTemplate':
             case 'userInputTemplate':
+            case 'activeEffectContainer':
                 return 'item';
         }
     }
@@ -84,7 +135,7 @@ class TemplateSystem {
         let allowedComponents = componentFactory.componentTypes;
         switch (this.entity.type) {
             case 'userInputTemplate':
-                allowedComponents = allowedComponents.filter((componentType) => !['dynamicTable', 'textArea'].includes(componentType));
+                allowedComponents = allowedComponents.filter((componentType) => !['dynamicTable'].includes(componentType));
                 break;
             case '_equippableItemTemplate':
                 allowedComponents = allowedComponents.filter((componentType) => !['conditionalModifierList'].includes(componentType));
@@ -99,7 +150,10 @@ class TemplateSystem {
     }
     set isModified(modificationFlag) {
         this._modificationFlag = modificationFlag;
-        const sheetApplicationTitle = this.entity.sheet?.element.find('.window-title');
+        const sheetElement = this.entity.sheet?.element;
+        const sheetApplicationTitle = sheetElement instanceof HTMLElement
+            ? $(sheetElement).find('.window-title')
+            : sheetElement?.find('.window-title');
         if (sheetApplicationTitle) {
             const cache = sheetApplicationTitle.children();
             sheetApplicationTitle.text(this.entity.sheet.title).append(cache);
@@ -124,16 +178,18 @@ class TemplateSystem {
      */
     prepareData() {
         // If template version changed, we need to recompute the components hierarchy
-        if (this._templateSystemUniqueVersion !== this.system.templateSystemUniqueVersion) {
-            this._templateSystemUniqueVersion = this.system.templateSystemUniqueVersion;
+        if (TemplateSystem.isAppliedTemplateSystem(this) &&
+            this.entity.system.templateSystemUniqueVersion &&
+            this._templateSystemUniqueVersion !== this.entity.system.templateSystemUniqueVersion) {
+            this._templateSystemUniqueVersion = this.entity.system.templateSystemUniqueVersion;
             this.customHeader = undefined;
             this.customBody = undefined;
         }
-        if (!this.customHeader) {
-            this.customHeader = Panel.fromJSON((this.system.header ?? {}), 'header');
+        if (isFullTemplateEntity(this.entity) && !this.customHeader && this.entity.system.header) {
+            this.customHeader = Panel.fromJSON(this.entity.system.header, 'header');
         }
-        if (!this.customBody) {
-            this.customBody = Panel.fromJSON(this.system.body, 'body');
+        if (isBaseTemplateEntity(this.entity) && !this.customBody) {
+            this.customBody = Panel.fromJSON(this.entity.system.body, 'body');
         }
         this._componentMap = this._getComponentMap();
         this._prepareEntityData();
@@ -142,41 +198,53 @@ class TemplateSystem {
      * Prepare Entity type specific data
      */
     _prepareEntityData() {
-        if (this.isTemplate)
+        Logger.debug(`Start data preparation for ${this.entity.name} (${this.entity.id}).`);
+        let triggeredModifierWarning = false;
+        if (!TemplateSystem.isAppliedTemplateSystem(this))
             return;
         // Make modifications to system here.
-        const system = this.system;
+        const system = this.entity.system;
         system.props.name = this.entity.name;
+        system.props.uuid = this.uuid;
+        system.props.id = this.entity.id;
+        system.props.img = this.entity.img;
         // const items = this.items;
         const modifierPropsByKey = {};
         const allModifiers = this.getModifiers();
-        const activeEffectChanges = this.entity instanceof CustomActor ? getAppliedActiveEffectsByEffectChangeKey(this.entity) : {};
         for (const modifier of allModifiers) {
             this._computeModifierValues(modifier, modifier.originalEntity, modifierPropsByKey);
         }
+        const activeEffectsByKey = this.getSortedActiveEffects(system);
         // Computing all properties
         const computableComponents = Object.keys(this.componentMap)
             .filter((key) => isComputableElement(this.componentMap[key]))
-            .reduce((res, key) => ((res[key] = this.componentMap[key]), res), {});
+            .reduce((res, key) => ((res[key] = this.componentMap[key]),
+            res), {});
         const attributeBars = {
-            ...Object.keys(system.attributeBar ?? {}).reduce((res, key) => ((res[key] = new SimpleAttributeBarElement(key, system.attributeBar[key].value ?? '', system.attributeBar[key].max, system.attributeBar[key].editable)),
+            ...Object.entries(system.attributeBar ?? {}).reduce((res, [key, attributeBar]) => ((res[key] = new SimpleAttributeBarElement(key, attributeBar.value, attributeBar.max, attributeBar.editable)),
                 res), {}),
             ...Object.keys(this.componentMap)
                 .filter((key) => isAttributeBarElement(this.componentMap[key]))
-                .reduce((res, key) => ((res[key] = this.componentMap[key]), res), {})
+                .reduce((res, key) => ((res[key] = this.componentMap[key]),
+                res), {})
         };
         for (const hidden of system.hidden ?? []) {
             computableComponents[hidden.name] = new SimpleComputableElement(hidden.name, hidden.value);
         }
         let computeFormulas = {};
+        let resetValues = {};
         for (const component in computableComponents) {
             const computeFunctions = computableComponents[component].getComputeFunctions(this, modifierPropsByKey);
-            foundry.utils.mergeObject(system.props, computableComponents[component].resetComputeValue(Object.keys(computeFunctions), this));
+            resetValues = {
+                ...resetValues,
+                ...computableComponents[component].resetComputeValue(Object.keys(computeFunctions), this)
+            };
             computeFormulas = {
                 ...computeFormulas,
                 ...computeFunctions
             };
         }
+        foundry.utils.mergeObject(system.props, resetValues);
         system.props = removeNull(system.props);
         let computedProps;
         const uncomputedProps = { ...computeFormulas };
@@ -212,21 +280,45 @@ class TemplateSystem {
                             triggerEntity: this
                         }).result;
                         if (modifierPropsByKey[prop]) {
+                            if (!triggeredModifierWarning) {
+                                Logger.warn(game.i18n.localize('CSB.Modifier.EditDialog.DeprecationWarning'));
+                                triggeredModifierWarning = true;
+                            }
                             newComputedValue = applyModifiers(newComputedValue, modifierPropsByKey[prop]);
                         }
+                        foundry.utils.setProperty(system.props, prop, castToPrimitive(newComputedValue));
+                        if (activeEffectsByKey[prop]) {
+                            activeEffectsByKey[prop].forEach(({ activeEffect, change }) => {
+                                try {
+                                    if (!activeEffect.active)
+                                        return;
+                                    const override = activeEffect.apply(this.entity, change, true);
+                                    if (Object.values(override)[0] !== undefined &&
+                                        Object.values(override)[0] !== null) {
+                                        newComputedValue = Object.values(override)[0];
+                                    }
+                                }
+                                catch (err) {
+                                    if (err instanceof UncomputableError) {
+                                        Logger.debug(`Could not compute active effect ${activeEffect.uuid} (${activeEffect.name} from ${activeEffect.parent?.name})`);
+                                        foundry.utils.setProperty(system.props, '-=' + prop, null);
+                                    }
+                                    throw err;
+                                }
+                            });
+                        }
+                        foundry.utils.setProperty(system.props, prop, castToPrimitive(newComputedValue));
                     }
                     // If successful, the property is added to computedProp and deleted from uncomputedProps
-                    foundry.utils.setProperty(computedProps, prop, newComputedValue);
-                    if (this.entity instanceof CustomActor && activeEffectChanges[prop]) {
-                        foundry.utils.setProperty(system.props, prop, castToPrimitive(newComputedValue));
-                        applyActiveEffect(activeEffectChanges[prop], this.entity, prop, computedProps);
-                    }
+                    foundry.utils.setProperty(system.props, prop, castToPrimitive(newComputedValue));
+                    foundry.utils.setProperty(computedProps, prop, castToPrimitive(newComputedValue));
                     Logger.debug(`Computed ${prop} successfully !`, newComputedValue);
                     delete uncomputedProps[prop];
                 }
                 catch (err) {
                     if (err instanceof UncomputableError) {
                         Logger.debug(`Passing prop ${prop} to next round of computation...`);
+                        foundry.utils.setProperty(system.props, prop, undefined);
                     }
                     else {
                         throw err;
@@ -242,8 +334,6 @@ class TemplateSystem {
                 computedProps: computedProps,
                 leftToCompute: uncomputedProps
             });
-            // We add the props computed in this loop to the entity's system
-            system.props = foundry.utils.mergeObject(system.props, computedProps);
         } while (
         // If no uncomputed props are left, we computed everything, and we can stop
         // If computedProps is empty, that means nothing was computed in this loop, and there is an error in the property definitions
@@ -255,20 +345,20 @@ class TemplateSystem {
             Logger.warn('Some props were not computed.', { uncomputedProps, scope: system.props });
         }
         Logger.info(`All props for ${this.entity.name} (${this.entity.id}) computed in ${nLoops} loops.`);
-        if (!system.attributeBar) {
-            system.attributeBar = {};
+        if (this.entityType === 'actor') {
+            for (const prop in attributeBars) {
+                const max = attributeBars[prop].getMaxValue(this);
+                const value = attributeBars[prop].getValue(this);
+                const editable = attributeBars[prop].isEditable();
+                foundry.utils.setProperty(system.attributeBar, prop, {
+                    value: value,
+                    max: max,
+                    key: prop,
+                    editable: editable
+                });
+            }
         }
-        for (const prop in attributeBars) {
-            const max = attributeBars[prop].getMaxValue(this);
-            const value = attributeBars[prop].getValue(this);
-            const editable = attributeBars[prop].isEditable();
-            foundry.utils.setProperty(system.attributeBar, prop, {
-                value: value,
-                max: max,
-                key: prop,
-                editable: editable
-            });
-        }
+        Logger.info(`Done preparing data for ${this.entity.name} (${this.entity.uuid}).`);
     }
     /**
      * Computes modifier values
@@ -277,26 +367,28 @@ class TemplateSystem {
      * @param result The result
      */
     _computeModifierValues(modifier, triggeringEntity, result) {
-        try {
-            if (modifier) {
-                const modifierKeys = ComputablePhrase.computeMessageStatic(modifier.key, triggeringEntity.system.props, {
-                    source: `modifier.${modifier.key}.key`,
-                    defaultValue: 0,
-                    triggerEntity: triggeringEntity
-                }).result.split(',');
-                modifier.value = ComputablePhrase.computeMessageStatic(modifier.formula, triggeringEntity.system.props, {
-                    source: `modifier.${modifier.value}.value`,
-                    defaultValue: 0,
-                    triggerEntity: triggeringEntity
-                }).result;
-                modifier.isSelected =
-                    !modifier.conditionalGroup ||
-                        this.system.activeConditionalModifierGroups.includes(modifier.conditionalGroup);
-                modifierKeys.forEach((key) => result[key] ? result[key].push({ ...modifier, key }) : (result[key] = [{ ...modifier, key }]));
+        if (this.entity.type === 'character') {
+            try {
+                if (modifier) {
+                    const modifierKeys = ComputablePhrase.computeMessageStatic(modifier.key, triggeringEntity.entity.system.props, {
+                        source: `modifier.${modifier.key}.key`,
+                        defaultValue: 0,
+                        triggerEntity: triggeringEntity
+                    }).result.split(',');
+                    modifier.value = ComputablePhrase.computeMessageStatic(modifier.formula, triggeringEntity.entity.system.props, {
+                        source: `modifier.${modifier.value}.value`,
+                        defaultValue: 0,
+                        triggerEntity: triggeringEntity
+                    }).result;
+                    modifier.isSelected =
+                        !modifier.conditionalGroup ||
+                            this.entity.system.activeConditionalModifierGroups.includes(modifier.conditionalGroup);
+                    modifierKeys.forEach((key) => result[key] ? result[key].push({ ...modifier, key }) : (result[key] = [{ ...modifier, key }]));
+                }
             }
-        }
-        catch (err) {
-            Logger.warn('There was an error computing a modifier', err);
+            catch (err) {
+                Logger.warn('There was an error computing a modifier', err);
+            }
         }
     }
     /**
@@ -305,10 +397,10 @@ class TemplateSystem {
      * @return Boolean indicating if the Item is ownable
      */
     canOwnItem(newItem) {
-        if (this.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(this)) {
             return false;
         }
-        if (newItem.type !== 'equippableItem') {
+        if (!CustomItem.isEquippableItem(newItem)) {
             return false;
         }
         if (newItem.system.unique) {
@@ -321,63 +413,44 @@ class TemplateSystem {
      * @param context The entity sheet data
      * @return The updated entity sheet data
      */
-    async getSheetData(context) {
+    async getSheetData() {
         const availableTemplates = getGameCollectionAsTemplateSystems(this.entityType)
             .filter((entity) => entity.isAssignableTemplate)
-            .map((entity) => entity.entity);
-        let entityContext;
-        switch (this.entityType) {
-            case 'actor':
-                entityContext = context.actor;
-                break;
-            case 'item':
-                entityContext = context.item;
-                break;
-            default:
-                throw new Error(`Unknown entity type ${this.entityType}`);
+            .map((entity) => {
+            return { id: entity.entity.id, name: entity.entity.name };
+        });
+        // Tokens don't automatically have their actors prepared...
+        if (!this.customHeader && !this.customBody) {
+            this.prepareData();
         }
-        const system = entityContext.system;
         // Add the entity's data to context.system for easier access, as well as flags.
         const extendedContext = {
-            ...context,
-            system: system,
-            flags: entityContext.flags,
-            rollData: this.getRollData(),
+            cssClass: this.entity.sheet.isEditable
+                ? 'editable'
+                : 'locked',
             availableTemplates,
-            isGM: game.user.isGM,
             canReload: game.user.hasRole(game.settings.get(game.system.id, 'minimumRoleTemplateReloading')),
-            display: system.display,
-            template: system.template,
-            manualEntitySaving: !!game.settings.get(game.system.id, 'manualEntitySaving')
+            manualEntitySaving: !!game.settings.get(game.system.id, 'manualEntitySaving'),
+            headerPanel: await this.customHeader?.render(this, this.entity.sheet.isEditable),
+            bodyPanel: await this.customBody?.render(this, this.entity.sheet.isEditable)
         };
-        if (this.customHeader) {
-            extendedContext.headerPanel = await this.customHeader.render(this, this.entity.sheet.isEditable);
-        }
-        if (this.customBody) {
-            extendedContext.bodyPanel = await this.customBody.render(this, this.entity.sheet.isEditable);
-        }
         return extendedContext;
     }
     /**
      * @ignore
      * @override
      */
-    getRollData(baseEntityData) {
-        if (this.isTemplate)
+    getRollData() {
+        if (!TemplateSystem.isAppliedTemplateSystem(this))
             return {};
-        // Prepare character roll data.
-        const rollData = foundry.utils.deepClone(baseEntityData) ?? {};
-        if (rollData.props) {
-            for (const [k, v] of Object.entries(rollData.props)) {
-                rollData[k] = foundry.utils.deepClone(v);
-            }
+        const rollData = {};
+        for (const [k, v] of Object.entries(this.system.props)) {
+            rollData[k] = foundry.utils.deepClone(v);
         }
-        delete rollData.body;
-        delete rollData.header;
-        delete rollData.hidden;
-        delete rollData.display;
-        delete rollData.template;
         rollData.name = this.entity.name;
+        rollData.id = this.entity.id;
+        rollData.uuid = this.entity.uuid;
+        rollData.img = this.entity.img;
         return rollData;
     }
     /**
@@ -388,7 +461,7 @@ class TemplateSystem {
      * @throws {Error} If the key does not have a roll
      */
     async roll(rollKey, options = {}) {
-        const { postMessage = true, alternative = false } = options;
+        const { postMessage, alternative = false } = options;
         const error = new Error(`Label Roll Message with the key "${rollKey}" not found in Entity`);
         const refRoll = rollKey.split('.');
         const [filterMatch, parentProp, filterProp, filterValue] = refRoll.shift()?.match(/^([a-zA-Z0-9_]+)\((@?[a-zA-Z0-9_]+)=(.+)\)$/) ?? [];
@@ -417,7 +490,7 @@ class TemplateSystem {
             reference: reference,
             source: `TemplateSystem#roll('${rollKey}', '${rollType}')`
         };
-        if (item) {
+        if (CustomItem.isEquippableItem(item)) {
             renderOptions.linkedEntity = item;
             renderOptions.customProps = {
                 item: { ...item.system.props, name: item.name }
@@ -435,12 +508,17 @@ class TemplateSystem {
      * @returns All the functions triggering the rolls, in an object organizing them by keys
      */
     getCustomRoll(rollKey, options) {
+        if (Object.keys(this.componentMap).length === 0) {
+            this.prepareData();
+        }
         const splitRollKey = rollKey.split('.');
         const rollComponent = this.componentMap[splitRollKey[0]];
         if (!isChatSenderElement(rollComponent)) {
             return undefined;
         }
-        const allRolls = rollComponent.getSendToChatFunctions(this, options);
+        const allRolls = TemplateSystem.isAppliedTemplateSystem(this)
+            ? rollComponent.getSendToChatFunctions(this, options)
+            : undefined;
         if (!allRolls) {
             return undefined;
         }
@@ -460,6 +538,15 @@ class TemplateSystem {
         }
         return componentMap;
     }
+    _getProperties() {
+        const properties = [];
+        for (const rootComponent of [this.customHeader, this.customBody]) {
+            if (rootComponent) {
+                properties.push(...rootComponent.getProperties());
+            }
+        }
+        return properties;
+    }
     /**
      * Gets all keys in template, in a set
      * @return The set of keys
@@ -472,30 +559,37 @@ class TemplateSystem {
         return keys;
     }
     /**
-     * Gets all properties and default values used in properties in template, in an object
-     * @return The object containing all keys and default values
+     * Sets the default values for all components in the template to the provided entity, and erases unknown properties from the entity
      */
-    getAllProperties() {
-        const properties = {
-            ...Object.fromEntries(this.system.hidden?.map((elt) => [elt.name, undefined])),
-            ...this.customHeader?.getAllProperties(this),
-            ...this.customBody?.getAllProperties(this)
-        };
-        // Adding special key 'name', used by the field on top of the sheets.
-        properties.name = undefined;
-        delete properties[''];
-        return properties;
+    setDefaultValues(entityTemplateSystem) {
+        Object.values(this.componentMap).forEach((component) => {
+            component.setDefaultValue(entityTemplateSystem);
+        });
+        const templatePropertySet = new Set(this._getProperties());
+        const entityPropertySet = new Set(Object.keys(entityTemplateSystem.entity.system.props).map((prop) => {
+            if (prop.startsWith('==') || prop.startsWith('-=')) {
+                return prop.substring(2);
+            }
+            return prop;
+        }));
+        entityPropertySet.forEach((prop) => {
+            if (!templatePropertySet.has(prop)) {
+                delete entityTemplateSystem.entity.system.props[prop];
+                entityTemplateSystem.entity.system.props['-=' + prop] = null;
+            }
+        });
     }
     /**
-     * Gets all modifiers, from items and active effects
+     * Gets all modifiers, from items and status effects
      *
      * @returns All modifiers
      */
     getModifiers() {
         let modifiers = [];
         for (const item of this.items) {
-            const itemTemplate = game.items.get(item.system.template);
-            if (!itemTemplate) {
+            const itemTemplate = getGameCollection('item').get(item.system.template);
+            let templateModifiers = [];
+            if (!CustomItem.isEquippableItemTemplate(itemTemplate)) {
                 const warnMsg = game.i18n.format('CSB.UserMessages.ItemTemplateDeleted', {
                     ITEM_NAME: item.name,
                     ITEM_UUID: item.uuid,
@@ -505,25 +599,31 @@ class TemplateSystem {
                 Logger.warn(warnMsg);
                 ui.notifications.warn(warnMsg);
             }
-            modifiers = modifiers.concat(itemTemplate?.system.modifiers?.map((modifier) => ({
-                ...modifier,
-                originalEntity: item.templateSystem
-            })) ?? [], item.system.modifiers?.map((modifier) => ({
+            else {
+                templateModifiers =
+                    itemTemplate.system.modifiers?.map((modifier) => ({
+                        ...modifier,
+                        originalEntity: item.templateSystem
+                    })) ?? [];
+            }
+            modifiers = modifiers.concat(templateModifiers, item.system.modifiers?.map((modifier) => ({
                 ...modifier,
                 originalEntity: item.templateSystem
             })) ?? []);
         }
         // Getting effect modifiers
-        if (this.entity.statuses) {
+        if (CustomActor.isCharacterActor(this.entity)) {
             for (const statusId of this.entity.statuses) {
-                modifiers = modifiers.concat(this.system.activeEffects[statusId]?.map((modifier) => ({ ...modifier, originalEntity: this })) ??
-                    []);
+                modifiers = modifiers.concat(this.entity.system.statusEffects[statusId]?.map((modifier) => ({
+                    ...modifier,
+                    originalEntity: this
+                })) ?? []);
             }
         }
         return modifiers.filter((mod) => mod !== undefined);
     }
     /**
-     * Gets all conditional modifier group names, from items and active effects
+     * Gets all conditional modifier group names, from items and status effects
      *
      * @returns All conditional modifier, grouped by group names
      */
@@ -542,40 +642,76 @@ class TemplateSystem {
         });
         return allGroups;
     }
+    getSortedActiveEffects(system, includeDisabled = false) {
+        const activeEffectsByKey = {};
+        // Organize non-disabled effects by their application priority
+        for (const effect of this.entity.allApplicableEffects({ excludeExternal: false, excludeTransfer: true })) {
+            if (!includeDisabled && !effect.active)
+                continue;
+            effect.changes.forEach((change) => {
+                try {
+                    const props = {
+                        ...effect.parent.system.props,
+                        target: system.props
+                    };
+                    const effectKeys = ComputablePhrase.computeMessageStatic(change.key, props, {
+                        source: `activeEffect.${effect.name}.key`,
+                        triggerEntity: effect.parent.templateSystem
+                    }).result.split(',');
+                    effectKeys.forEach((key) => {
+                        const c = {
+                            ...foundry.utils.deepClone(change),
+                            key: key.startsWith('system.props.') ? key.substring(13) : key,
+                            effect: effect,
+                            priority: change.priority ?? (change.mode ?? 0) * 10
+                        };
+                        const sortingKey = c.key.startsWith('target.') ? c.key.substring(7) : c.key;
+                        if (!activeEffectsByKey[sortingKey]) {
+                            activeEffectsByKey[sortingKey] = [];
+                        }
+                        activeEffectsByKey[sortingKey].push({ activeEffect: effect, change: c });
+                    });
+                }
+                catch (err) {
+                    Logger.error(`Error when computing active effet key ${effect.name} - ${change.key} for actor ${this.entity.name}`, err);
+                }
+            });
+        }
+        for (const key in activeEffectsByKey) {
+            activeEffectsByKey[key].sort((a, b) => (a.change.priority ?? 0) - (b.change.priority ?? 0));
+        }
+        return activeEffectsByKey;
+    }
     /**
      * Reloads this entity's templates, updating the component structure, and re-renders the sheet.
      * @param templateId New template id. If not set, will reload the current template.
      */
     async reloadTemplate(templateId) {
+        if (!TemplateSystem.isAppliedTemplateSystem(this)) {
+            return;
+        }
         const entityCollection = getGameCollection(this.entityType);
-        templateId = templateId || this.system.template;
+        templateId = templateId || this.entity.system.template;
         if (!templateId) {
-            throw new Error(`Trying to reload entity without template : ${this.entity.uuid} - ${this.entity.name}`);
+            throw new Error(`Trying to reload entity without template: ${this.entity.uuid} - ${this.entity.name}`);
         }
         const template = entityCollection.get(templateId);
         if (!template) {
-            throw new Error(`Trying to reload entity with undefined template : ${templateId} - ${this.entity.uuid} - ${this.entity.name}`);
+            throw new Error(`Trying to reload entity with undefined template: ${templateId} - ${this.entity.uuid} - ${this.entity.name}`);
         }
-        if (template.system.attributeBar) {
-            for (const barName in this.system.attributeBar) {
-                if (!template.system.attributeBar[barName]) {
-                    template.system.attributeBar['-=' + barName] = { max: 0, editable: false, key: barName };
+        let attributeBars;
+        if (CustomActor.isTemplateActor(template) && CustomActor.isCharacterActor(this.entity)) {
+            attributeBars = { ...template.system.attributeBar };
+            for (const barName in this.entity.system.attributeBar) {
+                if (!attributeBars[barName]) {
+                    attributeBars['-=' + barName] = null;
                 }
             }
         }
-        const allProperties = template.templateSystem.getAllProperties();
-        const availableKeys = new Set(Object.keys(allProperties));
-        for (const prop in this.system.props) {
-            if (!availableKeys.has(prop)) {
-                this.system.props['-=' + prop] = true;
-            }
-        }
-        for (const prop in allProperties) {
-            if (this.system.props[prop] === undefined && allProperties[prop] !== null) {
-                this.system.props[prop] = allProperties[prop];
-            }
-        }
-        this.entity.sheet._hasBeenRenderedOnce = false;
+        template.templateSystem.setDefaultValues(this);
+        this.entity.sheet.hasBeenRenderedOnce = false;
+        this.customBody = undefined;
+        this.customHeader = undefined;
         // Updates hidden properties, tabs & header data
         // Sheet rendering will handle the actual props creation
         await this.entity.update({
@@ -586,11 +722,42 @@ class TemplateSystem {
                 body: template.system.body,
                 header: template.system.header,
                 display: template.system.display,
-                attributeBar: template.system.attributeBar,
-                activeEffects: template.system.activeEffects,
-                props: this.system.props
+                attributeBar: CustomActor.isTemplateActor(template) ? template.system.attributeBar : undefined,
+                statusEffects: CustomActor.isTemplateActor(template) ? template.system.statusEffects : undefined,
+                props: this.entity.system.props
             }
         });
+        const effectsToCreate = [];
+        const effectsToUpdate = [];
+        const effectsToDelete = [];
+        template.effects.forEach((effect) => {
+            const existingEffect = this.entity.effects.find((existingEffect) => {
+                return existingEffect.getFlag(game.system.id, 'originalUuid') === effect.uuid;
+            });
+            if (existingEffect) {
+                effectsToUpdate.push({ ...effect.toJSON(), _id: existingEffect.id });
+            }
+            else {
+                effectsToCreate.push(effect.toJSON());
+            }
+        });
+        this.entity.effects.forEach((existingEffect) => {
+            if (existingEffect.getFlag(game.system.id, 'isFromTemplate') &&
+                existingEffect.getFlag(game.system.id, 'originalParentId') !== template.id) {
+                effectsToDelete.push(existingEffect.id);
+            }
+            if (existingEffect.getFlag(game.system.id, 'originalParentId') === template.id) {
+                if (!template.effects.has(existingEffect.getFlag(game.system.id, 'originalId'))) {
+                    effectsToDelete.push(existingEffect.id);
+                }
+            }
+        });
+        // Cheating with types because TS whines otherwise
+        await Promise.allSettled([
+            this.entity.updateEmbeddedDocuments('ActiveEffect', effectsToUpdate),
+            this.entity.createEmbeddedDocuments('ActiveEffect', effectsToCreate),
+            this.entity.deleteEmbeddedDocuments('ActiveEffect', effectsToDelete)
+        ]);
         Logger.debug('Updated !');
         this.entity.render(false);
     }
@@ -620,9 +787,12 @@ class TemplateSystem {
      *
      * @param message The error message, which will be displayed in the console, if the computation fails after multiple attempts
      * @param source The source of the error. This should be a path of where the error happened (e.g. dynamicTableKey.columnKey). This will only be used for debugging
+     *
+     * @deprecated
      */
     throwUncomputableError(message, source = '') {
-        throw new UncomputableError(message, source, '(Script-Expression)', this.system.props);
+        Logger.warn('Deprecated, please call throwUncomputableError directly');
+        throw new UncomputableError(message, source, '(Script-Expression)', this.entity.system.props);
     }
     /**
      * Adds a new snapshot to the history, computing it if necessary
@@ -632,8 +802,8 @@ class TemplateSystem {
     addSnapshotHistory(diff) {
         if (!diff) {
             diff = DeepDiff.diff({
-                header: this.system.header,
-                body: this.system.body
+                header: this.entity.system.header,
+                body: this.entity.system.body
             }, {
                 header: this.customHeader?.toJSON(),
                 body: this.customBody?.toJSON()
@@ -664,12 +834,14 @@ class TemplateSystem {
         if (diff) {
             const redoHistory = this.addSnapshotHistoryRedo(diff);
             const state = {
-                header: this.system.header,
-                body: this.system.body
+                header: this.entity.system.header,
+                body: this.entity.system.body
             };
             for (const aDiff of diff) {
                 DeepDiff.revertChange(state, {}, aDiff);
             }
+            this.customHeader = undefined;
+            this.customBody = undefined;
             await this.entity.update({
                 flags: {
                     [game.system.id]: {
@@ -695,12 +867,14 @@ class TemplateSystem {
         if (diff) {
             const history = this.addSnapshotHistory(diff);
             const state = {
-                header: this.system.header,
-                body: this.system.body
+                header: this.entity.system.header,
+                body: this.entity.system.body
             };
             for (const aDiff of diff) {
                 DeepDiff.applyChange(state, {}, aDiff);
             }
+            this.customHeader = undefined;
+            this.customBody = undefined;
             await this.entity.update({
                 flags: {
                     [game.system.id]: {
@@ -721,53 +895,142 @@ class TemplateSystem {
      * @returns The template's history
      */
     _getHistory() {
-        return this.entity.getFlag(game.system.id, 'templateHistory') ?? [];
+        return (
+        // Cheating with types because TS whines otherwise
+        this.entity.getFlag(game.system.id, 'templateHistory') ?? []);
     }
     /**
      * @returns The template's redo-history
      */
     _getHistoryRedo() {
-        return this.entity.getFlag(game.system.id, 'templateHistoryRedo') ?? [];
+        return (
+        // Cheating with types because TS whines otherwise
+        this.entity.getFlag(game.system.id, 'templateHistoryRedo') ??
+            []);
     }
-    /**
-     * Sets the saving timeout in case of delayed save
-     * @alpha Delayed saving is not fully functional at the moment
-     */
-    /*     setSaveTimeout(...args: Array<never>) {
-        if (
-            document.activeElement &&
-            ($(document.activeElement).parents(`#${this.entity.sheet!.id}`).length === 0 ||
-                ['checkbox', 'radio'].includes($(document.activeElement).prop('type')) ||
-                ['select'].includes($(document.activeElement).prop('tagName').toLowerCase()))
-        ) {
-            return (
-                this.entity.sheet! as unknown as
-                    | CustomActorSheet
-                    | EquippableItemSheet
-                    | SubTemplateItemSheet
-                    | UserInputTemplateItemSheet
-            )?.forceSubmit(...(args as unknown as [Event, FormApplication.OnSubmitOptions]));
-        } else {
-            clearTimeout(this.saveTimeout);
-            this.saveTimeout = setTimeout(() => {
-                this.setSaveTimeout(...args);
-            }, 500);
-        }
-    }
- */
     /**
      * Handles the sheet submit to either save now or wait a delay if activated in system settings
-     * @alpha Delayed saving is not fully functional at the moment
      */
     async handleSheetSubmit() {
         this.isModified = true;
         if (this.entity.sheet) {
-            this.entity.apps[this.entity.sheet.appId].options.title += '*';
+            $(this.entity.sheet.element)
+                .find('.custom-system-save-entity')
+                .removeClass('custom-system-button-inactive');
         }
     }
     async forceSubmitSheet() {
         this.isModified = false;
         return this.entity.sheet?.submit();
+    }
+    async configureAttributes() {
+        void new HiddenAttributesDialog(this.entity).render({ force: true });
+    }
+    async editAttributeBars() {
+        if (CustomActor.isTemplateActor(this.entity)) {
+            void new AttributeBarsDialog(this.entity).render({ force: true });
+        }
+    }
+    async editDisplaySettings() {
+        if (CustomActor.isTemplateActor(this.entity) || CustomItem.isEquippableItemTemplate(this.entity)) {
+            void new DisplaySettingsDialog(this.entity).render({ force: true });
+        }
+    }
+    // Edit status effects actions
+    async editStatusEffects() {
+        if (CustomActor.isTemplateActor(this.entity)) {
+            const allEffects = CONFIG.statusEffects.map((anEffect) => {
+                const newEffect = {
+                    ...anEffect,
+                    modifiers: [],
+                    label: '',
+                    visible: false,
+                    editable: true
+                };
+                newEffect.modifiers = this.entity.system.statusEffects[anEffect.id] ?? [];
+                newEffect.label = game.i18n.localize(anEffect.name);
+                return newEffect;
+            });
+            // Open the dialog for edition
+            return templateFunctions.modifiers((statusEffects) => {
+                // This is called on dialog validation
+                // Update the entity with new status effects modifiers
+                this.entity
+                    .update({
+                    system: {
+                        statusEffects: statusEffects
+                    }
+                })
+                    .then(() => {
+                    this.entity.render(false);
+                })
+                    .catch((err) => {
+                    ui.notifications.error(err.message);
+                });
+            }, allEffects);
+        }
+    }
+    async reloadAllSheets() {
+        void new ReloadTemplatesDialog(this.entity).render({ force: true });
+    }
+    async reloadSheetTemplate(ev) {
+        if (game.user?.hasRole(game.settings.get(game.system.id, 'minimumRoleTemplateReloading'))) {
+            const target = $(ev.currentTarget);
+            const templateId = target
+                .parents('.custom-system-template-select')
+                .find(`#template-${this.entity.id}`)
+                .val();
+            return this.reloadTemplate(String(templateId));
+        }
+    }
+    openTemplate(ev) {
+        const target = $(ev.currentTarget);
+        const templateId = target.parents('.custom-system-template-select').find(`#template-${this.entity.id}`).val();
+        if (templateId) {
+            void getGameCollection(this.entityType).get(String(templateId))?.sheet?.render(true);
+        }
+    }
+    async configureModifiers() {
+        const allModifierBlocks = [];
+        if (this.entity.sheet?.isEditable) {
+            if (TemplateSystem.isAppliedTemplateSystem(this)) {
+                const entityCollection = getGameCollection(this.entityType);
+                const templateId = this.entity.system.template ?? '';
+                const template = entityCollection.get(templateId);
+                if (!template) {
+                    throw new Error(`Trying to edit modifiers without template : ${this.entity.uuid} - ${this.entity.name}`);
+                }
+                allModifierBlocks.push({
+                    modifiers: template.system.modifiers,
+                    id: 'tpl_mod',
+                    label: game.i18n.localize('CSB.Modifier.TemplateModifiers'),
+                    visible: true,
+                    editable: false
+                });
+            }
+            allModifierBlocks.push({
+                modifiers: this.entity.system.modifiers,
+                id: 'item_mod',
+                label: game.i18n.localize('CSB.Modifier.ItemModifiers'),
+                visible: true,
+                editable: true
+            });
+            return templateFunctions.modifiers((newModifiers) => {
+                // Update the entity with new hidden attributes
+                this.entity
+                    .update({
+                    system: {
+                        modifiers: newModifiers.item_mod
+                    }
+                })
+                    .then(() => {
+                    this.entity.render(false);
+                })
+                    .catch((err) => {
+                    ui.notifications.error(err.message);
+                });
+            }, allModifierBlocks);
+        }
     }
     /**
      * Activate listeners on the sheets
@@ -779,119 +1042,44 @@ class TemplateSystem {
         // Everything below here is only needed if the sheet is editable
         if (!this.entity.sheet?.isEditable)
             return;
-        if (this.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(this)) {
             // Undo button
             html.find('.custom-system-undo').on('click', (_ev) => {
-                this.undoHistory();
+                void this.undoHistory();
             });
             if (this._getHistory().length === 0) {
+                // DEPRECATED To remove after sheetv1 are deleted
                 html.find('.custom-system-undo').prop('disabled', 'disabled');
+                html.find('.custom-system-undo').addClass('custom-system-button-inactive');
             }
             // Redo button
             html.find('.custom-system-redo').on('click', (_ev) => {
-                this.redoHistory();
+                void this.redoHistory();
             });
             if (this._getHistoryRedo().length === 0) {
+                // DEPRECATED To remove after sheetv1 are deleted
                 html.find('.custom-system-redo').prop('disabled', 'disabled');
+                html.find('.custom-system-redo').addClass('custom-system-button-inactive');
             }
             // Edit hidden attributes
             html.find('.custom-system-configure-attributes').on('click', (_ev) => {
-                // Open the dialog for edition
-                templateFunctions.attributes((newAttributes) => {
-                    // This is called on dialog validation
-                    // Update the entity with new hidden attributes
-                    this.entity
-                        .update({
-                        system: {
-                            hidden: newAttributes
-                        }
-                    })
-                        .then(() => {
-                        this.entity.render(false);
-                    });
-                }, this.system.hidden);
+                void this.configureAttributes();
             });
             // Edit attribute bars
             html.find('.custom-system-configure-attribute-bars').on('click', (_ev) => {
-                // Open the dialog for edition
-                templateFunctions.attributeBars((newAttributeBars) => {
-                    // This is called on dialog validation
-                    for (const barName in this.system.attributeBar) {
-                        if (!newAttributeBars[barName]) {
-                            newAttributeBars['-=' + barName] = { max: '0', editable: false };
-                        }
-                    }
-                    // Update the entity with new hidden attributes
-                    this.entity
-                        .update({
-                        system: {
-                            attributeBar: newAttributeBars
-                        }
-                    })
-                        .then(() => {
-                        this.entity.render(false);
-                    });
-                }, this.system.attributeBar);
+                void this.editAttributeBars();
             });
             // Edit display settings
             html.find('.custom-system-configure-display').on('click', (_ev) => {
-                // Open the dialog for edition
-                templateFunctions.displaySettings((displaySettings) => {
-                    // This is called on dialog validation
-                    // Update the entity with new hidden attributes
-                    this.entity
-                        .update({
-                        system: {
-                            display: displaySettings
-                        }
-                    })
-                        .then(() => {
-                        this.entity.render(false);
-                    });
-                }, this.system.display);
+                void this.editDisplaySettings();
             });
             // Edit active effects actions
-            html.find('.custom-system-configure-active-effects').on('click', async (_ev) => {
-                const allEffects = CONFIG.statusEffects.map((anEffect) => {
-                    const newEffect = {
-                        ...anEffect,
-                        modifiers: [],
-                        label: '',
-                        visible: false,
-                        editable: true
-                    };
-                    newEffect.modifiers = this.system.activeEffects[anEffect.id] ?? [];
-                    newEffect.label = game.i18n.localize(anEffect.name);
-                    return newEffect;
-                });
-                // Open the dialog for edition
-                templateFunctions.modifiers((activeEffects) => {
-                    // This is called on dialog validation
-                    // Update the entity with new active effects modifiers
-                    this.entity
-                        .update({
-                        system: {
-                            activeEffects: activeEffects
-                        }
-                    })
-                        .then(() => {
-                        this.entity.render(false);
-                    });
-                }, allEffects);
+            html.find('.custom-system-configure-status-effects').on('click', (_ev) => {
+                void this.editStatusEffects();
             });
             // Reload all sheets
             html.find('.custom-system-reload-all-sheets').on('click', (_ev) => {
-                Dialog.confirm({
-                    title: game.i18n.localize('CSB.TemplateActions.ReloadSheetsDialog.Title'),
-                    content: `<p>${game.i18n.localize('CSB.TemplateActions.ReloadSheetsDialog.Contents')}</p>`,
-                    yes: async () => {
-                        getGameCollectionAsTemplateSystems(this.entityType)
-                            .filter((entity) => entity.system.template === this.entity.id)
-                            .forEach((entity) => entity.reloadTemplate());
-                    },
-                    no: () => { },
-                    defaultYes: false
-                });
+                void this.reloadAllSheets();
             });
             html.on('dragenter', () => {
                 html.find('.custom-system-droppable-container').addClass('custom-system-template-dragged-eligible');
@@ -903,115 +1091,70 @@ class TemplateSystem {
         }
         else {
             html.find('.custom-system-template-select .custom-system-reload-template').on('click', (ev) => {
-                if (game.user?.hasRole(game.settings.get(game.system.id, 'minimumRoleTemplateReloading'))) {
-                    const target = $(ev.currentTarget);
-                    const templateId = target
-                        .parents('.custom-system-template-select')
-                        .find(`#template-${this.entity.id}`)
-                        .val();
-                    this.reloadTemplate(String(templateId));
-                }
+                void this.reloadSheetTemplate(ev);
             });
-            html.find('.custom-system-template-select .custom-system-open-template').on('click', (ev) => {
-                const target = $(ev.currentTarget);
-                const templateId = target
-                    .parents('.custom-system-template-select')
-                    .find(`#template-${this.entity.id}`)
-                    .val();
-                if (templateId) {
-                    getGameCollection(this.entityType).get(String(templateId))?.sheet?.render(true);
-                }
-            });
+            html.find('.custom-system-template-select .custom-system-open-template').on('click', (ev) => this.openTemplate(ev));
             // See hidden attributes values
             html.find('.custom-system-see-attributes').on('click', (_ev) => {
-                // Open the dialog for vision
-                this.openAttributesVision();
+                void this.openAttributesVision();
             });
             // See hidden attribute-bars values
             html.find('.custom-system-see-attribute-bars').on('click', (_ev) => {
-                // Open the dialog for vision
-                this.openAttributeBarsVision();
+                void this.openAttributeBarsVision();
             });
             html.find('.custom-system-save-entity').on('click', (_ev) => {
-                this.forceSubmitSheet();
+                void this.forceSubmitSheet();
             });
         }
-        html.find('.custom-system-configure-modifiers').on('click', async (_ev) => {
-            const allModifierBlocks = [];
-            if (this.entity.sheet?.isEditable) {
-                if (!this.entity.isTemplate) {
-                    const entityCollection = getGameCollection(this.entityType);
-                    const templateId = this.system.template ?? '';
-                    const template = entityCollection.get(templateId);
-                    if (!template) {
-                        throw new Error(`Trying to edit modifiers without template : ${this.entity.uuid} - ${this.entity.name}`);
-                    }
-                    allModifierBlocks.push({
-                        modifiers: template.system.modifiers,
-                        id: 'tpl_mod',
-                        label: game.i18n.localize('CSB.Modifier.TemplateModifiers'),
-                        visible: true,
-                        editable: false
-                    });
-                }
-                allModifierBlocks.push({
-                    modifiers: this.system.modifiers,
-                    id: 'item_mod',
-                    label: game.i18n.localize('CSB.Modifier.ItemModifiers'),
-                    visible: true,
-                    editable: true
-                });
-                templateFunctions.modifiers((newModifiers) => {
-                    // Update the entity with new hidden attributes
-                    this.entity
-                        .update({
-                        system: {
-                            modifiers: newModifiers.item_mod
-                        }
-                    })
-                        .then(() => {
-                        this.entity.render(false);
-                    });
-                }, allModifierBlocks);
-            }
+        html.find('.custom-system-configure-modifiers').on('click', (_ev) => {
+            void this.configureModifiers();
         });
     }
     async openAttributesVision() {
         const attributes = [];
-        for (const hiddenAttr of this.system.hidden) {
+        for (const hiddenAttr of this.entity.system.hidden) {
             attributes.push({
                 name: hiddenAttr.name,
-                value: this.system.props[hiddenAttr.name]
+                value: this.entity.system.props[hiddenAttr.name]
             });
         }
-        const content = await renderTemplate(`systems/${game.system.id}/templates/_template/dialogs/readAttributes.hbs`, {
+        const content = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/dialogs/readAttributes.hbs`, {
             attributes
         });
-        new CustomDialog({
-            title: game.i18n.localize('CSB.Attributes.HiddenAttributesDialog.Title'),
+        await new CustomDialogV2({
+            window: { title: game.i18n.localize('CSB.Attributes.HiddenAttributesDialog.Title') },
             content,
             buttons: {
                 ok: {
                     label: game.i18n.localize('Close')
                 }
+            },
+            position: {
+                width: 'auto',
+                height: 'auto'
             }
-        }).render(true);
+        }).render({ force: true });
     }
     async openAttributeBarsVision() {
-        const attributeBars = Object.values(this.system.attributeBar);
-        const content = await renderTemplate(`systems/${game.system.id}/templates/_template/dialogs/readAttributeBars.hbs`, {
+        const attributeBars = Object.values(this.entity.system.attributeBar);
+        const content = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/dialogs/readAttributeBars.hbs`, {
             attributeBars
         });
-        new CustomDialog({
-            title: game.i18n.localize('CSB.Attributes.AttributeBarsDialog.Title'),
+        await new CustomDialogV2({
             content,
             buttons: {
                 ok: {
                     label: game.i18n.localize('Close')
                 }
+            },
+            position: {
+                width: 'auto',
+                height: 'auto'
+            },
+            window: {
+                title: game.i18n.localize('CSB.Attributes.AttributeBarsDialog.Title')
             }
-        }).render(true);
+        }).render({ force: true });
     }
 }
 export default TemplateSystem;
-globalThis.TemplateSystem = TemplateSystem;

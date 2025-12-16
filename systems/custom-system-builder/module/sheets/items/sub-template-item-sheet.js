@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,14 +11,14 @@
  */
 /**
  * Extend the basic ItemSheet with some very simple modifications
- * @extends {ItemSheet}
+ * @extends {foundry.appv1.sheets.ItemSheet}
  * @ignore
  */
-export class SubTemplateItemSheet extends ItemSheet {
+export class SubTemplateItemSheet extends foundry.appv1.sheets.ItemSheet {
     /** @override */
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
-            classes: ['custom-system', 'sheet', 'item', 'subtemplate'],
+            classes: ['custom-system', 'sheet', 'item', 'item-v1', 'subtemplate'],
             template: 'systems/' + game.system.id + '/templates/item/item-sheet.hbs',
             width: 600,
             height: 600,
@@ -45,19 +45,12 @@ export class SubTemplateItemSheet extends ItemSheet {
         // sheets are the actor object, the data object, whether or not it's
         // editable, the items array, and the effects array.
         let context = super.getData();
-        context = await context.item.templateSystem.getSheetData(context);
-        return context;
+        return { ...context, ...(await context.item.templateSystem.getSheetData()) };
     }
     /** @override */
     activateListeners(html) {
         this.item.templateSystem.activateListeners(html);
         super.activateListeners(html);
-    }
-    async forceSubmit(...args) {
-        return super._onSubmit(...args);
-    }
-    async _onSubmit(...args) {
-        return this.item.templateSystem.handleSheetSubmit(...args);
     }
     /**
      * Render the inner application content

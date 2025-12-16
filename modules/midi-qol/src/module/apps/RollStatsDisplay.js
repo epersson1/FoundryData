@@ -17,17 +17,18 @@ export class RollStatsDisplay extends HandlebarsApplicationMixin(ApplicationV2) 
 			this.render({ force: true });
 		});
 	}
-	static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+	static DEFAULT_OPTIONS = {
 		id: "midi-qol-statistics",
 		window: {
 			title: "midi-qol.StatsTitle",
-			resizable: true
+			resizable: true,
+			contentClasses: ["standard-form"]
 		},
 		position: {
 			width: 500,
 			height: "auto"
 		}
-	}, { inplace: false });
+	};
 	static PARTS = {
 		tabs: { template: "templates/generic/tab-navigation.hbs" },
 		stats: { template: "modules/midi-qol/templates/stats/stats.hbs" },
@@ -68,7 +69,8 @@ export class RollStatsDisplay extends HandlebarsApplicationMixin(ApplicationV2) 
 		};
 		return tabs;
 	}
-	_onRender(context, options) {
+	// TODO: Clean this up to use appv2 better
+	async _onRender(context, options) {
 		super._onRender(context, options);
 		Object.keys(this.stats.currentStats).forEach(id => {
 			const elemX = this.element.querySelector(`#${id}-X`);

@@ -1,28 +1,29 @@
 {
-  "Localization Provided By": "Brother Sharp, doumoku",
-  "DICE_TRAY": {
-    "Adv": "有利",
-    "Advantage": "有利 (kh)",
-    "Disadvantage": "不利 (kl)",
-    "Dis": "不利",
-    "For": "幸運",
-    "Fortune": "幸運 (kh)",
-    "Misfortune": "不運 (kl)",
-    "Mis": "不運",
-    "Wild": "ワイルド",
-    "Ace": "エース（Ace）",
-    "WildDie": "ワイルドダイス",
-    "ExplodingDie": "降り足しダイス",
-    "PlusOneDie": "+1d",
-    "MinusOneDie": "-1d",
-    "PlusOneDieLong": "ダイス面数を増やす",
-    "MinusOneDieLong": "ダイス面数を減らす",
+	"Localization Provided By": "Brother Sharp, doumoku, Ryotai",
+	"DICE_TRAY": {
+		"Adv": "有利",
+		"Advantage": "有利 (kh)",
+		"DiceTray": "Dice Tray",
+		"Dis": "不利",
+		"Disadvantage": "不利 (kl)",
+		"FateDice": "Fateダイス",
+		"For": "幸運",
+		"Fortune": "幸運 (kh)",
+		"Misfortune": "不運 (kl)",
+		"Mis": "不運",
+		"Wild": "ワイルド",
+		"Ace": "エース（Ace）",
+		"WildDie": "ワイルドダイス",
+		"ExplodingDie": "振り足しダイス",
+		"PlusOneDie": "+1d",
+		"MinusOneDie": "-1d",
+		"PlusOneDieLong": "ダイス面数を増やす",
+		"MinusOneDieLong": "ダイス面数を減らす",
 		"KeepHighest": "最大値を保持",
 		"KeepLowest": "最低値を保持",
-    "del": "削除",
-    "clear": "クリア",
+		"Roll": "ロール",
 
-		"Calculator": "電卓",
+		"Optional": "オプション",
 
 		"DiceCreator": {
 			"CreateDice": "ダイス作成",
@@ -31,29 +32,41 @@
 				"hint": "チャットに追加される計算式です。"
 			},
 			"Row": {
-				"name": "列",
-				"hint": "ボタンが配置される列を設定します。"
+				"name": "行",
+				"hint": "ボタンが配置される行を設定します。"
 			},
 			"Image": {
 				"name": "画像"
 			},
 			"Label": {
 				"name": "ラベル",
-				"hint": "（オプション）画像の無いダイスに表示されるラベルです。"
+				"hint": "画像の無いダイスに表示されるラベルです。"
 			},
 			"Tooltip": {
 				"name": "ツールチップ",
-				"hint": "（オプション）ボタンにマウスオーバーした時に表示されるツールチップです。初期設定は計算式です。"
+				"hint": "ボタンにマウスオーバーした時に表示されるツールチップです。初期設定は計算式です。"
 			},
 			"Color": {
 				"name": "色",
-				"hint": "（オプション）画像の塗りつぶし色です。初期設定は白です。"
+				"hint": "画像の塗りつぶし色です。"
 			}
 		},
 
 		"DiceRows": {
-			"Instruction1": "編集したいダイスボタンをクリック。",
-			"Instruction2": "削除したいダイスボタンを右クリック。"
+			"compactMode": {
+				"label": "コンパクトモード",
+				"hint": "追加のダイス行を無効化し、元々2行分の表示を1行にまとめます。"
+			},
+			"hideNumberInput": {
+				"label": "数値入力を非表示"
+			},
+			"hideNumberButtons": {
+				"label": "+/- ボタンを非表示"
+			},
+			"hideRollButton": {
+				"label": "ロールボタンを非表示"
+			},
+			"Instruction1": "編集したいダイスボタンをクリック。 削除したいダイスボタンを右クリック。"
 		},
 
 		"KEYBINGINDS": {
@@ -62,29 +75,41 @@
 			}
 		},
 
-    "SETTINGS": {
-      "DiceCalculatorSettings": "ダイス電卓の編集",
-			"DiceCreator": "Diceメーカー",
-			"DiceRowSettings": "ダイスの列編集",
-			"GeneralSettings": "一般設定",
-			"General": "一般",
+		"SETTINGS": {
+			"DiceCreator": "ダイスメーカー",
+			"DiceRowSettings": "ダイスボタン編集",
 			"autoOpenPopout": {
 				"name": "ポップアウトを自動で開く",
 				"hint": "ページのロード時にDice Trayポップアウトを自動で開きます。"
 			},
-      "enableDiceTray": {
-        "name": "Dice Tray有効化",
-        "hint": "チャットメッセージの下にダイス･トレイを表示します (再読み込みが必要です)｡"
-      },
-      "enableDiceCalculator": {
-        "name": "ダイス電卓有効化",
-        "hint": "チャットボックスの左上にある20面体アイコンをクリックするとダイス電卓が出現するようになります。（要再読み込み）"
-      },
+			"enableDiceTray": {
+				"name": "Dice Tray有効化",
+				"hint": "チャットメッセージの下にダイス･トレイを表示します (再読み込みが必要です)｡"
+			},
+			"hideAdv": {
+				"name": "エクストラボタンを非表示",
+				"hint": "KH/KLボタンを非表示にします。"
+			},
 			"popout": {
-				"name": "Dice Trayをポップアウトするボタンを追加",
-				"hint": "Dice Trayポップアウトを開閉するボタンをコントロールバーに追加します。キーバインドを設定することでもポップアウトを開閉できます。",
+				"name": "Dice Trayポップアウトボタン",
+				"hint": "Dice Trayポップアウトを開閉するボタンをコントロールバーに追加します。ショートカットを設定することでもポップアウトを開閉できます。",
 				"options": {
 					"all": "全コントロール"
+				}
+			},
+			"rightClickCommand": {
+				"name": "右クリックコマンド",
+				"hint": "ダイスボタンを右クリックしたときの動作を設定します。",
+				"options": {
+					"decrease": "デフォルト (ダイス減少)",
+					"roll": "1つのダイスをロール"
+				}
+			},
+			"PF2E": {
+				"flatCheckLabel": "{dc} {text}",
+				"flatCheck": {
+					"name": "平目判定ボタンを追加",
+					"hint": "幸運/不運ボタンをDC 5/11の平目判定ボタンに置き換えます。"
 				}
 			},
 			"SWADE": {
@@ -93,6 +118,6 @@
 					"hint": "ワイルドが有効時に同じダイスをクリックすると現在のリストのダイスを増やすかわりに、プールにダイスを追加します。"
 				}
 			}
-    }
-  }
+		}
+	}
 }

@@ -1,9 +1,13 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+/**
+ * @ignore
+ * @module
  */
 export var LogLevel;
 (function (LogLevel) {
@@ -15,9 +19,11 @@ export var LogLevel;
     LogLevel[LogLevel["DEBUG"] = 5] = "DEBUG";
 })(LogLevel || (LogLevel = {}));
 export class Logger {
+    logLevel;
     constructor(logLevel = LogLevel.LOG) {
         this.logLevel = logLevel;
     }
+    static instance;
     static getInstance(logLevel = LogLevel.LOG) {
         if (!Logger.instance) {
             Logger.instance = new Logger(logLevel);

@@ -12,8 +12,7 @@ export async function preloadTemplates() {
 		"modules/midi-qol/templates/hits.html",
 		"modules/midi-qol/templates/item-card-buttons.html",
 		"modules/midi-qol/templates/item-card.hbs",
-		"modules/midi-qol/templates/itemProperties.html",
-		"modules/midi-qol/templates/midiPropertiesForm.hbs",
+		"modules/midi-qol/templates/midiPropertiesFormDefault.hbs",
 		"modules/midi-qol/templates/other-damage-roll.html",
 		"modules/midi-qol/templates/roll-base.html",
 		"modules/midi-qol/templates/roll-dialog.hbs",
@@ -37,6 +36,7 @@ export async function preloadTemplates() {
 		"modules/midi-qol/templates/activity/parts/attack-extras.hbs",
 		"modules/midi-qol/templates/activity/parts/midi-activity-tab.hbs",
 		"modules/midi-qol/templates/activity/parts/save-damage.hbs",
+		"modules/midi-qol/templates/activity/parts/save-extras.hbs",
 		"modules/midi-qol/templates/activity/parts/overtime-extras.hbs",
 		"modules/midi-qol/templates/config/concentration.hbs",
 		"modules/midi-qol/templates/config/footer.hbs",
@@ -58,5 +58,5 @@ export async function preloadTemplates() {
 		"modules/midi-qol/templates/troubleshooter/problems.hbs",
 		"modules/midi-qol/templates/troubleshooter/summary.hbs"
 	];
-	return loadTemplates(templatePaths);
+	return foundry.applications.handlebars.loadTemplates(templatePaths);
 }

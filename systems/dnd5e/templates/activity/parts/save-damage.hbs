@@ -2,11 +2,10 @@
     <legend>
         <span>{{ localize "DND5E.SAVE.FIELDS.damage.label" }}</span>
         <button type="button" class="unbutton control-button" data-action="addDamagePart"
-                data-tooltip="DND5E.DAMAGE.Part.Action.Create"
-                aria-label="{{ localize "DND5E.DAMAGE.Part.Action.Create" }}">
+                data-tooltip aria-label="{{ localize "DND5E.DAMAGE.Part.Action.Create" }}">
             <i class="fas fa-plus" inert></i>
         </button>
     </legend>
-    {{ formField fields.damage.fields.onSave value=activity.damage.onSave options=onSaveOptions }}
+    {{ formField fields.damage.fields.onSave value=activity.damage.onSave options=onSaveOptions rootId=@root.partId }}
     {{> "systems/dnd5e/templates/activity/parts/damage-parts.hbs" }}
 </fieldset>

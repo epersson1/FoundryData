@@ -1,13 +1,20 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-import InputComponent, { COMPONENT_SIZES } from './InputComponent.js';
+/**
+ * @ignore
+ * @module
+ */
+import TemplateSystem from '../../documents/TemplateSystem.js';
 import Logger from '../../Logger.js';
-import { createProseMirrorEditor, trimProseMirrorEmptyValue } from '../../utils.js';
+import { getValueFromProseMirror, replaceValueInProseMirror, trimProseMirrorEmptyValue } from '../../utils.js';
+import CustomDialogV2 from '../../applications/CustomDialogV2.js';
+import SizedComponent, { COMPONENT_SIZES } from './SizedComponent.js';
+import AbortFormulaError from '../../errors/AbortFormulaError.js';
 export const LABEL_STYLES = {
     label: 'CSB.ComponentProperties.Label.LabelStyle.Default',
     title: 'CSB.ComponentProperties.Label.LabelStyle.Title',
@@ -15,11 +22,49 @@ export const LABEL_STYLES = {
     bold: 'CSB.ComponentProperties.Label.LabelStyle.Boldtext',
     button: 'CSB.ComponentProperties.Label.LabelStyle.Button'
 };
+const defaultLabelStyle = 'label';
 /**
  * Label component
  * @ignore
  */
-class Label extends InputComponent {
+class Label extends SizedComponent {
+    static valueType = 'none';
+    /**
+     * Label icon
+     */
+    _icon;
+    /**
+     * Label formula to display
+     */
+    _value;
+    /**
+     * Label prefix
+     */
+    _prefix;
+    /**
+     * Label suffix
+     */
+    _suffix;
+    /**
+     * Label roll message
+     */
+    _rollMessage;
+    /**
+     * Label roll message
+     */
+    _altRollMessage;
+    /**
+     * Should roll message be sent to chat
+     */
+    _rollMessageToChat;
+    /**
+     * Should alt roll message be sent to chat
+     */
+    _altRollMessageToChat;
+    /**
+     * Label style
+     */
+    _style;
     /**
      * Label constructor
      */
@@ -31,9 +76,9 @@ class Label extends InputComponent {
         this._suffix = props.suffix;
         this._rollMessage = props.rollMessage;
         this._altRollMessage = props.altRollMessage;
-        this._rollMessageToChat = props.rollMessageToChat;
-        this._altRollMessageToChat = props.altRollMessageToChat;
-        this._style = props.style;
+        this._rollMessageToChat = props.rollMessageToChat ?? true;
+        this._altRollMessageToChat = props.altRollMessageToChat ?? true;
+        this._style = props.style ?? defaultLabelStyle;
     }
     /**
      * Renders component
@@ -45,7 +90,6 @@ class Label extends InputComponent {
      */
     async _getElement(entity, isEditable = true, options = {}) {
         const { customProps = {}, linkedEntity, reference } = options;
-        const formulaProps = foundry.utils.mergeObject(entity.system?.props ?? {}, customProps, { inplace: false });
         let jQElement;
         switch (this._style) {
             case 'title':
@@ -58,8 +102,8 @@ class Label extends InputComponent {
                 jQElement = $('<b></b>');
                 break;
             case 'button':
-                jQElement = $('<button></button>');
-                jQElement.attr('type', 'button');
+                jQElement = $('<a></a>');
+                jQElement.addClass('button');
                 break;
             case 'label':
             default:
@@ -68,7 +112,12 @@ class Label extends InputComponent {
         }
         let content = '';
         let labelValue = '';
-        if (entity.isTemplate) {
+        const contentDiv = $('<div></div>');
+        contentDiv.addClass('custom-system-label');
+        if (this._style) {
+            contentDiv.addClass('custom-system-label-' + this._style);
+        }
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             if (this._prefix) {
                 content += this._prefix;
             }
@@ -76,8 +125,15 @@ class Label extends InputComponent {
             if (this._suffix) {
                 content += this._suffix;
             }
+            if (this.escapeHTML) {
+                contentDiv.text(content);
+            }
+            else {
+                contentDiv.append(content);
+            }
         }
-        else {
+        else if (TemplateSystem.isAppliedTemplateSystem(entity)) {
+            const formulaProps = foundry.utils.mergeObject(entity.system.props, customProps, { inplace: false });
             if (this._prefix) {
                 try {
                     content +=
@@ -98,8 +154,7 @@ class Label extends InputComponent {
             if (this.key &&
                 foundry.utils.getProperty(formulaProps, this.key) !== null &&
                 foundry.utils.getProperty(formulaProps, this.key) !== undefined) {
-                labelValue =
-                    foundry.utils.getProperty(formulaProps, this.key) ?? game.i18n.localize('CSB.Formula.ERROR');
+                labelValue = String(foundry.utils.getProperty(formulaProps, this.key) ?? game.i18n.localize('CSB.Formula.ERROR'));
                 Logger.debug('Using precomputed value for ' + this.key + ' : ' + labelValue);
             }
             else {
@@ -135,6 +190,7 @@ class Label extends InputComponent {
                     content += game.i18n.localize('CSB.Formula.SUFFIXERROR');
                 }
             }
+            contentDiv.append(content);
         }
         const baseElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-label-root');
@@ -146,27 +202,25 @@ class Label extends InputComponent {
             iconDiv.append(iconElement);
         }
         jQElement.append(iconDiv);
-        const contentDiv = $('<div></div>');
-        contentDiv.addClass('custom-system-label');
-        if (this._style) {
-            contentDiv.addClass('custom-system-label-' + this._style);
-        }
-        contentDiv.append(content);
         contentDiv.attr('data-value', labelValue);
         contentDiv.attr('data-name', this.key ?? '');
         jQElement.append(contentDiv);
         if (isEditable && this._rollMessage) {
-            const rollElement = $('<a></a>');
-            rollElement.addClass('custom-system-rollable');
-            rollElement.append(jQElement);
+            let rollElement = jQElement;
+            if (this._style !== 'button') {
+                rollElement = $('<a></a>');
+                rollElement.append(jQElement);
+                rollElement.addClass('custom-system-rollable');
+            }
             const rollIcon = game.settings.get(game.system.id, 'rollIcon');
             if (rollIcon) {
                 const rollIconElement = $('<i></i>');
                 rollIconElement.addClass('custom-system-roll-icon fas fa-' + rollIcon);
                 iconDiv.prepend(rollIconElement);
+                iconDiv.prepend(rollIconElement);
             }
-            if (!entity.isTemplate) {
-                rollElement.on('click', async (ev) => {
+            if (TemplateSystem.isAppliedTemplateSystem(entity)) {
+                rollElement.on('click', (ev) => {
                     let rollMessage, postMessage, source;
                     if (ev.shiftKey) {
                         rollMessage = this._altRollMessage;
@@ -179,7 +233,7 @@ class Label extends InputComponent {
                         source = 'labelRollMessage';
                     }
                     if (rollMessage) {
-                        this._generateChatFunction(rollMessage, entity, {
+                        void this._generateChatFunction(rollMessage, entity, {
                             source: `${this.key}.${source}`,
                             reference,
                             customProps: options.customProps,
@@ -212,6 +266,7 @@ class Label extends InputComponent {
                         const locationY = ev.pageY;
                         contextMenuElement.css('left', `${Math.min(locationX, window.innerWidth - ((contextMenuElement.width() ?? 0) + 3))}px`);
                         contextMenuElement.css('top', `${Math.min(locationY + 3, window.innerHeight - ((contextMenuElement.height() ?? 0) + 3))}px`);
+                        contextMenuElement.css('zIndex', ++foundry.applications.api.ApplicationV2._maxZ);
                         $('body').one('mousedown', (ev) => {
                             if (contextMenuElement.has($(ev.target)[0]).length === 0) {
                                 contextMenuElement.slideUp(200, () => {
@@ -256,11 +311,14 @@ class Label extends InputComponent {
             }
             jQElement = rollElement;
         }
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             jQElement.addClass('custom-system-editable-component');
             jQElement.on('click', () => {
                 this.editComponent(entity);
             });
+        }
+        if (iconDiv.children().length === 0) {
+            iconDiv.hide();
         }
         baseElement.append(jQElement);
         return baseElement;
@@ -270,55 +328,62 @@ class Label extends InputComponent {
             {
                 name: game.i18n.localize(`CSB.ComponentProperties.Label.Actions.Add${isAlternative ? 'Alt' : ''}AsMacro`),
                 icon: '<i class="fas fa-scroll"></i>',
-                callback: async () => {
+                callback: () => {
                     const rollCode = this.getRollCode(entity, linkedEntity?.id ?? undefined);
                     if (!rollCode) {
                         return;
                     }
                     const chatCommand = `/sheet${isAlternative ? 'Alt' : ''}Roll ` + rollCode;
-                    new Dialog({
-                        title: game.i18n.localize('CSB.ComponentProperties.Label.AddMacroDialog.Title'),
-                        content: await renderTemplate(`systems/${game.system.id}/templates/_template/dialogs/addLabelMacro.hbs`, {}),
-                        buttons: {
-                            save: {
-                                label: game.i18n.localize('Save'),
-                                callback: (html) => {
-                                    const macroName = $(html).find('#macroName').val()?.toString() ?? '';
-                                    if (macroName === '') {
-                                        throw new Error(game.i18n.localize('CSB.ComponentProperties.Label.AddMacroDialog.MacroNameError'));
+                    void foundry.applications.handlebars
+                        .renderTemplate(`systems/${game.system.id}/templates/_template/dialogs/addLabelMacro.hbs`, {
+                        appId: foundry.utils.randomID()
+                    })
+                        .then((contents) => {
+                        void new CustomDialogV2({
+                            window: {
+                                title: game.i18n.localize('CSB.ComponentProperties.Label.AddMacroDialog.Title')
+                            },
+                            content: contents,
+                            buttons: {
+                                save: {
+                                    label: game.i18n.localize('Save'),
+                                    callback: async (_event, _button, dialog) => {
+                                        const macroName = $(dialog).find('.macroName').val()?.toString() ?? '';
+                                        if (macroName === '') {
+                                            throw new Error(game.i18n.localize('CSB.ComponentProperties.Label.AddMacroDialog.MacroNameError'));
+                                        }
+                                        const pageNumber = parseInt($(dialog).find('.macroPage').val()?.toString() ?? '0') - 1;
+                                        let slotNumber = parseInt($(dialog).find('.macroSlot').val()?.toString() ?? '-1');
+                                        if (pageNumber < 0 || pageNumber > 4) {
+                                            throw new Error(game.i18n.localize('CSB.ComponentProperties.Label.AddMacroDialog.MacroPageError'));
+                                        }
+                                        if (slotNumber < 0 || slotNumber > 9) {
+                                            throw new Error(game.i18n.localize('CSB.ComponentProperties.Label.AddMacroDialog.MacroSlotError'));
+                                        }
+                                        if (slotNumber === 0) {
+                                            slotNumber = 10;
+                                        }
+                                        const finalSlotNumber = String(pageNumber * 10 + slotNumber);
+                                        const newMacro = await Macro.create({
+                                            name: macroName,
+                                            type: CONST.MACRO_TYPES.CHAT,
+                                            author: game.user.id,
+                                            command: chatCommand,
+                                            folder: null
+                                        });
+                                        await game.user.assignHotbarMacro(newMacro, parseInt(finalSlotNumber));
+                                        await newMacro.sheet.render(true);
                                     }
-                                    const pageNumber = parseInt($(html).find('#macroPage').val()?.toString() ?? '0') - 1;
-                                    let slotNumber = parseInt($(html).find('#macroSlot').val()?.toString() ?? '-1');
-                                    if (pageNumber < 0 || pageNumber > 4) {
-                                        throw new Error(game.i18n.localize('CSB.ComponentProperties.Label.AddMacroDialog.MacroPageError'));
-                                    }
-                                    if (slotNumber < 0 || slotNumber > 9) {
-                                        throw new Error(game.i18n.localize('CSB.ComponentProperties.Label.AddMacroDialog.MacroSlotError'));
-                                    }
-                                    if (slotNumber === 0) {
-                                        slotNumber = 10;
-                                    }
-                                    const finalSlotNumber = String(pageNumber * 10 + slotNumber);
-                                    Macro.create({
-                                        name: macroName,
-                                        type: CONST.MACRO_TYPES.CHAT,
-                                        author: game.user.id,
-                                        command: chatCommand,
-                                        folder: null
-                                    }).then((newMacro) => {
-                                        game.user.assignHotbarMacro(newMacro, parseInt(finalSlotNumber));
-                                        newMacro.sheet.render(true);
-                                    });
+                                },
+                                cancel: {
+                                    label: game.i18n.localize('Cancel')
                                 }
                             },
-                            cancel: {
-                                label: game.i18n.localize('Cancel'),
-                                callback: () => { }
+                            position: {
+                                width: 'auto'
                             }
-                        }
-                    }, {
-                        width: undefined
-                    }).render(true);
+                        }).render({ force: true });
+                    });
                     contextMenuElement.slideUp(200, () => {
                         contextMenuElement.remove();
                     });
@@ -339,20 +404,13 @@ class Label extends InputComponent {
                         ui.notifications.info(game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyChatCommandSuccess'));
                     })
                         .catch(() => {
-                        Dialog.prompt({
-                            title: game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyChatCommand'),
-                            content: `<p>${game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyChatCommandFailure')}</p><input type="text" value="${chatCommand}" />`,
-                            label: game.i18n.localize('Close'),
-                            render: (html) => {
-                                const input = $(html).find('input');
-                                input.on('click', () => {
-                                    input.trigger('select');
-                                });
-                                input.trigger('click');
+                        void foundry.applications.api.DialogV2.prompt({
+                            window: {
+                                title: game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyChatCommand')
                             },
-                            callback: () => { },
-                            options: {
-                                width: undefined
+                            content: `<p>${game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyChatCommandFailure')}</p><input type="text" value="${chatCommand}" autofocus />`,
+                            ok: {
+                                label: game.i18n.localize('Close')
                             }
                         });
                     });
@@ -388,20 +446,13 @@ class Label extends InputComponent {
                         ui.notifications.info(game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyMacroScriptSuccess'));
                     })
                         .catch(() => {
-                        Dialog.prompt({
-                            title: game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyMacroScript'),
-                            content: `<p>${game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyMacroScriptFailure')}</p><input type="text" value="${chatCommand}" />`,
-                            label: game.i18n.localize('Close'),
-                            render: (html) => {
-                                const input = $(html).find('input');
-                                input.on('click', () => {
-                                    input.trigger('select');
-                                });
-                                input.trigger('click');
+                        void foundry.applications.api.DialogV2.prompt({
+                            window: {
+                                title: game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyMacroScript')
                             },
-                            callback: () => { },
-                            options: {
-                                width: undefined
+                            content: `<p>${game.i18n.localize('CSB.ComponentProperties.Label.Actions.CopyMacroScriptFailure')}</p><input type="text" value="${chatCommand}" autofocus />`,
+                            ok: {
+                                label: game.i18n.localize('Close')
                             }
                         });
                     });
@@ -463,10 +514,10 @@ class Label extends InputComponent {
         }
         const res = {};
         if (this._rollMessage) {
-            res.main = this._generateChatFunction(this._rollMessage, entity, options);
+            res.main = this._generateChatFunction(this._rollMessage, entity, options, this._rollMessageToChat);
         }
         if (this._altRollMessage) {
-            res.alternative = this._generateChatFunction(this._altRollMessage, entity, options);
+            res.alternative = this._generateChatFunction(this._altRollMessage, entity, options, this._altRollMessageToChat);
         }
         if (Object.keys(res).length === 0) {
             return undefined;
@@ -475,40 +526,49 @@ class Label extends InputComponent {
             [this.key]: res
         };
     }
-    _generateChatFunction(rollMessage, entity, options = {}) {
-        return async (postMessage = true, overrideOptions = {}) => {
+    _generateChatFunction(rollMessage, entity, options = {}, defaultPostMessage = true) {
+        return async (postMessage, overrideOptions = {}) => {
             const phrase = new ComputablePhrase(rollMessage);
-            await phrase.compute({
-                ...entity.system.props,
-                ...options.customProps
-            }, {
-                ...options,
-                ...overrideOptions,
-                computeExplanation: true,
-                triggerEntity: entity
-            });
-            if (postMessage) {
-                let speakerEntity;
-                switch (entity.entityType) {
-                    case 'actor':
-                        speakerEntity = entity.entity;
-                        break;
-                    case 'item':
-                        speakerEntity = entity.entity.parent;
-                        break;
-                    default:
-                        speakerEntity = null;
+            try {
+                await phrase.compute({
+                    ...entity.system.props,
+                    ...options.customProps
+                }, {
+                    ...options,
+                    ...overrideOptions,
+                    computeExplanation: true,
+                    triggerEntity: entity
+                });
+                if (postMessage ?? defaultPostMessage) {
+                    let speakerEntity;
+                    switch (entity.entityType) {
+                        case 'actor':
+                            speakerEntity = entity.entity;
+                            break;
+                        case 'item':
+                            speakerEntity = entity.entity.parent;
+                            break;
+                        default:
+                            speakerEntity = null;
+                    }
+                    const speakerData = ChatMessage.getSpeaker({
+                        actor: speakerEntity,
+                        token: speakerEntity?.getActiveTokens()?.[0]?.document ?? null,
+                        scene: game.scenes.current
+                    });
+                    phrase.postMessage({
+                        style: CONST.CHAT_MESSAGE_STYLES.IC,
+                        speaker: speakerData
+                    });
                 }
-                const speakerData = ChatMessage.getSpeaker({
-                    actor: speakerEntity,
-                    token: speakerEntity?.getActiveTokens()?.[0]?.document ?? null,
-                    scene: game.scenes.current
-                });
-                phrase.postMessage({
-                    //@ts-expect-error FoundryV12
-                    style: CONST.CHAT_MESSAGE_STYLES.IC,
-                    speaker: speakerData
-                });
+            }
+            catch (err) {
+                if (err instanceof AbortFormulaError) {
+                    Logger.info(`Chat message aborted : ${err.message}`);
+                }
+                else {
+                    throw err;
+                }
             }
             return phrase;
         };
@@ -538,25 +598,9 @@ class Label extends InputComponent {
      */
     static fromJSON(json, templateAddress, parent) {
         return new Label({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
-            icon: json.icon,
-            value: json.value,
-            prefix: json.prefix,
-            suffix: json.suffix,
-            rollMessage: json.rollMessage,
-            altRollMessage: json.altRollMessage,
-            rollMessageToChat: json.rollMessageToChat,
-            altRollMessageToChat: json.altRollMessageToChat,
-            style: json.style,
-            size: json.size,
-            customSize: json.customSize,
-            cssClass: json.cssClass,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            ...json,
+            parent: parent,
+            templateAddress: templateAddress
         });
     }
     /**
@@ -579,8 +623,8 @@ class Label extends InputComponent {
      * Get configuration form for component creation / edition
      * @return The jQuery element holding the component
      */
-    static async getConfigForm(existingComponent, _entity) {
-        const mainElt = $('<div></div>');
+    static async getConfigForm(_entity, appId, existingComponent) {
+        const mainElt = document.createElement('div');
         const predefinedValuesComponent = { ...existingComponent };
         if (predefinedValuesComponent.rollMessageToChat === undefined) {
             predefinedValuesComponent.rollMessageToChat = true;
@@ -588,57 +632,39 @@ class Label extends InputComponent {
         if (predefinedValuesComponent.altRollMessageToChat === undefined) {
             predefinedValuesComponent.altRollMessageToChat = true;
         }
-        mainElt.append(await renderTemplate(`systems/${game.system.id}/templates/_template/components/label.hbs`, {
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/components/label.hbs`, {
             ...predefinedValuesComponent,
             COMPONENT_SIZES,
-            LABEL_STYLES
-        }));
-        return mainElt;
-    }
-    /**
-     * Attaches event-listeners to the html of the config-form
-     * @param html
-     */
-    static attachListenersToConfigForm(html) {
-        const openEditors = new Map();
-        $(html)
-            .find("input[name='editorToggle']")
-            .on('click', async (event) => {
-            const checkbox = $(event.currentTarget);
-            const checkboxId = checkbox[0].id;
-            const rtaSelectors = Label.configRichTextAreaSelectors.get(checkboxId);
-            if (!rtaSelectors) {
-                throw new Error(`Failed to map Checkbox-ID to an RTA. Unexpected Element-ID "${checkboxId}"`);
-            }
-            const rawTextArea = html.find(rtaSelectors.textarea);
-            const editorDiv = html.find(rtaSelectors.editor);
-            const existingEditor = openEditors.get(checkboxId);
-            if (checkbox.is(':checked')) {
-                const textAreaValue = rawTextArea.val()?.toString();
-                if (!existingEditor) {
-                    const newEditor = await createProseMirrorEditor(editorDiv.find('.editor-content')[0], textAreaValue ?? '');
-                    openEditors.set(checkboxId, newEditor);
-                }
-                editorDiv.find('.editor-content').html(textAreaValue ?? '');
-                editorDiv.show();
-                rawTextArea.hide();
-            }
-            else {
-                const editorValue = editorDiv.find('textarea').length > 0
-                    ? editorDiv.find('textarea').val()?.toString()
-                    : editorDiv.find('.editor-content').html();
-                rawTextArea.val(editorValue ?? '');
-                rawTextArea.show();
-                editorDiv.hide();
-            }
+            LABEL_STYLES,
+            appId
         });
-        $(html)
-            .find('#labelSize')
-            .on('change', (event) => {
-            const target = $(event.currentTarget);
-            const customSizeBlock = $('.custom-system-size-custom');
+        mainElt.querySelectorAll("input[data-action='toggleEditor']").forEach((element) => {
+            element.addEventListener('click', (event) => {
+                const checkbox = event.currentTarget;
+                const checkboxEditor = checkbox.dataset.editor ?? '';
+                const rawTextArea = mainElt.querySelector(`textarea[data-key="${checkboxEditor}"]`);
+                const editor = mainElt.querySelector(`prose-mirror[data-key="${checkboxEditor}"]`);
+                if (!rawTextArea || !editor) {
+                    throw new Error(`Failed to get TextArea or Prose-Mirror editor for "${checkboxEditor}"`);
+                }
+                if (checkbox.checked) {
+                    replaceValueInProseMirror(editor, rawTextArea.value ?? '');
+                    editor.style.display = 'block';
+                    rawTextArea.style.display = 'none';
+                }
+                else {
+                    const editorValue = getValueFromProseMirror(editor);
+                    rawTextArea.value = trimProseMirrorEmptyValue(editorValue);
+                    rawTextArea.style.display = 'block';
+                    editor.style.display = 'none';
+                }
+            });
+        });
+        mainElt.querySelector('[name="size"]')?.addEventListener('change', (event) => {
+            const target = event.currentTarget;
+            const customSizeBlock = $(mainElt.querySelector('.custom-system-size-custom'));
             const slideValue = 200;
-            switch (target.val()) {
+            switch (target.value) {
                 case 'custom':
                     customSizeBlock.slideDown(slideValue);
                     break;
@@ -647,6 +673,15 @@ class Label extends InputComponent {
                     break;
             }
         });
+        mainElt.querySelector('[name="icon"]')?.addEventListener('keyup', (event) => {
+            const target = event.currentTarget;
+            const iconCode = target.value;
+            const previewBloc = mainElt.querySelector('.csb-icon-preview > i');
+            if (previewBloc) {
+                previewBloc.classList = `custom-system-roll-icon fas fa-${iconCode}`;
+            }
+        });
+        return mainElt;
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -655,52 +690,31 @@ class Label extends InputComponent {
      * @return The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
-        // Resync editors to textareas
-        $(html)
-            .find("input[name='editorToggle']")
-            .each((_idx, checkbox) => {
-            const checkboxId = checkbox.id;
-            const rtaSelectors = Label.configRichTextAreaSelectors.get(checkboxId);
-            if (!rtaSelectors) {
-                throw new Error(`Failed to map Checkbox-ID to an RTA. Unexpected Element-ID "${checkboxId}"`);
-            }
-            if ($(checkbox).is(':checked')) {
-                const rawTextArea = html.find(rtaSelectors.textarea);
-                const editorDiv = html.find(rtaSelectors.editor);
-                const editorValue = editorDiv.find('textarea').length > 0
-                    ? editorDiv.find('textarea').val()?.toString()
-                    : editorDiv.find('.editor-content').html();
-                rawTextArea.val(trimProseMirrorEmptyValue(editorValue));
-            }
-        });
+    static extractConfig(rawConfigData, html) {
+        const configData = rawConfigData;
+        const value = configData.labelRichText ? configData.valueEditor : configData.value;
+        const prefix = configData.labelRichTextPrefix ? configData.prefixEditor : configData.prefix;
+        const suffix = configData.labelRichTextSuffix ? configData.suffixEditor : configData.suffix;
+        const rollMessage = configData.labelRichTextRollMessage ? configData.rollMessageEditor : configData.rollMessage;
+        const altRollMessage = configData.labelRichTextAltRollMessage
+            ? configData.altRollMessageEditor
+            : configData.altRollMessage;
         const fieldData = {
-            ...super.extractConfig(html),
-            type: 'label',
-            style: html.find('#labelStyle').val()?.toString() ?? 'label',
-            size: html.find('#labelSize').val()?.toString() ?? 'full-size',
-            value: html.find('#labelText').val()?.toString() ?? '',
-            prefix: html.find('#labelPrefix').val()?.toString() ?? '',
-            suffix: html.find('#labelSuffix').val()?.toString() ?? '',
-            icon: html.find('#labelIcon').val()?.toString() ?? '',
-            rollMessage: html.find('#labelRollMessage').val()?.toString() ?? '',
-            altRollMessage: html.find('#labelAltRollMessage').val()?.toString() ?? '',
-            rollMessageToChat: html.find('#labelRollMessageToChat').is(':checked'),
-            altRollMessageToChat: html.find('#labelAltRollMessageToChat').is(':checked')
+            ...super.extractConfig(configData, html),
+            style: configData.labelStyle ?? 'label',
+            value: value,
+            prefix: prefix,
+            suffix: suffix,
+            icon: configData.icon,
+            rollMessage: rollMessage,
+            altRollMessage: altRollMessage,
+            rollMessageToChat: configData.rollMessageToChat,
+            altRollMessageToChat: configData.altRollMessageToChat
         };
-        if (fieldData.size === 'custom') {
-            fieldData.customSize = parseInt(String(html.find('#labelCustomSize').val()));
-        }
         this.validateConfig(fieldData);
         return fieldData;
     }
 }
-Label.valueType = 'none';
-Label.configRichTextAreaSelectors = new Map([
-    ['labelRichText', { textarea: 'textarea#labelText', editor: 'div#labelTextEditor' }],
-    ['rollRichText', { textarea: 'textarea#labelRollMessage', editor: 'div#labelRollMessageEditor' }],
-    ['altRollRichText', { textarea: 'textarea#labelAltRollMessage', editor: 'div#labelAltRollMessageEditor' }]
-]);
 /**
  * @ignore
  */

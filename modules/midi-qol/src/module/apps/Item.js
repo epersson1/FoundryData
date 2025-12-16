@@ -19,13 +19,12 @@ export class OnUseMacros {
 	toString() {
 		return this.items.map(m => m.toString()).join(',');
 	}
-	get selectListOptions() {
-		return this.items.reduce((value, macro, index) => value += macro.toListItem(index, OnUseMacroOptions.getOptions), "");
-	}
 }
 export class OnUseMacro {
 	macroName;
 	option;
+	macro = undefined;
+	macroPassOptions = {};
 	constructor(macro = undefined) {
 		if (macro === undefined) {
 			this.macroName = "ItemMacro";
@@ -47,17 +46,6 @@ export class OnUseMacro {
 	toString() {
 		return `[${this.option}]${this.macroName}`;
 	}
-	toListItem(index, macroOptions) {
-		const options = OnUseMacroOptions.getOptions?.reduce((opts, x) => opts += `<option value="${x.option}" ${x.option === this.option ? 'selected' : ''}>${x.label}</option>`, "");
-		return `<li class="damage-part flexrow" data-midiqol-macro-part="${index}">
-	<input type="text" class="midi-onuse-macro-name" name="flags.midi-qol.onUseMacroParts.items.${index}.macroName" value="${this.macroName}">
-	<select name="flags.midi-qol.onUseMacroParts.items.${index}.option">
-	${options}
-	</select>
-
-	<a class="macro-control damage-control delete-macro"><i class="fas fa-minus"></i></a>
-</li>`;
-	}
 }
 export class OnUseMacroOptions {
 	static options;
@@ -71,68 +59,8 @@ export class OnUseMacroOptions {
 		return this.options;
 	}
 }
-export function activateMacroListeners(app, html) {
-	//@ts-ignore
-	if (app.isEditable) {
-		$(html).find(".macro-control").on("click", _onMacroControl.bind(app));
-		const dd = new DragDrop({
-			dragSelector: undefined,
-			dropSelector: ".midi-onuse-macro-name",
-			permissions: { dragstart: () => false, drop: () => true },
-			callbacks: { drop: _onDrop },
-		});
-		//@ts-expect-error .form
-		dd.bind(app.form ?? app.element);
-	}
-}
-async function _onDrop(ev) {
-	ev.preventDefault();
-	const data = TextEditor.getDragEventData(ev);
-	if (data.uuid) {
-		const entity = await fromUuid(data.uuid);
-		if (entity instanceof Item)
-			ev.target.value = `ItemMacro.${data.uuid}`;
-		else if (entity instanceof Macro)
-			ev.target.value = `Macro.${data.uuid}`;
-		else if (entity?.macro)
-			ev.target.value = `ActivityMacro.${data.uuid}`;
-	}
-}
-async function _onMacroControl(event) {
-	event.preventDefault();
-	const a = event.currentTarget;
-	// Add new macro component
-	if (a.classList.contains("add-macro")) {
-		const macros = getCurrentSourceMacros(this.object);
-		this.selectMidiTab = true;
-		if (this._onSubmit)
-			await this._onSubmit(event); // Submit any unsaved changes
-		macros.items.push(new OnUseMacro());
-		this.selectMidiTab = true;
-		await this.object.update({ "flags.midi-qol.onUseMacroName": macros.toString() });
-	}
-	// Remove a macro component
-	if (a.classList.contains("delete-macro")) {
-		const macros = getCurrentSourceMacros(this.object);
-		const li = a.closest(".damage-part");
-		this.selectMidiTab = true;
-		if (this._onSubmit)
-			await this._onSubmit(event); // Submit any unsaved changes
-		macros.items.splice(Number(li.dataset.midiqolMacroPart), 1);
-		this.selectMidiTab = true;
-		await this.object.update({ "flags.midi-qol.onUseMacroName": macros.toString() });
-	}
-	if (a.classList.contains("edit-macro")) {
-		new globalThis.DAE.DIMEditor({ document: this.document }).render({ force: true });
-	}
-	this.selectMidiTab = true;
-}
-export function getCurrentMacros(object) {
-	const macroField = foundry.utils.getProperty(object, "flags.midi-qol.onUseMacroParts");
-	return macroField;
-}
-export function getCurrentSourceMacros(object) {
-	const macroField = new OnUseMacros(foundry.utils.getProperty(object, "_source.flags.midi-qol.onUseMacroName") ?? null);
+export function getCurrentSourceMacros(document) {
+	const macroField = new OnUseMacros(foundry.utils.getProperty(document, "_source.flags.midi-qol.onUseMacroName") ?? null);
 	// const macroField = foundry.utils.getProperty(object, "_source.flags.midi-qol.onUseMacroParts");
 	return macroField;
 }

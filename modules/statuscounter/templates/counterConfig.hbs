@@ -1,0 +1,45 @@
+<section class="standard-form">
+    {{#if showTypes}}
+    <div class="form-group">
+        <label>{{localize "statuscounter.config.type.name"}}</label>
+        <div class="form-fields">
+            <select name="flags.statuscounter.config.type">
+                {{selectOptions types selected=data.config.type}}
+            </select>
+        </div>
+    </div>
+    {{/if}}
+
+    <div class="form-group">
+        <label>{{localize "statuscounter.config.value"}}</label>
+        <div class="form-fields">
+            <input type="number" name="{{data.config.dataSource}}" value="{{value}}" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>{{localize "statuscounter.config.durationType.name"}}</label>
+        <div class="form-fields">
+            <select name="flags.statuscounter.config.durationType" data-dtype="Number">
+                {{selectOptions durationTypes selected=data.config.durationType}}
+            </select>
+        </div>
+        <p class="hint">{{localize 'statuscounter.config.durationType.hint'}}</p>
+    </div>
+
+    <div class="form-group">
+        <label>{{localize "statuscounter.config.modifyDuration.name"}}</label>
+        <div class="form-fields">
+            <input type="checkbox" name="flags.statuscounter.config.modifyDuration" {{checked data.config.modifyDuration}} />
+        </div>
+        <p class="hint">{{localize 'statuscounter.config.modifyDuration.hint'}}</p>
+    </div>
+
+    <div class="form-group">
+        <label>{{localize "statuscounter.config.multiplyEffect.name"}}</label>
+        <div class="form-fields">
+            <input type="checkbox" name="flags.statuscounter.config.multiplyEffect" {{checked data.config.multiplyEffect}} />
+        </div>
+        <p class="hint">{{localize 'statuscounter.config.multiplyEffect.hint'}}</p>
+    </div>
+</section>

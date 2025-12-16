@@ -1,19 +1,20 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
+import CustomActor from './documents/CustomActor.js';
+import CustomItem from './documents/CustomItem.js';
 /**
  * @ignore
  */
 export const postCustomSheetRoll = async (messageText, alternative = false) => {
     const actor = (canvas.tokens.controlled[0]?.actor ?? game.user.character);
-    if (actor &&
-        actor.testUserPermission(game.user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER)) {
+    if (actor && actor.testUserPermission(game.user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER)) {
         try {
-            actor.roll(messageText, { alternative });
+            await actor.roll(messageText, { alternative });
         }
         catch (err) {
             ui.notifications.error(err.message);
@@ -28,7 +29,7 @@ export const postCustomSheetRoll = async (messageText, alternative = false) => {
  * @ignore
  */
 export const postAugmentedChatMessage = async (textContent, msgOptions, { rollMode, create } = { create: true }) => {
-    rollMode = rollMode || game.settings.get('core', 'rollMode');
+    rollMode = rollMode ?? game.settings.get('core', 'rollMode');
     // chat-roll is just the html template for computed formulas
     const template_file = `systems/${game.system.id}/templates/chat/chat-roll.hbs`;
     const template_file_groups = `systems/${game.system.id}/templates/chat/chat-roll-dice-pools.hbs`;
@@ -43,7 +44,7 @@ export const postAugmentedChatMessage = async (textContent, msgOptions, { rollMo
     for (const key in values) {
         let formattedValue = String(values[key].result);
         if (values[key].explanation) {
-            formattedValue = await renderTemplate(template_file, {
+            formattedValue = await foundry.applications.handlebars.renderTemplate(template_file, {
                 rollData: values[key],
                 jsonRollData: JSON.stringify(values[key]).replaceAll(/\[\[/g, '[').replaceAll(/]]/g, ']'),
                 rollMode: rollMode
@@ -64,14 +65,13 @@ export const postAugmentedChatMessage = async (textContent, msgOptions, { rollMo
         }
     }
     phrase = phrase.replaceAll(/\n/g, '').trim();
-    const diceGroupsRendered = await renderTemplate(template_file_groups, {
+    const diceGroupsRendered = await foundry.applications.handlebars.renderTemplate(template_file_groups, {
         dice: diceGroups,
         multipleDice: diceGroups.filter((group) => !group.hidden).length > 1
     });
     phrase += diceGroupsRendered;
     const chatRollData = {
-        // @ts-expect-error Foundry not up to date in v12 yet
-        rolls: rolls.map((roll) => roll.toJSON())
+        rolls
     };
     let whisper = null;
     // If setting expandRollVisibility is checked, we apply the appropriate whispers to the message
@@ -102,12 +102,16 @@ export const postAugmentedChatMessage = async (textContent, msgOptions, { rollMo
     }, chatRollData));
     if (create) {
         // Final chat message creation
-        if (Hooks.call('chatMessage', ui.chat, phrase, chatData) === false)
+        if (Hooks.call('chatMessage', ui.chat, phrase, {
+            user: game.user.id,
+            speaker: chatData.speaker
+        }) === false)
             return;
         return ChatMessage.create(chatData);
     }
     else {
-        const msg = new ChatMessage(chatData);
+        const cls = foundry.utils.getDocumentClass('ChatMessage');
+        const msg = new cls(chatData);
         if (rollMode) {
             msg.applyRollMode(rollMode);
         }
@@ -148,14 +152,14 @@ export const castToPrimitive = (value) => {
 export const getGameCollectionAsTemplateSystems = (collectionType) => {
     switch (collectionType) {
         case 'actor':
-            return game.actors.map((actor) => actor.templateSystem);
+            return game.actors.filter((actor) => actor instanceof CustomActor).map((actor) => actor.templateSystem);
         case 'item':
-            return game.items.map((item) => item.templateSystem);
+            return game.items.filter((item) => item instanceof CustomItem).map((item) => item.templateSystem);
         default:
             throw new Error(`Unknown entity type ${collectionType}`);
     }
 };
-export const getGameCollection = (collectionType) => {
+export function getGameCollection(collectionType) {
     switch (collectionType) {
         case 'actor':
             return game.actors;
@@ -164,7 +168,7 @@ export const getGameCollection = (collectionType) => {
         default:
             throw new Error(`Unknown entity type ${collectionType}`);
     }
-};
+}
 export const getLocalizedRoleList = (keyType) => {
     return Object.fromEntries(Object.entries(CONST.USER_ROLES).map(([key, value]) => [
         keyType == 'number' ? value : key,
@@ -200,7 +204,8 @@ export const updateKeysOnCopy = (components, availableKeys) => {
                     suffix++;
                 } while (availableKeys.has(component.key));
             }
-            if (component.contents && component.contents.length > 0) {
+            const containerComponent = component;
+            if (containerComponent.contents && containerComponent.contents.length > 0) {
                 if (Array.isArray(component.contents[0])) {
                     //TODO remove this once Table is composed of sub Components for Rows
                     component.contents = component.contents.map((row) => {
@@ -208,7 +213,7 @@ export const updateKeysOnCopy = (components, availableKeys) => {
                     });
                 }
                 else {
-                    component.contents = updateKeysOnCopy(component.contents, availableKeys);
+                    containerComponent.contents = updateKeysOnCopy(containerComponent.contents, availableKeys);
                 }
             }
         }
@@ -222,21 +227,8 @@ export function quoteString(value) {
     return value === null ? null : value?.toString();
 }
 export function fastSetFlag(scope, key, value) {
-    game.user.setFlag(scope, key, value);
+    void game.user.setFlag(scope, key, value);
     foundry.utils.setProperty(game.user.flags, `${scope}.${key}`, value);
-}
-export async function createProseMirrorEditor(container, contents, options = {}) {
-    options = foundry.utils.mergeObject({
-        collaborate: false,
-        plugins: {
-            //@ts-expect-error Outdated types
-            highlightDocumentMatches: ProseMirror.ProseMirrorHighlightMatchesPlugin.build(
-            //@ts-expect-error Outdated types
-            ProseMirror.defaultSchema)
-        }
-    }, options);
-    //@ts-expect-error Outdated types
-    return ProseMirrorEditor.create(container, contents, options);
 }
 export function trimProseMirrorEmptyValue(value) {
     if (value === undefined) {
@@ -256,24 +248,22 @@ export function getDiceGroupsFromRoll(roll, hidden) {
     const currentPool = { dice: [], formula: '', total: 0, hidden: hidden ?? false };
     let operator = '';
     for (const term of roll.terms) {
-        if (term.rolls) {
+        if (term instanceof foundry.dice.terms.PoolTerm && term.rolls) {
             for (const roll of term.rolls) {
                 groups.push(...getDiceGroupsFromRoll(roll, hidden));
             }
         }
-        // @ts-expect-error Outdated types
         if (term instanceof foundry.dice.terms.ParentheticalTerm) {
-            groups.push(...getDiceGroupsFromRoll(term.roll, hidden));
+            if (term.roll) {
+                groups.push(...getDiceGroupsFromRoll(term.roll, hidden));
+            }
         }
-        // @ts-expect-error Outdated types
         if (term instanceof foundry.dice.terms.DiceTerm) {
             currentPool.formula += operator + term.expression;
             currentPool.total += term.total;
             const tooltip = term.getTooltipData();
             currentPool.flavor = tooltip.flavor;
-            // @ts-expect-error Outdated types
             currentPool.icon = tooltip.icon;
-            // @ts-expect-error Outdated types
             currentPool.method = tooltip.method;
             for (const roll of tooltip.rolls) {
                 currentPool.dice.push({
@@ -282,7 +272,6 @@ export function getDiceGroupsFromRoll(roll, hidden) {
                     classes: roll.classes
                 });
             }
-            // @ts-expect-error Outdated types
         }
         else if (term instanceof foundry.dice.terms.OperatorTerm) {
             operator = term.formula;
@@ -292,4 +281,17 @@ export function getDiceGroupsFromRoll(roll, hidden) {
         groups.push(currentPool);
     }
     return groups;
+}
+export function isModuleActive(moduleName) {
+    return game.modules.has(moduleName) && game.modules.get(moduleName).active;
+}
+export function getValueFromProseMirror(editor) {
+    return editor.querySelector('textarea')?.value ?? editor.value;
+}
+export function replaceValueInProseMirror(editor, value) {
+    const innerTextArea = editor.querySelector('textarea');
+    if (innerTextArea) {
+        innerTextArea.value = value;
+    }
+    editor.querySelector('.editor-content').innerHTML = value;
 }

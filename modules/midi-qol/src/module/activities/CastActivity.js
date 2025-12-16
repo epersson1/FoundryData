@@ -1,17 +1,15 @@
-import { debugEnabled, warn } from "../../midi-qol.js";
-import { ReplaceDefaultActivities, configSettings } from "../settings.js";
+import { debugEnabled, GameSystemConfig, warn } from "../../midi-qol.js";
+import { replaceDefaultActivities, configSettings } from "../settings.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
-export var MidiCastActivity;
-export var MidiCastSheet;
+export let MidiCastActivity;
+export let MidiCastSheet;
 export function setupCastActivity() {
 	if (debugEnabled > 0)
 		warn("MidiQOL | CastActivity | setupCastActivity | Called");
 	//@ts-expect-error
-	const GameSystemConfig = game.system.config;
-	//@ts-expect-error
 	MidiCastSheet = defineMidiCastSheetClass(game.system.applications.activity.CastSheet);
 	MidiCastActivity = defineMidiCastActivityClass(GameSystemConfig.activityTypes.cast.documentClass);
-	if (ReplaceDefaultActivities) {
+	if (replaceDefaultActivities) {
 		// GameSystemConfig.activityTypes["dnd5eCast"] = GameSystemConfig.activityTypes.cast;
 		GameSystemConfig.activityTypes.cast = { documentClass: MidiCastActivity };
 	}
@@ -25,7 +23,7 @@ let defineMidiCastSheetClass = (baseClass) => {
 };
 let defineMidiCastActivityClass = (ActivityClass) => {
 	return class MidiCastActivity extends MidiActivityMixin(ActivityClass) {
-		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.CAST"];
+		static LOCALIZATION_PREFIXES = ["midi-qol.CAST", ...super.LOCALIZATION_PREFIXES];
 		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.CAST.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
@@ -36,6 +34,7 @@ let defineMidiCastActivityClass = (ActivityClass) => {
 			},
 		}, { inplace: false, insertKeys: true, insertValues: true });
 		async use(usage, dialog, message) {
+			// @ts-expect-error
 			return ActivityClass.prototype.use.bind(this)(usage, dialog, message);
 		}
 		get possibleOtherActivity() {
@@ -45,10 +44,12 @@ let defineMidiCastActivityClass = (ActivityClass) => {
 			return false;
 		}
 		get isTriggerableActivity() {
-			return false;
+			return true;
 		}
 		get forcedTargetConfirmation() {
 			return "never";
+		}
+		async _triggerSubsequentActions(config, results) {
 		}
 	};
 };

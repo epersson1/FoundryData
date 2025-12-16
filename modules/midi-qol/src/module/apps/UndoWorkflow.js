@@ -7,29 +7,29 @@ export class UndoWorkflow extends HandlebarsApplicationMixin(ApplicationV2) {
 	undoRemovedHookId;
 	constructor(options) {
 		super(options);
-		this.undoAddedHookId = Hooks.on("midi-qol.addUndoEntry", this.render.bind(this));
-		this.undoRemovedHookId = Hooks.on("midi-qol.removeUndoEntry", this.render.bind(this));
+		this.undoAddedHookId = Hooks.on("midi-qol.addUndoEntry", () => { this.render(); });
+		this.undoRemovedHookId = Hooks.on("midi-qol.removeUndoEntry", () => { this.render(); });
 		if (!configSettings.undoWorkflow) {
 			configSettings.undoWorkflow = true;
-			//@ts-expect-error
 			game.settings.set("midi-qol", "ConfigSettings", configSettings);
 			ui.notifications?.warn("Undo Workflow enabled");
 		}
 	}
-	static PARTS = foundry.utils.mergeObject(super.PARTS, {
+	static PARTS = {
 		main: { template: "modules/midi-qol/templates/undo-workflow.hbs" },
-	}, { inplace: false });
-	static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+	};
+	static DEFAULT_OPTIONS = {
 		id: "midi-qol-undo-workflow",
 		window: {
 			title: "midi-qol.UndoWorkflow.title",
-			resizable: true
+			resizable: true,
+			contentClasses: ["standard-form"]
 		},
 		position: {
 			width: 400,
 			height: 700
 		}
-	}, { inplace: false });
+	};
 	async _prepareContext(options) {
 		const context = await super._prepareContext(options);
 		context.entries = [];
@@ -41,14 +41,14 @@ export class UndoWorkflow extends HandlebarsApplicationMixin(ApplicationV2) {
 			entry.itemName = undoEntry.itemName;
 			entry.userName = undoEntry.userName;
 			entry.targets = [];
-			for (let targetEntry of undoEntry.allTargets) {
+			for (let targetEntry of undoEntry.allTargets ?? []) {
 				entry.targets.push(targetEntry);
 			}
 			context.entries.push(entry);
 		}
 		return context;
 	}
-	_onRender(context, options) {
+	async _onRender(context, options) {
 		super._onRender(context, options);
 		this.element.querySelector("#undo-first-workflow")?.addEventListener("click", (e) => {
 			undoMostRecentWorkflow();

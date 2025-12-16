@@ -1,0 +1,18 @@
+{
+  "title": "Roshar",
+  "id": "roshar",
+  "system": "cosmere-rpg",
+  "joinTheme": "default",
+  "coreVersion": "13.351",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13.351"
+  },
+  "systemVersion": "2.0.3",
+  "lastPlayed": "Thu Dec 11 2025 20:54:48 GMT-0500 (Eastern Standard Time)",
+  "background": "systems/cosmere-rpg/assets/art/foundry_setup_Cosmere_RPG.webp",
+  "playtime": 1284,
+  "safeMode": false,
+  "description": "",
+  "flags": {}
+}

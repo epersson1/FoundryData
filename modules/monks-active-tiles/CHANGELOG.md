@@ -1,3 +1,153 @@
+## Version 13.06
+
+Fixed issue with Preload action display name
+
+Removed Terrain from Delete action tooltip
+
+Fixed Entity name Tagger action
+
+Fixed issue with listing Forien's Quest Log entries
+
+Fixed issue with Adding to Collection duplicating entries
+
+Fixed issues with triggering a Tile from a core Foundry Journal Entry
+
+Fixed issues with Delete action display
+
+Fixed using the Add Item action in PF1e
+
+Added handlebar support in Dialog content
+
+Fixed Distance filter being limited to 100
+
+Fixed issue with not being able to change the For dropdown once a specific user has been selected
+
+Sorted collection list alphabetically
+
+Fixed issue with adding a compendium item to a token
+
+Fixed issue with selecting an item from the Item Directory
+
+Fixed issue with players not able to see buttons on Dialogs
+
+Fixed issues with Dialog styling
+
+Fixed issue with passing a number to a Chat Message
+
+Fixed issue when trying to compare a boolean value
+
+Added dialog size value to the alert and confirm dialogs
+
+Added proper description to the roll table chat messages
+
+Fixed issue with clearing out previous values when changing actions
+
+Fixed issue when having a previous collection set and changing the values to something else, still picking up the original collection.
+
+Added tooltips to action list to show the full action text
+
+Added Measured Templates to Move and Show/Hide actions
+
+Fixed issue with stopping a sound that is currently playing
+
+Fixed issue with Move selecting a destination failing to find a Tiles parent properly
+
+Fixed issue with Move and negative numbers
+
+Fixed issue with applying an ammount of a condition
+
+Added showing videos when selecting animated images in the Filepicker
+
+Fixed rotation label
+
+Added return values to the Run Code action
+
+Fixed issue with global volume change action
+
+Fixed the quantity field when adding item in PF1
+
+Fixed issue with buttons disappearing when interface font size increased
+
+Fixed Variable and History list so that it scrolls properly
+
+## Version 13.05
+
+Fixed issue when creating a token at a location based on Tagger, when that tagger location doesn't exist.
+
+Fixed issue with selecting editing the Entity from the Entity edit dialog
+
+Fixed issue with filepickers no longer picking files.
+
+Added option to select the PF2e Party Sheet as an actor when opening a character sheet
+
+Fixed issue with Double Right click firing twice
+
+## Version 13.04
+
+Fixed issue with moving token no longer animating
+
+Fixed issue with vision modes when creating a token
+
+Fixed issue with creating an entity from a RollTable
+
+Fixed issue with the Alert Dialog not continuing with actions
+
+Fixed issue with incorrect default name being show when selecting from a collection
+
+Fixed issue with editing of location and entity values no longer saving
+
+Fixed issue with FilePicker not being able to select HTML files.  The option is there, but I think Foundry forgot to check for it.
+
+Fixed issue with multiple triggers not being constrained to the dropdown properly
+
+Fixed Tagger issue where handlebar expressions that resolve to a blank id was selecting everything
+
+Fixed issue where Foundry was stripping out javascript code from Dialog content
+
+Fixed Foundry issue where submitting a Form without an actionable buttons was throwing an error
+
+Removed the scrollable option from the action config dialog.  As much as it helped the Dialog action, it was hiding the typeahead.
+
+## Version 13.03
+
+Added "other" option to Switch Tile Image.  It's the same as random, but it won't use the same image twice in a row.
+
+Removed the "Close triggers No" check box in the dialog action, in favor of adding a goto specifically for closing the dialog.  This way you have more control over what closing the dialog means.
+
+Removed the Dialog options field in favor of providing CSS Classes to the dialog.  So you can attach your own style sheet easier.  'Cause no one really knew how to use the options field.
+
+Updated the dialog buttons to allow for icons, or to be set as a submit button.
+
+Changed the functionality of a Dialog slightly.  Hopefully it doesn't break too much.  A button will still send its goto through as data, but a submit button will now also include the form data.  So if you want a complex Dialog, you can use the custom button to do what you want instead of having to create your own buttons on the form.
+
+Fixed the Create Button dialog so that the button text makes more sense.
+
+Fixed issues using Tagger for entities
+
+Fixed issue where checkboxes weren't triggering conditional fields
+
+Fixed issue with drag and dropping actions between tiles
+
+Updated the acvtion list header to accept a click, in case the add new button is missing, you can just click anywhere on the header.
+
+Fixed issues with Foundry not being consistent with how it assigns themes
+
+Attempted to fix issues with the Switch Tile Image and the fade transition.
+
+Fixed issue with creating a new Macro
+
+Fixed issue with the Lighting Animation trigger.  It triggers appropriately and now only triggers when a full percentage has changed.  So it's easier to set it to trigger at a specific darkness level.
+
+Added scrolling to the action config.  This can affect the Dialog action as it has a lot of information in the window.  So now instead of filling the screen, it will allow you to scroll through your information.
+
+## Version 13.02
+
+Fixing Dialog issue with multiple buttons
+
+## Version 13.01
+
+v13 compatibility
+
 ## Version 12.02
 
 Allowing rotation action to pick Ambient lights

@@ -59,7 +59,7 @@ export class ActionManager {
                 },
                 fn: (args = {}) => {
                     const { action } = args;
-                    game.togglePause((action?.data?.pause == "toggle" ? null : (action?.data?.pause !== 'unpause')), true);
+                    game.togglePause((action?.data?.pause == "toggle" ? null : (action?.data?.pause !== 'unpause')), { broadcast: true });
                 },
                 content: async (trigger, action) => {
                     return actiontext("MonksActiveTiles.actiontext.pause", { pause: i18n(trigger.values.state[action?.data?.pause || 'pause']) });
@@ -115,7 +115,7 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.snap",
                         type: "checkbox",
                         help: '<span style="color: #FF0000;">Stop Movement only applies to Entering and Exiting the Tile</span>',
-                        helpConditional: (app, action) => {
+                        conditionalHelp: (app, action) => {
                             let triggers = $('input[name="flags.monks-active-tiles.trigger"]', app.options.parent.element).val().split(",");
                             return !(triggers.includes("enter") || triggers.includes("exit"));
                         }
@@ -142,7 +142,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "position",
                         options: { show: ['token', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile || entity instanceof Token); },
+                        restrict: (entity, document) => { return ((entity instanceof foundry.canvas.placeables.Tile || entity instanceof foundry.canvas.placeables.Token) && document?.parent?.id == entity?.document?.parent?.id) || document?.parent?.id == entity?.id; },
                         required: true,
                         placeholder: 'Select a location or Tile'
                     },
@@ -150,9 +150,7 @@ export class ActionManager {
                         id: "animate",
                         name: "MonksActiveTiles.ctrl.animate",
                         type: "checkbox",
-                        onClick: (app) => {
-                            app.checkConditional();
-                        }
+                        check: true
                     },
                     {
                         id: "duration",
@@ -258,7 +256,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "location",
                         options: { show: ['token', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile || entity instanceof Token); },
+                        restrict: (entity, document) => { return ((entity instanceof foundry.canvas.placeables.Tile || entity instanceof foundry.canvas.placeables.Token) && document?.parent?.id == entity?.document?.parent?.id) || document?.parent?.id == entity?.id; },
                         required: true,
                         placeholder: 'Select a location or Tile'
                     },
@@ -325,7 +323,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); },
                         defaultType: "tokens"
                     },
                     {
@@ -333,11 +331,9 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-coordinates",
                         type: "select",
                         subtype: "either",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['tile', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile); },
+                        restrict: (entity, document) => { return (entity instanceof foundry.canvas.placeables.Tile || entity instanceof Scene); },
                         required: true,
                         placeholder: 'Select a location or Tile'
                     },
@@ -452,7 +448,7 @@ export class ActionManager {
                             console.warn("monks-active-tiles | Could not find a teleport destination", loc);
                             let newPos = MonksActiveTiles.getSnappedPosition(original.x, original.y);
 
-                            let ray = new Ray({ x: tokendoc.x, y: tokendoc.y }, { x: newPos.x, y: newPos.y });
+                            let ray = new foundry.canvas.geometry.Ray({ x: tokendoc.x, y: tokendoc.y }, { x: newPos.x, y: newPos.y });
 
                             const s = tokendoc.parent.dimensions.size;
                             const speed = s * 6;
@@ -460,22 +456,24 @@ export class ActionManager {
  
                             let time = new Date().getTime() + duration;
 
-                            batch.add("update", tokendoc, { x: newPos.x, y: newPos.y }, { bypass: false, originaltile: tile.id, animate: true, animation: { duration, time } });
+                            batch.add("update", tokendoc, { x: newPos.x, y: newPos.y }, { isPaste: true, constrainOptions: { ignoreWalls: true, ignoreCost: true }, bypass: false, originaltile: tile.id, animate: true, animation: { duration, time } });
                             continue;
                         }
 
                         if (entDest.x && typeof entDest.x == "string" && entDest.x.indexOf('-') > 1) {
-                            let parts = entDest.x.split("-");
-                            let min = parseInt(parts[0]);
-                            let max = parseInt(parts[1]);
-                            entDest.x = min + (Math.random() * (max - min));
+                            entDest.x = entDest.x.replace(/(\d+)-(\d+)/g, function (match, p1, p2) {
+                                let min = parseInt(p1);
+                                let max = parseInt(p2);
+                                return min + parseInt(Math.random() * (max - min));
+                            });
                         }
 
                         if (entDest.y && typeof entDest.y == "string" && entDest.y.indexOf('-') > 1) {
-                            let parts = entDest.y.split("-");
-                            let min = parseInt(parts[0]);
-                            let max = parseInt(parts[1]);
-                            entDest.y = min + (Math.random() * (max - min));
+                            entDest.y = entDest.y.replace(/(\d+)-(\d+)/g, function (match, p1, p2) {
+                                let min = parseInt(p1);
+                                let max = parseInt(p2);
+                                return min + parseInt(Math.random() * (max - min));
+                            });
                         }
 
                         entDest.x = parseInt(await getValue(entDest.x, args, tokendoc, { prop: tokendoc.x }));
@@ -599,8 +597,8 @@ export class ActionManager {
 
                             newTokens.push({ x: newPos.x, y: newPos.y, width: tokendoc.width, height: tokendoc.height });
 
-                            batch.add("update", tokendoc, { x: newPos.x, y: newPos.y, 'flags.monks-active-tiles.teleporting': true, 'flags.monks-active-tiles.current': true }, { bypass, animate: false, teleport: true, animation: { duration: 0 } });
-                            //await tokendoc.update({ x: newPos.x, y: newPos.y }, { bypass: true, animate: false, teleport: true });
+                            batch.add("update", tokendoc, { x: newPos.x, y: newPos.y, 'flags.monks-active-tiles.teleporting': true, 'flags.monks-active-tiles.current': true }, { isPaste: true, constrainOptions: { ignoreWalls: true, ignoreCost: true }, bypass, animate: false, tileTeleport: true, animation: { duration: 0 } });
+                            //await tokendoc.update({ x: newPos.x, y: newPos.y }, { bypass: true, animate: false, tileTeleport: true });
                         } else {
                             result.tokens = [];
                             //if the end spot is on a different scene then hide this token, check the new scene for a token for that actor and move it, otherwise create the token on the new scene
@@ -629,8 +627,8 @@ export class ActionManager {
                             if (newtoken) {
                                 batch.add("update", newtoken, (action.data.preservesettings ?
                                     { x: newPos.x, y: newPos.y, img: tokendoc.texture.src, hidden: tokendoc.hidden, 'flags.monks-active-tiles.teleporting': true, 'flags.monks-active-tiles.current': true } : td),
-                                    { bypass, animate: false, teleport: true });
-                                //await newtoken.update((action.data.preservesettings ? { x: newPos.x, y: newPos.y, hidden: tokendoc.hidden } : td), { bypass: true, animate: false, teleport: true });
+                                    { isPaste: true, constrainOptions: { ignoreWalls: true, ignoreCost: true }, bypass, animate: false, tileTeleport: true });
+                                //await newtoken.update((action.data.preservesettings ? { x: newPos.x, y: newPos.y, hidden: tokendoc.hidden } : td), { bypass: true, animate: false, tileTeleport: true });
                             } else {
                                 batch.add("create", cls, td, { parent: scene });
                                 //newtoken = await cls.create(td, { parent: scene });
@@ -722,12 +720,13 @@ export class ActionManager {
                         options: { show: ['tile', 'token', 'within', 'players', 'previous', 'tagger'] },
                         restrict: (entity) => {
                             return (
-                                entity instanceof Token ||
-                                entity instanceof Tile ||
-                                entity instanceof Drawing ||
-                                entity instanceof AmbientLight ||
-                                entity instanceof AmbientSound ||
-                                entity instanceof Note);
+                                entity instanceof foundry.canvas.placeables.Token ||
+                                entity instanceof foundry.canvas.placeables.Tile ||
+                                entity instanceof foundry.canvas.placeables.Drawing ||
+                                entity instanceof foundry.canvas.placeables.AmbientLight ||
+                                entity instanceof foundry.canvas.placeables.AmbientSound ||
+                                entity instanceof foundry.canvas.placeables.Note ||
+                                entity instanceof foundry.canvas.placeables.MeasuredTemplate);
                         },
                         defaultType: "tokens"
                     },
@@ -736,11 +735,9 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-coordinates",
                         type: "select",
                         subtype: "either",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['token', 'previous', 'tagger', 'origin'] },
-                        restrict: (entity) => { return (entity instanceof Tile && this.scene.id == entity.parent.id) || this.scene.id == entity.id; },
+                        restrict: (entity, document) => { return (entity instanceof foundry.canvas.placeables.Tile && document?.parent?.id == entity?.document?.parent?.id) || document?.parent?.id == entity?.id; },
                         required: true
                     },
                     {
@@ -831,17 +828,19 @@ export class ActionManager {
                                 continue;
 
                             if (entDest.x && typeof entDest.x == "string" && entDest.x.indexOf('-') > 1) {
-                                let parts = entDest.x.split("-");
-                                let min = parseInt(parts[0]);
-                                let max = parseInt(parts[1]);
-                                entDest.x = min + (Math.random() * (max - min));
+                                entDest.x = entDest.x.replace(/(\d+)-(\d+)/g, function (match, p1, p2) {
+                                    let min = parseInt(p1);
+                                    let max = parseInt(p2);
+                                    return min + parseInt(Math.random() * (max - min));
+                                });
                             }
 
                             if (entDest.y && typeof entDest.y == "string" && entDest.y.indexOf('-') > 1) {
-                                let parts = entDest.y.split("-");
-                                let min = parseInt(parts[0]);
-                                let max = parseInt(parts[1]);
-                                entDest.y = min + (Math.random() * (max - min));
+                                entDest.y = entDest.y.replace(/(\d+)-(\d+)/g, function (match, p1, p2) {
+                                    let min = parseInt(p1);
+                                    let max = parseInt(p2);
+                                    return min + parseInt(Math.random() * (max - min));
+                                });
                             }
 
                             /*
@@ -859,8 +858,8 @@ export class ActionManager {
                                 (typeof entDest.y == "string" && (entDest.y.startsWith("+") || entDest.y.startsWith("-")))) {
                                 location.id = "origin";
                             }*/
-                            let relX = (typeof entDest.x == "string" && (entDest.x.startsWith("+") || entDest.x.startsWith("-")));
-                            let relY = (typeof entDest.x == "string" && (entDest.y.startsWith("+") || entDest.y.startsWith("-")));
+                            //let relX = (typeof entDest.x == "string" && (entDest.x.startsWith("+") || entDest.x.startsWith("-")));
+                            //let relY = (typeof entDest.y == "string" && (entDest.y.startsWith("+") || entDest.y.startsWith("-")));
                             entDest.x = parseInt(await getValue(entDest.x, args, entity, { prop: entity.x }));
                             entDest.y = parseInt(await getValue(entDest.y, args, entity, { prop: entity.y }));
 
@@ -923,7 +922,7 @@ export class ActionManager {
                                     //newPos.y -= midY;
                             //}
 
-                            let ray = new Ray({ x: entity.x, y: entity.y }, { x: newPos.x, y: newPos.y });
+                            let ray = new foundry.canvas.geometry.Ray({ x: entity.x, y: entity.y }, { x: newPos.x, y: newPos.y });
 
                             let duration = 0;
                             if (action.data?.duration == undefined) {
@@ -955,7 +954,7 @@ export class ActionManager {
                         await batch.execute();
                         /*
                         for (let entity of entities) {
-                            let anim = CanvasAnimation.getAnimation(entity._object.animationName);
+                            let anim = foundry.canvas.animation.CanvasAnimation.getAnimation(entity._object.animationName);
                             if (anim && entity._matt_locations) {
                                 let fn = async (entity) => {
                                     if (entity._matt_locations){
@@ -968,7 +967,7 @@ export class ActionManager {
                                 
                                         let duration = 0;
                                         if (entity._matt_locations.duration == undefined) {
-                                            let ray = new Ray({ x: entity.x, y: entity.y }, { x: pt.x, y: pt.y });
+                                            let ray = new foundry.canvas.geometry.Ray({ x: entity.x, y: entity.y }, { x: pt.x, y: pt.y });
                                             const s = canvas.dimensions.size;
                                             const speed = s * (entity._matt_locations.speed ?? 6);
                                             duration = (ray.distance * 1000) / speed;
@@ -983,7 +982,7 @@ export class ActionManager {
                                         }
 
                                         await entity.update(pt, { animate: true, animation: { duration } });
-                                        let anim = CanvasAnimation.getAnimation(entity._object.animationName);
+                                        let anim = foundry.canvas.animation.CanvasAnimation.getAnimation(entity._object.animationName);
                                         if (anim && entity._matt_locations)
                                             anim.promise.then(fn);
                                     }
@@ -1014,10 +1013,10 @@ export class ActionManager {
                         options: { show: ['tile', 'token', 'within', 'players', 'previous', 'tagger'] },
                         restrict: (entity) => {
                             return (
-                                entity instanceof Token ||
-                                entity instanceof Tile ||
-                                entity instanceof Drawing ||
-                                entity instanceof AmbientLight
+                                entity instanceof foundry.canvas.placeables.Token ||
+                                entity instanceof foundry.canvas.placeables.Tile ||
+                                entity instanceof foundry.canvas.placeables.Drawing ||
+                                entity instanceof foundry.canvas.placeables.AmbientLight
                             );
                         }
                     },
@@ -1077,7 +1076,8 @@ export class ActionManager {
                 content: async (trigger, action) => {
                     let ctrl = trigger.ctrls.find(c => c.id == "entity");
                     let entityName = await MonksActiveTiles.entityName(action.data?.entity || ctrl?.defvalue || "previous");
-                    return `<span class="action-style">${i18n(trigger.name)}</span> <span class="entity-style">${entityName}</span> rotate to <span class="details-style">"${action.data.rotation}"</span>`;
+                    let textMovement = action.data.rotation.startsWith("+ ") || action.data.rotation.startsWith("- ") ? "by" : "to";
+                    return `<span class="action-style">${i18n(trigger.name)}</span> <span class="entity-style">${entityName}</span> rotate ${textMovement} <span class="details-style">"${action.data.rotation}"</span>`;
                 }
             },
             'showhide': {
@@ -1090,11 +1090,16 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['tile', 'token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token || entity instanceof Tile || entity instanceof Drawing); }
+                        restrict: (entity) => {
+                            return (
+                                entity instanceof foundry.canvas.placeables.Token ||
+                                entity instanceof foundry.canvas.placeables.Tile ||
+                                entity instanceof foundry.canvas.placeables.Drawing ||
+                                entity instanceof foundry.canvas.placeables.MeasuredTemplate
+                            );
+                        }
                     },
                     {
                         id: "collection",
@@ -1134,16 +1139,16 @@ export class ActionManager {
                         'toggle': "MonksActiveTiles.hidden.toggle"
                     },
                     'collection': {
-                        'tokens': "Tokens",
+                        'drawings': "Drawings",
                         'tiles': "Tiles",
-                        'drawings': "Drawings"
+                        'tokens': "Tokens",
                     }
                 },
                 fn: async (args = {}) => {
                     const { action } = args;
                     //find the item in question
                     let entities = await MonksActiveTiles.getEntities(args, action.data?.collection || "tokens");
-                    entities = entities.filter(e => { return (e instanceof TokenDocument || e instanceof TileDocument || e instanceof DrawingDocument); });
+                    entities = entities.filter(e => { return (e instanceof TokenDocument || e instanceof TileDocument || e instanceof DrawingDocument || e instanceof MeasuredTemplateDocument); });
 
                     if (entities && entities.length > 0) {
                         //set or toggle visible
@@ -1182,9 +1187,7 @@ export class ActionManager {
                         subtype: "entity",
                         options: { show: ['token', 'players', 'previous'] },
                         restrict: (entity) => { return (entity instanceof Actor || entity instanceof JournalEntry || entity instanceof Note); },
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         required: true,
                         defaultType: 'actors',
                         placeholder: 'Please select an Actor or Encounter to create'
@@ -1210,7 +1213,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "either",
                         options: { show: ['tile', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile && this.scene.id == entity.parent.id) || this.scene.id == entity.id; },
+                        restrict: (entity, document) => { return (entity instanceof foundry.canvas.placeables.Tile && document?.parent?.id == entity?.document?.parent?.id) || document?.parent?.id == entity?.id; },
                         required: true
                     },
                     {
@@ -1388,8 +1391,8 @@ export class ActionManager {
                             } else if (entity instanceof Actor) {
                                 let dest = dests[Math.floor(Math.random() * dests.length)];
 
-                                let entDest = foundry.utils.duplicate(dest);
-                                if (entDest) {
+                                let entDest = foundry.utils.duplicate(dest || {});
+                                if (dest && entDest) {
                                     if (dest.dest instanceof TileDocument) {
                                         // Find a random location within this Tile
                                         if (dest.dest instanceof TileDocument) {
@@ -1445,6 +1448,9 @@ export class ActionManager {
                             const td = await actor.getTokenDocument();
                             foundry.utils.mergeObject(td, ad.data);
 
+                            td.detectionModes = [];
+                            td.sight.range = td.sight.range == Infinity ? null : td.sight.range;
+
                             if (!ad.lockpos) {
                                 if (action.data.avoidtokens) {
                                     let dt = foundry.utils.mergeObject(ad.data, MonksActiveTiles.findVacantSpot(ad.data, { data: td }, scene, newTokens, ad.dest, action.data.snap));
@@ -1454,13 +1460,13 @@ export class ActionManager {
 
                                 // Bypass snapping
                                 if (!action.data.snap) {
-                                    td.x -= (td.width * canvas.grid.w / 2);
-                                    td.y -= (td.height * canvas.grid.h / 2);
+                                    td.x -= (td.width * canvas.grid.sizeX / 2);
+                                    td.y -= (td.height * canvas.grid.sizeY / 2);
                                 }
                                 // Otherwise snap to nearest vertex, adjusting for large tokens
                                 else {
-                                    const hw = canvas.grid.w / 2;
-                                    const hh = canvas.grid.h / 2;
+                                    const hw = canvas.grid.sizeX / 2;
+                                    const hh = canvas.grid.sizeY / 2;
                                     let pos = MonksActiveTiles.getSnappedPosition(td.x - (td.width * hw), td.y - (td.height * hh))
                                     td.x = pos.x;
                                     td.y = pos.y;
@@ -1491,7 +1497,7 @@ export class ActionManager {
                         //        batch.add("update", token, { "hidden": true, "flags.monks-active-tiles.-=hidden": null });
                         //    }
                         //}
-                        await batch.execute();
+                        //await batch.execute();
 
                         result.tokens = result.tokens.concat(tokens);
 
@@ -1514,7 +1520,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['previous'] },
-                        restrict: (entity) => { return (entity instanceof JournalEntry || entity instanceof Note); },
+                        restrict: (entity) => { return (entity instanceof JournalEntry || entity instanceof foundry.canvas.placeables.Note); },
                         required: true,
                         defaultType: 'journal',
                         placeholder: 'Please select a Journal Entry to add to the canvas'
@@ -1524,7 +1530,7 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-coordinates",
                         type: "select",
                         subtype: "either",
-                        restrict: (entity) => { return (entity instanceof Tile && this.scene.id == entity.parent.id) || this.scene.id == entity.id; },
+                        restrict: (entity, document) => { return (entity instanceof foundry.canvas.placeables.Tile && document?.parent?.id == entity?.document?.parent?.id) || document?.parent?.id == entity?.id; },
                         required: true
                     },
                     {
@@ -1638,11 +1644,12 @@ export class ActionManager {
                         subtype: "entity",
                         options: { show: ['tile', 'within', 'previous', 'tagger'] },
                         restrict: (entity) => {
-                            return (entity instanceof Tile || entity instanceof AmbientLight || entity instanceof AmbientSound || entity.constructor.name == "Terrain");
+                            return (entity instanceof foundry.canvas.placeables.Tile
+                                || entity instanceof foundry.canvas.placeables.AmbientLight
+                                || entity instanceof foundry.canvas.placeables.AmbientSound
+                            );
                         },
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         defvalue: 'tile',
                         defaultType: 'tiles'
                     },
@@ -1692,7 +1699,7 @@ export class ActionManager {
 
                     for (let entity of entities) {
                         if (entity) {
-                            if (entity instanceof AmbientLightDocument || entity instanceof AmbientSoundDocument || entity._object?.constructor.name == "Terrain") {
+                            if (entity instanceof AmbientLightDocument || entity instanceof AmbientSoundDocument) {
                                 let hidden = (action.data.activate == 'toggle' ? !entity.hidden : (action.data.activate == 'previous' ? !value.activate : action.data.activate != 'activate'));
                                 MonksActiveTiles.batch.add("update", entity, { hidden: hidden });
                             } else if (entity instanceof TileDocument) {
@@ -1718,9 +1725,7 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['tile', 'token', 'within', 'players', 'previous', 'tagger'] }
                     },
                     {
@@ -1748,9 +1753,7 @@ export class ActionManager {
                         id: "value",
                         name: "MonksActiveTiles.ctrl.value",
                         type: "text",
-                        onBlur: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         help: `* Use a space to increase the value <span class="matt-code">+ 1</span>. <br/>* Leave the space out to set the value <span class="matt-code">-10</span>. <br/>* Accepts random numbers <span class="matt-code">[[1d4]]</span>. <br/> * For strings, place them inside quotation marks <span class="matt-code">= "Name"</span>.`
                     },
                     {
@@ -1883,7 +1886,7 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        restrict: (entity) => { return entity instanceof Tile; },
+                        restrict: (entity) => { return entity instanceof foundry.canvas.placeables.Tile; },
                         options: { show: ['tile', 'previous', 'tagger'] },
                         defvalue: 'tile',
                         defaultType: 'tiles',
@@ -1996,7 +1999,7 @@ export class ActionManager {
                             ];
         
                             let animationName = `MonksActiveTiles.${entity.id}.animate`;
-                            let _animation = await CanvasAnimation.animateLinear(attributes, {
+                            let _animation = await foundry.canvas.animation.CanvasAnimation.animateLinear(attributes, {
                                 name: animationName,
                                 context: entity.object,
                                 duration: 1000
@@ -2022,7 +2025,7 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        restrict: (entity) => { return entity instanceof Token; },
+                        restrict: (entity) => { return entity instanceof foundry.canvas.placeables.Token; },
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
                         help: "Hurt/Heal does not use a damage type due to the differences in systems.  Use the attack action instead"
                     },
@@ -2031,9 +2034,7 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.value",
                         type: "text",
                         required: true,
-                        onBlur: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         help: "If you want to increase the value use '+10', if you want to have the value rolled use '-[[1d4]]'"
                     },
                     {
@@ -2394,7 +2395,8 @@ export class ActionManager {
                 },
                 content: async (trigger, action) => {
                     let forName = MonksActiveTiles.forPlayersName(action.data?.audiofor || "everyone");
-                    return `<span class="action-style">${i18n(trigger.name)}</span> <span class="details-style">${ActionManager.wrapQuotes(action.data.audiofile)}</span> for <span class="value-style">&lt;${forName}&gt;</span>${(action.data?.loop ? ' <i class="fas fa-sync" title="Loop sound"></i>' : '')}`;
+                    let audiofile = action.data.audiofile.slice(action.data.audiofile.lastIndexOf('/') + 1);
+                    return `<span class="action-style">${i18n(trigger.name)}</span> <span class="details-style" data-tooltip="${action.data.audiofile}">${ActionManager.wrapQuotes(audiofile)}</span> for <span class="value-style">&lt;${forName}&gt;</span>${(action.data?.loop ? ' <i class="fas fa-sync" title="Loop sound"></i>' : '')}`;
                 }
             },
             'playlist': {
@@ -2419,9 +2421,7 @@ export class ActionManager {
                         list: "play",
                         defvalue: "play",
                         type: "list",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                     },
                     {
                         id: "volume",
@@ -2510,9 +2510,7 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.audiotype",
                         list: "audiotype",
                         type: "list",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                     },*/
                     {
                         id: "entity",
@@ -2520,7 +2518,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['tile', 'tagger'] },
-                        restrict: (entity) => { return entity instanceof Tile; },
+                        restrict: (entity) => { return entity instanceof foundry.canvas.placeables.Tile; },
                         defaultType: 'tiles',
                         defvalue: 'tile',
                     },
@@ -2665,8 +2663,11 @@ export class ActionManager {
                     let showUsers = MonksActiveTiles.getForPlayers(showfor, args);
 
                     if (showUsers.includes(game.user.id)) {
-                        new ImagePopout(action.data.imagefile, {
-                            title: action.data.caption
+                        new foundry.applications.apps.ImagePopout({
+                            src: action.data.imagefile,
+                            window: {
+                                title: action.data.caption
+                            }
                         }).render(true);
                         showUsers = showUsers.filter(u => u != game.user.id);
                     }
@@ -2694,7 +2695,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Wall); },  //this needs to be a wall segment
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Wall); },  //this needs to be a wall segment
                         required: true,
                         defaultType: 'walls',
                         placeholder: 'Please select a Wall'
@@ -2705,7 +2706,7 @@ export class ActionManager {
                         list: () => {
                             let doorTypes = { nothing: "--No Change--", toggle: "--Toggle--" };
                             doorTypes = Object.assign(doorTypes, Object.keys(CONST.WALL_DOOR_TYPES).reduce((obj, key) => {
-                                obj[key] = game.i18n.localize(`WALLS.DoorTypes.${key}`);
+                                obj[key] = game.i18n.localize(`WALL.DoorTypes.${key}`);
                                 return obj;
                             }, {}));
                             return doorTypes;
@@ -2719,7 +2720,7 @@ export class ActionManager {
                         list: () => {
                             let doorStates = { nothing: "--No Change--", toggle: "--Toggle--" };
                             doorStates = Object.assign(doorStates, Object.keys(CONST.WALL_DOOR_STATES).reduce((obj, key) => {
-                                obj[key] = game.i18n.localize(`WALLS.DoorStates.${key}`);
+                                obj[key] = game.i18n.localize(`WALL.DoorStates.${key}`);
                                 return obj;
                             }, {}));
                             return doorStates;
@@ -2733,7 +2734,7 @@ export class ActionManager {
                         list: () => {
                             let moveTypes = { nothing: "--No Change--", toggle: "--Toggle--" };
                             moveTypes = Object.assign(moveTypes, Object.keys(CONST.WALL_MOVEMENT_TYPES).reduce((obj, key) => {
-                                obj[key] = game.i18n.localize(`WALLS.SenseTypes.${key}`);
+                                obj[key] = game.i18n.localize(`WALL.SenseTypes.${key}`);
                                 return obj;
                             }, {}));
                             return moveTypes;
@@ -2747,7 +2748,7 @@ export class ActionManager {
                         list: () => {
                             let senseTypes = { nothing: "--No Change--", toggle: "--Toggle--" };
                             senseTypes = Object.assign(senseTypes, Object.keys(CONST.WALL_SENSE_TYPES).reduce((obj, key) => {
-                                obj[key] = game.i18n.localize(`WALLS.SenseTypes.${key}`);
+                                obj[key] = game.i18n.localize(`WALL.SenseTypes.${key}`);
                                 return obj;
                             }, {}));
                             return senseTypes;
@@ -2761,7 +2762,7 @@ export class ActionManager {
                         list: () => {
                             let senseTypes = { nothing: "--No Change--", toggle: "--Toggle--" };
                             senseTypes = Object.assign(senseTypes, Object.keys(CONST.WALL_SENSE_TYPES).reduce((obj, key) => {
-                                obj[key] = game.i18n.localize(`WALLS.SenseTypes.${key}`);
+                                obj[key] = game.i18n.localize(`WALL.SenseTypes.${key}`);
                                 return obj;
                             }, {}));
                             return senseTypes;
@@ -2775,7 +2776,7 @@ export class ActionManager {
                         list: () => {
                             let senseTypes = { nothing: "--No Change--", toggle: "--Toggle--" };
                             senseTypes = Object.assign(senseTypes, Object.keys(CONST.WALL_SENSE_TYPES).reduce((obj, key) => {
-                                obj[key] = game.i18n.localize(`WALLS.SenseTypes.${key}`);
+                                obj[key] = game.i18n.localize(`WALL.SenseTypes.${key}`);
                                 return obj;
                             }, {}));
                             return senseTypes;
@@ -2948,7 +2949,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "incharacter",
@@ -3043,14 +3044,14 @@ export class ActionManager {
                         if (typeof action.data.text == "string" && (action.data.text.startsWith('/') || action.data.text.startsWith('[[/'))) {
                             ui.chat.processMessage(action.data.text);
                         } else {
-                            let content = await getValue(action.data.text, args, entity, { speaker });
-                            let flavor = await getValue(action.data.flavor, args, entity, { speaker });
+                            let content = (await getValue(action.data.text, args, entity, { speaker })) + "";
+                            let flavor = (await getValue(action.data.flavor, args, entity, { speaker })) + "";
 
                             let showto = action.data.showto || "everyone";
                             let showUsers = MonksActiveTiles.getForPlayers(showto, args);
 
                             if (action.data.chatbubble !== "false") {
-                                if (tkn instanceof Token) {
+                                if (tkn instanceof foundry.canvas.placeables.Token) {
                                     let su = foundry.utils.duplicate(showUsers);
                                     if (su.includes(game.user.id) && canvas.scene.id == tkn.document.parent.id) {
                                         canvas.hud.bubbles.say(tkn, content);
@@ -3187,7 +3188,7 @@ export class ActionManager {
                         if (macro?.document?.pack)
                             pack = game.packs.get(macro.document.pack);
 
-                        entityName = (pack ? '<i class="fas fa-atlas"></i> ' + pack.metadata.label + ":" : "") + entityName;
+                        entityName = (pack ? '<i class="fas fa-atlas" data-tooltip="From compendium"></i> ' + pack.metadata.label + ":" : "") + entityName;
                     } else {
                         let ctrl = trigger.ctrls.find(c => c.id == "entity");
                         entityName = await MonksActiveTiles.entityName(action.data?.entity || ctrl?.defvalue || "previous", 'macros');
@@ -3383,25 +3384,31 @@ export class ActionManager {
                                     flavor: `Draws ${nr} from the ${rolltable.name} table.`,
                                     user: userId,
                                     speaker: speaker,
-                                    style: CONST.CHAT_MESSAGE_STYLES.ROLL,
+                                    style: CONST.CHAT_MESSAGE_STYLES.OTHER,
                                     roll: tblResults.roll,
+                                    rolls: [tblResults.roll],
                                     sound: tblResults.roll ? CONFIG.sounds.dice : null,
                                     flags: { "core.RollTable": rolltable.id }
                                 };
 
                                 // Render the chat card which combines the dice roll with the drawn results
-                                let description = await TextEditor.enrichHTML(rolltable.description, { documents: true, entities: true, async: true })
-                                messageData.content = await renderTemplate(CONFIG.RollTable.resultTemplate, {
+                                let description = await foundry.applications.ux.TextEditor.implementation.enrichHTML(rolltable.description, { documents: true, entities: true, async: true })
+
+                                let resultData = {
                                     description: description,
-                                    results: foundry.utils.duplicate(tblResults.results).map(r => {
-                                        let original = tblResults.results.find(res => res.id == r._id);
-                                        r.text = original?.getChatText() || r.text;
-                                        r.icon = r.icon || r.img;
-                                        return r;
-                                    }),
+                                    results: [],
                                     rollHTML: rolltable.displayRoll ? await tblResults.roll.render() : null,
                                     table: rolltable
-                                });
+                                };
+
+                                for (let r of foundry.utils.duplicate(tblResults.results)) {
+                                    let original = tblResults.results.find(res => res.id == r._id);
+                                    r.details = (await original?.getHTML()) || r.text;
+                                    r.icon = r.icon || r.img;
+                                    resultData.results.push(r);
+                                }
+
+                                messageData.content = await foundry.applications.handlebars.renderTemplate(CONFIG.RollTable.resultTemplate, resultData);
 
                                 if (action.data.rollmode != 'roll') {
                                     messageData.whisper = ChatMessage.getWhisperRecipients("GM").map(u => u.id);
@@ -3422,18 +3429,12 @@ export class ActionManager {
                                 for (let tableresult of results.results) {
                                     let entity;
 
-                                    if (!tableresult.documentId) {
-                                        await checkText(tableresult.text, results);
+                                    if (!tableresult.documentUuid) {
+                                        await checkText(tableresult.name, results);
                                     } else {
-                                        let collection = game.collections.get(tableresult.documentCollection);
-                                        if (!collection) {
-                                            let pack = game.packs.get(tableresult.documentCollection);
-                                            if (pack == undefined)
-                                                await checkText(tableresult.text, results);
-                                            else
-                                                entity = await pack.getDocument(tableresult.documentId);
-                                        } else
-                                            entity = collection.get(tableresult.documentId);
+                                        entity = await fromUuid(tableresult.documentUuid);
+                                        if (entity == null)
+                                            await checkText(tableresult.name, results);
                                     }
 
                                     MonksActiveTiles.addToResult(entity, results);
@@ -3498,7 +3499,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "effectid",
@@ -3519,9 +3520,7 @@ export class ActionManager {
                             let action = $('select[name="data.addeffect"]', app.element).val();
                             return action != "clear";
                         },
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         type: "list",
                         required: true
                     },
@@ -3539,9 +3538,7 @@ export class ActionManager {
                                 return true;
                         },
                         defvalue: 'add',
-                        onChange: (app) => {
-                            app.checkConditional();
-                        }
+                        check: true,
                     },
                     {
                         id: "altereffect",
@@ -3628,7 +3625,7 @@ export class ActionManager {
                                                 let newVal = (action.data?.altereffect.startsWith("+") ? existing.value + value : value);
                                                 await game.pf2e.ConditionManager.updateConditionValue(existing.id, token.object, newVal);
                                             } else {
-                                                await token.actor.increaseCondition(effect.slug, { min: value, max: value });
+                                                await token.actor.increaseCondition(effect.slug, { value });
                                             }
                                         }
                                     } else {
@@ -3701,7 +3698,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['tile', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Tile); },
                         defaultType: 'tiles'
                     },
                     {
@@ -3710,9 +3707,7 @@ export class ActionManager {
                         list: "animate",
                         type: "list",
                         defvalue: "start",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                     },
                     {
                         id: "offset",
@@ -3845,6 +3840,7 @@ export class ActionManager {
                         required: true,
                         defaultType: 'journal',
                         placeholder: 'Please select a Journal',
+                        check: true,
                         onChange: async (app, ctrl, action, data) => {
                             $('select[name="data.page"]', app.element).empty();
                             let value = $(ctrl).val();
@@ -3857,7 +3853,6 @@ export class ActionManager {
                                     $('select[name="data.page"]', app.element).append(app.fillList(list, data.page));
                                 } catch { }
                             }
-                            app.checkConditional();
                         }
                     },
                     {
@@ -4025,7 +4020,7 @@ export class ActionManager {
                             }
 
                             if (action.data.asimage && (entity.type == "image" || foundry.utils.getProperty(entity, "flags.monks-enhanced-journal.type") == "picture")) {
-                                new ImagePopout(entity.src).render(true);
+                                new foundry.applications.apps.ImagePopout({ src: entity.src }).render(true);
                             } else {
                                 let anchor = action.data.subsection?.slugify().replace(/["']/g, "").substring(0, 64);
                                 if (action.data?.enhanced !== true || !game.modules.get("monks-enhanced-journal")?.active || !game.MonksEnhancedJournal.openJournalEntry(entity, { tempOwnership: !action.data.permission, pageId: action.data.page, anchor: anchor }))
@@ -4065,7 +4060,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Actor || entity instanceof Token); },
+                        restrict: (entity) => { return (entity instanceof Actor || entity instanceof foundry.canvas.placeables.Token); },
                         required: true,
                         defaultType: 'actors',
                         placeholder: 'Please select a Token or Actor'
@@ -4147,7 +4142,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "item",
@@ -4215,12 +4210,19 @@ export class ActionManager {
                                         const itemData = item.toObject();
                                         if (action.data?.quantity) {
                                             let quantity = await getValue(action.data?.quantity, args, item);
-                                            let quantityName = item.system.quantity != undefined ? "quantity" : item.system.value != undefined ? "value" : item.system.eqt != undefined ? "eqt.count" : null;
-                                            if (quantityName) {
-                                                let valueName = `system.${quantityName}.value`;
-                                                let useValue = foundry.utils.getProperty(item, valueName) != undefined;
+                                            quantity = parseInt(quantity);
+                                            let quantityName = null;
+                                            if (item.system.quantity?.value != undefined)
+                                                quantityName = "quantity.value";
+                                            else if (item.system.quantity != undefined)
+                                                quantityName = "quantity";
+                                            else if (item.system.value != undefined)
+                                                quantityName = "value";
+                                            else if (item.system.eqt != undefined)
+                                                quantityName = "eqt.count";
 
-                                                foundry.utils.setProperty(itemData, `system.${quantityName}`, useValue ? { value: quantity } : quantity);
+                                            if (quantityName) {
+                                                foundry.utils.setProperty(itemData, `system.${quantityName}`, quantity);
                                             }
                                         }
                                         let hasAdded = false;
@@ -4232,8 +4234,13 @@ export class ActionManager {
                                             }
                                         }
                                         if (!hasAdded) {
-                                            let sheet = actor.sheet;
-                                            sheet._onDropItem({ preventDefault: () => { }, target: { closest: () => { return false } } }, { type: "Item", uuid: item.uuid, data: itemData });
+                                            const document = await Item.fromDropData({ type: "Item", uuid: item.uuid, data: itemData });
+                                            if (game.system.id == "pf1") {
+                                                actor.createEmbeddedDocuments("Item", [document]);
+                                            } else {
+                                                let sheet = actor.sheet;
+                                                sheet._onDropItem({ preventDefault: () => { }, target: { closest: () => { return false } } }, game.system.id == "pf2e" ? { data: itemData } : document);
+                                            }
                                         }
 
                                         //batch.add("create", item.constructor, itemData, { parent: actor });
@@ -4279,7 +4286,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "item",
@@ -4291,10 +4298,8 @@ export class ActionManager {
                     {
                         id: "quantity",
                         name: "MonksActiveTiles.ctrl.quantity",
-                        type: "number",
-                        defvalue: 1,
-                        min: 1,
-                        step: 1
+                        type: "text",
+                        defvalue: 1
                     },
                 ],
                 fn: async (args = {}) => {
@@ -4302,13 +4307,6 @@ export class ActionManager {
                     let entities = await MonksActiveTiles.getEntities(args);
                     if (entities.length == 0)
                         return;
-
-                    let quantity = action.data.quantity;
-                    if (quantity != "all") {
-                        quantity = parseInt(quantity);
-                        if (quantity < 1)
-                            quantity = 1;
-                    }
 
                     let batch = new BatchManager();
                     for (let token of entities) {
@@ -4325,6 +4323,13 @@ export class ActionManager {
                                     if (itemQuantity.value != undefined) {
                                         itemQuantity = itemQuantity.value;
                                         useValue = true;
+                                    }
+
+                                    let quantity = MonksActiveTiles.getValue(action.data.quantity, args, actor);
+                                    if (quantity != "all") {
+                                        quantity = parseInt(quantity);
+                                        if (isNaN(quantity) || quantity < 0)
+                                            quantity = 1;
                                     }
 
                                     if (quantity == "all" || itemQuantity <= quantity) {
@@ -4371,8 +4376,8 @@ export class ActionManager {
                         options: { show: ['previous', 'tagger'] },
                         restrict: (entity) => {
                             return (
-                                entity instanceof Token ||
-                                entity instanceof Note ||
+                                entity instanceof foundry.canvas.placeables.Token ||
+                                entity instanceof foundry.canvas.placeables.Note ||
                                 entity instanceof JournalEntry ||
                                 entity instanceof Scene ||
                                 entity instanceof Actor
@@ -4479,11 +4484,11 @@ export class ActionManager {
 
                     },
                     'collection': {
-                        'notes': "Notes",
-                        'tokens': "Tokens",
-                        'journal': "Journal Entry",
-                        'scenes': "Scenes",
                         'actors': "Actors",
+                        'journal': "Journal Entry",
+                        'notes': "Notes",
+                        'scenes': "Scenes",
+                        'tokens': "Tokens",
                     }
                 },
                 fn: async (args = {}) => {
@@ -4568,14 +4573,14 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "actor",
                         name: "MonksActiveTiles.ctrl.select-actor",
                         type: "select",
                         subtype: "entity",
-                        restrict: (entity) => { return (entity instanceof Actor || entity instanceof Token); },
+                        restrict: (entity) => { return (entity instanceof Actor || entity instanceof foundry.canvas.placeables.Token); },
                         required: true,
                         defaultType: 'actors',
                         placeholder: 'Please select an Actor to perform attack'
@@ -4618,9 +4623,7 @@ export class ActionManager {
                         list: "attacktype",
                         type: "list",
                         defvalue: "true",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                     },
                     {
                         id: "chatcard",
@@ -4741,7 +4744,7 @@ export class ActionManager {
                                         }
                                     }
                                 } else if (!attack) {
-                                    user.updateTokenTargets(entities.map(t => t.id));
+                                    user._onUpdateTokenTargets(entities.map(t => t.id));
                                 }
                             } else
                                 warn(`Could not find the attack item when using the attack action`);
@@ -4795,7 +4798,7 @@ export class ActionManager {
                         subtype: "entity",
                         required: true,
                         options: { show: ['tile', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Tile); },
                         defaultType: 'tiles',
                         placeholder: "Please select a Tile"
                     },
@@ -4805,7 +4808,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "landing",
@@ -4909,9 +4912,7 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.activate",
                         type: "checkbox",
                         defvalue: false,
-                        onClick: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                     },
                     {
                         id: "for",
@@ -5026,16 +5027,14 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); },
                         defaultType: 'tokens'
                     },
                     {
                         id: "addto",
                         name: "Add to Combat",
                         type: "list",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         list: 'add',
                         defvalue: 'add'
                     },
@@ -5104,7 +5103,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "value",
@@ -5203,7 +5202,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['tile', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Tile); },
                         defaultType: 'tiles'
                     },
                     {
@@ -5212,9 +5211,7 @@ export class ActionManager {
                         list: "resettype",
                         type: "list",
                         defvalue: "all",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                     },
                     {
                         id: "token",
@@ -5222,7 +5219,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); },
                         defvalue: null,
                         placeholder: "Please select a token",
                         conditional: (app) => { return $('select[name="data.resettype"]', app.element).val() == "token"; },
@@ -5275,7 +5272,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['tile', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Tile); },
                         defaultType: 'tiles'
                     },
                 ],
@@ -5292,18 +5289,18 @@ export class ActionManager {
                             t._textures = t._textures || {};
 
                             if (entity._images == undefined) {
-                                entity._images = await MonksActiveTiles.getTileFiles(entity.flags["monks-active-tiles"].files || []);
+                                entity._images = await MonksActiveTiles.getTileFiles(foundry.utils.getProperty(entity, "flags.monks-active-tiles.files") || []);
                             }
                             
                             for (let img of entity._images) {
                                 let tex;
                                 if (!t._textures[img]) {
                                     try {
-                                        tex = await loadTexture(img);
+                                        tex = await foundry.canvas.loadTexture(img);
                                     } catch { }
                                     if (!tex) {
                                         console.warn(`Preload texture invalid, ${img}`);
-                                        tex = await loadTexture("/modules/monks-active-tiles/img/1x1.png");
+                                        tex = await foundry.canvas.loadTexture("/modules/monks-active-tiles/img/1x1.png");
                                     } else
                                         t._textures[img] = tex;
                                 }
@@ -5327,7 +5324,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['tile', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Tile); },
                         defaultType: 'tiles'
                     },
                     {
@@ -5335,7 +5332,7 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select",
                         type: "text",
                         defvalue: 'next',
-                        help: "you can also use <i>first</i>, <i>last</i>, <i>next</i>, <i>previous</i>, or <i>random</i> to select a spot"
+                        help: "you can also use <i>first</i>, <i>last</i>, <i>next</i>, <i>previous</i>, <i>other</i>, or <i>random</i> to select a spot"
                     },
                     {
                         id: "transition",
@@ -5343,9 +5340,7 @@ export class ActionManager {
                         type: "list",
                         list: "transition",
                         defvalue: "none",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        }
+                        check: true,
                     },
                     {
                         id: "speed",
@@ -5387,23 +5382,30 @@ export class ActionManager {
 
                     let getPosition = async function (entity) {
                         let fileindex = foundry.utils.getProperty(entity, 'flags.monks-active-tiles.fileindex') || 0;
-                        let position = await getValue(action.data?.select ?? "next", args, entity, {
+                        let positionKey = await getValue(action.data?.select ?? "next", args, entity, {
                             fileindex: fileindex,
                             files: entity._images
                         });
 
-                        if (position == "first")
+                        let position = fileindex + 1;
+
+                        if (positionKey == "first")
                             position = 1;
-                        else if (position == "last")
+                        else if (positionKey == "last")
                             position = entity._images.length;
-                        else if (position == "random")
+                        else if (positionKey == "random")
                             position = Math.floor(Math.random() * entity._images.length) + 1;
-                        else if (position == "next")
+                        else if (positionKey == "other") {
+                            while (position == fileindex + 1 && entity._images.length > 1) {
+                                position = Math.floor(Math.random() * entity._images.length) + 1;
+                            }
+                        }
+                        else if (positionKey == "next")
                             position = ((fileindex + 1) % entity._images.length) + 1;
-                        else if (position == "previous")
+                        else if (positionKey == "previous")
                             position = (fileindex == 0 ? entity._images.length : fileindex);
-                        else if (typeof position == "string") {
-                            let positions = ("" + position).split(',').map(d => d.trim());
+                        else if (typeof positionKey == "string") {
+                            let positions = ("" + positionKey).split(',').map(d => d.trim());
                             let pos = positions[Math.floor(Math.random() * positions.length)];
 
                             if (pos.indexOf('-') != -1) {
@@ -5416,7 +5418,7 @@ export class ActionManager {
                                 position = parseInt(roll.value);
                             }
                         } else
-                            position = parseInt(position);
+                            position = parseInt(positionKey);
 
                         position = Math.clamp(position, 1, entity._images.length);
 
@@ -5438,25 +5440,25 @@ export class ActionManager {
                         for (let entity of entities) {
                             let animationName = `MonksActiveTiles.${entity.documentName}.${entity.id}.animateTransitionImage`;
                             let entityObject = entity._object;
-                            if (entityObject?._transition || CanvasAnimation.getAnimation(animationName)) {
-                                log("Old transition hasn't finished", entity._object._transition_to, entity._object._transition, CanvasAnimation.getAnimation(animationName));
+                            if (entityObject?._transition || foundry.canvas.animation.CanvasAnimation.getAnimation(animationName)) {
+                                log("Old transition hasn't finished", entity._object._transition_to, entity._object._transition, foundry.canvas.animation.CanvasAnimation.getAnimation(animationName));
                                 if (entityObject && entityObject._transition_time < new Date().getTime()) {
                                     log("Old transition past due", entity._object._transition_to);
                                     await entity.update({ texture: { src: entity._object._transition_to } });
-                                    if (CanvasAnimation.getAnimation(animationName)) {
-                                        await CanvasAnimation.terminateAnimation(animationName);
+                                    if (foundry.canvas.animation.CanvasAnimation.getAnimation(animationName)) {
+                                        await foundry.canvas.animation.CanvasAnimation.terminateAnimation(animationName);
                                         continue;
                                     }
                                 } else if (!entity._object._transition) {
                                     log("Animation with no transition");
-                                    CanvasAnimation.terminateAnimation(animationName);
+                                    foundry.canvas.animation.CanvasAnimation.terminateAnimation(animationName);
                                     continue;
                                 } else
                                     continue;   // Don't add another transition if there's already a transition happening.
                             }
 
                             if (entity._images == undefined) {
-                                entity._images = await MonksActiveTiles.getTileFiles(entity.flags["monks-active-tiles"].files || []);
+                                entity._images = await MonksActiveTiles.getTileFiles(foundry.utils.getProperty(entity, "flags.monks-active-tiles.files") || []);
                             }
 
                             let position = await getPosition(entity);
@@ -5588,22 +5590,19 @@ export class ActionManager {
                         options: { show: ['tile', 'token', 'within', 'players', 'previous', 'tagger'] },
                         restrict: (entity) => {
                             return (
-                                entity instanceof Token ||
-                                entity instanceof Tile ||
-                                entity instanceof Wall ||
-                                entity instanceof Drawing ||
-                                entity instanceof Note ||
-                                entity instanceof AmbientLight ||
-                                entity instanceof AmbientSound ||
-                                entity instanceof MeasuredTemplate ||
-                                entity.constructor.name == "Terrain");
+                                entity instanceof foundry.canvas.placeables.Token ||
+                                entity instanceof foundry.canvas.placeables.Tile ||
+                                entity instanceof foundry.canvas.placeables.Wall ||
+                                entity instanceof foundry.canvas.placeables.Drawing ||
+                                entity instanceof foundry.canvas.placeables.Note ||
+                                entity instanceof foundry.canvas.placeables.AmbientLight ||
+                                entity instanceof foundry.canvas.placeables.AmbientSound ||
+                                entity instanceof foundry.canvas.placeables.MeasuredTemplate);
                         },
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
-                        defaultType: 'tiles',
+                        check: true,
+                        defaultType: 'tokens',
                         placeholder: 'Please select an entity',
-                        help: 'You may delete Tokens, Tiles, Walls, Drawings, Notes, Lights, Sounds or Terrain'
+                        help: 'You may delete Tokens, Tiles, Walls, Drawings, Notes, Lights, or Sounds'
                     },
                     {
                         id: "collection",
@@ -5618,19 +5617,18 @@ export class ActionManager {
                             let entity = $('input[name="data.entity"]', app.element).data("value") || {};
                             return entity?.id == 'previous';
                         },
-                        defvalue: 'tiles'
+                        defvalue: 'tokens'
                     }
                 ],
                 values: {
                     'collection': {
-                        'notes': "Notes",
                         'drawings': "Drawings",
-                        'terrain': "Terrain",
+                        'lighting': "Lights",
+                        'notes': "Notes",
+                        'sounds': "Sounds",
                         'tiles': "Tiles",
                         'tokens': "Tokens",
                         'walls': "Walls",
-                        'lighting': "Lights",
-                        'sounds': "Sounds",
                     }
                 },
                 fn: async (args = {}) => {
@@ -5651,7 +5649,7 @@ export class ActionManager {
                 },
                 content: async (trigger, action) => {
                     let ctrl = trigger.ctrls.find(c => c.id == "entity");
-                    let entityName = await MonksActiveTiles.entityName(action.data?.entity || ctrl?.defvalue || "previous", action.data?.collection || ctrl?.defaultType || "tiles");
+                    let entityName = await MonksActiveTiles.entityName(action.data?.entity || ctrl?.defvalue || "previous", (action.data?.entity.id == "previous" ? action.data?.collection : null) || ctrl?.defaultType || "tokens");
                     return `<span class="action-style">${i18n(trigger.name)}</span> <span class="entity-style">${entityName}</span>`;
                 }
             },
@@ -5662,9 +5660,7 @@ export class ActionManager {
                         id: "target",
                         name: "Select Targets",
                         type: "list",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         list: 'target',
                         defvalue: 'target'
                     },
@@ -5675,7 +5671,7 @@ export class ActionManager {
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
                         restrict: (entity) => {
-                            return entity instanceof Token;
+                            return entity instanceof foundry.canvas.placeables.Token;
                         },
                         conditional: (app) => { return $('select[name="data.target"]', app.element).val() !== "clear" },
                         defaultType: 'tokens'
@@ -5719,7 +5715,7 @@ export class ActionManager {
                         } else if (action.data.target == "remove") {
                             game.user.targets.forEach(t => { if (entities.find(e => e.id == t.id) != undefined) { t.setTarget(false, { user: game.user, releaseOthers: false, groupSelection: false }); } });
                         } else if (action.data.target == "target") {
-                            game.user.updateTokenTargets(entities.map(t => t.id));
+                            game.user._onUpdateTokenTargets(entities.map(t => t.id));
                         } else {
                             entities.forEach(t => t._object?.setTarget(true, { user: game.user, releaseOthers: false, groupSelection: false }));
                         }
@@ -5732,7 +5728,7 @@ export class ActionManager {
                 },
                 content: async (trigger, action) => {
                     if (action.data.target == "clear")
-                        return `<span class="action-style">${i18n("MonksActiveTiles.target.clear")} targets</span>`;
+                        return `<span class="action-style">${i18n("MonksActiveTiles.target.clear")}</span>`;
                     else {
                         let ctrl = trigger.ctrls.find(c => c.id == "entity");
                         let entityName = await MonksActiveTiles.entityName(action.data?.entity || ctrl?.defvalue || "previous", 'tokens');
@@ -5818,7 +5814,8 @@ export class ActionManager {
                     let showUsers = MonksActiveTiles.getForPlayers(showfor, args);
 
                     if (showUsers.includes(game.user.id)) {
-                        $(`#global-volume input[name="${action.data.volumetype}"]`).val(action.data.volume).change();
+                        if ($(`.global-volume [name="${action.data.volumetype}"]`).get(0))
+                            $(`.global-volume [name="${action.data.volumetype}"]`).get(0).value = action.data.volume;
                         showUsers = showUsers.filter(u => u != game.user.id);
                     }
                     if (showUsers.length) {
@@ -5890,9 +5887,7 @@ export class ActionManager {
                         type: "list",
                         defvalue: "confirm",
                         list: "dialogtype",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                     },
                     {
                         id: "id",
@@ -5912,15 +5907,6 @@ export class ActionManager {
                         subtype: "for",
                         defvalue: "trigger"
                     },
-                    {
-                        id: "closeNo",
-                        name: "MonksActiveTiles.ctrl.close-means-no",
-                        type: "checkbox",
-                        defvalue: true,
-                        conditional: (app) => {
-                            return $('select[name="data.dialogtype"]', app.element).val() == 'confirm';
-                        },
-                    },
                     { type: "line", help: "Provide either text or an html file"},
                     {
                         id: "content",
@@ -5928,9 +5914,10 @@ export class ActionManager {
                         type: "text",
                         subtype: "multiline",
                         help: '<span style="color: #FF0000;">Content will be ignored if a file is requested</span>',
-                        helpConditional: (app) => {
-                            let filename = $('input[name="data.file"]', app.element).val();
-                            let content = $('input[name="data.content"]', app.element).val();
+                        check: true,
+                        conditionalHelp: (app) => {
+                            let filename = $('[name="data.file"] > input[type="text"]', app.element).val();
+                            let content = $('[name="data.content"]', app.element).val();
                             return !!filename && !!content;
                         }
                     },
@@ -5938,12 +5925,13 @@ export class ActionManager {
                         id: "file",
                         name: "MonksActiveTiles.ctrl.htmlfile",
                         type: "filepicker",
-                        subtype: "html"
+                        subtype: "html",
+                        check: true,
                     },
                     { type: "line" },
                     {
-                        id: "options",
-                        name: "MonksActiveTiles.ctrl.options",
+                        id: "classes",
+                        name: "MonksActiveTiles.ctrl.classes",
                         type: "text",
                         conditional: (app) => {
                             return $('select[name="data.dialogtype"]', app.element).val() == 'custom';
@@ -5953,25 +5941,11 @@ export class ActionManager {
                         id: "width",
                         name: "MonksActiveTiles.ctrl.width",
                         type: "text",
-                        conditional: (app) => {
-                            return $('select[name="data.dialogtype"]', app.element).val() == 'custom';
-                        },
                     },
                     {
                         id: "height",
                         name: "MonksActiveTiles.ctrl.height",
                         type: "text",
-                        conditional: (app) => {
-                            return $('select[name="data.dialogtype"]', app.element).val() == 'custom';
-                        },
-                    },
-                    {
-                        id: "buttons",
-                        name: "MonksActiveTiles.ctrl.buttons",
-                        type: "buttonlist",
-                        conditional: (app) => {
-                            return $('select[name="data.dialogtype"]', app.element).val() == 'custom';
-                        },
                     },
                     {
                         id: "yes",
@@ -5990,6 +5964,27 @@ export class ActionManager {
                             return $('select[name="data.dialogtype"]', app.element).val() == 'confirm';
                         },
                         placeholder: "Enter the name of the Landing to jump to"
+                    },
+                    {
+                        id: "close",
+                        name: "MonksActiveTiles.ctrl.onclose",
+                        type: "text",
+                        placeholder: "Enter the name of the Landing to jump to"
+                        //placeholder: "Enter '_prevent' to prevent the close button"
+                    },
+                    {
+                        type: "line",
+                        conditional: (app) => {
+                            return $('select[name="data.dialogtype"]', app.element).val() == 'custom';
+                        }
+                    },
+                    {
+                        id: "buttons",
+                        name: "MonksActiveTiles.ctrl.buttons",
+                        type: "buttonlist",
+                        conditional: (app) => {
+                            return $('select[name="data.dialogtype"]', app.element).val() == 'custom';
+                        },
                     },
                 ],
                 values: {
@@ -6015,20 +6010,21 @@ export class ActionManager {
                     let title = action.data.title;
                     let content = action.data.content;
 
+                    let context = {
+                        actor: tokens[0]?.actor?.toObject(),
+                        token: tokens[0]?.toObject(),
+                        tile: tile,
+                        variable: foundry.utils.getProperty(tile, "flags.monks-active-tiles.variables") || {},
+                        user: game.users.get(userId),
+                        players: game.users,
+                        value: value,
+                        scene: canvas.scene,
+                        method: method,
+                        change: change
+                    };
+
                     if (action.data.file) {
-                        let context = {
-                            actor: tokens[0]?.actor?.toObject(),
-                            token: tokens[0]?.toObject(),
-                            tile: tile,
-                            variable: foundry.utils.getProperty(tile, "flags.monks-active-tiles.variables") || {},
-                            user: game.users.get(userId),
-                            players: game.users,
-                            value: value,
-                            scene: canvas.scene,
-                            method: method,
-                            change: change
-                        };
-                        if (!Handlebars.partials.hasOwnProperty(action.data.file) && action.data.file.startsWith("http")) {
+                        if (!Handlebars.partials.hasOwnProperty(action.data.file) && action.data.file?.startsWith("http")) {
                             let html = await fetch(action.data.file);
                             let text = await html.text();
                             const compiled = Handlebars.compile(text);
@@ -6039,10 +6035,13 @@ export class ActionManager {
                                 allowProtoPropertiesByDefault: true
                             });
                         } else
-                            content = await renderTemplate(action.data.file, context);
+                            content = await foundry.applications.handlebars.renderTemplate(action.data.file, context);
+                    } else {
+                        const compiled = Handlebars.compile(content);
+                        content = compiled(context, { allowProtoMethodsByDefault: true, allowProtoPropertiesByDefault: true }).trim();
                     }
 
-                    let options = JSON.parse(action.data?.options || "{}");
+                    let options = {};
                     if (action.data?.width)
                         options.width = action.data?.width != "auto" ? await getValue(action.data?.width, args, null, {type: "number"}) : action.data?.width;
                     if (action.data?.height)
@@ -6051,22 +6050,47 @@ export class ActionManager {
                     let showto = action.data.showto ?? ActionManager.getDefaultValue("dialog", "showto", "trigger");
                     let showUsers = MonksActiveTiles.getForPlayers(showto, args);
 
+                    let closeGoto = action.data.close;
+                    let buttons = foundry.utils.duplicate(action.data.buttons || []);
+                    if (action.data.dialogtype == "confirm") {
+                        buttons = [{
+                            action: "yes",
+                            icon: '<i class="fas fa-check"></i>',
+                            name: game.i18n.localize("Yes"),
+                            goto: action.data.yes
+                        },
+                        {
+                            action: "no",
+                            icon: '<i class="fas fa-xmark"></i>',
+                            name: game.i18n.localize("No"),
+                            goto: action.data.no
+                        }];
+                    } else if (action.data.dialogtype == "alert") {
+                        buttons = [{
+                            action: "ok",
+                            icon: '<i class="fas fa-check"></i>',
+                            name: game.i18n.localize("OK"),
+                            continue: true
+                        }];
+                        closeGoto = closeGoto ?? "_prevent";
+                    }
+
                     if (showUsers.includes(game.user.id)) {
                         MonksActiveTiles._showDialog({
                             tile,
                             token: tokens[0],
                             value,
-                            type: action.data.dialogtype,
                             id,
                             title,
                             content,
                             options,
-                            yes: action.data.yes,
-                            no: action.data.no,
-                            closeNo: action.data.closeNo ?? true,
-                            buttons: action.data.buttons
+                            classes: action.data.classes,
+                            closeGoto,
+                            buttons
                         }
-                        ).then((results) => { tile.resumeActions(_id, results); });
+                        ).then((results) => {
+                            tile.resumeActions(_id, results);
+                        });
                         showUsers = showUsers.filter(u => u != game.user.id);
                     }
                     if (showUsers.length) {
@@ -6080,11 +6104,10 @@ export class ActionManager {
                             id,
                             title,
                             content,
-                            options: options,
-                            yes: action.data.yes,
-                            no: action.data.no,
-                            closeNo: action.data.closeNo ?? true,
-                            buttons: action.data.buttons
+                            options,
+                            classes: action.data.classes,
+                            closeGoto,
+                            buttons: buttons
                         });
                     }
 
@@ -6331,7 +6354,7 @@ export class ActionManager {
                 },
                 content: async (trigger, action) => {
                     let ctrl = trigger.ctrls.find(c => c.id == "sceneid");
-                    let entityName = await MonksActiveTiles.entityName(action.data?.sceneid || ctrl?.defvalue || "previous", 'scene');
+                    let entityName = await MonksActiveTiles.entityName(action.data?.entity || ctrl?.defvalue || "previous", 'scene');
                     return `<span class="action-style">${i18n(trigger.name)}</span> <span class="entity-style">"${entityName}"</span> for <span class="value-style">&lt;${MonksActiveTiles.forPlayersName(action.data?.for || "trigger")}&gt;</span>`;
                 }
             },
@@ -6394,9 +6417,7 @@ export class ActionManager {
                         name: "Create page if not found",
                         type: "checkbox",
                         defvalue: false,
-                        onClick: (app) => {
-                            app.checkConditional();
-                        }
+                        check: true,
                     },
                     {
                         id: "createname",
@@ -6421,9 +6442,7 @@ export class ActionManager {
                         type: "list",
                         required: true,
                         defvalue: "append",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        }
+                        check: true,
                     },
                     {
                         id: "position",
@@ -6571,7 +6590,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['tile', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Tile); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Tile); },
                         defvalue: "tile",
                         defaultType: 'tiles',
                     },
@@ -6635,19 +6654,17 @@ export class ActionManager {
                         required: true,
                         restrict: (entity) => {
                             return (
-                                entity instanceof Token ||
-                                entity instanceof Tile ||
-                                entity instanceof Wall ||
-                                entity instanceof Drawing ||
-                                entity instanceof Note ||
-                                entity instanceof AmbientLight ||
-                                entity instanceof AmbientSound ||
-                                entity instanceof MeasuredTemplate
+                                entity instanceof foundry.canvas.placeables.Token ||
+                                entity instanceof foundry.canvas.placeables.Tile ||
+                                entity instanceof foundry.canvas.placeables.Wall ||
+                                entity instanceof foundry.canvas.placeables.Drawing ||
+                                entity instanceof foundry.canvas.placeables.Note ||
+                                entity instanceof foundry.canvas.placeables.AmbientLight ||
+                                entity instanceof foundry.canvas.placeables.AmbientSound ||
+                                entity instanceof foundry.canvas.placeables.MeasuredTemplate
                             );
                         },
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         conditional: (app) => {
                             let action = $('select[name="data.action"]', app.element).val();
                             return action != 'clear';
@@ -6671,9 +6688,7 @@ export class ActionManager {
                         type: "list",
                         required: true,
                         defvalue: "add",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                     },
                     {
                         id: "activeuser",
@@ -6833,11 +6848,13 @@ export class ActionManager {
                     if (!url.startsWith("http"))
                         url = "http://" + url;
                     if (game.user.id == userId) {
-                        Dialog.confirm({
+                        foundry.applications.api.DialogV2.confirm({
                             title: "Opening external link",
                             content: "<p>Are you sure you want to open an external link?</p><p>URL: " + url + "</p>",
-                            yes: () => {
-                                window.open(url, "_blank");
+                            yes: {
+                                callback: () => {
+                                    window.open(url, "_blank");
+                                }
                             }
                         });
                     }
@@ -6869,16 +6886,14 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "measure",
                         name: "Measure",
                         list: "measure",
                         type: "list",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         defvalue: 'lte'
                     },
                     {
@@ -6886,11 +6901,24 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.distance",
                         type: "number",
                         required: true,
-                        variation: 'unit',
                         conditional: (app) => {
                             return $('select[name="data.measure"]', app.element).val() != 'lt';
                         },
-                        defvalue: 1
+                        defvalue: 1,
+                        step: 1,
+                        min: 1,
+                        max: 99999
+                    },
+                    {
+                        id: "unit",
+                        name: "MonksActiveTiles.ctrl.unit",
+                        list: "unit",
+                        type: "list",
+                        required: true,
+                        conditional: (app) => {
+                            return $('select[name="data.measure"]', app.element).val() != 'lt';
+                        },
+                        defvalue: "sq"
                     },
                     {
                         id: "from",
@@ -6948,7 +6976,7 @@ export class ActionManager {
                             return tile.pointWithin(midToken);
                         } else {
                             let distance = parseInt(action.data?.distance.value || action.data?.distance || 0);
-                            if (action.data.distance.var == 'sq')
+                            if (action.data.unit == 'sq')
                                 distance = (t.parent.grid.size * distance);
 
                             let dest = { x: midTile.x - hW, y: midTile.y - hH };
@@ -7005,7 +7033,7 @@ export class ActionManager {
                     return { continue: cont, tokens: tokens };
                 },
                 content: async (trigger, action) => {
-                    let unit = (action.data.distance.var == 'sq' ? 'grid square' : 'pixels');
+                    let unit = (action.data.unit == 'sq' ? 'grid square' : 'pixels');
                     let ctrl = trigger.ctrls.find(c => c.id == "entity");
                     let entityName = await MonksActiveTiles.entityName(action.data?.entity || ctrl?.defvalue || "previous");
                     return `<span class="filter-style">Filter</span> <span class="entity-style">${entityName}</span> ${action.data.measure != 'lte' ? 'by a distance' : 'that are'} <span class="entity-style">${trigger.values.measure[action.data.measure || 'eq']}</span>${(action.data.measure != 'lt' ? ` <span class="details-style">"${action.data?.distance.value || action.data?.distance || 0}"</span> ${unit} of this Tile` : '')} ${(action.data?.continue != 'always' ? ', Continue if ' + (action.data?.continue == 'within' ? 'Any Within Distance' : 'All Within Distance') : '')}`;
@@ -7021,7 +7049,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "target",
@@ -7031,11 +7059,11 @@ export class ActionManager {
                         options: { show: ['tile', 'tagger'] },
                         restrict: (entity) => {
                             return (
-                                entity instanceof Token ||
-                                entity instanceof Tile ||
-                                entity instanceof Drawing ||
-                                entity instanceof Wall || 
-                                entity instanceof AmbientLight);
+                                entity instanceof foundry.canvas.placeables.Token ||
+                                entity instanceof foundry.canvas.placeables.Tile ||
+                                entity instanceof foundry.canvas.placeables.Drawing ||
+                                entity instanceof foundry.canvas.placeables.Wall || 
+                                entity instanceof foundry.canvas.placeables.AmbientLight);
                         },
                         defaultType: "tiles"
                     },
@@ -7097,13 +7125,11 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); },
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); },
                         help: '<span style="color: #FF0000;">This should probably be using the Current Tokens <i class="fas fa-arrow-up-from-bracket fa-sm"></i> instead of the Triggering Tokens</span>',
-                        helpConditional: (app) => {
+                        conditionalHelp: (app) => {
                             let entity = $('input[name="data.entity"]', app.element).data("value") || {};
                             return entity?.id == "token";
                         }
@@ -7291,7 +7317,7 @@ export class ActionManager {
                         type: "select",
                         subtype: "entity",
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "count",
@@ -7340,11 +7366,9 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                        restrict: (entity) => { return (entity instanceof Token); }
+                        restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); }
                     },
                     {
                         id: "collection",
@@ -7442,19 +7466,17 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['tile', 'token', 'within', 'players', 'previous', 'tagger'] },
                         restrict: (entity) => {
-                            return (entity instanceof Token ||
-                                entity instanceof Tile ||
-                                entity instanceof Drawing ||
-                                entity instanceof Note ||
-                                entity instanceof AmbientLight ||
-                                entity instanceof AmbientSound ||
-                                entity instanceof Wall ||
-                                entity.constructor.name == "Terrain");
+                            return (entity instanceof foundry.canvas.placeables.Token ||
+                                entity instanceof foundry.canvas.placeables.Tile ||
+                                entity instanceof foundry.canvas.placeables.Drawing ||
+                                entity instanceof foundry.canvas.placeables.Note ||
+                                entity instanceof foundry.canvas.placeables.AmbientLight ||
+                                entity instanceof foundry.canvas.placeables.AmbientSound ||
+                                entity instanceof foundry.canvas.placeables.Wall
+                            );
                         }
                     },
                     {
@@ -7492,15 +7514,16 @@ export class ActionManager {
                         'journal': "Journal Entries",
                         'tiles': "Tiles",
                         'tokens': "Tokens",
-                        'walls': "Walls",
-                        'users': "Users"
+                        'users': "Users",
+                        'walls': "Walls"
                     }
                 },
                 group: "filters",
                 fn: async (args = {}) => {
                     let { action, value, tokens, tile, method, change, userId } = args;
 
-                    let collection = action.data?.collection || "tokens";
+                    let collection = "tokens";
+                    if (action.data.entity.id == "previous" && action.data?.collection) collection = action.data?.collection;
                     if (action.data.entity.id == "tile") collection = 'tiles';
 
                     let entities = await MonksActiveTiles.getEntities(args, collection);
@@ -7568,12 +7591,10 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
                         restrict: (entity) => {
-                            return (entity instanceof Token);
+                            return (entity instanceof foundry.canvas.placeables.Token);
                         }
                     },
                     {
@@ -7604,6 +7625,8 @@ export class ActionManager {
                     let { action, value, tokens, tile } = args;
 
                     let entities = await MonksActiveTiles.getEntities(args, action.data?.collection || "tokens");
+
+                    let resultItems = [];
 
                     let result = await asyncFilter(entities, async (entity) => {
                         if (!entity.actor)
@@ -7638,10 +7661,14 @@ export class ActionManager {
                             cando = (filteredItems.length > 0);
                         }
 
+                        if (!!cando) {
+                            resultItems.concat(filteredItems);
+                        }
+
                         return !!cando;
                     });
 
-                    return { tokens: result };
+                    return { tokens: result, items: resultItems };
                 },
                 content: async (trigger, action) => {
                     let ctrl = trigger.ctrls.find(c => c.id == "entity");
@@ -7658,12 +7685,10 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
                         restrict: (entity) => {
-                            return (entity instanceof Token);
+                            return (entity instanceof foundry.canvas.placeables.Token);
                         }
                     },
                     {
@@ -7681,9 +7706,7 @@ export class ActionManager {
                             }
                             return result;
                         },
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         type: "list",
                         required: true
                     },
@@ -7790,12 +7813,10 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { show: ['tile', 'previous', 'tagger'] },
                         restrict: (entity) => {
-                            return (entity instanceof Tile);
+                            return (entity instanceof foundry.canvas.placeables.Tile);
                         },
                         defvalue: "tile",
                         defaultType: "tiles"
@@ -8115,9 +8136,7 @@ export class ActionManager {
                         id: "limit",
                         name: "MonksActiveTiles.ctrl.limit",
                         type: "text",
-                        onBlur: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                     },
                     {
                         id: "rollmode",
@@ -8185,12 +8204,10 @@ export class ActionManager {
                         name: "MonksActiveTiles.ctrl.select-entity",
                         type: "select",
                         subtype: "entity",
-                        onChange: (app) => {
-                            app.checkConditional();
-                        },
+                        check: true,
                         options: { hide: ['select'], show: ['within', 'players', 'previous', 'tagger', 'users'] },
                         restrict: (entity) => {
-                            return (entity instanceof Tile);
+                            return (entity instanceof foundry.canvas.placeables.Tile);
                         }
                     },
                     {
@@ -8274,7 +8291,7 @@ export class ActionManager {
                         subtype: "entity",
                         options: { show: ['tile', 'previous', 'tagger'] },
                         restrict: (entity) => {
-                            return (entity instanceof Tile);
+                            return (entity instanceof foundry.canvas.placeables.Tile);
                         },
                         defaultType: "tiles",
                     },
@@ -8386,7 +8403,7 @@ Hooks.on("setupTileActions", (app) => {
                         let result = {};
 
                         for (let quest of fqlAPI.DB.getAllQuests()) {
-                            result[quest._id] = quest._name;
+                            result[quest.id] = quest.name;
                         }
 
                         return result;
@@ -8449,9 +8466,7 @@ Hooks.on("setupTileActions", (app) => {
                     name: "Effect",
                     list: "effect",
                     type: "list",
-                    onChange: (app) => {
-                        app.checkConditional();
-                    },
+                    check: true,
                 },
                 {
                     id: "for",
@@ -8544,19 +8559,17 @@ Hooks.on("setupTileActions", (app) => {
                     name: "MonksActiveTiles.ctrl.select-entity",
                     type: "select",
                     subtype: "entity",
-                    onChange: (app) => {
-                        app.checkConditional();
-                    },
+                    check: true,
                     options: { show: ['tile', 'token', 'within', 'players', 'previous', 'tagger'] },
                     restrict: (entity) => { 
                         return (
-                            entity instanceof Token ||
-                            entity instanceof Tile ||
-                            entity instanceof Drawing ||
-                            entity instanceof AmbientLight ||
-                            entity instanceof AmbientSound ||
-                            entity instanceof Note ||
-                            entity instanceof Wall);
+                            entity instanceof foundry.canvas.placeables.Token ||
+                            entity instanceof foundry.canvas.placeables.Tile ||
+                            entity instanceof foundry.canvas.placeables.Drawing ||
+                            entity instanceof foundry.canvas.placeables.AmbientLight ||
+                            entity instanceof foundry.canvas.placeables.AmbientSound ||
+                            entity instanceof foundry.canvas.placeables.Note ||
+                            entity instanceof foundry.canvas.placeables.Wall);
                     }
                 },
                 {
@@ -8597,12 +8610,12 @@ Hooks.on("setupTileActions", (app) => {
                 },
                 'collection': {
                     'drawings': "Drawings",
+                    'lights': "Lights",
+                    'notes': "Notes",
+                    'sounds': "Sounds",
                     'tiles': "Tiles",
                     'tokens': "Tokens",
                     'walls': "Walls",
-                    'notes': "Notes",
-                    'lights': "Lights",
-                    'sounds': "Sounds",
                 }
             },
             group: 'tagger',
@@ -8647,7 +8660,7 @@ Hooks.on("setupTileActions", (app) => {
             },
             content: async (trigger, action) => {
                 let ctrl = trigger.ctrls.find(c => c.id == "entity");
-                let entityName = await MonksActiveTiles.entityName(action.data?.entity || ctrl?.defvalue || "previous");
+                let entityName = await MonksActiveTiles.entityName(action.data?.entity || ctrl?.defvalue || "previous", (action.data?.entity == "previous" ? action.data?.collection : null) || "tiles");
                 return `<span class="action-style">Tagger</span> <span class="details-style">"${i18n(trigger.values.state[action.data?.state])}"</span> <span class="value-style">&lt;${action.data.tag}&gt;</span> to <span class="entity-style">${entityName}</span>`;
             }
         });
@@ -8747,9 +8760,7 @@ Hooks.on("setupTileActions", (app) => {
                         return list;
                     },
                     type: "list",
-                    onChange: (app) => {
-                        app.checkConditional();
-                    },
+                    check: true,
                 },
                 {
                     id: "scale",
@@ -8905,7 +8916,7 @@ Hooks.on("setupTileActions", (app) => {
                     subtype: "entity",
                     options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
                     restrict: (entity) => {
-                        return (entity instanceof Token);
+                        return (entity instanceof foundry.canvas.placeables.Token);
                     }
                 },
                 {
@@ -8971,7 +8982,7 @@ Hooks.on("setupTileActions", (app) => {
                     subtype: "entity",
                     options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
                     restrict: (entity) => {
-                        return (entity instanceof Token);
+                        return (entity instanceof foundry.canvas.placeables.Token);
                     }
                 },
                 {

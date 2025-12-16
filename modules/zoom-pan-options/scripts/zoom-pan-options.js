@@ -32,6 +32,27 @@ function checkRotationRateLimit (layer) {
   return true
 }
 
+const updateMinMaxZoomLimits = () => {
+  if (!canvas.scene) return
+  const maxZoomFactor = getSetting('max-zoom-override') ?? 3
+  const minZoomFactor = getSetting('min-zoom-override-v2') ?? 1
+  // code based on the fvtt getDimensions function, which defaults to particular min and max scale values;
+  // in my code here I repeat the calculation but allow changing the factors
+  const sceneDimensions = canvas.scene.getDimensions()
+  const padding = sceneDimensions.size
+  const paddedSceneWidth = sceneDimensions.width + (2 * padding)
+  const paddedSceneHeight = sceneDimensions.height + (2 * padding)
+  const { innerWidth, innerHeight } = window
+  const grid = canvas.scene.grid
+  const factor = (9 / maxZoomFactor) * (canvas.scene._source.grid.size / grid.size)
+  const minZoom = Math.min(Math.min(innerWidth / paddedSceneWidth, innerHeight / paddedSceneHeight, 1) * minZoomFactor, canvas.scene.initial.scale)
+  const maxZoom = Math.max(Math.min(innerWidth / grid.sizeX, innerHeight / grid.sizeY) / factor, canvas.scene.initial.scale)
+  CONFIG.Canvas.minZoom = minZoom
+  CONFIG.Canvas.maxZoom = maxZoom
+  canvas.dimensions.scale.min = minZoom
+  canvas.dimensions.scale.max = maxZoom
+}
+
 /**
  * note:  this is not perfect which is why it's opt-in.  see issue: https://github.com/shemetz/ZoomPanOptions/issues/30
  */
@@ -56,9 +77,24 @@ function isTouchpad (event) {
 }
 
 /**
- * (note: return value is meaningless here)
+ * In foundry V13, MouseManager.#onWheel is #private so we can't override it directly :(
+ * But the way it works is basically:
+ *
+ *   event.preventDefault();
+ *   // Take no actions if the canvas is not hovered
+ *   if (not hovering over canvas#board) return
+ *   // Case 1 - active Ruler
+ *   if (ruler.active && (ctrl || shift)) return ruler._onMouseWheel(event)
+ *   // Case 2 - active Token Ruler
+ *   if (draggedToken && (ctrl || shift)) return draggedToken._onMouseWheel(event)
+ *   // Case 3 - rotate placeable objects
+ *   if ((activeLayer.controlled.length) && (ctrl || shift)) return activeLayer._onMouseWheel(event)
+ *   // Case 4 - zoom the canvas
+ *   return canvas._onMouseWheel(event)
+ *
+ * So in V13+, ZoomPanOptions will override canvas._onMouseWheel, and will no longer handle cases 1-3 above.
  */
-function _onWheel_override (event) {
+const canvas_onMouseWheel_override = (event) => {
   let mode
   const shift = event.shiftKey
   const alt = event.altKey
@@ -78,20 +114,9 @@ function _onWheel_override (event) {
     mode = getSetting('pan-zoom-mode')
   }
 
-  // Prevent zooming the entire browser window
-  if (ctrlOrMeta) {
-    event.preventDefault()
-  }
-
-  // Take no actions if the canvas is not hovered
-  if (!canvas?.ready) return
-  const hover = document.elementFromPoint(event.clientX, event.clientY)
-  if (!hover || (hover.id !== 'board')) return
-  event.preventDefault()
-
   const layer = canvas.activeLayer
 
-  // Case 1 - rotate stuff
+  // Case 4.1 - rotate stuff
   const deltaY = event.wheelDelta !== undefined ? -event.wheelDelta
     // wheelDelta is undefined in firefox
     : event.deltaY
@@ -112,7 +137,7 @@ function _onWheel_override (event) {
     })
   }
 
-  // Case 2 - zoom the canvas
+  // Case 4.2 - zoom the canvas
   // (written to be readable)
   if (
     mode === 'Mouse'
@@ -122,7 +147,7 @@ function _onWheel_override (event) {
     return zoom(event)
   }
 
-  // Cast 3 - pan the canvas horizontally (shift+scroll)
+  // Cast 4.3 - pan the canvas horizontally (shift+scroll)
   if (mode === 'Alternative' && shift) {
     // noinspection JSSuspiciousNameCombination
     return panWithMultiplier({
@@ -130,7 +155,7 @@ function _onWheel_override (event) {
     })
   }
 
-  // Case 4 - pan the canvas in the direction of the mouse/touchpad event
+  // Case 4.4 - pan the canvas in the direction of the mouse/touchpad event
   panWithMultiplier(event)
 }
 
@@ -152,15 +177,6 @@ function zoom (event) {
     return
   }
 
-  const scale = scaleChangeRatio * canvas.stage.scale.x  // scale x and scale y are the same
-  const max = canvas.scene.getFlag(MODULE_ID, 'maxZoom') ?? getSetting('max-zoom-override')
-  const min = canvas.scene.getFlag(MODULE_ID, 'minZoom') ?? getSetting('min-zoom-override')
-  if (scale > max || scale < min) {
-    console.log('Zoom/Pan Options |', `scale exceeds limit (${scale}), bounding to interval [${min}, ${max}).`)
-    canvas.pan({ scale: scale > max ? max : scale < min ? min : scale })
-    return
-  }
-
   // Acquire the cursor position transformed to Canvas coordinates
   const canvasEventPos = canvas.stage.worldTransform.applyInverse({ x: event.clientX, y: event.clientY })
   const canvasPivotPos = canvas.stage.pivot
@@ -173,7 +189,22 @@ function zoom (event) {
   // cursor in the exact same world coords.
   const x = canvasPivotPos.x + scaledDeltaX
   const y = canvasPivotPos.y + scaledDeltaY
-  canvas.pan({ scale, x, y })
+  const scale = canvas.stage.scale.x // scale x and scale y are the same
+  const targetScale = scaleChangeRatio * scale
+  const max = canvas.dimensions.scale.max
+  const min = canvas.dimensions.scale.min
+  if (targetScale > max || targetScale < min) {
+    if (scale === max || scale === min) {
+      console.log('Zoom/Pan Options |', `scale is at limit (${scale})`)
+      return
+    }
+    console.log('Zoom/Pan Options |', `scale (${targetScale}) would exceed limit, bounding to interval [${min}, ${max}).`)
+    // (we do not want to change x and y when min/max zoom is reached, to avoid unintended panning)
+    canvas.pan({ x, y, scale: Math.clamp(targetScale, min, max) })
+    return
+  }
+  /** note:  minZoom and maxZoom will be applied to canvas.dimensions.scale.max (etc) and then used in _constrainView */
+  canvas.pan({ x, y, scale: targetScale })
 }
 
 function panWithMultiplier (event) {
@@ -192,6 +223,15 @@ function disableMiddleMouseScrollIfMiddleMousePanIsActive (isActive) {
     document.body.onmousedown = function (e) { if (e.button === 1) return false }
   } else {
     document.body.onmousedown = document.body.onmousedown__disabled
+  }
+}
+
+const disableBrowserGesturesIfTouchpad = (panZoomMode) => {
+  if (panZoomMode === 'Touchpad') {
+    // disable browser back/forward gestures
+    document.getElementsByTagName('BODY')[0].style.overscrollBehaviorX = 'none'
+  } else if (document.getElementsByTagName('BODY')[0].style.overscrollBehaviorX === 'none') {
+    document.getElementsByTagName('BODY')[0].style.overscrollBehaviorX = ''
   }
 }
 
@@ -220,6 +260,9 @@ const handleMouseDown_forMiddleClickDrag = (mouseDownEvent) => {
     mim.rcTime = event.timeStamp
     mim.lastClick.set(event.clientX, event.clientY)
 
+    // Assign origin data
+    mim_assignOriginData(event)
+
     // Update event data
     mim.interactionData.origin = event.getLocalPosition(mim.layer)
 
@@ -231,8 +274,7 @@ const handleMouseDown_forMiddleClickDrag = (mouseDownEvent) => {
 
   const mim_handleClickRight = (event) => {
     const action = 'clickRight'
-    //if ( !mim.can(action, event) ) return mim.#debug(action, event, mim.handlerOutcomes.DISALLOWED);
-    if (!mim.can(action, event)) return
+    if (!mim.can(action, event)) return mim_debug(action, event, mim.handlerOutcomes.DISALLOWED)
     mim._dragRight = true
 
     //// Was the right-click event handled by the callback?
@@ -279,21 +321,16 @@ const handleMouseDown_forMiddleClickDrag = (mouseDownEvent) => {
 
     // Update interaction data
     const data = mim.interactionData
-    data.destination = event.getLocalPosition(mim.layer)
-
-    // Handling rare case when origin is not defined
-    // FIXME: The root cause should be identified and this code removed
-    if (data.origin === undefined) data.origin = new PIXI.Point().copyFrom(data.destination)
+    data.destination = event.getLocalPosition(mim.layer, data.destination)
 
     // Begin a new drag event
     if (mim.state !== mim.states.DRAG) {
-      const dx = data.destination.x - data.origin.x
-      const dy = data.destination.y - data.origin.y
+      const dx = event.global.x - data.screenOrigin.x
+      const dy = event.global.y - data.screenOrigin.y
       const dz = Math.hypot(dx, dy)
-      const r = mim.options.dragResistance || (canvas.dimensions.size / 4)
-      if (dz >= r) {
-        return mim_handleDragStart(event)
-      }
+      const r = mim.options.dragResistance ||
+        foundry.canvas.interaction.MouseInteractionManager.DEFAULT_DRAG_RESISTANCE_PX
+      if (dz >= r) mim_handleDragStart(event)
     }
 
     // Continue a drag event
@@ -304,26 +341,44 @@ const handleMouseDown_forMiddleClickDrag = (mouseDownEvent) => {
     clearTimeout(mim.constructor.longPressTimeout)
     const action = mim._dragRight ? 'dragRightStart' : 'dragLeftStart'
     if (!mim.can(action, event)) {
-      //mim.#debug(action, event, mim.handlerOutcomes.DISALLOWED);
+      mim_debug(action, event, mim.handlerOutcomes.DISALLOWED)
       mim.cancel(event)
       return
     }
     mim.state = mim.states.DRAG
     if (mim.callback(action, event) === false) {
       mim.state = mim.states.GRABBED
-      //return mim.#debug(action, event, mim.handlerOutcomes.REFUSED);
+      return mim_debug(action, event, mim.handlerOutcomes.REFUSED)
     }
-    //return mim.#debug(action, event, mim.handlerOutcomes.ACCEPTED);
+    return mim_debug(action, event, mim.handlerOutcomes.ACCEPTED)
   }
 
   const mim_handleDragMove = (event) => {
     clearTimeout(mim.constructor.longPressTimeout)
     const action = mim._dragRight ? 'dragRightMove' : 'dragLeftMove'
-    //if ( !mim.can(action, event) ) return mim.#debug(action, event, mim.handlerOutcomes.DISALLOWED);
-    if (!mim.can(action, event)) return
-    //const handled = mim.callback(action, event);
-    mim.callback(action, event)
-    //return mim.#debug(action, event, handled ? mim.handlerOutcomes.ACCEPTED : mim.handlerOutcomes.REFUSED);
+    if (!mim.can(action, event)) return mim_debug(action, event, mim.handlerOutcomes.DISALLOWED)
+    const handled = mim.callback(action, event)
+    return mim_debug(action, event, handled ? mim.handlerOutcomes.ACCEPTED : mim.handlerOutcomes.REFUSED)
+  }
+
+  const mim_assignOriginData = (event) => {
+    // Set the origin point from layer local position
+    mim.interactionData.origin = event.getLocalPosition(mim.layer)
+
+    // Set screenOrigin as the screen coordinates of the origin
+    mim.interactionData.screenOrigin = new PIXI.Point(event.global.x, event.global.y)
+  }
+
+  const mim_debug = (action, event, outcome = mim.handlerOutcomes.ACCEPTED) => {
+    if (CONFIG.debug.mouseInteraction) {
+      const name = mim.object.constructor.name
+      const targetName = event.target?.constructor.name
+      const { eventPhase, type, button } = event
+      const state = Object.keys(mim.states)[mim.state.toString()]
+      let msg = `${name} | ${action} | state:${state} | target:${targetName} | phase:${eventPhase} | type:${type} | `
+        + `btn:${button} | skipped:${outcome <= -2} | allowed:${outcome > -1} | handled:${outcome > 1}`
+      console.debug(msg)
+    }
   }
 
   mim_handleRightDown(mouseDownEvent)
@@ -337,7 +392,7 @@ const handleMouseUp_forMiddleClickDrag = (mouseUpEvent) => {
   const mim = canvas.mouseInteractionManager
   // Copying (and mildly altering) code from MouseInteractionManager functions. mostly replacing references
 
-  const mim_handleMouseUp = (event) => {
+  const mim_handlePointerUp = (event) => {
     //clearTimeout(mim.constructor.longPressTimeout);
     //// If this is a touch hover event, treat it as a drag
     //if ( (mim.state === mim.states.HOVER) && (event.pointerType === "touch") ) {
@@ -348,55 +403,64 @@ const handleMouseUp_forMiddleClickDrag = (mouseUpEvent) => {
     const priorState = mim.state
 
     // Update event data
-    mim.interactionData.destination = event.getLocalPosition(mim.layer)
-
-    //// Handling of a degenerate case:
-    //// When the manager is in a clicked state and that the button is released in another object
-    //const emulateHoverOut = (mim.state === mim.states.CLICKED) && !event.defaultPrevented
-    //  && (event.target !== mim.object) && (event.target?.parent !== mim.object);
-    //if ( emulateHoverOut ) {
-    //  event.stopPropagation();
-    //  mim.state = mim.states.HOVER;
-    //  mim.#deactivateClickEvents();
-    //  mim.#handleMouseOut(event);
-    //}
+    mim.interactionData.destination = event.getLocalPosition(mim.layer, mim.interactionData.destination)
 
     if (mim.state >= mim.states.DRAG) {
       event.stopPropagation()
       if (event.type.startsWith('right') && !mim._dragRight) return
-      mim_handleDragDrop(event)
+      if (mim.state === mim.states.DRAG) mim_handleDragDrop(event)
     }
 
     // Continue a multi-click drag workflow
     if (event.defaultPrevented) {
       mim.state = priorState
-      //return mim.#debug("mouseUp", event, mim.handlerOutcomes.SKIPPED);
-      return
+      return mim_debug('mouseUp', event, mim.handlerOutcomes.SKIPPED)
     }
+
+    // Handle the unclick event
+    mim_handleUnclick(event)
 
     // Cancel the workflow
     return mim_handleDragCancel(event)
   }
 
   const mim_handleDragDrop = (event) => {
-    const action = mim._dragRight ? 'dragRightDrop' : 'dragLeftDrop'
-    //if ( !mim.can(action, event) ) return mim.#debug(action, event, mim.handlerOutcomes.DISALLOWED);
-    if (!mim.can(action, event)) return
+    const action = 'dragRightDrop'
+    if (!mim.can(action, event)) return mim_debug(action, event, mim.handlerOutcomes.DISALLOWED)
 
     // Was the drag-drop event handled by the callback?
-    //if ( mim.callback(action, event) === false ) return mim.#debug(action, event, mim.handlerOutcomes.DISALLOWED);
-    if (mim.callback(action, event) === false) return
+    mim.state = mim.states.DROP
+    if (mim.callback(action, event) === false) {
+      mim.state = mim.states.DRAG
+      return mim_debug(action, event, mim.handlerOutcomes.DISALLOWED)
+    }
 
     // Update the workflow state
-    mim.state = mim.states.DROP
-    //return mim.#debug(action, event);
+    return mim_debug(action, event)
   }
 
   const mim_handleDragCancel = (event) => {
     mim.cancel(event)
   }
 
-  mim_handleMouseUp(mouseUpEvent)
+  const mim_handleUnclick = (event) => {
+    // I'm just simplifying the code here
+    event.stopPropagation()
+  }
+
+  const mim_debug = (action, event, outcome = mim.handlerOutcomes.ACCEPTED) => {
+    if (CONFIG.debug.mouseInteraction) {
+      const name = mim.object.constructor.name
+      const targetName = event.target?.constructor.name
+      const { eventPhase, type, button } = event
+      const state = Object.keys(mim.states)[mim.state.toString()]
+      let msg = `${name} | ${action} | state:${state} | target:${targetName} | phase:${eventPhase} | type:${type} | `
+        + `btn:${button} | skipped:${outcome <= -2} | allowed:${outcome > -1} | handled:${outcome > 1}`
+      console.debug(msg)
+    }
+  }
+
+  mim_handlePointerUp(mouseUpEvent)
   // `return false` will call stopPropagation and preventDefault
   return false
 }
@@ -455,68 +519,10 @@ function _onDragCanvasPan_override (event) {
   if (dx || dy) return this.animatePan({ x: this.stage.pivot.x + dx, y: this.stage.pivot.y + dy, duration: 200 })
 }
 
-function _createInteractionManager_wrapper (wrapped, ...args) {
-  const mim = wrapped(...args)
-  Object.defineProperty(mim.options, 'dragResistance', {
-    set: function (_value) {
-      console.error(MODULE_ID,
-        'dragResistance was patched to be a read-only dynamic value, you can\'t set it! (report this as a module bug)')
-    },
-    get: function () {
-      return betterDragResistance()
-    },
-    enumerable: true,
-  })
-  return mim
-}
-
-const betterDragResistance = () => {
-  const setting = getSetting('drag-resistance-mode')
-  if (setting === 'Foundry Default') {
-    return undefined
-  } else if (setting === 'Responsive') {
-    return 0.1
-  } else if (setting === 'Scaling') {
-    const scale = canvas.stage.scale.x
-    const multiplier = 20 // feels like about 1% of width
-    return multiplier / scale
-  }
-}
-
-const updateCanvasDragResistance = () => {
-  canvas.mouseInteractionManager.options.dragResistance = betterDragResistance()
-}
-
-const addZoomSettingsToSceneConfig = (sceneConfig, html) => {
-  const scene = sceneConfig.object
-  const minMapZoom = scene.getFlag(MODULE_ID, 'minZoom') ?? ''
-  const maxMapZoom = scene.getFlag(MODULE_ID, 'maxZoom') ?? ''
-  const placeholderMin = getSetting('min-zoom-override')
-  const placeholderMax = getSetting('max-zoom-override')
-
-  let injectedHtml = `<div class="form-group zoom-pan-options-scene">
-		<label>${localizeUi('scene-field-group-label', 'name')}</label>
-		<div class="form-fields">
-			<label for="flags.${MODULE_ID}.minZoom">${localizeUi('scene-min-field-label', 'name')}</label>
-			<input type="number" name="flags.${MODULE_ID}.minZoom" min=0.01 max=10 step=0.1 value="${minMapZoom}" placeholder="${placeholderMin}">
-			<label for="flags.${MODULE_ID}.maxZoom">${localizeUi('scene-max-field-label', 'name')}</label>
-			<input type="number" name="flags.${MODULE_ID}.maxZoom" min=1 max=10 step=1 value="${maxMapZoom}" placeholder="${placeholderMax}">
-		</div>
-		<p class="notes">${localizeUi('scene-field-group-label', 'hint')}</p>
-	</div>`
-  injectedHtml = $(injectedHtml)
-  const injectPoint = $(html[0].querySelector('form div[data-tab="basic"] div.initial-position'))
-
-  injectPoint.after(injectedHtml)
-
-  // refresh window height to avoid having a scrollbar that hides the extra div
-  sceneConfig.setPosition()
-}
-
 const avoidLockViewIncompatibility = () => {
   Hooks.on('libWrapper.ConflictDetected', (p1, p2, target, frozenNames) => {
     if ((p1 === MODULE_ID && p2 === 'LockView') || p2 === MODULE_ID && p1 === 'LockView') {
-      if (frozenNames.includes('Canvas.prototype._onDragCanvasPan')) {
+      if (frozenNames.includes('foundry.canvas.Canvas.prototype._onDragCanvasPan')) {
         if (!game.user.isGM) {
           if (!getSetting('disable-lock-view-compatibility-fix')) {
             isConflictingWithLockView = true
@@ -553,7 +559,6 @@ Hooks.on('init', function () {
     type: Boolean,
     onChange: disableMiddleMouseScrollIfMiddleMousePanIsActive,
   })
-  // migrating away from this...
   game.settings.register(MODULE_ID, 'min-max-zoom-override', {
     name: 'OLD min-max-zoom-override',
     scope: 'client',
@@ -561,7 +566,6 @@ Hooks.on('init', function () {
     type: Number,
     default: null,
   })
-  // ...to these two:
   game.settings.register(MODULE_ID, 'max-zoom-override', {
     name: localizeSetting('max-zoom-override', 'name'),
     hint: localizeSetting('max-zoom-override', 'hint'),
@@ -569,38 +573,36 @@ Hooks.on('init', function () {
     config: true,
     default: 3,
     type: Number,
+    onChange: updateMinMaxZoomLimits,
   })
+  // migrating away from this...
   game.settings.register(MODULE_ID, 'min-zoom-override', {
     name: localizeSetting('min-zoom-override', 'name'),
     hint: localizeSetting('min-zoom-override', 'hint'),
     scope: 'client',
-    config: true,
+    config: false,
     default: 1 / 3,
     type: Number,
+    onChange: updateMinMaxZoomLimits,
   })
-  // migration (will be removed in a year or so)
-  if (game.settings.get(MODULE_ID, 'min-max-zoom-override') !== null) {
-    console.log('Zoom/Pan Options |', 'migrating min-max-zoom-override to max-zoom-override and min-zoom-override')
-    console.log('Zoom/Pan Options |',
-      `old setting value was: ${game.settings.get(MODULE_ID, 'min-max-zoom-override')}}`)
-    game.settings.set(MODULE_ID, 'max-zoom-override', game.settings.get(MODULE_ID, 'min-max-zoom-override'))
-    game.settings.set(MODULE_ID, 'min-zoom-override', 1 / game.settings.get(MODULE_ID, 'min-max-zoom-override'))
-    game.settings.set(MODULE_ID, 'min-max-zoom-override', null)
-  }
-  game.settings.register(MODULE_ID, 'drag-resistance-mode', {
-    name: localizeSetting('drag-resistance-mode', 'name'),
-    hint: localizeSetting('drag-resistance-mode', 'hint'),
+  // ...to this:
+  game.settings.register(MODULE_ID, 'min-zoom-override-v2', {
+    name: localizeSetting('min-zoom-override', 'name'),
+    hint: localizeSetting('min-zoom-override', 'hint'),
     scope: 'client',
     config: true,
-    type: String,
-    choices: {
-      'Foundry Default': localizeSetting('drag-resistance-mode', 'choice_foundry'),
-      'Responsive': localizeSetting('drag-resistance-mode', 'choice_responsive'),
-      'Scaling': localizeSetting('drag-resistance-mode', 'choice_scaling'),
-    },
-    default: 'Scaling',
-    onChange: updateCanvasDragResistance,
+    default: 1,
+    type: Number,
+    onChange: updateMinMaxZoomLimits,
   })
+  if (game.settings.get(MODULE_ID, 'min-zoom-override') !== null) {
+    console.log('Zoom/Pan Options |', 'migrating min-zoom-override to min-zoom-override-v2')
+    console.log('Zoom/Pan Options |',
+      `old setting value was: ${game.settings.get(MODULE_ID, 'min-zoom-override')}}`)
+    game.settings.set(MODULE_ID, 'min-zoom-override-v2', game.settings.get(MODULE_ID, 'min-zoom-override') * 3)
+    game.settings.set(MODULE_ID, 'min-zoom-override', null)
+  }
+
   game.settings.register(MODULE_ID, 'pan-zoom-mode', {
     name: localizeSetting('pan-zoom-mode', 'name'),
     hint: localizeSetting('pan-zoom-mode', 'hint'),
@@ -612,11 +614,20 @@ Hooks.on('init', function () {
       'Touchpad': localizeSetting('pan-zoom-mode', 'choice_touchpad'),
       'Alternative': localizeSetting('pan-zoom-mode', 'choice_alternative'),
     },
+    onChange: disableBrowserGesturesIfTouchpad,
     default: 'Mouse',
   })
   game.settings.register(MODULE_ID, 'auto-detect-touchpad', {
     name: localizeSetting('auto-detect-touchpad', 'name'),
     hint: localizeSetting('auto-detect-touchpad', 'hint'),
+    scope: 'client',
+    config: true,
+    default: false,
+    type: Boolean,
+  })
+  game.settings.register(MODULE_ID, 'invert-vertical-scroll', {
+    name: localizeSetting('invert-vertical-scroll', 'name'),
+    hint: localizeSetting('invert-vertical-scroll', 'hint'),
     scope: 'client',
     config: true,
     default: false,
@@ -637,14 +648,6 @@ Hooks.on('init', function () {
     config: true,
     default: 1,
     type: Number,
-  })
-  game.settings.register(MODULE_ID, 'invert-vertical-scroll', {
-    name: localizeSetting('invert-vertical-scroll', 'name'),
-    hint: localizeSetting('invert-vertical-scroll', 'hint'),
-    scope: 'client',
-    config: true,
-    default: false,
-    type: Boolean,
   })
   game.settings.register(MODULE_ID, 'pad-value-when-dragging', {
     name: localizeSetting('pad-value-when-dragging', 'name'),
@@ -699,37 +702,25 @@ Hooks.on('init', function () {
 Hooks.once('setup', function () {
   libWrapper.register(
     MODULE_ID,
-    'MouseManager.prototype._onWheel',
+    'foundry.canvas.Canvas.prototype._onMouseWheel',
     (event) => {
-      return _onWheel_override(event)
+      return canvas_onMouseWheel_override(event)
     },
     'OVERRIDE',
   )
   libWrapper.register(
     MODULE_ID,
-    'Canvas.prototype._onDragCanvasPan',
+    'foundry.canvas.Canvas.prototype._onDragCanvasPan',
     _onDragCanvasPan_override,
     'OVERRIDE',
   )
-  libWrapper.register(
-    MODULE_ID,
-    'PlaceableObject.prototype._createInteractionManager',
-    _createInteractionManager_wrapper,
-    'WRAPPER',
-  )
   disableMiddleMouseScrollIfMiddleMousePanIsActive(getSetting('middle-mouse-pan'))
-  // Canvas.maxZoom is bounded lower inside the libwrapped function, but setting it this high ensures core foundry code
-  // doesn't over-constrain it
-  CONFIG.Canvas.maxZoom = 999
+  disableBrowserGesturesIfTouchpad(getSetting('pan-zoom-mode'))
   console.log('Done setting up Zoom/Pan Options.')
 })
 
 Hooks.on('canvasReady', () => {
   canvas.stage.on('mousedown', handleMouseDown_forMiddleClickDrag)
   canvas.stage.on('mouseup', handleMouseUp_forMiddleClickDrag)  // technically this isn't necessary, based on testing
-  updateCanvasDragResistance()
+  updateMinMaxZoomLimits()
 })
-Hooks.once('canvasReady', () => {
-  Hooks.on('canvasPan', updateCanvasDragResistance)
-})
-Hooks.on('renderSceneConfig', addZoomSettingsToSceneConfig)

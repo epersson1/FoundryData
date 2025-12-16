@@ -26,7 +26,7 @@
 		{{#each userMetas}}
 			<label class="ve-flex-vh-center mb-2">
 				<span class="mr-2 no-wrap w-200p ve-text-right">{{name}}:</span>
-				<select name="sel-ownership-{{formName}}" class="w-100">
+				<select name="sel-ownership-{{formName}}" class="w-100 form-control input-xs">
 					{{#each ownershipMetas}}
 						<option value="{{value}}" {{#if isSelected}}selected{{/if}}>{{name}}</option>
 					{{/each}}

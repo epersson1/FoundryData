@@ -65,11 +65,11 @@ class AutocompleteMenu {
         const suggestionArea = "<textarea id='autocomplete-suggestion' autocomplete='off' disabled></textarea>";
 
         // Insert UI into DOM.
-        chatInput.parentElement.insertAdjacentHTML("beforebegin", menuContainer);
+        chatInput.insertAdjacentHTML("beforebegin", menuContainer);
         chatInput.insertAdjacentHTML("afterend", suggestionArea);
 
         // Store important elements locally.
-        this.container = chatInput.parentElement.previousElementSibling;
+        this.container = chatInput.previousElementSibling;
         this.chatInput = chatInput;
         this.suggestionArea = chatInput.nextElementSibling;
 
@@ -91,9 +91,10 @@ class AutocompleteMenu {
      * @package
      */
     static initialize() {
-        Hooks.on('renderChatLog', (app, html) => {
+        Hooks.on("moveChatInput", input => {
             if (!game.settings.get("_chatcommands", "autocomplete")) return;
-            app.autocompleteMenu = new AutocompleteMenu(html[0].querySelector("#chat-message"));
+            ui.chat.autocompleteMenu ??= new AutocompleteMenu(document.getElementById("chat-message"));
+            ui.chat.autocompleteMenu._move(input);
         });
     }
 
@@ -323,6 +324,15 @@ class AutocompleteMenu {
      */
     resetSuggestion() {
         this.suggestionArea.value = "";
+    }
+
+    /**
+     * Ensures that elements of this menu are siblings of the given input.
+     * @param {HTMLTextAreaElement} input The input for chat messages.
+     */
+    _move(input) {
+        if (input.previousElementSibling !== this.container) input.before(this.container);
+        if (input.nextElementSibling !== this.suggestionArea) input.after(this.suggestionArea);
     }
 
     /**

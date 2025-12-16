@@ -1,21 +1,18 @@
-import { debugEnabled, geti18nOptions, i18n, warn } from "../../midi-qol.js";
-import { ReplaceDefaultActivities, configSettings } from "../settings.js";
+import { debugEnabled, GameSystemConfig, i18n, warn } from "../../midi-qol.js";
+import { Workflow } from "../Workflow.js";
+import { replaceDefaultActivities, autoCheckSavesOptions, configSettings } from "../settings.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
 import { MidiSaveActivity } from "./SaveActivity.js";
 // WIP
-export var MidiContestedCheckActivity;
-export var MidiCheckSheet;
-var ContestedCheckActivity;
+export let MidiContestedCheckActivity;
+export let MidiCheckSheet;
 export function setupContestedCheckActivity() {
 	if (debugEnabled > 0)
 		warn("MidiQOL | ContestedCheckActivity | setupContestedCheckActivity | Called");
 	//@ts-expect-error
-	const GameSystemConfig = game.system.config;
-	ContestedCheckActivity = GameSystemConfig.activityTypes.check.documentClass;
-	//@ts-expect-error
 	MidiCheckSheet = defineMidiCheckSheetClass(game.system.applications.activity.CheckSheet);
-	MidiContestedCheckActivity = defineMidiContestedCheckActivityClass(ContestedCheckActivity);
-	if (ReplaceDefaultActivities) {
+	MidiContestedCheckActivity = defineMidiContestedCheckActivityClass(GameSystemConfig.activityTypes.check.documentClass);
+	if (replaceDefaultActivities) {
 		// GameSystemConfig.activityTypes["dnd5eAttack"] = GameSystemConfig.activityTypes.attack;
 		GameSystemConfig.activityTypes.check = { documentClass: MidiContestedCheckActivity };
 	}
@@ -24,19 +21,18 @@ export function setupContestedCheckActivity() {
 	}
 }
 function getSceneTargets() {
-	if (!canvas?.tokens)
+	if (!canvas.tokens)
 		return [];
-	const controlledTokens = canvas?.tokens?.controlled;
+	const controlledTokens = canvas.tokens?.controlled;
 	let targets = controlledTokens?.filter(t => t.actor);
-	//@ts-expect-error getActiveTokens should actually be an array of tokens - not just linked and not document
 	if (!targets?.length && game.user?.character)
 		targets = game.user?.character?.getActiveTokens(false, false);
 	return targets;
 }
 let defineMidiContestedCheckActivityClass = (ActivityClass) => {
 	return class MidiContestedCheckActivity extends MidiActivityMixin(ActivityClass) {
-		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "DND5E.SAVE", "DND5E.CHECK", "midi-qol.CHECK"];
-		static supermetadata = super.metadata;
+		static LOCALIZATION_PREFIXES = ["DND5E.SAVE", "DND5E.CHECK", "midi-qol.CHECK", "midi-qol.SAVE", ...super.LOCALIZATION_PREFIXES];
+		static superMetadata = super.metadata;
 		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.CHECK.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
@@ -48,7 +44,7 @@ let defineMidiContestedCheckActivityClass = (ActivityClass) => {
 					rollDamage: MidiSaveActivity.metadata.usage.actions.rollDamage
 				}
 			},
-		}, { inplace: false, insertKeys: true, invsertValues: true });
+		}, { inplace: false, insertKeys: true, insertValues: true });
 		static defineSchema() {
 			const { StringField, ArrayField, BooleanField, SchemaField, ObjectField } = foundry.data.fields;
 			//@ts-expect-error
@@ -66,19 +62,20 @@ let defineMidiContestedCheckActivityClass = (ActivityClass) => {
 			return schema;
 		}
 		static async #rollCheck(event, target, message) {
+			const workflow = message ? Workflow.getWorkflow(message._uuid) : null;
+			if (workflow)
+				workflow.activity = this;
 			const targets = getSceneTargets();
 			if (!targets?.length)
 				ui.notifications?.warn("DND5E.ActionWarningNoToken", { localize: true });
 			let { ability, dc, skill, tool } = target.dataset;
 			dc = parseInt(dc);
-			//@ts-expect-error
 			let item = this.item;
-			//@ts-expect-error
 			let check = this.check;
-			const data = { event, targetValue: Number.isFinite(dc) ? dc : check.dc.value };
+			const data = { event, targetValue: Number.isFinite(dc) ? dc : check?.dc.value };
 			if (targets)
 				for (const token of targets) {
-					data.speaker = ChatMessage.getSpeaker({ scene: canvas?.scene ?? undefined, token: token.document });
+					data.speaker = ChatMessage.getSpeaker({ scene: canvas.scene ?? undefined, token: token.document });
 					if (skill) {
 						const actor = token.actor;
 						if (!actor)
@@ -88,8 +85,11 @@ let defineMidiContestedCheckActivityClass = (ActivityClass) => {
 					}
 					else if (tool) {
 						const checkData = { ...data, ability };
-						if ((item.type === "tool") && !check.associated.size) {
+						// @ts-expect-error no dnd5e-types
+						if ((item.type === "tool") && !check?.associated.size) {
+							// @ts-expect-error no dnd5e-types
 							checkData.bonus = item.system.bonus;
+							// @ts-expect-error no dnd5e-types
 							checkData.prof = item.system.prof;
 							checkData.item = item;
 						}
@@ -114,10 +114,12 @@ let defineMidiContestedCheckActivityClass = (ActivityClass) => {
 		get isSelfTriggerableOnly() {
 			return false;
 		}
-		async rollDamage(config = {}, dialog = {}, message = {}) {
+		async _triggerSubsequentActions(config, results) {
+		}
+		async rollDamage(config, dialog = {}, message = {}) {
 			message = foundry.utils.mergeObject({
 				"data.flags.dnd5e.roll": {
-					damageOnSave: this.damage.onSave
+					damageOnSave: this.damage?.onSave
 				}
 			}, message);
 			return super.rollDamage(config, dialog, message);
@@ -127,7 +129,7 @@ let defineMidiContestedCheckActivityClass = (ActivityClass) => {
 		}
 		_usageChatButtons(message) {
 			const buttons = [];
-			if (this.damage.parts.length)
+			if (this.damage?.parts.length)
 				buttons.push({
 					label: i18n("DND5E.Damage"),
 					icon: '<i class="fas fa-burst" inert></i>',
@@ -161,7 +163,7 @@ export function defineMidiCheckSheetClass(baseClass) {
 				{ value: "full", label: i18n("DND5E.SAVE.FIELDS.damage.onSave.Full") }
 			];
 			// WIP
-			let autoCheckOptions = foundry.utils.duplicate(geti18nOptions("autoCheckSavesOptions"));
+			let autoCheckOptions = foundry.utils.duplicate(autoCheckSavesOptions);
 			delete autoCheckOptions["none"];
 			context.SaveDisplayOptions = Object.keys(autoCheckOptions).reduce((acc, key) => {
 				acc.push({ value: key, label: autoCheckOptions[key] });

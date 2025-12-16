@@ -16,8 +16,8 @@
 			</select>
 		</label>
 
-		<button class="ve-btn ve-btn-5et ve-col-2-4" disabled>Currently Prepared</button>
-		<button class="ve-btn ve-btn-5et ve-col-2-4" disabled>Preparation Mode</button>
+		<button class="ve-btn ve-btn-5et ve-col-2-4" disabled>Spellcasting Method</button>
+		<button class="ve-btn ve-btn-5et ve-col-2-4" disabled>Preparation</button>
 	</div>
 
 	<div class="veapp__list mb-1 h-100">
@@ -34,20 +34,22 @@
 				</div>
 
 				<div class="ve-col-2-4 ve-flex-v-center">
-					<select class="w-100 mx-1 input-xs veapp__sel-row-inline form-control" name="sel-is-prepared">
+					<select class="w-100 mx-1 input-xs veapp__sel-row-inline form-control" name="sel-method">
 						<option value="-1" title="Use Config Default">&mdash;</option>
-						<option value="0">Not Prepared</option>
-						<option value="1">Currently Prepared</option>
-					</select>
-				</div>
-				<div class="ve-col-2-4 ve-flex-v-center">
-					<select class="w-100 mx-1 input-xs veapp__sel-row-inline form-control" name="sel-preparation-mode">
-						<option value="-1" title="Use Config Default">&mdash;</option>
-						<option value="always">Always Prepared</option>
 						<option value="atwill">At-Will</option>
 						<option value="innate">Innate Spellcasting</option>
+						<option value="ritual">Ritual Only</option>
 						<option value="pact">Pact Magic</option>
-						<option value="prepared">Prepared</option>
+						<option value="spell">Spellcasting</option>
+					</select>
+				</div>
+
+				<div class="ve-col-2-4 ve-flex-v-center">
+					<select class="w-100 mx-1 input-xs veapp__sel-row-inline form-control" name="sel-prepared">
+						<option value="-1" title="Use Config Default">&mdash;</option>
+						<option value="0">Not Prepared</option>
+						<option value="1">Prepared</option>
+						<option value="2">Always Prepared</option>
 					</select>
 				</div>
 			</label>

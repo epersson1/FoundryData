@@ -1,12 +1,17 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
+/**
+ * @ignore
+ * @module
+ */
 import Container from './Container.js';
 import { getLocalizedAlignmentList } from '../../utils.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
 const defaultFlow = 'vertical';
 const defaultAlign = 'center';
 const defaultTitleStyle = 'default';
@@ -35,12 +40,36 @@ export const TITLE_STYLES = {
  */
 class Panel extends Container {
     /**
+     * Panel flow
+     */
+    _flow;
+    /**
+     * Panel alignment
+     */
+    _align;
+    /**
+     * Panel collapsible
+     */
+    _collapsible;
+    /**
+     * Panel default collapsed
+     */
+    _defaultCollapsed;
+    /**
+     * Panel title
+     */
+    _title;
+    /**
+     * Panel title style
+     */
+    _titleStyle;
+    /**
      * Constructor
      */
     constructor(props) {
         super(props);
         this._flow = props.flow ?? defaultFlow;
-        this._align = props.align ?? '';
+        this._align = props.align ?? defaultAlign;
         this._collapsible = props.collapsible ?? false;
         this._defaultCollapsed = props.defaultCollapsed ?? true;
         this._title = props.title ?? '';
@@ -62,7 +91,7 @@ class Panel extends Container {
         let layoutClass = '';
         switch (this._flow) {
             case 'vertical':
-                layoutClass = '';
+                layoutClass = 'flexcol';
                 break;
             case 'horizontal':
                 layoutClass = 'flexrow';
@@ -95,7 +124,7 @@ class Panel extends Container {
         internalContents.addClass(alignClass);
         internalContents.addClass('custom-system-panel');
         internalContents.append(await this.renderContents(entity, isEditable, options));
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             internalContents.append(await this.renderTemplateControls(entity));
         }
         if (this._collapsible) {
@@ -106,7 +135,7 @@ class Panel extends Container {
                 detailsElt.addClass(`custom-system-details-${this.key}`);
             }
             detailsElt.on('toggle', (e) => {
-                game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.extended', e.currentTarget.open);
+                void game.user.setFlag(game.system.id, entity.uuid + '.' + this.templateAddress + '.extended', e.currentTarget.open);
             });
             if (isExtended) {
                 detailsElt.attr('open', 'open');
@@ -122,7 +151,12 @@ class Panel extends Container {
             }
             const titleElt = $(`<${titleStyleTag}></${titleStyleTag}>`);
             titleElt.addClass('custom-system-panel-' + this._titleStyle);
-            titleElt.append(this._title ?? '');
+            if (TemplateSystem.isBuilderTemplateSystem(entity) && this.escapeHTML) {
+                titleElt.text(this._title ?? '');
+            }
+            else {
+                titleElt.append(this._title ?? '');
+            }
             summaryElt.append(titleElt);
             summaryElt.on('click', (e) => {
                 e.preventDefault();
@@ -171,21 +205,10 @@ class Panel extends Container {
      */
     static fromJSON(json, templateAddress, parent) {
         const panel = new Panel({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
-            flow: json.flow,
-            align: json.align,
-            collapsible: json.collapsible,
-            defaultCollapsed: json.defaultCollapsed,
-            title: json.title,
-            titleStyle: json.titleStyle,
+            ...json,
             contents: [],
-            cssClass: json.cssClass,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            parent: parent,
+            templateAddress: templateAddress
         });
         panel._contents = componentFactory.createMultipleComponents(json.contents, templateAddress + '-contents', panel);
         return panel;
@@ -210,42 +233,39 @@ class Panel extends Container {
      * Get configuration form for component creation / edition
      * @return The jQuery element holding the component
      */
-    static async getConfigForm(existingComponent, _entity) {
+    static async getConfigForm(_entity, appId, existingComponent) {
         const predefinedValuesComponent = { ...existingComponent };
         predefinedValuesComponent.collapsible = predefinedValuesComponent.collapsible ?? false;
-        predefinedValuesComponent.notCollapsible = !predefinedValuesComponent.collapsible;
         predefinedValuesComponent.defaultCollapsed = predefinedValuesComponent.defaultCollapsed ?? false;
-        predefinedValuesComponent.defaultExpanded = !predefinedValuesComponent.defaultCollapsed;
         predefinedValuesComponent.title = predefinedValuesComponent.title ?? '';
         predefinedValuesComponent.titleStyle = predefinedValuesComponent.titleStyle ?? defaultTitleStyle;
         predefinedValuesComponent.align = predefinedValuesComponent.align ?? defaultAlign;
         predefinedValuesComponent.flow = predefinedValuesComponent.flow ?? defaultFlow;
-        const mainElt = $('<div></div>');
-        mainElt.append(await renderTemplate(`systems/${game.system.id}/templates/_template/components/panel.hbs`, {
+        const mainElt = document.createElement('div');
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/components/panel.hbs`, {
             ...predefinedValuesComponent,
             ALIGNMENTS: getLocalizedAlignmentList(true),
             TITLE_STYLES,
-            LAYOUTS
-        }));
-        return mainElt;
-    }
-    /**
-     * @inheritdoc
-     */
-    static attachListenersToConfigForm(html) {
-        const toggleCollapsibleOption = () => {
-            if (panelCollapsibleYes.is(':checked')) {
-                html.find('#collapsiblePanelOptions').show();
+            LAYOUTS,
+            appId
+        });
+        const toggleCollapsibleOption = (display) => {
+            const collapsiblePanelOptions = mainElt.querySelector('.collapsiblePanelOptions');
+            if (display) {
+                collapsiblePanelOptions.style.display = 'block';
             }
             else {
-                html.find('#collapsiblePanelOptions').hide();
+                collapsiblePanelOptions.style.display = 'none';
             }
         };
-        const panelCollapsibleYes = html.find('#panelCollapsibleYes');
-        const panelCollapsibleNo = html.find('#panelCollapsibleNo');
-        panelCollapsibleYes.on('change', toggleCollapsibleOption);
-        panelCollapsibleNo.on('change', toggleCollapsibleOption);
-        toggleCollapsibleOption();
+        mainElt.querySelectorAll('[name="collapsible"]').forEach((element) => {
+            element.addEventListener('change', (event) => {
+                const target = event.currentTarget;
+                toggleCollapsibleOption(target.value === 'true');
+            });
+        });
+        toggleCollapsibleOption(!!predefinedValuesComponent.collapsible);
+        return mainElt;
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -254,16 +274,17 @@ class Panel extends Container {
      * @return The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
-        const superFieldData = super.extractConfig(html);
+    static extractConfig(rawConfigData, html) {
+        const configData = rawConfigData;
+        const superFieldData = super.extractConfig(configData, html);
         const fieldData = {
             ...superFieldData,
-            flow: html.find('#panelFlow').val()?.toString() ?? defaultFlow,
-            align: html.find('#panelAlign').val()?.toString() ?? defaultAlign,
-            collapsible: html.find('#panelCollapsibleYes').is(':checked'),
-            defaultCollapsed: html.find('#panelDefaultCollapsed').is(':checked'),
-            title: html.find('#panelTitle').val()?.toString(),
-            titleStyle: html.find('#panelTitleStyle').val()?.toString()
+            flow: configData.flow ?? defaultFlow,
+            align: configData.align ?? defaultAlign,
+            collapsible: configData.collapsible === 'true',
+            defaultCollapsed: configData.defaultCollapsed === 'true',
+            title: configData.title,
+            titleStyle: configData.titleStyle
         };
         return fieldData;
     }

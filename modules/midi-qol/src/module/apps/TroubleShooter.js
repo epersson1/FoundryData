@@ -1,6 +1,6 @@
-import { geti18nOptions, i18n, systemConcentrationId } from "../../midi-qol.js";
-import { CheckedAuthorsList, checkedModuleList, checkMechanic, collectSettingData, configSettings, enableWorkflow, exportSettingsToJSON, fetchParams, importSettingsFromJSON, safeGetGameSetting } from "../settings.js";
-import { REQUIRED_MODULE_VERSIONS, getModuleVersion, installedModules } from "../setupModules.js";
+import { i18n, systemConcentrationId } from "../../midi-qol.js";
+import { autoApplyDamageOptions, autoCEEffectsOptions, autoCheckHitOptions, autoCheckSavesOptions, autoEffectsOptions, autoTargetOptions, CheckedAuthorsList, checkedModuleList, checkMechanic, collectSettingData, configSettings, coverCalculationOptions, enableWorkflow, exportSettingsToJSON, fetchParams, importSettingsFromJSON, rangeTargetOptions, safeGetGameSetting } from "../settings.js";
+import { USEFUL_MODULE_VERSIONS, getModuleVersion, installedModules } from "../setupModules.js";
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const minimumMidiVersion = "11.0.7";
 export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -16,13 +16,14 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 	_fixerFuncs;
 	get nextFixerId() { this._fixerId += 1; return this._fixerId; }
 	_hookId;
-	constructor(options) {
-		super(options);
+	constructor(...args) {
+		super(...args);
 		TroubleShooter.data = TroubleShooter.collectTroubleShooterData();
+		//@ts-expect-error
 		this._hookId = Hooks.on("midi-qol.TroubleShooter.recordError", (errorDetail) => {
 			if (TroubleShooter.data.isLocal) {
 				TroubleShooter.data = TroubleShooter.collectTroubleShooterData();
-				this.render({ force: true, ...options });
+				this.render({ force: true });
 			}
 		});
 		return this;
@@ -32,12 +33,13 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 	//   if (options.tab) this._tabs[0].activate(options.tab);
 	//   return this;
 	// }
-	static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+	static DEFAULT_OPTIONS = {
 		id: "midi-trouble-shooter",
 		classes: ["midi-trouble-shooter"],
 		window: {
 			title: "midi-qol.TroubleShooter.Label",
-			resizable: true
+			resizable: true,
+			contentClasses: ["standard-form"]
 		},
 		position: {
 			height: "auto",
@@ -53,7 +55,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 			clear: TroubleShooter.#onClear,
 			overwrite: TroubleShooter.#onOverwrite
 		}
-	}, { inplace: false });
+	};
 	static PARTS = {
 		tabs: { template: "templates/generic/tab-navigation.hbs" },
 		summary: { template: "modules/midi-qol/templates/troubleshooter/summary.hbs" },
@@ -91,6 +93,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		const stack = err.stack?.split("\n").map(s => removeIpAddressAndHostName(s));
 		const errorDetail = { timestamp, timeString, error: { message: err.message, stack }, message };
 		this.errors.push(errorDetail);
+		//@ts-expect-error
 		Hooks.callAll("midi-qol.TroubleShooter.recordError", errorDetail);
 	}
 	static clearErrors() {
@@ -107,7 +110,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		saveDataToFile(JSON.stringify(data, null, 2), "text/json", filename);
 	}
 	static async importTroubleShooterDataFromJSONDialog() {
-		const content = await renderTemplate("templates/apps/import-data.html", { hint1: "Choose a Trouble Shooter JSON file to import" });
+		const content = await foundry.applications.handlebars.renderTemplate("templates/apps/import-data.hbs", { hint1: "Choose a Trouble Shooter JSON file to import" });
 		let dialog = new Promise((resolve, reject) => {
 			new DialogV2({
 				window: { title: `Import Trouble Shooter Data` },
@@ -120,7 +123,8 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				buttons: [
 					{
 						action: "import",
-						label: '<i class="fas fa-file-import"></i> Import',
+						icon: "fa-solid fa-file-import",
+						label: 'Import',
 						default: true,
 						callback: event => {
 							const form = event.currentTarget?.querySelector("form");
@@ -139,13 +143,20 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 								for (let error of TroubleShooter.data.errors) {
 									error.timeString = `${new Date(error.timestamp).toLocaleDateString()} - ${new Date(error.timestamp).toLocaleTimeString()}`;
 								}
+								// Midi Settings Summary fields now all need to be a string. Older versions had booleans etc there so force them to string
+								const midiSummary = TroubleShooter.data.summary.midiSettings;
+								Object.keys(midiSummary).forEach(key => {
+									if (typeof midiSummary[key] !== "string")
+										midiSummary[key] = `${midiSummary[key]}`;
+								});
 								resolve(true);
 							});
 						}
 					},
 					{
 						action: "no",
-						label: '<i class="fas fa-times"></i> Cancel',
+						icon: "fa-solid fa-xmark",
+						label: 'Cancel',
 						callback: event => resolve(false)
 					}
 				],
@@ -155,7 +166,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 	}
 	static getDetailedSettings(moduleId) {
 		const returnValue = {};
-		let settings = Array.from(game.settings?.settings ?? []).filter(i => i[0].includes(moduleId) && i[1].namespace === moduleId);
+		let settings = Array.from(game.settings.settings ?? []).filter(i => i[0].includes(moduleId) && i[1].namespace === moduleId);
 		settings.forEach(i => {
 			if (typeof i[1].name !== "string")
 				return;
@@ -173,11 +184,12 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 	}
 	async _onSubmit(...args) {
 		let [event, options] = args;
-		// console.error("On Submit", event, options.updateData, options.preventClose, options.preventRender);
+		// error("On Submit", event, options.updateData, options.preventClose, options.preventRender);
 		return {};
 	}
 	async _preClose(options) {
 		await super._preClose(options);
+		//@ts-expect-error
 		Hooks.off("midi-qol.TroubleShooter.recordError", this._hookId);
 	}
 	static #onExport(event) {
@@ -214,7 +226,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		// @ts-expect-error
 		this.overWriteMidiSettings();
 	}
-	_onRender(context, options) {
+	async _onRender(context, options) {
 		super._onRender(context, options);
 		for (let i = 0; i < this._fixerFuncs.length; i++) {
 			const id = `#fixer-${i + 1}`;
@@ -247,11 +259,13 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				buttons: [
 					{
 						action: "overwrite",
-						label: '<i class="fas fa-file-import"></i> Overwrite',
+						icon: "fa-solid fa-file-import",
+						label: 'Overwrite',
 						callback: async (event) => {
 							await exportSettingsToJSON(); // Just a safety net saving of the settings
 							const settingsJSON = TroubleShooter.data.midiSettings;
 							importSettingsFromJSON(settingsJSON);
+							//@ts-expect-error
 							Hooks.callAll("midi-qol.configSettingsChanged");
 							resolve(true);
 						}
@@ -259,7 +273,8 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 					{
 						action: "cancel",
 						default: true,
-						label: '<i class="fas fa-times"></i> Cancel',
+						icon: "fa-solid fa-xmark",
+						label: 'Cancel',
 						callback: event => resolve(false)
 					}
 				],
@@ -302,19 +317,19 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 			{
 				type: "button",
 				action: "refresh",
-				icon: "fa-solid fa-cogs",
+				icon: "fa-solid fa-gears",
 				label: "MENU.Reload"
 			},
 			{
 				type: "button",
 				action: "clear",
-				icon: "fa-solid fa-cogs",
+				icon: "fa-solid fa-gears",
 				label: "midi-qol.TroubleShooter.ClearErrors"
 			},
 			{
 				type: "button",
 				action: "export",
-				icon: "fa-solid fa-save",
+				icon: "fa-solid fa-floppy-disk",
 				label: "SIDEBAR.Export"
 			},
 			{
@@ -354,7 +369,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 	}
 	static collectTroubleShooterData() {
 		let data = {
-			midiVersion: game.modules?.get("midi-qol")?.version,
+			midiVersion: game.modules.get("midi-qol")?.version,
 			isLocal: true,
 			fileName: "Local Settings",
 			summary: {},
@@ -372,8 +387,8 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 			"foundry-version": gameVersion,
 			"Game System": gameSystemId,
 			"Game System Version": game.system?.version,
-			"midi-qol-version": game.modules?.get("midi-qol")?.version,
-			"Dynamic Active Effects Version": game.modules?.get("dae")?.version,
+			"midi-qol-version": game.modules.get("midi-qol")?.version,
+			"Dynamic Active Effects Version": game.modules.get("dae")?.version,
 			"coreSettings": {
 				"Photo Sensitivity": safeGetGameSetting("core", "photosensitiveMode")
 			},
@@ -384,11 +399,12 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				"Critical Damage Maximize Dice": safeGetGameSetting(gameSystemId, "criticalDamageMaxDice"),
 				"Critical Damage Modifiers": safeGetGameSetting(gameSystemId, "criticalDamageModifiers"),
 				"Concentration Disabled": safeGetGameSetting(gameSystemId, "disableConcentration"),
+				"Attack Visibility": safeGetGameSetting(gameSystemId, "attackRollVisibility"),
+				"Challenge Visibility": safeGetGameSetting(gameSystemId, "challengeVisibility"),
 			},
 			"moduleSettings": {}
 		};
-		if (canvas?.scene) {
-			// @ts-expect-error environment
+		if (canvas.scene) {
 			const globalIllumination = canvas.scene?.environment?.globalLight?.enabled;
 			data.summary["coreSettings"]["Scene Details"] =
 				`${canvas.scene.dimensions.height} x ${canvas.scene.dimensions.width} | Size: ${canvas.scene.grid.size} | Type: ${Object.keys(CONST.GRID_TYPES)[canvas.scene.grid.type]} | Distance: ${canvas.scene.grid.distance} | Global Illumination ${globalIllumination}`;
@@ -409,43 +425,48 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				` (${collection.invalidDocumentIds.size} ${i18n("Invalid")})` : ""}`;
 		}
 		data.summary["coreSettings"]["World Object counts"] = Object.values(report).join(" | ");
-		data.summary["coreSettings"]["Module Count"] = `Active: ${game.modules?.filter(m => m.active).length} | Installed: ${game.modules?.size}`;
-		if (game.modules?.get("ActiveAuras")?.active) {
+		data.summary["coreSettings"]["Module Count"] = `Active: ${game.modules.filter(m => m.active).length} | Installed: ${game.modules.size}`;
+		if (game.modules.get("ActiveAuras")?.active) {
 			data.summary.moduleSettings["Active Auras In Combat"] = safeGetGameSetting("ActiveAuras", "combatOnly");
 		}
-		if (game.modules?.get("ddb-importer")?.active) {
+		if (game.modules.get("ddb-importer")?.active) {
 		}
 		else
 			data.summary.moduleSettings["DDB Importer"] = i18n("midi-qol.Inactive");
-		if (game.modules?.get("dfreds-convenient-effects")?.active) {
+		if (game.modules.get("dfreds-convenient-effects")?.active) {
 			data.summary.moduleSettings["Convenient Effects Modify Status Effects"] = safeGetGameSetting("dfreds-convenient-effects", "modifyStatusEffects");
 		}
 		else
 			data.summary.moduleSettings["Convenient Effects"] = i18n("midi-qol.Inactive");
-		if (game.modules?.get("monks-little-details")?.active) {
+		if (game.modules.get("monks-little-details")?.active) {
 			data.summary.moduleSettings["Monk's Little Details Status Effects"] = safeGetGameSetting("monks-little-details", "add-extra-statuses");
 			data.summary.moduleSettings["Monk's Little Clear Targets"] = safeGetGameSetting("monks-little-details", "clear-targets");
 			data.summary.moduleSettings["Monk's Little Remember Targets"] = safeGetGameSetting("monks-little-details", "remember-previous");
 		}
 		else
 			data.summary.moduleSettings["Monk's Little Details"] = i18n("midi-qol.Inactive");
-		if (game.modules?.get("monks-tokenbar")?.active) {
+		if (game.modules.get("monks-tokenbar")?.active) {
 			data.summary.moduleSettings["Monk's Token Bar Allow Players to use"] = safeGetGameSetting("monks-tokenbar", "allow-player");
 		}
 		else
 			data.summary.moduleSettings["Monks Token Bar"] = i18n("midi-qol.Inactive");
-		if (game.modules?.get("sequencer")?.active) {
+		if (game.modules.get("flash-rolls-5e")?.active) {
+			data.summary.moduleSettings["Flash Token Bar Active"] = "true";
+		}
+		else
+			data.summary.moduleSettings["Flash Token Bar"] = i18n("midi-qol.Inactive");
+		if (game.modules.get("sequencer")?.active) {
 			data.summary.moduleSettings["Sequencer Enable Effects"] = safeGetGameSetting("sequencer", "effectsEnabled");
 			data.summary.moduleSettings["Sequencer Enable Sounds"] = safeGetGameSetting("sequencer", "soundsEnabled");
 		}
 		else
 			data.summary.moduleSettings["Sequencer"] = i18n("midi-qol.Inactive");
-		if (game.modules?.get("times-up")?.active) {
+		if (game.modules.get("times-up")?.active) {
 			data.summary.moduleSettings["Times Up Disable Passive Effects Expiry"] = safeGetGameSetting("times-up", "DisablePassiveEffects");
 		}
 		else
 			data.summary.moduleSettings["Times-Up"] = i18n("midi-qol.Inactive");
-		if (game.modules?.get("tokenmagic")?.active) {
+		if (game.modules.get("tokenmagic")?.active) {
 			data.summary.moduleSettings["Token Magic FX Automatic Template Effects "] = safeGetGameSetting("tokenmagic", "autoTemplateEnabled");
 			data.summary.moduleSettings["Token Magic FX Default Template Grid on Hover "] = safeGetGameSetting("tokenmagic", "defaultTemplateOnHover");
 			data.summary.moduleSettings["Token Magic FX Auto Hide Template Elements "] = safeGetGameSetting("tokenmagic", "autohideTemplateElements");
@@ -453,25 +474,25 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		else
 			data.summary.moduleSettings["Token Magic FX"] = i18n("midi-qol.Inactive");
 		data.summary.midiSettings = {};
-		data.summary.midiSettings["Enable Roll Automation Support (Client Setting)"] = enableWorkflow;
-		data.summary.midiSettings["Auto Target on Template Draw"] = geti18nOptions("autoTargetOptions")[configSettings.autoTarget];
-		data.summary.midiSettings["Auto Target for Ranged Targets/Spells"] = geti18nOptions("rangeTargetOptions")[configSettings.rangeTarget];
-		data.summary.midiSettings["Auto Apply Item Effects"] = geti18nOptions("AutoEffectsOptions")[configSettings.autoItemEffects];
-		data.summary.midiSettings["Apply Convenient Effects"] = geti18nOptions("AutoCEEffectsOptions")[configSettings.autoCEEffects];
-		data.summary.midiSettings["Auto Check Hits"] = geti18nOptions("autoCheckHitOptions")[configSettings.autoCheckHit];
-		data.summary.midiSettings["Roll Seperate Attacks per Target"] = configSettings.attackPerTarget;
-		data.summary.midiSettings["Auto Check Saves"] = geti18nOptions("autoCheckSavesOptions")[configSettings.autoCheckSaves];
-		data.summary.midiSettings["Auto Apply Damage to Target"] = geti18nOptions("autoApplyDamageOptions")[configSettings.autoApplyDamage];
+		data.summary.midiSettings["Enable Roll Automation Support (Client Setting)"] = `${enableWorkflow}`;
+		data.summary.midiSettings["Auto Target on Template Draw"] = autoTargetOptions[configSettings.autoTarget];
+		data.summary.midiSettings["Auto Target for Ranged Targets/Spells"] = rangeTargetOptions[configSettings.rangeTarget];
+		data.summary.midiSettings["Auto Apply Item Effects"] = autoEffectsOptions[configSettings.autoItemEffects];
+		data.summary.midiSettings["Apply Convenient Effects"] = autoCEEffectsOptions[configSettings.autoCEEffects];
+		data.summary.midiSettings["Auto Check Hits"] = autoCheckHitOptions[configSettings.autoCheckHit];
+		data.summary.midiSettings["Roll Seperate Attacks per Target"] = `${configSettings.attackPerTarget}`;
+		data.summary.midiSettings["Auto Check Saves"] = autoCheckSavesOptions[configSettings.autoCheckSaves];
+		data.summary.midiSettings["Auto Apply Damage to Target"] = autoApplyDamageOptions[configSettings.autoApplyDamage];
 		// data.summary.midiSettings["Enable Concentration Automation"] = configSettings.concentrationAutomation;
-		data.summary.midiSettings["Expire 1Hit/1Attack/1Action on roll"] = checkMechanic("actionSpecialDurationImmediate");
+		data.summary.midiSettings["Expire 1Hit/1Attack/1Action on roll"] = `${checkMechanic("actionSpecialDurationImmediate")}`;
 		data.summary.midiSettings["Inapacitated Actors can't Take Actions"] = checkMechanic("incapacitated");
-		data.summary.midiSettings["Calculate Cover"] = geti18nOptions("CoverCalculationOptions")[configSettings.optionalRules.coverCalculation];
-		data.summary.midiSettings["Add Fake GM Dice"] = configSettings.addFakeDice;
+		data.summary.midiSettings["Calculate Cover"] = coverCalculationOptions[configSettings.optionalRules.coverCalculation];
+		data.summary.midiSettings["Add Fake GM Dice"] = `${configSettings.addFakeDice}`;
 		data.summary.knownModules = {};
 		let tempModules = {};
 		// Find modules by id
 		checkedModuleList.forEach(matcher => {
-			const modules = game.modules?.filter(m => !!m.id.match(matcher)) ?? [];
+			const modules = game.modules.filter(m => !!m.id.match(matcher)) ?? [];
 			if (modules.length > 0) {
 				modules.forEach(module => {
 					foundry.utils.setProperty(tempModules, module.id, { title: module.title, active: module.active, installed: true, moduleVersion: module.version, foundryVersion: module.compatibility?.verified });
@@ -485,7 +506,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		const maxVersion = baseVersion + ".999";
 		CheckedAuthorsList.forEach(matcher => {
 			// @ts-expect-error
-			const modules = game.modules?.filter(m => m.authors.find(au => au.name.toLocaleLowerCase().match(matcher))) ?? [];
+			const modules = game.modules.filter(m => m.authors.find(au => au.name.toLocaleLowerCase().match(matcher))) ?? [];
 			if (modules.length > 0) {
 				modules.forEach(module => {
 					foundry.utils.setProperty(tempModules, module.id, { title: module.title, active: module.active, installed: true, moduleVersion: module.version, foundryVersion: module.compatibility?.verified });
@@ -505,7 +526,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 			foundry.utils.setProperty(data.summary.knownModules, moduleId, { title: "Not installed", active: false, installed: false, moduleVersion: ``, foundryVersion: `` });
 		});
 		*/
-		for (let moduleData of game?.modules ?? []) {
+		for (let moduleData of game.modules ?? []) {
 			let module = moduleData;
 			if (!module.active && !checkedModuleList.includes(module.id))
 				continue;
@@ -538,7 +559,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 					break;
 				case "autoanimations":
 					foundry.utils.setProperty(data.modules[module.id], "settings", TroubleShooter.getDetailedSettings(module.id));
-					if (game.modules?.get("autoanimations")?.active)
+					if (game.modules.get("autoanimations")?.active)
 						this.checkAutoAnimations(data);
 					break;
 				case "combat-utility-belt":
@@ -579,7 +600,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 					foundry.utils.setProperty(data.modules[module.id], "settings", TroubleShooter.getDetailedSettings(module.id));
 					break;
 				case "lib-wrapper":
-					if (!(game.modules?.get("lib-wrapper")?.active)) {
+					if (!(game.modules.get("lib-wrapper")?.active)) {
 						data.problems.push({
 							moduleId: "lib-wrapper",
 							severity: "Error",
@@ -613,12 +634,15 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				case "monks-tokenbar":
 					foundry.utils.setProperty(data.modules[module.id], "settings", TroubleShooter.getDetailedSettings(module.id));
 					break;
+				case "flash-rolls-5e":
+					foundry.utils.setProperty(data.modules[module.id], "settings", TroubleShooter.getDetailedSettings(module.id));
+					break;
 				case "multilevel-tokens":
 					break;
 				case "simbuls-cover-calculator":
 					break;
 				case "socketlib":
-					if (!(game.modules?.get("socketlib")?.active)) {
+					if (!(game.modules.get("socketlib")?.active)) {
 						data.problems.push({
 							moduleId: "socketlib",
 							severity: "Error",
@@ -631,7 +655,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 					;
 					break;
 				case "times-up":
-					if (!(game.modules?.get("times-up")?.active)) {
+					if (!(game.modules.get("times-up")?.active)) {
 						data.problems.push({
 							moduleId: "times-up",
 							severity: "Warn",
@@ -648,7 +672,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 					break;
 				case "warpgate":
 					foundry.utils.setProperty(data.modules[module.id], "settings", TroubleShooter.getDetailedSettings(module.id));
-					// if (game.modules?.get("warpgate")?.active) TroubleShooter.checkWarpgateUserPermissions(data);
+					// if (game.modules.get("warpgate")?.active) TroubleShooter.checkWarpgateUserPermissions(data);
 					break;
 				case "wjmaia":
 					break;
@@ -676,12 +700,12 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 		// Check Incompatible modules
 		data.summary.incompatible = Object.keys(data.modules)
-			.filter(key => data.modules[key].incompatible)
+			.filter(key => data.modules[key].incompatible && game.modules.get(key)?.active)
 			.map(key => ({ key, title: data.modules[key].title }));
 		data.summary.foundryModuleIssues = foundry.utils.duplicate(game.issues?.packageCompatibilityIssues);
 		for (let key in data.summary.foundryModuleIssues) {
 			const issue = data.summary.foundryModuleIssues[key];
-			issue.title = game.modules?.get(key)?.title;
+			issue.title = game.modules.get(key)?.title;
 			delete issue.manifest;
 		}
 		data.summary.outOfDate = Object.keys(data.modules)
@@ -711,10 +735,10 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 			moduleVersion: data.modules[key].version,
 			version: data.modules[key].compatibility
 		}));
-		for (let key of Object.keys(REQUIRED_MODULE_VERSIONS)) {
-			if (game.modules?.get(key)?.active) {
+		for (let key of Object.keys(USEFUL_MODULE_VERSIONS)) {
+			if (game.modules.get(key)?.active) {
 				const installedVersion = getModuleVersion(key);
-				const requiredVersion = REQUIRED_MODULE_VERSIONS[key];
+				const requiredVersion = USEFUL_MODULE_VERSIONS[key];
 				if (foundry.utils.isNewerVersion(requiredVersion, installedVersion)) {
 					data.problems.push({
 						moduleId: key,
@@ -756,7 +780,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 			case "center":
 				break;
 			case "centerLevels":
-				if (!(game.modules?.get("levels")?.active)) {
+				if (!(game.modules.get("levels")?.active)) {
 					data.problems.push({
 						moduleId: "levels",
 						severity: "Error",
@@ -767,7 +791,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				}
 				break;
 			case "levelsautocover":
-				if (!(game.modules?.get("levelsautocover")?.active)) {
+				if (!(game.modules.get("levelsautocover")?.active)) {
 					data.problems.push({
 						moduleId: "levelsautocover",
 						severity: "Error",
@@ -778,7 +802,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				}
 				break;
 			case "simbuls-cover-calculator":
-				if (!(game.modules?.get("simbuls-cover-calculator")?.active)) {
+				if (!(game.modules.get("simbuls-cover-calculator")?.active)) {
 					data.problems.push({
 						moduleId: "simbuls-cover-calculator",
 						severity: "Error",
@@ -798,7 +822,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				});
 				break;
 			case "tokencover":
-				if (!(game.modules?.get("tokencover")?.active)) {
+				if (!(game.modules.get("tokencover")?.active)) {
 					data.problems.push({
 						moduleId: "tokencover",
 						severity: "Error",
@@ -813,7 +837,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 			case "none":
 				break;
 			case "levelsautocover":
-				if (!(game.modules?.get("levelsautocover")?.active)) {
+				if (!(game.modules.get("levelsautocover")?.active)) {
 					data.problems.push({
 						moduleId: "levelsautocover",
 						severity: "Error",
@@ -824,7 +848,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				}
 				break;
 			case "simbuls-cover-calculator":
-				if (!(game.modules?.get("simbuls-cover-calculator")?.active)) {
+				if (!(game.modules.get("simbuls-cover-calculator")?.active)) {
 					data.problems.push({
 						moduleId: "simbuls-cover-calculator",
 						severity: "Error",
@@ -844,7 +868,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				});
 				break;
 			case "tokencover":
-				if (!(game.modules?.get("tokencover")?.active)) {
+				if (!(game.modules.get("tokencover")?.active)) {
 					data.problems.push({
 						moduleId: "tokencover",
 						severity: "Error",
@@ -857,7 +881,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 		switch (configSettings.autoTarget) {
 			case "dftemplates":
-				if (!game.modules?.get("df-templates")?.active) {
+				if (!game.modules.get("df-templates")?.active) {
 					data.problems.push({
 						moduleId: "dftemplates",
 						severity: "Error",
@@ -868,7 +892,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				}
 				break;
 			case "walledtemplates":
-				if (!game.modules?.get("walledtemplates")?.active) {
+				if (!game.modules.get("walledtemplates")?.active) {
 					data.problems.push({
 						moduleId: "walledtemplates",
 						severity: "Error",
@@ -891,6 +915,16 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				fixer: "Enable the 'monks-tokenbar' module"
 			});
 		}
+		if (!installedModules.get("flash-rolls-5e")
+			&& (configSettings.playerRollSaves === "ftb" || configSettings.rollNPCSaves === "ftb" || configSettings.rollNPCLinkedSaves === "ftb")) {
+			data.problems.push({
+				moduleId: "flash-rolls-5e",
+				severity: "Error",
+				problemSummary: "You must enable the 'flash-rolls-5e' module to use the 'Flash Token Bar' option for 'Roll NPC/Player Saves'",
+				problemDetail: undefined,
+				fixer: "Enable the 'flash-rolls-5e' module"
+			});
+		}
 		if (!installedModules.get("lmrtfy") &&
 			(configSettings.playerRollSaves === "lmrtfy" || configSettings.rollNPCSaves === "lmrtfy" || configSettings.rollNPCLinkedSaves === "lmrtfy")) {
 			data.problems.push({
@@ -903,7 +937,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 	}
 	static checkWalledTemplates(data) {
-		if (game.modules?.get("walledtemplates")?.active) {
+		if (game.modules.get("walledtemplates")?.active) {
 			const walledTemplatesTargeting = safeGetGameSetting("walledtemplates", "autotarget-menu") === 'yes' || (safeGetGameSetting("walledtemplates", "autotarget-menu") === 'toggle' && safeGetGameSetting("walledtemplates", "autotarget-enabled"));
 			// const walledTemplatesTargeting = safeGetGameSetting("walledtemplates", "autotarget-enabled");
 			const midiTargeting = configSettings.autoTarget !== "walledtemplates" && configSettings.autoTarget !== "none";
@@ -967,7 +1001,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 	}
 	static checkItemMacro(data) {
-		if (!game.modules?.get("itemacro")?.active)
+		if (!game.modules.get("itemacro")?.active)
 			return;
 		if (safeGetGameSetting('itemacro', 'charsheet')) {
 			data.problems.push({
@@ -983,6 +1017,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 					}
 					// @ts-expect-error
 					await game.settings.set("itemacro", "charsheet", false);
+					//@ts-expect-error
 					SettingsConfig.reloadConfirm({ world: true });
 				},
 				fixerId: -1
@@ -1032,7 +1067,7 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 	// }
 	// Check for tokens with no actors
 	static checkNoActorTokens(data) {
-		const problemTokens = canvas?.tokens?.placeables.filter(token => !token.actor);
+		const problemTokens = canvas.tokens?.placeables.filter(token => !token.actor);
 		if (problemTokens?.length) {
 			let problem = {
 				moduleId: "midi-qol",
@@ -1056,11 +1091,10 @@ export class TroubleShooter extends HandlebarsApplicationMixin(ApplicationV2) {
 				problemSummary: "Combat automation is disabled",
 				problemDetail: "Also need to check on all player clients",
 				fixerFunc: async function (app) {
-					// @ts-expect-error
-					game.settings?.set("midi-qol", "EnableWorkflow", true).then(() => {
+					game.settings.set("midi-qol", "EnableWorkflow", true).then(() => {
 						fetchParams();
 						TroubleShooter.data = TroubleShooter.collectTroubleShooterData();
-						app.render(true);
+						app.render({ force: true });
 					});
 				},
 				fixerId: -1

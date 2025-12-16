@@ -1,8 +1,3 @@
-2025/04/14-11:12:56.986 4aa8 Recovering log #132
-2025/04/14-11:12:57.038 4aa8 Delete type=0 #132
-2025/04/14-11:12:57.038 4aa8 Delete type=3 #130
-2025/04/14-11:15:48.609 3ffc Level-0 table #137: started
-2025/04/14-11:15:48.609 3ffc Level-0 table #137: 0 bytes OK
-2025/04/14-11:15:48.634 3ffc Delete type=0 #135
-2025/04/14-11:15:48.659 3ffc Manual compaction at level-0 from '!folders!2BtQ1uSgD2NzAeIR' @ 72057594037927935 : 1 .. '!folders!zcJqfS6oqHwYDFFO' @ 0 : 0; will stop at (end)
-2025/04/14-11:15:48.684 3ffc Manual compaction at level-1 from '!folders!2BtQ1uSgD2NzAeIR' @ 72057594037927935 : 1 .. '!folders!zcJqfS6oqHwYDFFO' @ 0 : 0; will stop at (end)
+2025/05/18-17:16:23.792 32a0 Recovering log #148
+2025/05/18-17:16:23.848 32a0 Delete type=0 #148
+2025/05/18-17:16:23.848 32a0 Delete type=3 #146

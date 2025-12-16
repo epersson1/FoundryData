@@ -1,32 +1,32 @@
-import { debug, warn, i18n, error, debugEnabled, MODULE_ID } from "../midi-qol.js";
-import { DDBGameLogWorkflow, Workflow } from "./Workflow.js";
-import { nsaFlag, coloredBorders, configSettings, forceHideRoll, safeGetGameSetting } from "./settings.js";
+import { debug, warn, i18n, error, debugEnabled, MODULE_ID, MESSAGE_TYPES } from "../midi-qol.js";
+import { DDBGameLogWorkflow, Workflow, WorkflowDataFlags } from "./Workflow.js";
+import { nsaFlag, coloredBorders, configSettings, forceHideRoll, safeGetGameSetting, saveToChatCard } from "./settings.js";
 import { playerFor, playerForActor, doOverTimeEffect, isInCombat } from "./utils.js";
-import { socketlibSocket, unTimedExecuteAsGM } from "./GMAction.js";
+import { preferredActiveGM, socketlibSocket, unTimedExecuteAsGM } from "./GMAction.js";
 import { TroubleShooter } from "./apps/TroubleShooter.js";
 export const MAESTRO_MODULE_NAME = "maestro";
 export const MODULE_LABEL = "Maestro";
 export let colorChatMessageHandler = (message, html, data) => {
 	if (coloredBorders === "none")
 		return true;
-	let actorId = message.speaker.actor;
-	let userId = message.author;
-	let actor = game.actors?.get(actorId);
+	let actorId = message.speaker.actor ?? "";
+	let userId = message.author?.id ?? "";
+	let actor = message.speakerActor;
 	let user = game.users?.get(userId);
 	if (actor)
 		user = playerForActor(actor);
 	if (!user)
 		return true;
-	html[0].style.borderColor = user.color;
-	const sender = html.find('.message-sender')[0];
+	html.style.borderColor = user.color.toString();
+	const sender = html.querySelector('.message-sender');
 	if (!sender)
 		return;
 	if (coloredBorders === "borderNamesBackground") {
 		sender.style["text-shadow"] = `1px 1px 1px #FFFFFF`;
-		sender.style.backgroundColor = user.color;
+		sender.style.backgroundColor = user.color.toString();
 	}
 	else if (coloredBorders === "borderNamesText") {
-		sender.style.color = user.color;
+		sender.style.color = user.color.toString();
 		sender.style["text-shadow"] = `1px 1px 1px ${sender.style.color}`;
 	}
 	return true;
@@ -34,15 +34,15 @@ export let colorChatMessageHandler = (message, html, data) => {
 // TODO think about monks tb on preUpdateChatMessage?
 // Also should ideally be async.
 export function checkOverTimeSaves(message, data, options, user) {
-	if (!message.rolls?.length || !["skill", "save", "ability"].includes(data.flags?.dnd5e?.roll?.type))
+	if (!message.rolls?.length || !["skill", "save", "ability"].includes(data.flags?.dnd5e?.roll?.type ?? ""))
 		return true;
-	let actor = game.actors?.get(message.speaker.actor);
+	let actor = message.speakerActor;
 	if (message.speaker.token) {
-		actor = game.scenes?.get(message.speaker.scene)?.tokens?.get(message.speaker.token)?.actor;
+		actor = game.scenes?.get(message.speaker?.scene ?? "")?.tokens?.get(message.speaker.token)?.actor ?? actor;
 	}
 	if (!actor)
 		return true;
-	const overtimeActorUuid = foundry.utils.getProperty(message, "flags.midi-qol.overtimeActorUuid");
+	const overtimeActorUuid = message.flags?.[MODULE_ID]?.overtimeActorUuid;
 	if (actor.uuid !== overtimeActorUuid) {
 		if (overtimeActorUuid) {
 			const overTimeActor = fromUuidSync(overtimeActorUuid);
@@ -63,7 +63,7 @@ export function checkOverTimeSaves(message, data, options, user) {
 				await doOverTimeEffect(actor, effect, true, { saveToUse: roll, rollFlags: data.flags?.dnd5e?.roll, isActionSave: true });
 			}
 		};
-		func(actor, data.flags.dnd5e.roll, message.rolls[message.rolls.length - 1]);
+		func(actor, data.flags?.dnd5e?.roll, message.rolls[message.rolls.length - 1]);
 	}
 	catch (err) {
 		const message = `checkOverTimeSaves error for ${actor?.name} ${actor.uuid}`;
@@ -74,11 +74,11 @@ export function checkOverTimeSaves(message, data, options, user) {
 		return true;
 	}
 }
-export let nsaMessageHandler = (message, data, ...args) => {
+export let nsaMessageHandler = (message, data, options, user) => {
 	if (!nsaFlag || !message.whisper || message.whisper.length === 0)
 		return true;
-	let gmIds = ChatMessage.getWhisperRecipients("GM").filter(u => u.active)?.map(u => u.id);
-	let currentIds = message.whisper.map(u => typeof (u) === "string" ? u : u.id);
+	let gmIds = ChatMessage.getWhisperRecipients("GM").filter(u => u.active).map(u => u.id);
+	let currentIds = message.whisper;
 	gmIds = gmIds.filter(id => !currentIds.includes(id));
 	if (debugEnabled > 1)
 		debug("nsa handler active GMs ", gmIds, " current ids ", currentIds, "extra gmIds ", gmIds);
@@ -89,12 +89,12 @@ export let nsaMessageHandler = (message, data, ...args) => {
 let _highlighted = null;
 let _onTargetHover = (event) => {
 	event.preventDefault();
-	if (!canvas?.scene?.active)
+	if (!canvas.scene?.active)
 		return;
-	const token = canvas?.tokens?.get(event.currentTarget.dataset.id);
+	const token = canvas.tokens?.get(event.currentTarget?.dataset?.id ?? "");
 	if (token?.isVisible) {
-		//@ts-expect-error _controlled, _onHoverIn
-		if (!token?._controlled)
+		//@ts-expect-error _onHoverIn
+		if (!token.controlled)
 			token._onHoverIn(event);
 		_highlighted = token;
 	}
@@ -106,7 +106,7 @@ let _onTargetHover = (event) => {
 */
 let _onTargetHoverOut = (event) => {
 	event.preventDefault();
-	if (!canvas?.scene?.active)
+	if (!canvas.scene?.active)
 		return;
 	//@ts-expect-error onHoverOut
 	if (_highlighted)
@@ -116,232 +116,201 @@ let _onTargetHoverOut = (event) => {
 let _onTargetSelect = (event) => {
 	event.stopPropagation();
 	event.preventDefault();
-	if (!canvas?.scene?.active)
+	if (!canvas.scene?.active)
 		return;
-	const token = canvas?.tokens?.get(event.currentTarget.dataset.id);
+	const token = canvas.tokens?.get(event.currentTarget.dataset.id);
 	if (token?.controlled)
 		token?.release();
 	else if (token && token?.isVisible && game.user && token.actor?.testUserPermission(game.user, "OWNER")) {
-		token?.control({ releaseOthers: false });
-		canvas?.animatePan(token.center);
+		token.control({ releaseOthers: false });
+		canvas.animatePan(token.center);
 	}
 };
 function _onTargetShow(event) {
 	event.stopImmediatePropagation();
 	event.preventDefault();
-	if (!canvas?.scene?.active)
+	if (!canvas.scene?.active)
 		return;
-	const token = canvas?.tokens?.get(event.currentTarget.dataset.id);
+	const token = canvas.tokens?.get(event.currentTarget.dataset.id);
 	if (game.user && token?.actor?.testUserPermission(game.user, "OWNER")) {
 		token.actor.sheet?.render(true);
 	}
 }
 export let hideRollRender = (msg, html, data) => {
 	if (forceHideRoll && (msg.whisper.length > 0 || msg?.blind)) {
-		if (!game.user?.isGM && !msg.isAuthor && msg.whisper.indexOf(game.user?.id) === -1) {
+		if (!game.user?.isGM && !msg.isAuthor && msg.whisper.indexOf(game.user?.id ?? "") === -1) {
 			if (debugEnabled > 0)
 				warn("hideRollRender | hiding message", msg.whisper);
-			html.hide();
-			// It seems that html.remove() can get called before the messagge is rendered to the dom?
+			html.style.display = "none";
+			// It seems that html.remove() can get called before the message is rendered to the dom?
 			setTimeout(() => { html.remove(); }, 10);
 		}
 	}
 	return true;
 };
-export let hideRollUpdate = (message, data, diff, id) => {
-	if (forceHideRoll && message.whisper.length > 0 || message.blind) {
-		if (!game.user?.isGM && ((!message.isAuthor && (message.whisper.indexOf(game.user?.id) === -1) || message.blind))) {
-			let messageLi = $(`.message[data-message-id=${data._id}]`);
-			if (debugEnabled > 0)
-				warn("hideRollUpdate: Hiding ", message.whisper, messageLi);
-			messageLi.hide();
-			//@ts-expect-error
-			if (window.ui.sidebar.popouts.chat) {
-				//@ts-expect-error
-				let popoutLi = window.ui.sidebar.popouts.chat.element.find(`.message[data-message-id=${data._id}]`);
-				popoutLi.hide();
-			}
+export let hideRollUpdate = (message, data, options, id) => {
+	return true;
+	/*
+	if (forceHideRoll && (message.whisper.length > 0 || message.blind)) {
+	if (!game.user?.isGM && ((!message.isAuthor && (message.whisper.indexOf(game.user?.id ?? "") === -1) || message.blind))) {
+		let messageLi = document.querySelector<HTMLLIElement>(`.message[data-message-id=${data._id}]`);
+		if (debugEnabled > 0) warn("hideRollUpdate: Hiding ", message.whisper, messageLi)
+		if (messageLi) messageLi.style.display = "none";
+		if (ui.sidebar?.popouts.chat) {
+		let popoutLi = ui.sidebar.popouts.chat.element.querySelector<HTMLLIElement>(`.message[data-message-id=${data._id}]`)
+		if (popoutLi) popoutLi.style.display = "none";
 		}
+	}
 	}
 	return true;
+	*/
 };
 export let hideStuffHandler = (message, html, data) => {
+	const messageActor = (fromUuidSync(message.flags?.[MODULE_ID]?.[WorkflowDataFlags.actor]) ?? message.speakerActor);
+	const messageActorOwner = messageActor?.isOwner;
 	if (debugEnabled > 1)
 		debug("hideStuffHandler message: ", message.id, message);
-	// if (foundry.utils.getProperty(message, "flags.monks-tokenbar")) return;
-	const midiqolFlags = foundry.utils.getProperty(message, "flags.midi-qol");
 	// Hide rolls which are blind and not the GM if force hide is true
-	if (forceHideRoll && message.blind && !game.user?.isGM) {
-		html.hide();
+	if ((forceHideRoll && message.blind && !game.user?.isGM)
+		|| (foundry.utils.getProperty(message, "flags.midi-qol.gmHide") && game.user?.isGM)) {
+		html.style.display = "none";
 		return;
 	}
-	const authorId = message.author?.id;
 	// message.shouldDisplayChallenge returns true for message owners, which is not quite what we want.
-	let shouldDisplayChallenge = true;
+	let shouldDisplayChallenge = safeGetGameSetting("dnd5e", "challengeVisibility");
 	if (game.user?.isGM)
-		shouldDisplayChallenge = true;
-	else
-		switch (safeGetGameSetting("dnd5e", "challengeVisibility")) {
-			case "all":
-				shouldDisplayChallenge = true;
-				break;
-			case "player":
-				shouldDisplayChallenge = !message.author?.isGM;
-				break;
-			default:
-				shouldDisplayChallenge = false;
-				break;
-		}
+		shouldDisplayChallenge = "all";
 	// If force hide rolls and your are not the author/target of a whisper roll hide it.
 	if (forceHideRoll
-		&& !game.user?.isGM
-		&& message.whisper.length > 0 && !message.whisper.includes(game.user?.id)
+		&& !(game.user?.isGM && nsaFlag)
+		&& message.whisper.length > 0 && !message.whisper.includes(game.user?.id ?? "")
 		&& !message.isAuthor) {
-		html.remove();
+		html.style.display = "none";
 		return;
 	}
-	if (game.user?.id !== authorId) {
-		html.find(".midi-qol-attack-buttons").hide();
-		html.find(".midi-qol-damage-buttons").hide();
-		html.find(".midi-qol-otherDamage-button").hide();
-		html.find(".midi-qol-versatile-damage-button").hide();
+	if (foundry.utils.getProperty(message, "flags.midi-qol.type") === MESSAGE_TYPES.SAVES) {
+		html.querySelectorAll(`[data-action="rollSave"]`).forEach((el) => { el.disabled = false; });
+		html.querySelectorAll(`[data-action="rollCheck"]`).forEach((el) => { el.disabled = false; });
 	}
-	let ids = html.find(".midi-qol-target-select");
-	ids.hover(_onTargetHover, _onTargetHoverOut);
-	ids.click(_onTargetSelect);
-	ids.contextmenu(_onTargetShow);
+	if (!message.isAuthor && !(messageActorOwner && saveToChatCard)) {
+		html.querySelectorAll(".midi-qol-attack-buttons").forEach((el) => { el.style.display = "none"; });
+		html.querySelectorAll(".midi-qol-damage-buttons").forEach((el) => { el.style.display = "none"; });
+		html.querySelectorAll(".midi-qol-otherDamage-button").forEach((el) => { el.style.display = "none"; });
+	}
+	let ids = html.querySelectorAll(".midi-qol-target-select");
+	ids.forEach((el) => {
+		el.addEventListener("mouseenter", _onTargetHover);
+		el.addEventListener("mouseleave", _onTargetHoverOut);
+		el.addEventListener("click", _onTargetSelect);
+		el.addEventListener("contextmenu", _onTargetShow);
+	});
 	if (game.user?.isGM) {
-		html.find(".midi-qol-playerTokenName").remove();
-		if (configSettings.hidePlayerDamageCard && $(html).find(".midi-qol-player-damage-card").length)
-			html.hide();
-		if ($(html).find(".midi-qol-hits-display").length) {
-			$(html).find(".midi-qol-hits-display").show();
-		}
-		html.find(".midi-qol-target-npc-Player").hide();
+		html.querySelectorAll(".midi-qol-playerTokenName").forEach(el => el.remove());
+		if (configSettings.hidePlayerDamageCard && foundry.utils.getProperty(message, "flags.midi-qol.playerDamageCard"))
+			html.style.display = "none";
+		html.querySelectorAll(".midi-qol-hits-display").forEach((el) => el.style.display = "");
+		html.querySelectorAll(".midi-qol-target-npc-Player").forEach(el => el.style.display = "none");
 		if (!configSettings.highlightSuccess) {
-			html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("success");
-			html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("failure");
-			html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("critical");
-			html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("fumble");
+			html.querySelectorAll(".midi-qol-hits-display .midi-qol-hit-class").forEach(el => {
+				el.classList.remove("success", "failure", "critical", "fumble");
+			});
 		}
-		if (!configSettings.highlightSuccess || !shouldDisplayChallenge) {
-			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("success");
-			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("failure");
-			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("critical");
-			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("fumble");
+		if (!configSettings.highlightSuccess) {
+			html.querySelectorAll(".midi-qol-saves-display .midi-qol-save-class").forEach(el => el.classList.remove("success", "failure", "critical", "fumble"));
 		}
-		// @ ts-expect-error protected - but this isn't doing anything, is it?
-		// ui.chat.scrollBottom
-		return;
 	}
 	else {
 		if (message.blind) {
-			html.find(".midi-attack-roll .dice-roll").replaceWith(`<span>${i18n("midi-qol.DiceRolled")}</span>`);
+			html.querySelectorAll(".midi-attack-roll .dice-roll").forEach(el => {
+				el.outerHTML = `<span>${i18n("midi-qol.DiceRolled")}</span>`;
+			});
 			// html.find(".midi-damage-roll .dice-roll").replaceWith(`<span>${i18n("midi-qol.DiceRolled")}</span>`);
 			if (!(message.flags && message.flags["monks-tokenbar"])) // not a monks roll
-				html.find(".dice-roll").replaceWith(`<span>${i18n("midi-qol.DiceRolled")}</span>`);
+				html.querySelectorAll(".dice-roll").forEach(el => {
+					el.outerHTML = `<span>${i18n("midi-qol.DiceRolled")}</span>`;
+				});
 			// html.find(".dice-result").replaceWith(`<span>${i18n("midi-qol.DiceRolled")}</span>`); Monks saving throw css
 			//TODO this should probably just check formula
 		}
-		if (configSettings.autoCheckHit === "whisper" || message.blind || safeGetGameSetting("dnd5e", "attackRollVisibility") === "none") {
-			html.find(".midi-qol-hits-display").hide();
+		if (configSettings.autoCheckHit === "gmOnly") {
+			html.querySelectorAll(".midi-qol-hits-display").forEach(el => el.style.display = "none");
 		}
-		if ((configSettings.autoCheckSaves === "whisper" || message.blind)) {
-			html.find(".midi-qol-saves-display").hide();
-		}
-		// hide tool tips from non-gm
-		if (configSettings.autoCheckSaves !== "allShow")
-			html.find(".midi-qol-save-tooltip").hide();
-		// Hide the save dc if required
-		if (!configSettings.displaySaveDC || !shouldDisplayChallenge) {
-			html.find(".midi-qol-saveDC").remove();
-		}
-		if (!["allShow", "all"].includes(configSettings.autoCheckSaves)) {
-			html.find(".midi-qol-npc-save-total").remove();
-		}
-		if (!shouldDisplayChallenge || !configSettings.highlightSuccess)
-			html.find(".midi-qol-saves-display .midi-qol-save-symbol").remove();
-		if (!configSettings.highlightSuccess || !shouldDisplayChallenge) {
-			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("success");
-			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("failure");
-			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("critical");
-			html.find(".midi-qol-saves-display .midi-qol-save-class").removeClass("fumble");
-		}
-		if (safeGetGameSetting("dnd5e", "attackRollVisibility")) {
-			const visibility = safeGetGameSetting("dnd5e", "attackRollVisibility");
-			if (visibility === "none") {
-				html.find(".midi-qol-attack-roll .dice-total").removeClass("success");
-				html.find(".midi-qol-attack-roll .dice-total").removeClass("failure");
-				html.find(".midi-qol-attack-roll .dice-total").removeClass("fumble");
-				html.find(".midi-qol-attack-roll .dice-total").removeClass("critical");
-				html.find(".midi-qol-attack-roll .dice-total .icons").remove();
-				html.find(".midi-qol-hits-display .midi-qol-hit-symbol").remove();
-				html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("success");
-				html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("failure");
-				html.find(".midi-qol-hit-symbol").remove();
-				html.find(".midi-qol-npc-ac").remove();
-			}
-			else if (visibility === "hideAC" || !configSettings.displayHitResultNumeric) {
-				html.find(".midi-qol-npc-ac").remove();
-				if (!configSettings.highlightSuccess) {
-					html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("success");
-					html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("failure");
-					html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("critical");
-					html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("fumble");
-				}
-			}
+		/*
+		"midi-qol.autoCheckSavesOptions": {
+		"none": "Off",
+		"allNoRoll": "Save - All see result only",
+		"all": "Save - All see result + save total",
+		"whisper": "Save - only GM sees",
+		"gmOnly": "Save - only GM sees anything",
+		"allShow": "Save - All see Result + Rolls"
+		},
+		*/
+		if (configSettings.autoCheckSaves === "gmOnly") {
+			html.querySelectorAll(".midi-qol-saves-display").forEach(el => el.style.display = "none");
 		}
 		else {
-			if (!shouldDisplayChallenge) {
-				html.find(".midi-qol-hits-display .midi-qol-hit-symbol").remove();
-				html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("success");
-				html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("failure");
+			const displayNPCSaves = safeGetGameSetting("dnd5e", "challengeVisibility") === "all";
+			const displayPlayerSaves = safeGetGameSetting("dnd5e", "challengeVisibility") !== "none";
+			const autoCheckSaves = configSettings.autoCheckSaves;
+			// hide tool tips from non-gm
+			if (!displayPlayerSaves || autoCheckSaves === "whisper" || message.blind) {
+				html.querySelectorAll(".midi-qol-save-total").forEach(el => el.remove());
+				html.querySelectorAll(".midi-qol-save-tooltip").forEach(el => el.remove());
+				html.querySelectorAll(".midi-qol-save-symbol").forEach(el => el.remove());
+				html.querySelectorAll(".midi-qol-saveDC").forEach(el => el.remove());
 			}
-			if (!configSettings.displayHitResultNumeric || !shouldDisplayChallenge) {
-				html.find(".midi-qol-npc-ac").remove();
+			if (!displayNPCSaves || autoCheckSaves === "whisper" || message.blind) {
+				html.querySelectorAll(".midi-qol-npc-save-symbol").forEach(el => el.remove());
+				html.querySelectorAll(".midi-qol-npc-save-tooltip").forEach(el => el.remove());
+				html.querySelectorAll(".midi-qol-npc-save-total").forEach(el => el.remove());
+				if (!displayNPCSaves && message.author?.isGM) { // only show dc for player initiated saves
+					html.querySelectorAll(".midi-qol-saveDC").forEach(el => el.remove());
+				}
 			}
-			if (!configSettings.highlightSuccess) {
-				html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("success");
-				html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("failure");
-				html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("critical");
-				html.find(".midi-qol-hits-display .midi-qol-hit-class").removeClass("fumble");
+			else if (!["allShow"].includes(autoCheckSaves)) {
+				html.querySelectorAll(".midi-qol-npc-save-tooltip").forEach(el => el.remove());
+				if (autoCheckSaves === "allNoRoll") {
+					html.querySelectorAll(".midi-qol-npc-save-total").forEach(el => el.remove());
+				}
+			}
+			if (!configSettings.highlightSuccess || !["all", "player"].includes(shouldDisplayChallenge) || ["whisper", "none"].includes(autoCheckSaves)) {
+				html.querySelectorAll(".midi-qol-saves-display .midi-qol-save-class").forEach(el => el.classList.remove("success", "failure", "critical", "fumble"));
+			}
+			if (!displayNPCSaves || shouldDisplayChallenge !== "all" || !configSettings.highlightSuccess) {
+				html.querySelectorAll(".midi-qol-save-class.midi-qol-npc-target").forEach(el => el.classList.remove("success", "failure", "critical", "fumble"));
 			}
 		}
-		if (authorId !== game.user?.id || configSettings.confirmAttackDamage === "gmOnly") {
-			html.find(".midi-qol-confirm-damage-roll-complete-hit").hide();
-			html.find(".midi-qol-confirm-damage-roll-complete-miss").hide();
-			html.find(".midi-qol-confirm-damage-roll-complete-critical").hide();
+		if (!configSettings.optionalRules.ActiveDefenceDC) {
+			html.querySelectorAll(".midi-qol-active-defence-dc").forEach(el => el.remove());
 		}
-		if (!game.user?.isGM) {
-			// Can update the attack roll here, but damage rolls are redone in the ChatmessageMidi code so do the hiding for those there
-			html.find(".midi-qol-confirm-damage-roll-cancel").hide();
-			// hide the gm version of the name from` players
-			html.find(".midi-qol-gmTokenName").remove();
+		const attackVisibility = safeGetGameSetting("dnd5e", "attackRollVisibility");
+		const midiAttackVisibility = configSettings.autoCheckHit;
+		if (!configSettings.highlightSuccess || attackVisibility === "none" || midiAttackVisibility === "whisper" || message.blind) {
+			html.querySelectorAll(".midi-qol-hits-display .midi-qol-hit-class").forEach(el => el.classList.remove("success", "failure", "critical", "fumble"));
 		}
+		if (attackVisibility === "none" || midiAttackVisibility !== "all" || message.blind) {
+			html.querySelectorAll(".midi-qol-attack-roll .dice-total .icons").forEach(el => el.remove());
+			html.querySelectorAll(".midi-qol-hits-display .midi-qol-hit-symbol").forEach(el => el.remove());
+			html.querySelectorAll(".midi-qol-hit-symbol").forEach(el => el.remove());
+			html.querySelectorAll(".midi-qol-npc-ac").forEach(el => el.remove());
+		}
+		else if (attackVisibility === "hideAC") {
+			html.querySelectorAll(".midi-qol-npc-ac").forEach(el => el.remove());
+		}
+		if (!message.isAuthor || configSettings.confirmAttackDamage === "gmOnly") {
+			html.querySelectorAll(".midi-qol-confirm-damage-roll-complete-hit").forEach(el => el.style.display = "none");
+			html.querySelectorAll(".midi-qol-confirm-damage-roll-complete-miss").forEach(el => el.style.display = "none");
+			html.querySelectorAll(".midi-qol-confirm-damage-roll-complete-critical").forEach(el => el.style.display = "none");
+			// Can update the attack roll here, but damage rolls are redone in the ChatMessageMidi code so do the hiding for those there
+			html.querySelectorAll(".midi-qol-confirm-damage-roll-cancel").forEach(el => el.style.display = "none");
+		}
+		// hide the gm version of the name from` players
+		html.querySelectorAll(".midi-qol-gmTokenName").forEach(el => el.remove());
 	}
 	// @ ts-expect-error protected
 	// setTimeout(() => ui.chat?.scrollBottom(), 0);
 	return true;
 };
-export function processItemCardCreation(message, user) {
-	const midiFlags = message.flags[MODULE_ID];
-	if (user === game.user?.id && midiFlags?.workflowId) { // check to see if it is a workflow
-		const workflow = Workflow.getWorkflow(midiFlags.workflowId);
-		if (!workflow)
-			return;
-		if (debugEnabled > 0)
-			warn("processItemCardCreation", message.id, workflow.itemCardId, workflow.ItemCardUuid, workflow.workflowName);
-		workflow.itemCardId = message.id;
-		workflow.itemCardUuid = message.uuid;
-		workflow.needItemCard = false;
-		const shouldUnsuspend = ([workflow.WorkflowState_AwaitItemCard, workflow.WorkflowState_AwaitTemplate, workflow.WorkflowState_NoAction].includes(workflow.currentAction) && workflow.suspended && !workflow.needTemplate && !workflow.needItemCard && workflow.preItemUseComplete);
-		if (debugEnabled > 0)
-			warn(`chat card created: unsuspending ${workflow.workflowName} ${workflow.nameForState(workflow.currentAction)} unsuspending: ${shouldUnsuspend}, workflow suspended: ${workflow.suspended} needs template: ${workflow.needTemplate}, needs Item card ${workflow.needItemCard}, itemUseomplete: ${workflow.preItemUseComplete}`);
-		if (shouldUnsuspend) {
-			workflow.unSuspend({ itemCardId: message.id, itemCarduuid: message.uuid, itemUseComplete: true });
-		}
-	}
-}
 export function ddbglPendingFired(data) {
 	let { sceneId, tokenId, actorId, itemId, actionType } = data;
 	if (!itemId || !["attack", "damage", "heal"].includes(actionType)) {
@@ -350,7 +319,7 @@ export function ddbglPendingFired(data) {
 	}
 	// const tokenUuid = `Scene.${sceneId??0}.Token.${tokenId??0}`;
 	const token = fromUuidSync(`Scene.${sceneId ?? 0}.Token.${tokenId ?? 0}`)?.object;
-	const actor = (token instanceof CONFIG.Token.documentClass) ? token?.actor ?? game.actors?.get(actorId ?? "") : undefined;
+	const actor = (token instanceof TokenDocument) ? token?.actor ?? game.actors?.get(actorId ?? "") : undefined;
 	if (!actor || !(token instanceof CONFIG.Token.documentClass)) {
 		warn(" ddb-game-log hook could not find actor");
 		return;
@@ -390,6 +359,7 @@ export function ddbglPendingFired(data) {
 			actor: actorId,
 			alias: token?.name ?? actor.name
 		};
+		// @ts-expect-error TODO: Halp. Item? Activity?
 		workflow = new DDBGameLogWorkflow(actor, item, speaker, Array.from(game.user?.targets ?? new Set()), {});
 		// @ts-expect-error no dnd5e-types
 		item.displayCard({ showFullCard: false, workflow, createMessage: false, defaultCard: true });
@@ -398,12 +368,12 @@ export function ddbglPendingFired(data) {
 	}
 }
 export function ddbglPendingHook(data) {
-	if (!configSettings.optionalRules.enableddbGL)
+	if (!configSettings.enableDDBGL)
 		return;
 	socketlibSocket.executeForEveryone("ddbglPendingFired", data);
 }
 export function processCreateDDBGLMessages(message, options, user) {
-	if (!configSettings.optionalRules.enableddbGL)
+	if (!configSettings.enableDDBGL)
 		return;
 	const flags = message.flags;
 	if (!flags || !flags["ddb-game-log"] || !game.user)
@@ -412,7 +382,7 @@ export function processCreateDDBGLMessages(message, options, user) {
 	if (!ddbGLFlags || ddbGLFlags.pending)
 		return;
 	// let sceneId, tokenId, actorId, itemId;
-	if (!(["attack", "damage", "heal"].includes(flags.dnd5e?.roll?.type)))
+	if (!(["attack", "damage", "heal"].includes(flags.dnd5e?.roll?.type ?? "")))
 		return;
 	const itemId = flags.dnd5e?.roll?.itemId;
 	if (!itemId) {
@@ -434,18 +404,18 @@ export function processCreateDDBGLMessages(message, options, user) {
 		player = game.users?.players.find(p => p.active && actor?.testUserPermission(p, "OWNER"));
 	}
 	if (!player || !player.active)
-		player = game.users?.activeGM;
+		player = preferredActiveGM();
 	if (player?.id !== game.user?.id)
 		return;
 	const item = actor.items.get(itemId);
 	if (!item) {
-		error(`ddb-game-log roll could not find item ${flags.dnd5e.roll.itemId} on actor ${actor.name}`);
+		error(`ddb-game-log roll could not find item ${flags?.dnd5e?.roll?.itemId} on actor ${actor.name}`);
 		return;
 	}
 	let workflow = DDBGameLogWorkflow.get(item.uuid);
 	//@ts-expect-error no dnd5e-types
 	if (!workflow && flags.dnd5e.roll.type === "damage" && item.hasAttack && ["rwak", "mwak"].includes(item.actionType)) {
-		warn(`ddb-game-log roll damage roll wihtout workflow being started ${actor.name} using ${item.name}`);
+		warn(`ddb-game-log roll damage roll without workflow being started ${actor.name} using ${item.name}`);
 		return;
 	}
 	if (!workflow) {
@@ -458,13 +428,14 @@ export function processCreateDDBGLMessages(message, options, user) {
 		workflow.undoData.chatCardUuids = workflow.undoData.chatCardUuids.concat([message.uuid]);
 		unTimedExecuteAsGM("updateUndoChatCardUuids", workflow.undoData);
 	}
-	if (flags.dnd5e.roll.type === "attack") {
+	if (flags?.dnd5e?.roll?.type === "attack") {
 		let rolls = message.rolls;
 		if (!(rolls instanceof Array))
 			rolls = [rolls];
-		workflow.needItemCard = false;
+		// workflow.needItemCard = false; TODO revisit this
 		workflow.attackRoll = rolls[0] ?? undefined;
 		workflow.attackTotal = rolls[0]?.total ?? 0;
+		// @ts-expect-error no dnd5e-types
 		workflow.needsDamage = workflow.item.hasDamage;
 		workflow.attackRollHTML = message.content;
 		workflow.attackRolled = true;
@@ -474,11 +445,11 @@ export function processCreateDDBGLMessages(message, options, user) {
 			// TODO NW workflow.performState(workflow.WorkflowState_WaitForAttackRoll,{attackRoll: workflow.attackRoll});
 		}
 	}
-	if (["damage", "heal"].includes(flags.dnd5e.roll.type)) {
+	if (["damage", "heal"].includes(flags.dnd5e?.roll?.type ?? "")) {
 		let rolls = message.rolls;
 		if (!rolls)
 			return;
-		workflow.needItemCard = false;
+		// workflow.needItemCard = false; TODO revisit this
 		workflow.attackRolled = true;
 		if (!(rolls instanceof Array))
 			rolls = [rolls];
@@ -496,7 +467,4 @@ export function processCreateDDBGLMessages(message, options, user) {
 			// TODO NW workflow.performState(workflow.WorkflowState_WaitForDamageRoll);
 		}
 	}
-}
-function legacyApplyTokenDamageMany(arg0, arg1, arg2, arg3) {
-	throw new Error("Function not implemented.");
 }

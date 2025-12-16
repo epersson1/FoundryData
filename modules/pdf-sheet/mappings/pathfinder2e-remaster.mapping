@@ -1,0 +1,1182 @@
+function() {
+    /*
+    Pathfinder 2e Charactersheet Remastered mapping for Foundry VTT module 'Export Sheet to PDF' - 08/12/2023
+    Author: [Bushvin](https://github.com/bushvin)
+    Version: 2.3.0
+
+    PDF: https://github.com/arcanistzed/pdf-sheet/blob/main/pdf/pf2e-remastered.pdf
+    extra spells PDF: https://github.com/arcanistzed/pdf-sheet/blob/main/pdf/pf2e-remastered-extra-spells.pdf
+    Original PDF: https://drive.google.com/file/d/1GKtOprwITSUP1sXCLXjqKc-N9JvwmgGy/view
+
+    SUPPORT:
+      PF2E version 5.9.x:
+        Full support
+
+      PF2E version 5.8.3:
+        Until it can no longer be installed with the latest release of Foundry VTT.
+        Consider upgrading your PF2E to 5.9.x
+
+        Which type of things will be supported:
+        - bugfixing
+        - no new features (unless they are one on one)
+
+    TODO:
+      - [ ] include applied runes (to equipment)
+      - [ ] moar equipment
+      - [ ] moar attacks
+      - [ ] PDF:background_notes, PDF:class_notes
+      - [ ] improve attack statistics to include 2nd and 3rd attacks
+      - [ ] Other Attack types notes
+      - [ ] critical specializations
+      - [ ] include innate spells
+      - [x] improved defense notes
+      - [x] improved immunities section
+      - [x] improved skill notes
+      - [x] improved weapon traits
+      - [x] improved strikes (shows all weapons now, first those readied)
+      - [x] Add Boosts to ancestry section
+      - [x] Gems and Artwork
+      - [x] formulas
+      - [x] edicts
+      - [x] anathema
+      - [x] Do not fill out spellcasting pages for non-spellcasting actors
+      - [x] indicate whether a spell is prepared for casters who need to prepare their spells.
+      - [x] prepared spellcasters: show list of all spells, including "heightened" spells
+        with them being prepared or not
+      - [x] order spells by source, level
+    */
+
+    const SemVer = class {
+        _parse_version(version) {
+            version = version.split(/\.(.*)/s);
+            let _major = parseInt(version[0]);
+            version = version[1].split(/\.(.*)/s);
+            let _minor = parseInt(version[0]);
+            version = version[1].split(/-(.*)/s);
+            let _bugfix = parseInt(version[0]);
+            let _release = version[1];
+            return [_major, _minor, _bugfix, _release];
+        };
+
+        eq(version0, version1) {
+            version0 = this._parse_version(version0);
+            version1 = this._parse_version(version1);
+            if (JSON.stringify(version0) == JSON.stringify(version1)) {
+                return true;
+            };
+            return false;
+        };
+
+        gt(version0, version1) {
+            version0 = this._parse_version(version0);
+            version1 = this._parse_version(version1);
+            if (version0[0] > version1[0]) {
+                return true;
+            } else if ( version0[0] == version1[0] ) {
+                if (version0[1] > version1[1]) {
+                    return true;
+                } else if (version0[1] == version1[1]) {
+                    if (version0[2] > version1[2]) {
+                        return true;
+                    };
+                };
+            };
+            return false;
+        };
+
+        gte(version0, version1) {
+            if (this.eq(version0, version1)) {
+                return true;
+            };
+            return this.gt(version0, version1);
+        };
+
+        lt(version0, version1) {
+            version0 = this._parse_version(version0);
+            version1 = this._parse_version(version1);
+            if (version0[0] < version1[0]) {
+                return true;
+            } else if ( version0[0] == version1[0] ) {
+                if (version0[1] < version1[1]) {
+                    return true;
+                } else if (version0[1] == version1[1]) {
+                    if (version0[2] < version1[2]) {
+                        return true;
+                    };
+                };
+            };
+            return false;
+
+        };
+    };
+
+    const is_partial_attribute = function(attribute) {
+        /* is there a partial boost for the given attribute */
+        let count = 0;
+        attribute = attribute.toLowerCase();
+        Object.values(actordata.system.build.attributes.boosts).forEach(
+            (el) => {
+                if ( typeof(el) === "string" && el.toLowerCase() === attribute ) {
+                    count = count +1;
+                } else if ( Array.isArray(el) && el.map(i => i.toLowerCase()).includes(attribute) ) {
+                    count = count +1;
+                }
+            }
+        );
+        Object.values(actordata.system.build.attributes.flaws).forEach(
+            (el) => {
+                if ( typeof(el) === "string" && el.toLowerCase() === attribute ) {
+                    count = count -1;
+                } else if ( Array.isArray(el) && el.map(i => i.toLowerCase()).includes(attribute) ) {
+                    count = count -1;
+                }
+            }
+        );
+        if ( count > 4 && parseInt(count/2)*2 < count ) {
+            return true;
+        }
+        return false;
+    };
+
+    const format_actions = function(action) {
+        /* Format actions so the pdf form displays it correctly */
+        action = String(action);
+        if (action === "0") {
+            action = "";
+        } else if (action === "1") {
+            action = "á";
+        } else if (action === "2") {
+            action = "â";
+        } else if (action === "3") {
+            action = "ã";
+        } else if (action === "1 to 2") {
+            action = "á - â";
+        } else if (action === "1 to 3") {
+            action = "á - ã";
+        } else if (action === "reaction") {
+            action = "ä";
+        }
+        action = action.replace(/ minutes/g, 'm');
+        action = action.replace(/ minute/g, 'm');
+        /* FIXME: do the same for free actions */
+
+        return action;
+    };
+
+    const format_mod = function(mod) {
+        /* Format the modifier correctly with a + sign if needed */
+        if (typeof(mod) === "undefined") {
+            return mod;
+        };
+        return (parseInt(mod) < 0) ? mod : `+${mod}`;
+    };
+
+    const ucfirst = function(value) {
+        /* Capitalize the given string */
+        return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+    };
+
+    const format_traits = function(traitlist) {
+        /* Format and order the traits acoording to the rules */
+        if (typeof(traitlist) === "undefined") {
+            return "";
+        }
+        traitlist = traitlist.filter(i => i !== "common" && i !== null && typeof(i) !== "undefined").map(i => i.toLowerCase());
+        let tl = [];
+        ["uncommon", "rare"].forEach(
+            (el) => {
+                if (traitlist.includes(el)) {
+                    tl.push(ucfirst(el));
+                    traitlist.splice(traitlist.indexOf(el),1);
+                };
+            }
+        );
+        ["lg","ln","le","ng","n","ne","cg","cn","ce"].forEach(
+            (el) => {
+                if (traitlist.includes(el)) {
+                    tl.push(el.toLocaleUpperCase());
+                    traitlist.splice(traitlist.indexOf(el),1);
+                };
+            }
+        );
+        ["tiny","small","medium","large","huge","gargantuan"].forEach(
+            (el) => {
+                if (traitlist.includes(el)) {
+                    tl.push(ucfirst(el));
+                    traitlist.splice(traitlist.indexOf(el),1);
+                };
+            }
+        );
+        tl = tl.concat(traitlist.map(i => ucfirst(i)).sort());
+        return tl.join(", ");
+    };
+
+    const resolve_frequency = function(frequency) {
+        /* resolve the frequency according to what's in foundryvtt-pf2e */
+        frequency = frequency.toLowerCase();
+        switch (frequency) {
+            case "pt1m":
+                frequency = "minute";
+                break;
+            case "pt10m":
+                frequency = "10 minutes";
+                break;
+            case "pt1h":
+                frequency = "hour";
+                break;
+            case "pt24h":
+                frequency = "24 hours";
+                break;
+            case "p1w":
+                frequency = "week";
+                break;
+            case "p1m":
+                frequency = "month";
+                break;
+            case "p1y":
+                frequency = "year";
+                break;
+        };
+        return frequency;
+    };
+
+    const format_runes = function(runes) {
+        let runelist = [];
+
+        if ( (runes.potency || 0) > 0 ) {
+            runelist.push(`Potency +${runes.potency}`);
+        }
+        if ( (runes.striking || 0) > 2 ) {
+            runelist.push(`Major Striking`);
+        } else if ( (runes.striking || 0) > 1 ) {
+            runelist.push(`Greater Striking`);
+        } else if ( (runes.striking || 0) > 0 ) {
+            runelist.push(`Striking`);
+        }
+        (runes.property || []).forEach(
+            (r) => {
+                runelist.push(`${ucfirst(r)} Rune`);
+            }
+        );
+        if (runelist.length > 0) {
+            return ", " + runelist.join(", ");
+        } else {
+            return "";
+        }
+
+    };
+
+    const abbreviate_source = function(value) {
+        /* return the abbreviation of the given source */
+        switch (value) {
+            case "Pathfinder Advanced Player's Guide":
+                return "APG";
+            case "Pathfinder Book of the Dead":
+                return "BotD";
+            case "Pathfinder Core Rulebook":
+                return "CRB";
+            case "Pathfinder Dark Archive":
+                return "DA";
+            case "Pathfinder Gamemastery Guide":
+                return "GMG";
+            case "Pathfinder Guns & Gears":
+                return "GG";
+            case "Pathfinder GM Core":
+                return "GMC";
+            case "Pathfinder Lost Omens: Ancestry Guide":
+                return "AG";
+            case "Pathfinder Lost Omens: Character Guide":
+                return "CG";
+            case "Pathfinder Lost Omens: Gods & Magic":
+                return "GaM";
+            case "Pathfinder Player Core":
+                return "PC";
+            case "Pathfinder Rage of Elements":
+                return "RoE";
+            case "Pathfinder Secrets of Magic":
+                return "SoM";
+            case "Pathfinder Treasure Vault":
+                return "TV";
+            }
+
+            return value;
+    };
+
+    const sort_attribute_boosts = function(attributes) {
+        if ( ! Array.isArray(attributes) ) {
+            return "";
+        }
+        let a = [];
+        ["str", "dex", "con", "int", "wis", "cha"].forEach(
+            (atr) => {
+                if (attributes.includes(atr)) {
+                    a.push(atr);
+                }
+            }
+        );
+        return a.join(", ");
+    };
+
+    const foundryvtt_version = game.release.generation;
+    const semver = new SemVer();
+    if (foundryvtt_version < 11) {
+        ui.notifications.error(
+            "PDF Sheet | Pathfinder 2e remaster | This version of Foundry VTT is no longer supported with the pf2e remaster mapping."
+        );
+    };
+    const pf2e_version = game.system.version;
+    if (semver.lt(pf2e_version, "5.8.3")) {
+        ui.notifications.error(
+            "PDF Sheet | Pathfinder 2e remaster | This version of the pf2e system is unsupported. Consider upgrading to 5.8.3 or 5.9.x."
+        );
+        return [];
+    } else if (semver.eq(pf2e_version, "5.8.3")) {
+        ui.notifications.warn(
+            "PDF Sheet | Pathfinder 2e remaster | The pf2e system v5.8.3 is in Long Term Support until (TBD), but please consider upgrading 5.9.x."
+        );
+    };
+    const actordata = actor;
+    const spellcasting_traditions = ["arcane", "occult", "primal", "divine"];
+    const prepared_types = ["prepared", "spontaneous"];
+    let ret = [
+
+        /* Ancestry Section*/
+        { "pdf": "ancestry", "foundry": actordata.ancestry.name },
+        { "pdf": "heritage_and_traits", "foundry": actordata.heritage.name },
+        { "pdf": "size", "foundry": actordata.system.traits.size.value },
+
+        /* Character Name Section*/
+        { "pdf": "character_name", "foundry": actordata.name },
+        { "pdf": "player_name", "foundry": Object.entries(actordata.ownership).filter(i => i[1] === 3).map(i => i[0]).map(id => !game.users.get(id)?.isGM ? game.users.get(id)?.name : null).filter(x => x).join(", ") },
+
+        /* Background Section */
+        { "pdf": "background", "foundry": actordata.background.name },
+        { "pdf": "background_notes", "foundry": "" },
+
+        /* Level Section */
+        { "pdf": "level", "foundry": actordata.system.details.level.value },
+        { "pdf": "xp", "foundry": actordata.system.details.xp.value },
+
+        /* Hero Points */
+        { "pdf": "hero_point_1", "foundry": actordata.system.resources.heroPoints.value >= 1 || '' },
+        { "pdf": "hero_point_2", "foundry": actordata.system.resources.heroPoints.value >= 2 || '' },
+        { "pdf": "hero_point_3", "foundry": actordata.system.resources.heroPoints.value >= 3 || '' },
+
+        /* Class Section */
+        { "pdf": "class", "foundry": actordata.class.name },
+        /* FIXME: complete class notes */
+        { "pdf": "class_notes", "foundry": "" },
+
+        /* Sttributes Section */
+        { "pdf": "str", "foundry": format_mod(actordata.abilities.str.mod) },
+        { "pdf": "str_partial", "foundry": is_partial_attribute("str") },
+        { "pdf": "dex", "foundry": format_mod(actordata.abilities.dex.mod) },
+        { "pdf": "dex_partial", "foundry": is_partial_attribute("dex") },
+        { "pdf": "con", "foundry": format_mod(actordata.abilities.con.mod) },
+        { "pdf": "con_partial", "foundry": is_partial_attribute("con") },
+        { "pdf": "int", "foundry": format_mod(actordata.abilities.int.mod) },
+        { "pdf": "int_partial", "foundry": is_partial_attribute("int") },
+        { "pdf": "wis", "foundry": format_mod(actordata.abilities.wis.mod) },
+        { "pdf": "wis_partial", "foundry": is_partial_attribute("wis") },
+        { "pdf": "cha", "foundry": format_mod(actordata.abilities.cha.mod) },
+        { "pdf": "cha_partial", "foundry": is_partial_attribute("cha") },
+
+        /* Defenses Section*/
+
+        /* Armor Class */
+        { "pdf": "ac", "foundry": actordata.armorClass.value },
+        { "pdf": "ac_attribute_modifier", "foundry": actordata.armorClass.modifiers.filter(i => i.type === 'ability').map(i => i.modifier)[0] || 0 },
+        { "pdf": "ac_proficiency_modifier", "foundry": actordata.armorClass.modifiers.filter(i => i.type === 'proficiency').map(i => i.modifier)[0] || 0 },
+        { "pdf": "ac_item_modifier", "foundry": actordata.armorClass.modifiers.filter(i => i.type === 'item').map(i => i.modifier)[0] || 0 },
+
+        /* Shield */
+        { "pdf": "ac_shield_bonus", "foundry": actordata.items.filter(i => i.system.category === 'shield' && i.isEquipped).map(i => i.system.acBonus)[0] || '' },
+        { "pdf": "shield_hardness", "foundry": actordata.items.filter(i => i.system.category === 'shield' && i.isEquipped).map(i => i.system.hardness)[0] || '-' },
+        { "pdf": "shield_max_hp", "foundry": actordata.items.filter(i => i.system.category === 'shield' && i.isEquipped).map(i => i.system.hp.max)[0] || '-' },
+        { "pdf": "shield_bt", "foundry": actordata.items.filter(i => i.system.category === 'shield' && i.isEquipped).map(i => i.system.hp.brokenThreshold)[0] || '-' },
+        { "pdf": "shield_current_hp", "foundry": actordata.items.filter(i => i.system.category === 'shield' && i.isEquipped).map(i => i.system.hp.value)[0] || '-' },
+
+        /* Armor proficiencies */
+        { "pdf": "defense_unarmored_trained", "foundry": actordata.system.proficiencies.defenses.unarmored.rank >= 1 || false },
+        { "pdf": "defense_unarmored_expert", "foundry": actordata.system.proficiencies.defenses.unarmored.rank >= 2 || false },
+        { "pdf": "defense_unarmored_master", "foundry": actordata.system.proficiencies.defenses.unarmored.rank >= 3 || false },
+        { "pdf": "defense_unarmored_legendary", "foundry": actordata.system.proficiencies.defenses.unarmored.rank >= 4 || false },
+        { "pdf": "defense_light_trained", "foundry": actordata.system.proficiencies.defenses.light.rank >= 1 || false },
+        { "pdf": "defense_light_expert", "foundry": actordata.system.proficiencies.defenses.light.rank >= 2 || false },
+        { "pdf": "defense_light_master", "foundry": actordata.system.proficiencies.defenses.light.rank >= 3 || false },
+        { "pdf": "defense_light_legendary", "foundry": actordata.system.proficiencies.defenses.light.rank >= 4 || false },
+        { "pdf": "defense_medium_trained", "foundry": actordata.system.proficiencies.defenses.medium.rank >= 1 || false },
+        { "pdf": "defense_medium_expert", "foundry": actordata.system.proficiencies.defenses.medium.rank >= 2 || false },
+        { "pdf": "defense_medium_master", "foundry": actordata.system.proficiencies.defenses.medium.rank >= 3 || false },
+        { "pdf": "defense_medium_legendary", "foundry": actordata.system.proficiencies.defenses.medium.rank >= 4 || false },
+        { "pdf": "defense_heavy_trained", "foundry": actordata.system.proficiencies.defenses.heavy.rank >= 1 || false },
+        { "pdf": "defense_heavy_expert", "foundry": actordata.system.proficiencies.defenses.heavy.rank >= 2 || false },
+        { "pdf": "defense_heavy_master", "foundry": actordata.system.proficiencies.defenses.heavy.rank >= 3 || false },
+        { "pdf": "defense_heavy_legendary", "foundry": actordata.system.proficiencies.defenses.heavy.rank >= 4 || false },
+
+        /* Saving Throws */
+        { "pdf": "fortitude", "foundry": '+' + actordata.saves.fortitude.mod },
+        { "pdf": "fortitude_attribute_modifier", "foundry": actordata.saves.fortitude.modifiers.filter(i => i.type === 'ability' && i.enabled).map(i => i.modifier)[0] || 0 },
+        { "pdf": "fortitude_proficiency_modifier", "foundry": actordata.saves.fortitude.modifiers.filter(i => i.type === 'proficiency' && i.enabled).map(i => i.modifier)[0] || 0 },
+        { "pdf": "fortitude_item_modifier", "foundry": actordata.saves.fortitude.modifiers.filter(i => i.type === 'item' && i.enabled).map(i => i.modifier).sort().reverse()[0] || 0 },
+        { "pdf": "fortitude_trained", "foundry": actordata.saves.fortitude.rank >= 1 || '' },
+        { "pdf": "fortitude_expert", "foundry": actordata.saves.fortitude.rank >= 2 || '' },
+        { "pdf": "fortitude_master", "foundry": actordata.saves.fortitude.rank >= 3 || '' },
+        { "pdf": "fortitude_legendary", "foundry": actordata.saves.fortitude.rank >= 4 || '' },
+
+        { "pdf": "reflex", "foundry": '+' + actordata.saves.reflex.mod },
+        { "pdf": "reflex_attribute_modifier", "foundry": actordata.saves.reflex.modifiers.filter(i => i.type === 'ability' && i.enabled).map(i => i.modifier)[0] || 0 },
+        { "pdf": "reflex_proficiency_modifier", "foundry": actordata.saves.reflex.modifiers.filter(i => i.type === 'proficiency' && i.enabled).map(i => i.modifier)[0] || 0 },
+        { "pdf": "reflex_item_modifier", "foundry": actordata.saves.reflex.modifiers.filter(i => i.type === 'item' && i.enabled).map(i => i.modifier).sort().reverse()[0] || 0 },
+        { "pdf": "reflex_trained", "foundry": actordata.saves.reflex.rank >= 1 || '' },
+        { "pdf": "reflex_expert", "foundry": actordata.saves.reflex.rank >= 2 || '' },
+        { "pdf": "reflex_master", "foundry": actordata.saves.reflex.rank >= 3 || '' },
+        { "pdf": "reflex_legendary", "foundry": actordata.saves.reflex.rank >= 4 || '' },
+
+        { "pdf": "will", "foundry": '+' + actordata.saves.will.mod },
+        { "pdf": "will_attribute_modifier", "foundry": actordata.saves.will.modifiers.filter(i => i.type === 'ability' && i.enabled).map(i => i.modifier)[0] || 0 },
+        { "pdf": "will_proficiency_modifier", "foundry": actordata.saves.will.modifiers.filter(i => i.type === 'proficiency' && i.enabled).map(i => i.modifier)[0] || 0 },
+        { "pdf": "will_item_modifier", "foundry": actordata.saves.will.modifiers.filter(i => i.type === 'item' && i.enabled).map(i => i.modifier).sort().reverse()[0] || 0 },
+        { "pdf": "will_trained", "foundry": actordata.saves.will.rank >= 1 || '' },
+        { "pdf": "will_expert", "foundry": actordata.saves.will.rank >= 2 || '' },
+        { "pdf": "will_master", "foundry": actordata.saves.will.rank >= 3 || '' },
+        { "pdf": "will_legendary", "foundry": actordata.saves.will.rank >= 4 || '' },
+
+        /* Defense Notes at the end */
+
+        /* Hit Points Section*/
+        { "pdf": "hp_max", "foundry": actordata.hitPoints.max },
+        { "pdf": "hp_current", "foundry": actordata.hitPoints.value },
+        { "pdf": "hp_temp", "foundry": actordata.hitPoints.temp },
+
+        { "pdf": "dying_1", "foundry": actordata.system.attributes.dying.value >= 1 || false },
+        { "pdf": "dying_2", "foundry": actordata.system.attributes.dying.value >= 2 || false },
+        { "pdf": "dying_3", "foundry": actordata.system.attributes.dying.value >= 3 || false },
+        { "pdf": "dying_4", "foundry": actordata.system.attributes.dying.value >= 4 || false },
+        { "pdf": "wounded", "foundry": actordata.system.attributes.wounded.value + '/' + actordata.system.attributes.wounded.max },
+        { "pdf": "resistances_immunities", "foundry": "                                            " + actordata.system.attributes.resistances.map(i => i.type + ' ' + i.value).concat(actordata.system.attributes.immunities.map(i => i.type)).sort().join(", ") },
+        { "pdf": "conditions", "foundry": actordata.conditions.map(i => i.name).join(", ") },
+
+        /* Skills Section */
+        /* Dedicated for loop at the end*/
+        /* skill_notes at the end */
+
+        /* Lore Skills */
+        /* Dedicated for loop at the end*/
+
+        /* Languages Section */
+        { "pdf": "languages", "foundry": actordata.system.traits.languages.value.concat([actordata.system.traits.languages.custom]).filter(function(a) {return a.trim() != ''}).join(", ") },
+
+        /* Perception Section  */
+        { "pdf": "perception", "foundry": format_mod(actordata.perception.mod) },
+        { "pdf": "perception_attribute_modifier", "foundry": actordata.perception.modifiers.filter(i => i.type === 'ability' && i.enabled).map(i => i.modifier)[0] || 0 },
+        { "pdf": "perception_proficiency_modifier", "foundry": actordata.perception.modifiers.filter(i => i.type === 'proficiency' && i.enabled).map(i => i.modifier)[0] || 0 },
+        { "pdf": "perception_item_modifier", "foundry": actordata.perception.modifiers.filter(i => i.type === 'item' && i.enabled).map(i => i.modifier)[0] || 0 },
+        { "pdf": "perception_trained", "foundry": actordata.perception.rank >= 1 || '' },
+        { "pdf": "perception_expert", "foundry": actordata.perception.rank >= 2 || '' },
+        { "pdf": "perception_master", "foundry": actordata.perception.rank >= 3 || '' },
+        { "pdf": "perception_legendary", "foundry": actordata.perception.rank >= 4 || '' },
+
+        { "pdf": "senses_notes", "foundry": actordata.system.traits.senses.filter(i => i.type).map(i => i.label).join(", ") + ' \n' + actordata.system.attributes.perception.modifiers.filter(i => i.type === 'item' || i.type === 'untyped').map(i => ' ' + (i.slug ? i.slug : i.label) + ' ' + (i.modifier < 0 ? '' : '+') + i.modifier).join(", ") },
+
+        /* Speed Section */
+        { "pdf": "speed", "foundry":
+            actordata.system.attributes.speed.value + actordata.system.attributes.speed.totalModifier + actordata.items.filter(i => i.type === 'armor' && i.isEquipped ).map(i => i.speedPenalty).reduce((a,v) => {return a+v},0)
+        },
+        {
+            "pdf": "special_movement", "foundry":
+                actordata.system.attributes.speed.otherSpeeds.map(i => ' ' + i.label + ' ' + i.value).join(", ") + ' \n' +
+                actordata.system.attributes.speed.modifiers.map(i => ' ' + (i.slug ? i.slug : i.label) + ' ' + (i.modifier < 0 ? '' : '+') + i.modifier).join(", ")
+        },
+
+        /* Strikes Section */
+        /* Melee Strikes */
+        /* Dedicated for loop at the end*/
+        /* Ranged Strikes */
+        /* Dedicated for loop at the end*/
+        /* Weapon Proficiencies */
+        { "pdf": "attack_unarmed_trained", "foundry": actordata.system.proficiencies.attacks.unarmed.rank >= 1 || false },
+        { "pdf": "attack_unarmed_expert", "foundry": actordata.system.proficiencies.attacks.unarmed.rank >= 2 || false },
+        { "pdf": "attack_unarmed_master", "foundry": actordata.system.proficiencies.attacks.unarmed.rank >= 3 || false },
+        { "pdf": "attack_unarmed_legendary", "foundry": actordata.system.proficiencies.attacks.unarmed.rank >= 4 || false },
+
+        { "pdf": "attack_simple_trained", "foundry": actordata.system.proficiencies.attacks.simple.rank >= 1 || false },
+        { "pdf": "attack_simple_expert", "foundry": actordata.system.proficiencies.attacks.simple.rank >= 2 || false },
+        { "pdf": "attack_simple_master", "foundry": actordata.system.proficiencies.attacks.simple.rank >= 3 || false },
+        { "pdf": "attack_simple_legendary", "foundry": actordata.system.proficiencies.attacks.simple.rank >= 4 || false },
+
+        { "pdf": "attack_martial_trained", "foundry": actordata.system.proficiencies.attacks.martial.rank >= 1 || false },
+        { "pdf": "attack_martial_expert", "foundry": actordata.system.proficiencies.attacks.martial.rank >= 2 || false },
+        { "pdf": "attack_martial_master", "foundry": actordata.system.proficiencies.attacks.martial.rank >= 3 || false },
+        { "pdf": "attack_martial_legendary", "foundry": actordata.system.proficiencies.attacks.martial.rank >= 4 || false },
+
+        { "pdf": "attack_advanced_trained", "foundry": actordata.system.proficiencies.attacks.advanced.rank >= 1 || false },
+        { "pdf": "attack_advanced_expert", "foundry": actordata.system.proficiencies.attacks.advanced.rank >= 2 || false },
+        { "pdf": "attack_advanced_master", "foundry": actordata.system.proficiencies.attacks.advanced.rank >= 3 || false },
+        { "pdf": "attack_advanced_legendary", "foundry": actordata.system.proficiencies.attacks.advanced.rank >= 4 || false },
+
+        { "pdf": "attack_other_trained", "foundry": false },
+        { "pdf": "attack_other_expert", "foundry": false },
+        { "pdf": "attack_other_master", "foundry": false },
+        { "pdf": "attack_other_legendary", "foundry": false },
+
+        /* FIXME: fill out attack_other_notes */
+        { "pdf": "attack_other_notes", "foundry": '' },
+        /* FIXME: fill out critical_specializations */
+        { "pdf": "critical_specializations", "foundry": '' },
+
+        /* Class DC Section */
+        { "pdf": "class_dc", "foundry": actordata.classDC.mod + 10 },
+        { "pdf": "class_dc_attribute_modifier", "foundry": actordata.classDC.attributeModifier.value },
+        { "pdf": "class_dc_proficiency_modifier", "foundry": actordata.classDC.modifiers.filter(i => i.type === 'proficiency').map(i => i.modifier)[0] || 0 },
+        { "pdf": "class_dc_item_modifier", "foundry": actordata.classDC.modifiers.filter(i => i.type === 'item').map(i => i.modifier)[0] || 0 },
+
+        /* Ancestry and General Feats Section*/
+        { "pdf": "1_ancestry_hertitage_abilities", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && (i.category === 'ancestryfeature' || i.category == 'heritage'))
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name).join(', ')
+        },
+        { "pdf": "1_ancestry_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'ancestry-1').map(i => i.name)[0] || '' },
+        { "pdf": "1_background_skill_feat" , "foundry": actordata.background.system.items[Object.keys(actordata.background.system.items)[0]].name },
+        { "pdf": "2_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-2').map(i => i.name)[0] || '' },
+        { "pdf": "3_general_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'general-3').map(i => i.name)[0] || '' },
+        { "pdf": "4_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-4').map(i => i.name)[0] || '' },
+        { "pdf": "5_ancestry_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'ancestry-5').map(i => i.name)[0] || '' },
+        { "pdf": "5_boosts", "foundry": sort_attribute_boosts(actordata.system.build.attributes.boosts[5]) },
+        { "pdf": "6_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-6').map(i => i.name)[0] || '' },
+        { "pdf": "7_general_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'general-7').map(i => i.name)[0] || '' },
+        { "pdf": "8_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-8').map(i => i.name)[0] || '' },
+        { "pdf": "9_ancestry_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'ancestry-9').map(i => i.name)[0] || '' },
+        { "pdf": "10_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-10').map(i => i.name)[0] || '' },
+        { "pdf": "10_boosts", "foundry": sort_attribute_boosts(actordata.system.build.attributes.boosts[10]) },
+        { "pdf": "11_general_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'general-11').map(i => i.name)[0] || '' },
+        { "pdf": "12_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-12').map(i => i.name)[0] || '' },
+        { "pdf": "13_ancestry_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'ancestry-13').map(i => i.name)[0] || '' },
+        { "pdf": "14_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-14').map(i => i.name)[0] || '' },
+        { "pdf": "15_general_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'general-15').map(i => i.name)[0] || '' },
+        { "pdf": "15_boosts", "foundry": sort_attribute_boosts(actordata.system.build.attributes.boosts[15]) },
+        { "pdf": "16_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-16').map(i => i.name)[0] || '' },
+        { "pdf": "17_ancestry_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'ancestry-17').map(i => i.name)[0] || '' },
+        { "pdf": "18_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-18').map(i => i.name)[0] || '' },
+        { "pdf": "19_general_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'general-19').map(i => i.name)[0] || '' },
+        { "pdf": "20_skill_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'skill-20').map(i => i.name)[0] || '' },
+        { "pdf": "20_boosts", "foundry": sort_attribute_boosts(actordata.system.build.attributes.boosts[20]) },
+
+        /* Class Abilities Section */
+        { "pdf": "1_class_feats_features", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.level.value === 1 && (i.system.category === 'classfeature' || i.system.category === 'class'))
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name).join(", ") || ""
+        },
+        { "pdf": "2_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-2').map(i => i.name)[0] || '' },
+        { "pdf": "3_class_feature", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.category === 'classfeature' && i.system.level.value === 3)
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name)[0] || ""
+        },
+        { "pdf": "4_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-4').map(i => i.name)[0] || '' },
+        { "pdf": "5_class_feature", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.category === 'classfeature' && i.system.level.value === 5)
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name)[0] || ""
+        },
+        { "pdf": "6_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-6').map(i => i.name)[0] || '' },
+        { "pdf": "7_class_feature", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.category === 'classfeature' && i.system.level.value === 7)
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name)[0] || ""
+            },
+        { "pdf": "8_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-8').map(i => i.name)[0] || '' },
+        { "pdf": "9_class_feature", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.category === 'classfeature' && i.system.level.value === 9)
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name)[0] || ""
+        },
+        { "pdf": "10_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-10').map(i => i.name)[0] || '' },
+        { "pdf": "11_class_feature", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.category === 'classfeature' && i.system.level.value === 11)
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name)[0] || ""
+        },
+        { "pdf": "12_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-12').map(i => i.name)[0] || '' },
+        { "pdf": "13_class_feature", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.category === 'classfeature' && i.system.level.value === 13)
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name)[0] || ""
+        },
+        { "pdf": "14_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-14').map(i => i.name)[0] || '' },
+        { "pdf": "15_class_feature", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.category === 'classfeature' && i.system.level.value === 15)
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name)[0] || ""
+        },
+        { "pdf": "16_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-16').map(i => i.name)[0] || '' },
+        { "pdf": "17_class_feature", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.category === 'classfeature' && i.system.level.value === 17)
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name)[0] || ""
+        },
+        { "pdf": "18_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-18').map(i => i.name)[0] || '' },
+        { "pdf": "19_class_feature", "foundry":
+            actordata.items.filter(i => i.type === 'feat' && i.system.category === 'classfeature' && i.system.level.value === 18)
+                .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) )
+                .map(i => i.name)[0] || ""
+        },
+        { "pdf": "20_class_feat", "foundry": actordata.items.filter(i => i.type === 'feat' && i.system.location === 'class-20').map(i => i.name)[0] || '' },
+
+        /* Inventory Section */
+        /* Held items have their own section at the end */
+        /* consumables have their own section at the end */
+        /* worn items have their own section at the end */
+
+        { "pdf": "bulk", "foundry": actordata.inventory.bulk.value.normal },
+
+        { "pdf": "copper", "foundry": actordata.inventory.coins.cp || 0 },
+        { "pdf": "silver", "foundry": actordata.inventory.coins.sp || 0 },
+        { "pdf": "gold", "foundry": actordata.inventory.coins.gp || 0 },
+        { "pdf": "platinum", "foundry": actordata.inventory.coins.pp || 0 },
+
+        /* Gems and Artwork have their own section at the end */
+
+        /* Origin and Appearance Section */
+        { "pdf": "ethnicity", "foundry": actordata.system.details.ethnicity.value || '' },
+        { "pdf": "nationality", "foundry": actordata.system.details.nationality.value || '' },
+        { "pdf": "birthplace", "foundry": actordata.system.details.biography.birthPlace || '' },
+        { "pdf": "age", "foundry": actordata.system.details.age.value || '' },
+        { "pdf": "gender_pronouns", "foundry": actordata.system.details.gender.value || '' },
+        { "pdf": "height", "foundry": actordata.system.details.height.value || '' },
+        { "pdf": "weight", "foundry": actordata.system.details.weight.value || '' },
+        { "pdf": "Appearance", "foundry": actordata.system.details.biography.appearance.replace('<p>', '').replace('</p>', '') || '' },
+
+        /* Personality Section */
+        { "pdf": "attitude", "foundry": actordata.system.details.biography.attitude || '' },
+        { "pdf": "deity_philosophy", "foundry": actordata.deity?.name || "" },
+        { "pdf": "edicts", "foundry": actordata.system.details.biography.edicts || "" },
+        { "pdf": "anathema", "foundry": actordata.system.details.biography.anathema || "" },
+        { "pdf": "likes", "foundry": actordata.system.details.biography.likes || '' },
+        { "pdf": "dislikes", "foundry": actordata.system.details.biography.dislikes || '' },
+        { "pdf": "catchphrases", "foundry": actordata.system.details.biography.catchphrases || '' },
+
+        /* Campaign notes Section */
+        { "pdf": "campaign_notes", "foundry": actordata.system.details.biography.campaignNotes.replace('<p>', '').replace('</p>', '') || '' },
+        { "pdf": "allies", "foundry": actordata.system.details.biography.allies.replace('<p>', '').replace('</p>', '') || '' },
+        { "pdf": "enemies", "foundry": actordata.system.details.biography.enemies.replace('<p>', '').replace('</p>', '') || '' },
+        { "pdf": "organizations", "foundry": actordata.system.details.biography.organaizations?.replace('<p>', '').replace('</p>', '') || '' },
+
+        /* Actions and Activities Section */
+        /* Dedicated loop at the end */
+
+        /* Free Actions and Reactions Section */
+        /* Dedicated loop at the end */
+
+        /* Magical Tradition Section*/
+        { "pdf": "arcane", "foundry":
+            actordata.spellcasting.filter(i => i.system?.tradition?.value === "arcane" && ["prepared","spontaneous"].includes(i.system?.prepared?.value)).length || false
+        },
+        { "pdf": "occult", "foundry":
+            actordata.spellcasting.filter(i => i.system?.tradition?.value === "occult" && ["prepared","spontaneous"].includes(i.system?.prepared?.value)).length || false
+        },
+        { "pdf": "primal", "foundry":
+            actordata.spellcasting.filter(i => i.system?.tradition?.value === "primal" && ["prepared","spontaneous"].includes(i.system?.prepared?.value)).length || false
+        },
+        { "pdf": "divine", "foundry":
+            actordata.spellcasting.filter(i => i.system?.tradition?.value === "divine" && ["prepared","spontaneous"].includes(i.system?.prepared?.value)).length || false
+        },
+
+        { "pdf": "prepared_caster", "foundry":
+            actordata.spellcasting.filter(i => spellcasting_traditions.includes(i.system?.tradition?.value) && i.system?.prepared?.value === 'prepared').length ||  false
+        },
+        { "pdf": "spontaneous_caster", "foundry":
+            actordata.spellcasting.filter(i => spellcasting_traditions.includes(i.system?.tradition?.value) && i.system?.prepared?.value === 'spontaneous').length ||  false
+        },
+
+        /* Spell Statistics Section */
+        { "pdf": "spell_attack", "foundry":
+            format_mod(
+                actordata.spellcasting.filter(i => spellcasting_traditions.includes(i.system?.tradition?.value) && prepared_types.includes(i.system?.prepared?.value))
+                .sort( (a,b) => (a.statistic.check.mod < b.statistic.check.mod ? -1 : (a.statistic.check.mod > b.statistic.check.mod ? 1 : 0)) ).reverse()
+                .map(i => i.statistic.mod)[0]
+            ) || ""
+        },
+        /* Spellcasting rank, modifiers has a dedicated entry at the end */
+
+        { "pdf": "spell_dc", "foundry":
+            actordata.spellcasting.filter(i => spellcasting_traditions.includes(i.system?.tradition?.value) && prepared_types.includes(i.system?.prepared?.value))
+                .sort( (a,b) => (a.statistic.check.mod < b.statistic.check.mod ? -1 : (a.statistic.check.mod > b.statistic.check.mod ? 1 : 0)) ).reverse()
+                .map(i => i.statistic.check.mod)[0] +10 || ""
+        },
+        /* Spell DC rank, modifiers is at the end */
+
+        /* Cantrips Section ∞*/
+        { "pdf": "cantrip_slots", "foundry":
+            actordata.spellcasting.filter(i => spellcasting_traditions.includes(i.system?.tradition?.value) && prepared_types.includes(i.system?.prepared?.value))
+                .sort( (a,b) => (a.statistic.check.mod < b.statistic.check.mod ? -1 : (a.statistic.check.mod > b.statistic.check.mod ? 1 : 0)) ).reverse()
+                .map(i => i.spells.entry.system.slots.slot0.max)[0] || ""
+        },
+        { "pdf": "cantrip_rank", "foundry": actordata.items.filter(i => i.type === 'spell' && i.isCantrip)[0] ? Math.round(actordata.system.details.level.value / 2) : '' },
+
+        /* Cantrips has a section at the end */
+        /* Focus Spells Section */
+        { "pdf": "focus_point_1", "foundry": actordata.system.resources.focus.max >= 1 || false },
+        { "pdf": "focus_point_2", "foundry": actordata.system.resources.focus.max >= 2 || false },
+        { "pdf": "focus_point_3", "foundry": actordata.system.resources.focus.max >= 3 || false },
+        { "pdf": "focus_spell_rank", "foundry": actordata.items.filter(i => i.type === 'spell' && i.isFocusSpell && !i.isRitual)[0] ? Math.round(actordata.system.details.level.value / 2) : '' },
+        /* Focus spells have a section at the end */
+
+        /* Innate Spell Section */
+        /* FIXME: include innate spells */
+        { "pdf": "list_innate_spells", "foundry": "" },
+
+        /* Spell Slots Section */
+        /* Spell slots have a dedicated section at the end */
+        /* spell list has a dedicated section at the end */
+        /* Rituals list has a dedicated section at the end*/
+    ];
+
+    /* Defense Notes */
+    let defense_notes = [];
+    let modifiers_types = ["ability","proficiency","item"];
+    let fortitude_bonus = actordata.saves.fortitude.modifiers.filter(i => !modifiers_types.includes(i.type));
+    let reflex_bonus = actordata.saves.reflex.modifiers.filter(i => !modifiers_types.includes(i.type));
+    let will_bonus = actordata.saves.reflex.modifiers.filter(i => !modifiers_types.includes(i.type));
+    let all_bonus_slugs = fortitude_bonus.concat(reflex_bonus).concat(will_bonus).map(i=>i.slug).filter((v,i,a) => a.indexOf(v) === i);
+    all_bonus_slugs = all_bonus_slugs.filter(i => fortitude_bonus.map(i => i.slug).includes(i) && reflex_bonus.map(i => i.slug).includes(i) && will_bonus.map(i => i.slug).includes(i));
+    let all_bonus = fortitude_bonus.filter(i => all_bonus_slugs.includes(i.slug));
+    fortitude_bonus = fortitude_bonus.filter(i => !all_bonus_slugs.includes(i.slug));
+    reflex_bonus = reflex_bonus.filter(i => !all_bonus_slugs.includes(i.slug));
+    will_bonus = will_bonus.filter(i => !all_bonus_slugs.includes(i.slug));
+    all_bonus.forEach(
+        (b) => {
+            defense_notes.push(`${b.label} ${format_mod(b.modifier)} (saves)`);
+        }
+    );
+    fortitude_bonus.forEach(
+        (b) => {
+            defense_notes.push(`${b.label} ${format_mod(b.modifier)} (fort)`);
+        }
+    );
+    reflex_bonus.forEach(
+        (b) => {
+            defense_notes.push(`${b.label} ${format_mod(b.modifier)} (ref)`);
+        }
+    );
+    will_bonus.forEach(
+        (b) => {
+            defense_notes.push(`${b.label} ${format_mod(b.modifier)} (will)`);
+        }
+    );
+
+    ret.push(
+        { "pdf": "defense_notes", "foundry": "                         " + defense_notes.join(", ") }
+    );
+
+    /* Skills */
+    Object.values(actordata.skills).filter(i => !i.lore).forEach(
+        (skill) => {
+            ret = ret.concat(
+                [
+                    { "pdf": `${skill.slug}`, "foundry": format_mod(skill.mod) },
+                    { "pdf": `${skill.slug}_attribute_modifier`, "foundry": skill.attributeModifier.modifier || '0' },
+                    { "pdf": `${skill.slug}_proficiency_modifier`, "foundry": skill.modifiers.filter(i => i.type == 'proficiency').map(i => i.modifier)[0] || '0' },
+                    { "pdf": `${skill.slug}_item_modifier`, "foundry": skill.modifiers.filter(i => i.type === 'item' && i.enabled && i.slug !== 'armor-check-penalty').map(i => ([i.modifier].reduce((partialSum, a) => partialSum + a, 0) < 0 ? [i.modifier].reduce((partialSum, a) => partialSum + a, 0) : '+' + [i.modifier].reduce((partialSum, a) => partialSum + a, 0)))[0] || '0' },
+                    { "pdf": `${skill.slug}_armor_modifier`, "foundry": skill.modifiers.filter(i => i.slug === 'armor-check-penalty' ).map(i => i.modifier)[0] || '0' },
+                    { "pdf": `${skill.slug}_trained`, "foundry": skill.rank >= 1 || false },
+                    { "pdf": `${skill.slug}_expert`, "foundry": skill.rank >= 2 || false },
+                    { "pdf": `${skill.slug}_master`, "foundry": skill.rank >= 3 || false },
+                    { "pdf": `${skill.slug}_legendary`, "foundry": skill.rank >= 4 || false },
+                ]
+            )
+        }
+    );
+
+    /* Lore Skills */
+    Object.values(actordata.skills).filter(i => i.lore).forEach(
+        (skill, index) => {
+            ret = ret.concat(
+                [
+                    { "pdf": `lore${index+1}`, "foundry": format_mod(skill.mod) },
+                    { "pdf": `lore${index+1}_subcategory`, "foundry": skill.label },
+                    { "pdf": `lore${index+1}_attribute_modifier`, "foundry": skill.attributeModifier.modifier || '0' },
+                    { "pdf": `lore${index+1}_proficiency_modifier`, "foundry": skill.modifiers.filter(i => i.type == 'proficiency').map(i => i.modifier)[0] || '0' },
+                    { "pdf": `lore${index+1}_item_modifier`, "foundry": skill.modifiers.filter(i => i.type === 'item' && i.enabled && i.slug !== 'armor-check-penalty').map(i => ([i.modifier].reduce((partialSum, a) => partialSum + a, 0) < 0 ? [i.modifier].reduce((partialSum, a) => partialSum + a, 0) : '+' + [i.modifier].reduce((partialSum, a) => partialSum + a, 0)))[0] || '0' },
+                    { "pdf": `lore${index+1}_armor_modifier`, "foundry": skill.modifiers.filter(i => i.slug === 'armor-check-penalty' ).map(i => i.modifier)[0] || '0' },
+                    { "pdf": `lore${index+1}_trained`, "foundry": skill.rank >= 1 || false },
+                    { "pdf": `lore${index+1}_expert`, "foundry": skill.rank >= 2 || false },
+                    { "pdf": `lore${index+1}_master`, "foundry": skill.rank >= 3 || false },
+                    { "pdf": `lore${index+1}_legendary`, "foundry": skill.rank >= 4 || false },
+                ]
+            );
+        }
+    );
+
+    /* Skill Notes */
+    /* Skills with assurance */
+    let skill_notes = [];
+    skill_notes.push("Assurance: " + actordata.items.filter(i=>i.slug==="assurance").map(i=>i.rules.filter(f=>f.prompt==="PF2E.SpecificRule.Prompt.Skill").map(m=>m.selection)).flat(1).map(i=>ucfirst(i)).join(", "));
+    ret.push({ "pdf": "skill_notes", "foundry": skill_notes.join("\n") });
+
+    /* Strikes */
+    /* Melee strikes range from 0-2 */
+    actordata.system.actions.filter(i => i.type === "strike" && (i.domains.includes("melee-attack-roll") || i.altUsages.filter(f => f.domains.includes('melee-attack-roll')).length > 0))
+        .sort( (a,b) => (a.label < b.label ? -1 : (a.label > b.label ? 1 : 0)) ).reverse()
+        .sort((a,b) => (a.ready > b.ready ? 1 : (a.ready < b.ready ? -1 : 0))).reverse()
+        .forEach(
+        (attack, index) => {
+            let cur_attack = {};
+            if ( attack.domains.includes("melee-attack-roll") ) {
+                cur_attack = attack;
+            } else if ( attack.altUsages.filter(i => i.domains.includes('melee-attack-roll')).length > 0 ) {
+                cur_attack = attack.altUsages.filter(i => i.domains.includes('melee-attack-roll'))[0];
+            };
+            let label = cur_attack.label || "";
+            let total_modifier = parseInt(cur_attack.totalModifier) || 0;
+            let attribute_modifier = parseInt(cur_attack.modifiers.filter(i => i.type === "ability").map(i => i.modifier)[0]) || 0;
+            let proficiency_modifier = parseInt(cur_attack.modifiers.filter(i => i.type === 'proficiency').map(i => i.modifier)[0]) || 0;
+            let item_modifier = parseInt(cur_attack.modifiers.filter(i => i.type === 'item' && i.enabled).map(i => i.modifier)[0]) || 0;
+            let damage = `${cur_attack.item.system.damage.dice}${cur_attack.item.system.damage.die}` || "";
+            let bludgeoning_damage = cur_attack.item.system.damage.damageType === "bludgeoning" || false;
+            let piercing_damage = cur_attack.item.system.damage.damageType === "piercing" || false;
+            let slashing_damage = cur_attack.item.system.damage.damageType === "slashing" || cur_attack.item.system.traits.value.includes('versatile-s') || false;
+            let traits_notes = format_traits(cur_attack.item.system.traits.value) + format_runes(cur_attack.item.system.runes) || [];
+
+            if (attribute_modifier != 0) {
+                damage = damage + format_mod(attribute_modifier);
+            };
+            ret = ret.concat(
+                    [
+                        { "pdf": `melee${index+1}_name`, "foundry": label},
+                        { "pdf": `melee${index+1}_attack`, "foundry": format_mod(total_modifier)},
+                        { "pdf": `melee${index+1}_attribute_modifier`, "foundry": attribute_modifier },
+                        { "pdf": `melee${index+1}_proficiency_modifier`, "foundry": proficiency_modifier},
+                        { "pdf": `melee${index+1}_item_modifier`, "foundry": item_modifier},
+                        { "pdf": `melee${index+1}_damage`, "foundry": damage },
+                        { "pdf": `melee${index+1}_bludgeoning_damage`, "foundry": bludgeoning_damage },
+                        { "pdf": `melee${index+1}_piercing_damage`, "foundry": piercing_damage },
+                        { "pdf": `melee${index+1}_slashing_damage`, "foundry": slashing_damage },
+                        { "pdf": `melee${index+1}_traits_notes`, "foundry": `                          ${traits_notes}` },
+                    ]
+                );
+        }
+    );
+
+    /* Ranged strikes range from 0-1 */
+    actordata.system.actions.filter(i => i.type === "strike" && (i.domains.includes("ranged-attack-roll") || i.altUsages.filter(f => f.domains.includes('ranged-attack-roll')).length > 0))
+        .sort((a,b) => (a.ready > b.ready ? 1 : (a.ready < b.ready ? -1 : 0))).reverse()
+        .sort( (a,b) => (a.label < b.label ? -1 : (a.label > b.label ? 1 : 0)) ).reverse()
+        .forEach(
+        (attack, index) => {
+            let cur_attack = {};
+            if ( attack.domains.includes("ranged-attack-roll") ) {
+                cur_attack = attack;
+            } else if ( attack.altUsages.filter(i => i.domains.includes('ranged-attack-roll')).length > 0 ) {
+                cur_attack = attack.altUsages.filter(i => i.domains.includes('ranged-attack-roll'))[0];
+            };
+            let label = cur_attack.label;
+            let total_modifier = parseInt(cur_attack.totalModifier);
+            let attribute_modifier = parseInt(cur_attack.modifiers.filter(i => i.type === "ability").map(i => i.modifier)[0]) || 0;
+            let proficiency_modifier = parseInt(cur_attack.modifiers.filter(i => i.type === 'proficiency').map(i => i.modifier)[0]) || 0;
+            let item_modifier = parseInt(cur_attack.modifiers.filter(i => i.type === 'item' && i.enabled).map(i => i.modifier)[0]) || 0;
+            let damage = `${cur_attack.item.system.damage.dice}${cur_attack.item.system.damage.die}` || '-';
+            let bludgeoning_damage = cur_attack.item.system.damage.damageType === "bludgeoning" || false;
+            let piercing_damage = cur_attack.item.system.damage.damageType === "piercing" || false;
+            let slashing_damage = cur_attack.item.system.damage.damageType === "slashing" || cur_attack.item.system.traits.value.includes('versatile-s') || false;
+            let traits_notes = format_traits(cur_attack.item.system.traits.value.concat([`range-${cur_attack.item.system.range}`])) + format_runes(cur_attack.item.system.runes);
+
+            if (attribute_modifier != 0) {
+                damage = damage + format_mod(attribute_modifier);
+            };            ret = ret.concat(
+                [
+                    { "pdf": `ranged${index+1}_name`, "foundry": label},
+                    { "pdf": `ranged${index+1}_attack`, "foundry": format_mod(total_modifier)},
+                    { "pdf": `ranged${index+1}_attribute_modifier`, "foundry": attribute_modifier },
+                    { "pdf": `ranged${index+1}_proficiency_modifier`, "foundry": proficiency_modifier },
+                    { "pdf": `ranged${index+1}_item_modifier`, "foundry": item_modifier},
+                    { "pdf": `ranged${index+1}_damage`, "foundry": damage },
+                    { "pdf": `ranged${index+1}_bludgeoning_damage`, "foundry": bludgeoning_damage },
+                    { "pdf": `ranged${index+1}_piercing_damage`, "foundry": piercing_damage },
+                    { "pdf": `ranged${index+1}_slashing_damage`, "foundry": slashing_damage },
+                    { "pdf": `ranged${index+1}_traits_notes`, "foundry": `                          ${traits_notes}` },
+                ]
+            );
+        }
+    );
+
+    /* Actions and Activities */
+    /* ranges from 0-8 in PDF*/
+    actordata.items.filter(i => i.system.actionType?.value == "action").sort((a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))).forEach(
+        (action, index) => {
+            if (index < 9) {
+                let frequency = (action.frequency?.max || "") + "/" + resolve_frequency(action.frequency?.per || "");
+                if (typeof(action.frequency?.max) === "undefined" && typeof(action.frequency?.per) === "undefined") {
+                    frequency = "";
+                }
+                ret = ret.concat(
+                    [
+                        {"pdf": `activity${index+1}_name`, "foundry": action.name },
+                        {"pdf": `activity${index+1}_action_count`, "foundry": format_actions(action.system.actions.value) },
+                        {"pdf": `activity${index+1}_traits`, "foundry": format_traits([action.system.traits.rarity].concat(action.system.traits.value)) },
+                        {"pdf": `activity${index+1}_frequency`, "foundry": frequency },
+                        {"pdf": `activity${index+1}_reference`, "foundry": abbreviate_source(action.system.publication?.title || action.system.source?.value || "") },
+                    ]
+                );
+            };
+        }
+    );
+
+    /* Reactions and Free actions */
+    /* ranges from 9-16 in PDF*/
+    actordata.items.filter(i => i.system.actionType?.value == "reaction" || i.system.actionType?.value == "free")
+        .sort((a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))).reverse()
+        .sort((a,b) => (a.system.actionType.value < b.system.actionType.value ? -1 : (a.system.actionType.value > b.system.actionType.value ? 1 : 0))).reverse().forEach(
+        (action, index) => {
+            if (index < 9) {
+                let frequency = (action.frequency?.max || "") + "/" + resolve_frequency(action.frequency?.per || "");
+                if (typeof(action.frequency?.max) === "undefined" && typeof(action.frequency?.per) === "undefined") {
+                    frequency = "";
+                }
+                ret = ret.concat(
+                    [
+                        {"pdf": `activity${index+9}_name`, "foundry": action.name },
+                        {"pdf": `activity${index+9}_action_count`, "foundry": (action.system.actionType.value === "reaction") ? 'ä' : 'à' || "" },
+                        {"pdf": `activity${index+9}_traits`, "foundry": format_traits([action.system.traits.rarity].concat(action.system.traits.value)) },
+                        {"pdf": `activity${index+9}_frequency`, "foundry": frequency },
+                        {"pdf": `activity${index+9}_reference`, "foundry": abbreviate_source(action.system.publication?.title || action.system.source?.value || "") },
+                    ]
+                );
+            };
+        }
+    );
+
+   /* Spells (regular) */
+    const actor_spell_rank = Math.ceil((actordata?.level ?? 0) / 2);
+    let spell_proficiency_modifier = [];
+    let spell_attribute_modifier = [];
+    let spell_slots = {};
+    let spell_proficiency = [];
+    let spellcasting = actordata.spellcasting.filter(i => spellcasting_traditions.includes(i.system?.tradition?.value) && prepared_types.includes(i.system?.prepared?.value));
+    let is_spellcaster = (spellcasting.length > 0);
+    if (is_spellcaster){
+        let spell_index = 0;
+        let cantrip_index = 0;
+        spellcasting.forEach(
+            (sce) => {
+                spell_proficiency_modifier.push(sce.statistic.modifiers.filter(i => i.type === 'proficiency').map(i => i.modifier)[0] || 0);
+                spell_attribute_modifier.push(sce.statistic.modifiers.filter(i => i.type === 'ability').map(i => i.modifier)[0] || 0);
+                spell_proficiency.push(sce.system?.proficiency?.value || 0);
+                Object.entries(sce.spells.entry.system.slots).forEach(
+                    ([rank, info]) => {
+                        if ( ! Object.keys(spell_slots).includes(rank) ) {
+                            spell_slots[rank] = [];
+                        };
+                        spell_slots[rank].push(info.max)
+                    }
+                );
+                if ( spellcasting.length > 1 ) {
+                    ret.push({ "pdf": `spell_entry${spell_index}_name`, "foundry": sce.name });
+                    ret.push({ "pdf": `cantrip_entry${cantrip_index}_name`, "foundry": sce.name });
+                    spell_index = spell_index +1;
+                    cantrip_index = cantrip_index +1;
+                };
+
+                /* cantrips */
+                actordata.items.filter( i => i.type === 'spell' && i.system.location.value === sce._id && i.isCantrip && !i.isFocusSpell && !i.isRitual )
+                    .sort((a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))).forEach(
+                        (cantrip) => {
+                            let prepared_count = Object.values(sce.spells.entry.system.slots.slot0.prepared).filter(i => i.id === cantrip._id ).length || 0;
+                            ret = ret.concat(
+                                [
+                                    {"pdf": `cantrip_entry${cantrip_index}_name`, "foundry": cantrip.name },
+                                    {"pdf": `cantrip_entry${cantrip_index}_actions`, "foundry": format_actions(cantrip.system.time.value) },
+                                    {"pdf": `cantrip_entry${cantrip_index}_prep`, "foundry": "0".repeat(prepared_count) },
+                                ]
+                            );
+                            cantrip_index = cantrip_index +1;
+                        }
+                    );
+
+                /* spells ranks 1 => 10 */
+                for (let r=1; r<=actor_spell_rank; r++) {
+                    actordata.items.filter(
+                        i => i.type === 'spell'
+                        && (
+                             i.rank == r
+                             || (
+                                  sce.isPrepared
+                                  && (
+                                      (i.system.heightening?.type === "interval" && i.rank < r && (parseInt((r-i.rank)/i.system.heightening?.interval) == ((r-i.rank)/i.system.heightening?.interval)))
+                                      || (i.system.heightening?.type === "fixed" && i.rank < r)
+                                  )
+                                )
+                           )
+                        && i.system.location.value === sce._id
+                        && !i.isFocusSpell
+                        && !i.isRitual
+                        && !i.isCantrip
+                        ).sort((a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))).forEach(
+                            (spell) => {
+                                let prepared_count = Object.values(sce.spells.entry.system.slots[`slot${r}`].prepared).filter(i => i.id === spell._id ).length || 0;
+                                let spell_name = `${spell.name}`;
+                                if ( spell.system.heightening?.type === "fixed" && ! Object.keys(spell.system.heightening.levels).concat([spell.system.level.value]).map(i => parseInt(i)).includes(r) ) {
+                                    return;
+                                };
+                                if ( spell.system.heightening?.type === "fixed" && spell.system.level.value != r ) {
+                                    let h = r - spell.system.level.value;
+                                    spell_name = `${spell_name} (+${h})`;
+                                } else if (spell.system.heightening?.type === "interval" && spell.system.level.value != r) {
+                                    let h = (r - spell.system.level.value)/spell.system.heightening.interval;
+                                    spell_name = `${spell_name} (+${h})`;
+                                };
+                                ret = ret.concat(
+                                    [
+                                        {"pdf": `spell_entry${spell_index}_name`, "foundry": spell_name },
+                                        {"pdf": `spell_entry${spell_index}_actions`, "foundry": format_actions(spell.system.time.value) },
+                                        {"pdf": `spell_entry${spell_index}_rank`, "foundry": r },
+                                        {"pdf": `spell_entry${spell_index}_prep`, "foundry": "0".repeat(prepared_count) },
+                                    ]
+                                );
+                                spell_index = spell_index +1;
+                            }
+                    );
+                };
+                if ( spellcasting.length > 1 ) {
+                    spell_index = spell_index +1;
+                    cantrip_index = cantrip_index +1;
+                };
+            }
+        );
+        /* Spell Slots */
+        Object.keys(spell_slots).forEach(
+            (key) => {
+                ret.push({ "pdf": `spell${key.substring(4)}_slots`, "foundry": spell_slots[key].join("|")});
+            }
+        );
+        ret = ret.concat(
+            [
+                { "pdf": "spell_proficiency_modifier", "foundry": spell_proficiency_modifier[0] || "" },
+                { "pdf": "spell_attribute_modifier", "foundry": spell_attribute_modifier[0] || "" },
+                { "pdf": "spell_dc_proficiency_modifier", "foundry": spell_proficiency_modifier[0] || "" },
+                { "pdf": "spell_dc_attribute_modifier", "foundry": spell_attribute_modifier[0] || "" },
+                { "pdf": "attack_spell_trained", "foundry": spell_proficiency[0] >= 1 },
+                { "pdf": "attack_spell_expert", "foundry": spell_proficiency[0] >= 2 },
+                { "pdf": "attack_spell_master", "foundry": spell_proficiency[0] >= 3 },
+                { "pdf": "attack_spell_legendary", "foundry": spell_proficiency[0] >= 4 },
+                { "pdf": "spell_dc_trained", "foundry": spell_proficiency[0] >= 1 },
+                { "pdf": "spell_dc_expert", "foundry": spell_proficiency[0] >= 2 },
+                { "pdf": "spell_dc_master", "foundry": spell_proficiency[0] >= 3 },
+                { "pdf": "spell_dc_legendary", "foundry": spell_proficiency[0] >= 4 },
+            ]
+        );
+    };
+
+    /* Focus spells */
+    actordata.items.filter(i => i.type === 'spell' && i.isFocusSpell && !i.isRitual)
+        .sort((a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))).forEach(
+            (focus_spell, index) => {
+                ret = ret.concat(
+                    [
+                        {"pdf": `focus_spell_entry${index}_name`, "foundry": focus_spell.name },
+                        {"pdf": `focus_spell_entry${index}_actions`, "foundry": format_actions(focus_spell.system.time.value) },
+                    ]
+                );
+            }
+        );
+
+    /* Rituals */
+    actordata.items.filter(i => i.type === 'spell' && i.isRitual)
+        .sort((a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))).forEach(
+            (ritual, index) => {
+                ret = ret.concat(
+                    [
+                        {"pdf": `ritual_entry${index}_name`, "foundry": ritual.name },
+                        {"pdf": `ritual_entry${index}_rank`, "foundry": ritual.rank },
+                        {"pdf": `ritual_entry${index}_cost`, "foundry": ritual.system.cost.value },
+                    ]
+                );
+            }
+        );
+
+    /* Held items */
+    actordata.inventory.filter(i => i.system.usage.type === 'held' && i.type !== 'consumable')
+        .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) ).forEach(
+            (item, index) => {
+                ret = ret.concat(
+                    [
+                        {"pdf": `held_item${index}_name`, "foundry": ((item.system.quantity > 1) ? item.system.quantity + ' ' : '') + item.name + (item.isMagical ? ' ‡ ' : ' ') },
+                        {"pdf": `held_item${index}_bulk`, "foundry": item.system.bulk.value },
+                    ]
+                );
+            }
+        );
+
+    /* Consumables */
+    actordata.inventory.filter(i => i.type === 'consumable')
+        .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) ).forEach(
+            (item, index) => {
+                ret = ret.concat(
+                    [
+                        {"pdf": `consumable${index}_name`, "foundry": ((item.system.quantity > 1) ? item.system.quantity + ' ' : '') + item.name + (item.isMagical ? ' ‡ ' : ' ') },
+                        {"pdf": `consumable${index}_bulk`, "foundry": item.system.bulk.value },
+                    ]
+                );
+            }
+        );
+
+
+    /* Worn items */
+    actordata.inventory.filter(i => i.system.usage.type === 'worn' && i.type !== 'consumable')
+        .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) ).forEach(
+            (item, index) => {
+                ret = ret.concat(
+                    [
+                        {"pdf": `worn_item${index}_name`, "foundry": ((item.system.quantity > 1) ? item.system.quantity + ' ' : '') + item.name + (item.isMagical ? ' ‡ ' : ' ') },
+                        {"pdf": `worn_item${index}_invested`, "foundry": item.isInvested },
+                        {"pdf": `worn_item${index}_bulk`, "foundry": item.system.bulk.value },
+                    ]
+                );
+            }
+        );
+
+    /* gems and artwork */
+    actordata.inventory.filter(i => i.system.usage.type === 'carried' && i.type === 'treasure')
+        .sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) ).forEach(
+            (item, index) => {
+                let price = [];
+                ["pp", "gp", "sp", "cp"].forEach(
+                    (t) => {
+                        if (item.system.price.value[t] > 0) {
+                            price.push(`${item.system.price.value[t]} ${t}`);
+                        }
+                    }
+                );
+                ret = ret.concat(
+                    [
+                        {"pdf": `gems_artwork${index}_name`, "foundry": ((item.system.quantity > 1) ? item.system.quantity + ' ' : '') + item.name + (item.isMagical ? ' ‡ ' : '') },
+                        {"pdf": `gems_artwork${index}_price`, "foundry": price.join(", ") },
+                        {"pdf": `gems_artwork${index}_bulk`, "foundry": item.system.bulk.value },
+                    ]
+                );
+            }
+        );
+
+    /* Formulas */
+    let formulas = [];
+    actordata.system.crafting.formulas.map( a => a.uuid).forEach(
+        (uuid) => {
+            let formula = fromUuidSync(uuid);
+            formulas.push(formula);
+        }
+    );
+    formulas.sort( (a,b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)) ).reverse()
+        .sort( (a,b) => (a.system.level < b.system.level ? -1 : (a.system.level > b.system.level ? 1 : 0)) ).reverse().forEach(
+            (item,index) => {
+                ret = ret.concat(
+                    [
+                        {"pdf": `item_formula${index}_name`, "foundry": item.name },
+                        {"pdf": `item_formula${index}_rank`, "foundry": item.system.level.value },
+                    ]
+                );
+            }
+        );
+    return ret;
+}()

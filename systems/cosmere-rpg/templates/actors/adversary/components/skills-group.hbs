@@ -1,0 +1,16 @@
+<ul class="skill-list">
+    {{#each skills as |skill|}}
+    
+    {{#if skill.active}}
+    <li class="skill flexrow" data-id="{{skill.id}}">
+        {{app-actor-skill 
+            skill=skill.id 
+            readonly=(not @root.isEditMode)
+            pips=false
+        }}
+    </li>
+    {{/if}}
+
+    {{/each}}
+</ul>
+{{> box-corners }}

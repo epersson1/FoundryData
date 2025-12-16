@@ -1,4 +1,4 @@
-export class LevelsFogManager extends FogManager {
+export class LevelsFogManager extends foundry.canvas.perception.FogManager {
 
     // MODIFICATIONS
 
@@ -16,7 +16,7 @@ export class LevelsFogManager extends FogManager {
     }
 
     reload() {
-        return this.load();
+        //return this.load();
         // Test this if performance is an issue
         if (this.scene !== this.lastScene) {
             this.lastScene = this.scene;
@@ -26,6 +26,7 @@ export class LevelsFogManager extends FogManager {
 
     get scene() {
         const currentScene = game.scenes.viewed;
+        if(!currentScene) return currentScene;
         const levels = currentScene.getFlag("levels", "sceneLevels") ?? [];
         if (levels.length < 2) return currentScene;
         const ranges = levels.map((l) => ({ bottom: parseFloat(l[0]), top: parseFloat(l[1]) }));
@@ -84,7 +85,7 @@ export class LevelsFogManager extends FogManager {
         const isRenderTex = this.#explorationSprite.texture instanceof PIXI.RenderTexture;
         const tex = isRenderTex
             ? this.#explorationSprite.texture
-            : Canvas.getRenderTexture({
+            : foundry.canvas.Canvas.getRenderTexture({
                   clearColor: [0, 0, 0, 1],
                   textureConfiguration: this.textureConfiguration,
               });
@@ -116,7 +117,7 @@ export class LevelsFogManager extends FogManager {
         }
 
         // Schedule saving the texture to the database
-        if (this.#refreshCount > FogManager.COMMIT_THRESHOLD) {
+        if (this.#refreshCount > foundry.canvas.perception.FogManager.COMMIT_THRESHOLD) {
             this.#debouncedSave();
             this.#refreshCount = 0;
         } else this.#refreshCount++;
@@ -154,7 +155,7 @@ export class LevelsFogManager extends FogManager {
         if (!this.exploration) {
             return await new Promise((resolve) => {
                 assign(
-                    Canvas.getRenderTexture({
+                    foundry.canvas.Canvas.getRenderTexture({
                         clearColor: [0, 0, 0, 1],
                         textureConfiguration: this.textureConfiguration,
                     }),
@@ -167,7 +168,7 @@ export class LevelsFogManager extends FogManager {
             let tex = this.exploration.getTexture();
             if (tex === null)
                 assign(
-                    Canvas.getRenderTexture({
+                    foundry.canvas.Canvas.getRenderTexture({
                         clearColor: [0, 0, 0, 1],
                         textureConfiguration: this.textureConfiguration,
                     }),
@@ -220,7 +221,7 @@ export class LevelsFogManager extends FogManager {
 
     /**
      * Texture extractor
-     * @type {TextureExtractor}
+     * @type {foundry.canvas.TextureExtractor}
      */
     get extractor() {
         return this.#extractor;
@@ -314,13 +315,13 @@ export class LevelsFogManager extends FogManager {
      * @internal
      */
     _createExplorationObject(tex) {
-        return new SpriteMesh(
+        return new foundry.canvas.containers.SpriteMesh(
             tex ??
-                Canvas.getRenderTexture({
+                foundry.canvas.Canvas.getRenderTexture({
                     clearColor: [0, 0, 0, 1],
                     textureConfiguration: this.textureConfiguration,
                 }),
-            FogSamplerShader,
+                foundry.canvas.rendering.shaders.FogSamplerShader,
         );
     }
 
@@ -336,7 +337,7 @@ export class LevelsFogManager extends FogManager {
         // Create a TextureExtractor instance
         if (this.#extractor === undefined) {
             try {
-                this.#extractor = new TextureExtractor(canvas.app.renderer, {
+                this.#extractor = new foundry.canvas.TextureExtractor(canvas.app.renderer, {
                     callerName: "FogExtractor",
                     controlHash: true,
                     format: PIXI.FORMATS.RED,
@@ -463,7 +464,7 @@ export class LevelsFogManager extends FogManager {
         try {
             return this.#extractor.extract({
                 texture: this.#explorationSprite.texture,
-                compression: TextureExtractor.COMPRESSION_MODES.BASE64,
+                compression: foundry.canvas.TextureExtractor.COMPRESSION_MODES.BASE64,
                 type: "image/webp",
                 quality: 0.8,
                 debug: CONFIG.debug.fog.extractor,

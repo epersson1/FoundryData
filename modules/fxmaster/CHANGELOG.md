@@ -1,6 +1,250 @@
 # Changelog
 
+## [v7.1.4] - 2025-11-26
+- Resolved additional Clouds Shadow option shader crash in certain scenarios
+- Resolved filters not respecting scene bounds when Performance mode was set to High or lower
+- Added missing gating for masks in 0 mask scenarios
+- Improved design of slider toggle and improved it's style being overridden in certain systems
+- Tweaked the Rain Particle Effect to get better performance via more normalized density
+
+## [v7.1.3] - 2025-11-26
+- Resolved additional Clouds Shadow option shader crash in certain scenarios
+- Resolved filters not respecting scene bounds when Performance mode was set to High or lower
+- Added missing gating for masks in 0 mask scenarios
+- Improved design of slider toggle and improved it's style being overridden in certain systems
+- Tweaked the Rain Particle Effect to get better performance via more normalized density.
+
+## [v7.1.3] - 2025-11-26
+- Resolved additional Clouds Shadow option shader crash in certain scenarios
+- Resolved filters not respecting scene bounds when Performance mode was set to High or lower
+- Added missing gating for masks in 0 mask scenarios
+- Improved design of slider toggle and improved it's style being overridden in certain systems
+- Tweaked the Rain Particle Effect to get better performance via more normalized density
+
+## [v7.1.2] - 2025-11-23
+- Resolved Clouds Shadow option shader crash in certain scenarios
+- Some tweaks to the update release chat card
+- Updated pt-br localizations, thanks Kharmans!
+- Updated pl localizations, thanks Lioheart!
+
+## [v7.1.1] - 2025-11-22
+- Resolved Animation Effects bug that prevented the window from opening if animations db was built but no animations were present
+- Resolved missing gate for the belowTokens option on Particle Effects that caused a significant performance drop when a large number of tokens are on the canvas, even with belowTokens off. Additionally, improved performance of the belowTokens option when on for Particle Effects especially in many tokens on scene scenarios.
+- Resolved scene Particle Effects not always correctly re-sizing to viewport in certain zoom scenarios
+- Resolved a few localization key mismatches
+- Resolved a namespace issue for V12 when opening the particle effects window
+- Added localization keys for FXMaster+ new Sandstorm and Duststorm effects, and new Rainbow mode for Magic Crystals
+- Updated pt-br localizations, thanks Kharmans!
+
+## [v7.1.0] - 2025-11-16
+This 7.1 release covers many bugfixes for 7.0, some performance improvements, and visual enhancements for the Particle, Filter, and Animation Effect windows
+- Particle & Filter Effects:
+  - Updated Particle and Filter boolean inputs to use a visual toggle instead of a checkbox for better style and visibility
+  - Added tooltips for all parameters with some brief details on what each means. Tooltips can be turned off in FXMaster settings.
+  - Resolved hole areas that extended outside a regions bounds causing effects to crash
+  - Resolved hole areas that extended outside a regions bounds not masking filter or particle effects properly
+  - Resolved console error regarding window position that could appear if switching between scenes quickly with a Particle or Filter window open
+  - Resolved ellipses created using the ALT hotkey for a perfect circle not being accounted for in general region handling due to a type mismatch
+  - Resolved belowTokens mask cutout not working correctly when a token was not controlled and under an occluded tile
+  - Improve Below Tokens option when using Dynamic Token Rings. Further improvement needed but should give better coverage now.
+- Particle Effects:
+  - Added new Shadow Only option to the Clouds particle effect. This works when the new V7 Shadow option is on, and will cause only the shadows of clouds to display on the canvas.
+  - Improved performance of Clouds new Shadow effect, and fixed shadow effect jitter when windows display scale > 100%
+  - Modified belowTokens option for Particle Effects. Stashing effects in different layers turned out to be pretty brittle, so Particles now use the same Filters approach which cuts a mask for a given token. Byproduct of this approach is the belowTokens true option now also maintains effects that play above darkness, above darkness.
+  - Increased performance of Particle Effects generally by pooling render texture requests
+  - Resolved foundry native overhead occlusion filters for FXMaster particle effects not working
+- Filter Effects:
+  - Resolved multiple polygon shapes on a single region with an Edge Fade % defined not working properly. Note: Rectangle and Ellipse type region shapes do not support Edge Fade % when creating multiple shapes on a single region.
+  - Resolved Thunder Aware mode for the Lightning Filter displaying as usable for V12 users. This option was made possible via a new V13 api and so unfortunately is not supported in V12.
+  - Resolved Fog Filter Effect not correctly applying Tint options
+  - Resolved ghosting of token and region masks while panning/zooming, which was especially visible for the color filter when Below Tokens was on.
+- Animation Effects:
+  - Moved the Refresh Animations Database option from the settings menu into the Animation Effects window, and added a toggle for whether to include thumbnail processing
+  - Massively improved thumbnail processing time when Refresh Animations Database runs with that option set
+  - Improved thumbnail processing for JB2A to better match various string patterns they use
+  - Added an Image Popout for Animation Effects when left clicking
+  - Added Animation Effects support for new modules Eskie Effects and Eskie Effects Free, module includes thumbnails which are also processed alongside JB2A's
+  - Removed Anchor parameter config when modifying animations. This option doesn't make sense when you can place the cursor exactly where you want the animation to be, so removing saves a bit of data on the db object
+- Added Czech language support. Thanks Lethrendis!
+
+## [v7.1.0] - 2025-11-16
+This 7.1 release covers many bugfixes for 7.0, some performance improvements, and visual enhancements for the Particle, Filter, and Animation Effect windows
+- Particle & Filter Effects:
+  - Updated Particle and Filter boolean inputs to use a visual toggle instead of a checkbox for better style and visibility
+  - Added tooltips for all parameters with some brief details on what each means. Tooltips can be turned off in FXMaster settings.
+  - Resolved hole areas that extended outside a regions bounds causing effects to crash
+  - Resolved hole areas that extended outside a regions bounds not masking filter or particle effects properly
+  - Resolved console error regarding window position that could appear if switching between scenes quickly with a Particle or Filter window open
+  - Resolved ellipses created using the ALT hotkey for a perfect circle not being accounted for in general region handling due to a type mismatch
+  - Resolved belowTokens mask cutout not working correctly when a token was not controlled and under an occluded tile
+  - Improve Below Tokens option when using Dynamic Token Rings. Further improvement needed but should give better coverage now.
+- Particle Effects:
+  - Added new Shadow Only option to the Clouds particle effect. This works when the new V7 Shadow option is on, and will cause only the shadows of clouds to display on the canvas.
+  - Improved performance of Clouds new Shadow effect, and fixed shadow effect jitter when windows display scale > 100%
+  - Modified belowTokens option for Particle Effects. Stashing effects in different layers turned out to be pretty brittle, so Particles now use the same Filters approach which cuts a mask for a given token. Byproduct of this approach is the belowTokens true option now also maintains effects that play above darkness, above darkness.
+  - Increased performance of Particle Effects generally by pooling render texture requests
+  - Resolved foundry native overhead occlusion filters for FXMaster particle effects not working
+- Filter Effects:
+  - Resolved multiple polygon shapes on a single region with an Edge Fade % defined not working properly. Note: Rectangle and Ellipse type region shapes do not support Edge Fade % when creating multiple shapes on a single region.
+  - Resolved Thunder Aware mode for the Lightning Filter displaying as usable for V12 users. This option was made possible via a new V13 api and so unfortunately is not supported in V12.
+  - Resolved Fog Filter Effect not correctly applying Tint options
+  - Resolved ghosting of token and region masks while panning/zooming, which was especially visible for the color filter when Below Tokens was on.
+- Animation Effects:
+  - Moved the Refresh Animations Database option from the settings menu into the Animation Effects window, and added a toggle for whether to include thumbnail processing
+  - Massively improved thumbnail processing time when Refresh Animations Database runs with that option set
+  - Improved thumbnail processing for JB2A to better match various string patterns they use
+  - Added an Image Popout for Animation Effects when left clicking
+  - Added Animation Effects support for new modules Eskie Effects and Eskie Effects Free, module includes thumbnails which are also processed alongside JB2A's
+  - Removed Anchor parameter config when modifying animations. This option doesn't make sense when you can place the cursor exactly where you want the animation to be, so removing saves a bit of data on the db object
+- Added Czech language support. Thanks Lethrendis!
+
+## [v7.0.3] - 2025-11-02
+- Bugfixes:
+  - Small fix for V12, forgot to add a namespace migration
+
+## [v7.0.2] - 2025-11-02
+- Bugfixes:
+  - Below Tokens: Resolved Particle Effects appearing under tiles when Below Tokens was true
+  - Above Darkness: Fix for above darkness effects (Embers, Stars, Fireflies, etc) displaying particles over Fog of War
+  - Fixed Particle Effect Groups not assigned the correct localization
+  - Fixed Particle Effects in Regions not grouping effect parameters correctly when un-checked
+
+## [v7.0.1] - 2025-10-27
+- Updates: Updated pt-br translations, thanks Kharmans!
+- Bugfixes:
+  - Regions 'Specific Tokens POV' option not working
+  - A few small fixes for Token Enter and Exit events. I discovered these still need additional work so expect a future release with some better handling for these events.
+
+## [v7.0.0] - 2025-10-27
+Welcome to Gambit's FXMaster V7! DO NOT update to this version right before a session, it contains BREAKING CHANGES.
+- BREAKING: Drawing based masks have been fully removed, along with the Invert Particle Effect Mask controls button. The reason for this is simple, drawings were never meant to support a masking system. Regions are able to do everything drawings could do and more. Now on to the fun changes!
+- Filter Effects:
+  - Gigantic overhaul, re-written from the ground up with custom shaders
+  - Effects can now be placed on a region with the new 'FXMaster: Filter Effects' region behavior
+  - Effects are now constrained to the bounds of a scene instead of the entire canvas
+  - Effects can now be suppressed, either globally via Suppress Weather, or with a new 'FXMaster: Suppress Scene Filters' Region Behavior
+  - Region Effects now have a Edge Fade % parameter, which softens the edges of a Region for more realistic visualizations
+  - Added a Thunder Aware audio mode for the Lightning effect. Increased max period for lightning effect to allow longer durations between lightning flashes
+- Particle Effects:
+  - Effects can now be suppressed either globally via Suppress Weather, or with a new 'FXMaster: Suppress Scene Particles' Region Behavior
+  - Increased max available density for rats particle effect
+  - Modified fade-in and fade-out time for particle effects to a 5 second default, down from 20 seconds
+  - Updated Particle Masking and Particle Emissions to better work with modules that create weird regions, ie Terrain Mapper
+  - Updated Particle Effects Window to better handle resizes in combination with effect expansion
+  - Updated Cloud Effect with new Shadow options
+  - Updated Stars and Embers effects to play above the lighting layer, allowing them to be visible in darkness
+  - Updated Rain effect to include a Splash parameter. Removed the separate Rain No Splash effect
+  - Updated Rain Top Down effect to include a Splash parameter.
+- Particle & Filter Effects:
+  - Suppression via Suppress Weather, FXMaster: Suppress Scene Filters, or FXMaster: Suppress Scene Particles only effect Scene level filters and particles, meaning a region specific Filter or Particle effect can be overlayed on top of a Suppression behavior region.
+  - Effects can now be placed above or below a token
+    - New Scene and Region Below Tokens option per Particle and Filter Effect. When off, particles display above tokens. When on, particles display below tokens.
+  - Effects now respect elevation when used on a region
+    - New region behavior option Elevation Constraints. None - Region is always visible. Tokens POV - Region is restricted to any controlled tokens pov at a given elevation. Specific Tokens POV - Set of controlled tokens that are valid to see an effect at a given elevation.
+  - Updated effects to pull currently active parameters for a scene instead of always using passive defaults when relevant
+  - Updated effects to change to active scenes parameter options when a scene is changed instead of maintaining parameter options from the original scene, when relevant
+  - Updated effects to display parameter output values in real time when using the arrow keys to make adjustments
+- Added animation effect support for Baileywiki modules assets
+- Updated localization file layouts, many new keys added but structure was ported and translation was ported/added where possible across all existing files. 
+- Many more small bugfixes and tweaks
+
+## [v6.0.11] - 2025-08-29
+- Added a few new localization keys for the monthly FXMaster+ release
+- Made a few tweaks to functionality to support the newest FXMaster+ particle effect, Magic Crystals
+
+## [v6.0.9] - 2025-07-21
+- Resolved FXMaster+ effects not showing up in region config
+- Enabled proper masking for the firefly effect
+- Updated pt-br and pl translations, thanks Kharmans and Lioheart!
+
+## [v6.0.8] - 2025-07-19
+- Updated regions Suppress Weather functionality to allow scene level particle effects to play in areas marked as a hole within a Suppress Weather region
+- Added a few localization keys for July's new FXMaster+ effects
+- Updated pt-br and pl translations, thanks Kharmans and Lioheart!
+
+## [v6.0.7] - 2025-07-16
+- Updated Clear Particle and Filter Effects button dialog to dialogV2. Now clears Particle and Filter Sidebar controls buttons highlighting immediately.
+- Resolve issue with region masking on one scene applying across multiple scenes even if no region was present on other scenes
+- Updated the onUpdateParticleEffects api to allow the particle effects app window buttons to end effects when relevant
+- Added additional logging to animation effects to give clearer direction if no animation files are found
+- Additional localization keys added
+
+## [v6.0.6] - 2025-07-09
+- Resolve issue with region initialization being done too late causing an issue where tokens were unable to move
+- Resolve issue with the 'Suppress Weather' region behavior not working for ellipse and polygon region types
+- Couple small bugfixes for css button color assignment
+
+## [v6.0.5] - 2025-07-08
+- Resolve doubling up of the initial Animation Module scan when switching scenes
+- Removed thumbnail scan on first Animation Module scan. The process can take quite a while, especially on hosted services, so it will only be run when done manually through the Module settings page.
+
+## [v6.0.4] - 2025-07-07
+- Resolve Particle Effects window not auto-adjusting size based on dropdown expansion
+- Removed !important css tags that were unnecessary
+- Added updated pt-BR and pl translations from Kharmans and Lioheart. Thanks!
+- Resolved update chat message displaying on every refresh in V12
+- Resolve Suppress Weather masking not applying consistently
+
+## [v6.0.3] - 2025-07-06
+- Resolve module.zip not including the parent fxmaster folder
+- Remove test css line left in effecting all buttons
+- Add UI notification error if attempting to open the Animation Effects window without the Animations DB being properly built
+
+## [v6.0.0] - 2025-07-06
+FXMaster Version 6! Big visual and functional overhaul. V12 & V13 compatible. Removed all previously deprecated code. To reduce module size - removed individual animation assets hosted within the module and converted all module image assets to webp from png. Added and updated a number of localization keys. Changed module name to Gambit's FXMaster to align with my other modules, identifiers remains unchanged. Overview of the updates below, although I'm sure there will be some stuff I missed!
+- Filter Effects
+  - Re-wrote the menu for application v2!
+  - Toggles can now be enabled and disabled individually. Toggle parameters will be updated in real time when making a change, and parameters will remember the last set value. 
+  - Window position will be saved based off last placement.
+- Particle Effects
+  - Re-wrote the menu for application v2!
+  - Toggles can now be enabled and disabled individually.
+  - Toggle parameters will be updated in real time when making a change, and parameters will remember the last set value.
+  - Window position will be saved based off last placement, along with window width.
+  - App updated for a 3 column layout. This can be adjusted by re-sizing the app window, single column width is still supported.
+  - NEW: Region support! You can now add particle effects to a region with the 'FXMaster: Particle Effects' region behavior.
+  - NEW: Regions now support masking scene level particle effects, which can be applied with the 'Suppress Weather' region behavior. This respects FXMasters invert particle effect mask scene tool as well.
+- Animation Effects (Previously Special Effects)
+  - Complete overhaul. The goal of this re-work was to remove seldom used features and focus on giving this window an identity. In my mind that was a tool that allows flexible previewing and searching of animations.
+  - FXMaster no longer supports features that overlapped with Sequencer, Sequencer is just better (much better) at those things. Placing animations via drag-drop as a tile is still supported, and the scale and anchor parameters can still be set on each animation.
+  - App now displays animations in a grid. The window can be re-sized to change animation sizes for large previews on hover.
+  - Animation details can be viewed and include file name, file path, and sequencer db path where relevant.
+  - NEW: Added search functionality with more advanced query support via AND, OR, and NOT. As an example, this will allow searching for any animation with eldritch in the name but not blast - ex: eldritch AND NOT blast
+  - NEW: Added support for all major animation modules. Animations db will be built on first load after update based off modules present. The Animations db can be re-built at any time through the FXMaster settings page if animation modules are added, updated, or removed.
+  - NEW: Added support for custom animation folders. This can be specified in the FXMaster settings page.
+  - NEW: Added the ability to favorite animations, these will be accessible as a dropdown filter tag along with the major animation authors and custom folder
+
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [5.0.1](https://github.com/ghost-fvtt/fxmaster/compare/v5.0.0...v5.0.1) (2025-05-21)
+
+
+### Bug Fixes
+
+* include additional logic to prevent erroneous ui warning on token drop to canvas ([086ad9d](https://github.com/ghost-fvtt/fxmaster/commit/086ad9d907a5fd44f4440cbcf55cbff201f0c419))
+
+## [5.0.0](https://github.com/ghost-fvtt/fxmaster/compare/v4.1.1...v5.0.0) (2025-05-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* v13 compatible release
+* v13 compatible release
+* v13 Compatability
+* V13 Compatability. Check the Github readme for more info
+* V13 Compatability. Visit the github for more info
+
+### Features
+
+* more v13 things ([77bb702](https://github.com/ghost-fvtt/fxmaster/commit/77bb70202e71cde06ea202b093868df4fdc48890))
+* official v13 release ([b0d7ef3](https://github.com/ghost-fvtt/fxmaster/commit/b0d7ef31e134b473046d96aa66f4010141f23007))
+* v13 Compatability ([ba3b0d1](https://github.com/ghost-fvtt/fxmaster/commit/ba3b0d1c851566f8dd5eb00a6a4015e1775009df))
+* V13 Compatability. Check the Github readme for more info ([7603a99](https://github.com/ghost-fvtt/fxmaster/commit/7603a99301bf391355c8b7e73f54a3291c4a8c41))
+* V13 Compatability. Visit the github for more info ([56edae9](https://github.com/ghost-fvtt/fxmaster/commit/56edae9268cc775ed8e5008406b62591fc1956f6))
+* v13 compatible release ([3421abb](https://github.com/ghost-fvtt/fxmaster/commit/3421abb87316596ed23b7ad45c5d2278e5b2ec64))
+* v13 compatible release ([4a58b9d](https://github.com/ghost-fvtt/fxmaster/commit/4a58b9d9e60f42cbe650563b70701103ebc2fbf1))
+
+### [4.1.1](https://github.com/ghost-fvtt/fxmaster/compare/v4.1.0...v4.1.1) (2025-05-18)
 
 ## [4.1.0](https://github.com/ghost-fvtt/fxmaster/compare/v4.0.2...v4.1.0) (2024-09-08)
 

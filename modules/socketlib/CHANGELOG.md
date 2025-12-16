@@ -1,7 +1,16 @@
+## 1.1.3
+- Update compatibility to Foundry 13 (which might also fix an issue with TheForge?)
+
+## 1.1.2
+### Compatibility
+- Updated for compatibility with Foundry 13 (338).
+
+## 1.1.1
+- Update module.json for new location and maintainer.
+
 ## 1.1.0
 ### Compatibility
 - Updated for compatibilty with Foundry 12 (thanks Clemente!)
-
 
 ## 1.0.13
 ### Compatibility

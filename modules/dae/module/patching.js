@@ -1,5 +1,5 @@
 import { libWrapper, replaceFormulaData } from "./dae.js";
-import { log, } from "../dae.js";
+import { log } from "../dae.js";
 export function patchingInitSetup() {
     return;
 }

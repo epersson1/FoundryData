@@ -1,0 +1,67 @@
+{
+    "statuscounter": {
+        "rebindNumberKeys": {
+            "name": "Configurar Teclas Numéricas",
+            "hint": "Substitui a atribuição padrão da tecla numérica ao passar o mouse sobre um marcador de status para definir a quantidade de acúmulos."
+        },
+        "rebindMouseButtons": {
+            "name": "Configurar Botões do Mouse",
+            "hint": "Substitui o comportamento padrão do botão do mouse para aumentar a contagem de acúmulos com o clique esquerdo e diminuí-la com o botão direito. A sobreposição de status pode ser definida com Shift + clique esquerdo. Uma quantidade específica de acúmulos pode ser definida com Alt + clique esquerdo."
+        },
+        "multiSelect": {
+            "name": "Modificar Tokens Selecionados",
+            "hint": "Ajusta efeitos e contadores para todos os tokens selecionados."
+        },
+        "displayOne": {
+            "name": "Exibir '1'",
+            "hint": "Configura quando ou se o contador deve ser exibido para um único acúmulo.",
+            "always": "Sempre",
+            "countdown": "Ao Contar Regressivamente",
+            "never": "Nunca"
+        },
+        "counterFontSize": {
+            "name": "Tamanho da Fonte do Contador",
+            "hint": "O tamanho da fonte do contador de status."
+        },
+        "counterColor": {
+            "name": "Cor do Contador",
+            "hint": "A cor do contador de status no formato RRGGBB."
+        },
+        "countdownColor": {
+            "name": "Cor da Contagem Regressiva",
+            "hint": "A cor das contagens regressivas de combate no formato RRGBBB."
+        },
+        "counterDefaults": {
+            "name": "Redefinir Padrões",
+            "hint": "Abre uma janela para redefinir as configurações padrão para um ou mais efeitos de status.",
+            "reset": "Redefinir Efeitos Selecionados",
+            "none": "Não há padrões configurados."
+        },
+        "config": {
+            "title": "Configuração do Contador",
+            "value": "Quantidade",
+            "type": {
+                "name": "Tipo",
+                "default": "Simples"
+            },
+            "durationType": {
+                "name": "Duração",
+                "hint": "Determina como a duração restante do efeito é exibida.",
+                "none": "Nenhum",
+                "round": "Rodada",
+                "turn": "Turno"
+            },
+            "localEffect": "Local effect {name} cannot be configured.",
+            "modifyDuration": {
+                "name": "Modificar Duração",
+                "hint": "As entradas do mouse e teclado para o token alteram a duração (em vez da quantidade)."
+            },
+            "multiplyEffect": {
+                "name": "Amplificar Efeito",
+                "hint": "Multiplica as modificações do efeito pela quantidade do contador. Isso se aplica apenas a modificadores aditivos e multiplicativos."
+            },
+            "save": "Salvar",
+            "saveDefault": "Salvar como padrão para {status}"
+        }
+    }
+}

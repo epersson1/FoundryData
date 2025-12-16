@@ -1,13 +1,14 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 import Logger from '../../Logger.js';
-import InputComponent, { COMPONENT_SIZES } from './InputComponent.js';
-import { RequiredFieldError } from '../../errors/ComponentValidationError.js';
+import InputComponent from './InputComponent.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
+import { COMPONENT_SIZES } from './SizedComponent.js';
 export const NUMBER_FIELD_INPUT_STYLES = {
     text: 'CSB.ComponentProperties.NumberField.DisplayStyle.DisplayAsTextField',
     range: 'CSB.ComponentProperties.NumberField.DisplayStyle.DisplayAsSlider'
@@ -17,23 +18,63 @@ export const NUMBER_FIELD_CONTROLS_STYLES = {
     hover: 'CSB.ComponentProperties.NumberField.ControlStyle.Hover',
     full: 'CSB.ComponentProperties.NumberField.ControlStyle.FullControl'
 };
+export const NUMBER_FIELD_CONTROLS_DEFAULT_INCREMENTS = {
+    hover: [-1, 1],
+    full: [-10, -1, 1, 10]
+};
 const defaultControlsStyle = 'hover';
 /**
  * NumberField component
  * @ignore
  */
 class NumberField extends InputComponent {
+    static valueType = 'number';
+    /**
+     * Allows for decimal numbers
+     */
+    _allowDecimal;
+    /**
+     * Min value
+     * Can be a Number or a Formula
+     */
+    _minVal;
+    /**
+     * Max value
+     * Can be a Number or a Formula
+     */
+    _maxVal;
+    /**
+     * If value can be changed by relative operations
+     */
+    _allowRelative;
+    /**
+     * Whether to show controls on render
+     */
+    _showControls;
+    /**
+     * Controls style
+     */
+    _controlsStyle;
+    /**
+     * Comma-separated numbers to use as button increments
+     */
+    _controlsCustomIncrements;
+    /**
+     * Field style
+     */
+    _inputStyle;
     /**
      * Text field constructor
      */
     constructor(props) {
         super(props);
-        this._allowDecimal = props.allowDecimal;
+        this._allowDecimal = props.allowDecimal ?? false;
         this._minVal = props.minVal;
         this._maxVal = props.maxVal;
-        this._allowRelative = props.allowRelative;
-        this._showControls = props.showControls;
+        this._allowRelative = props.allowRelative ?? false;
+        this._showControls = props.showControls ?? false;
         this._controlsStyle = props.controlsStyle ?? defaultControlsStyle;
+        this._controlsCustomIncrements = props.controlsCustomIncrements;
         this._inputStyle = props.inputStyle ?? defaultInputStyle;
     }
     /**
@@ -105,178 +146,214 @@ class NumberField extends InputComponent {
      */
     async _getElement(entity, isEditable = true, options = {}) {
         const { reference } = options;
-        const props = { ...entity.system.props, ...options.customProps };
         const jQElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-number-field');
         const fieldSpan = $('<span></span>');
         fieldSpan.addClass('custom-system-number-input-span');
         const hiddenInputElement = $('<input />');
         hiddenInputElement.attr('type', 'hidden');
-        if (!entity.isTemplate) {
-            hiddenInputElement.attr('name', 'system.props.' + this.key);
-        }
         const inputElement = $('<input />');
         inputElement.attr('type', this._inputStyle);
-        if (this._inputStyle === 'range') {
-            inputElement.attr('min', this._getMinVal(entity, props, options));
-            inputElement.attr('max', this._getMaxVal(entity, props, options));
-        }
-        inputElement.attr('id', `${entity.uuid}-${this.key}`);
+        inputElement.attr('id', this.getSluggedId(entity));
         if (!isEditable) {
             hiddenInputElement.attr('disabled', 'disabled');
             inputElement.attr('disabled', 'disabled');
         }
-        const fieldValue = foundry.utils.getProperty(props, this.key) ??
-            (this.defaultValue
-                ? Number(ComputablePhrase.computeMessageStatic(this.defaultValue, props, {
-                    source: `${this.key}.defaultValue`,
-                    reference,
-                    defaultValue: '',
-                    triggerEntity: entity
-                }).result)
-                : '');
-        hiddenInputElement.val(fieldValue);
-        inputElement.val(fieldValue);
-        const persistValue = () => {
-            let newValue = String(inputElement.val());
-            const oldValue = String(hiddenInputElement.val());
-            let persistedValue;
-            if (isNaN(Number(newValue))) {
-                persistedValue = Number(oldValue);
-                ui.notifications.warn(game.i18n.localize('CSB.UserMessages.NumberField.ValueNotNumeric'));
+        if (TemplateSystem.isAppliedTemplateSystem(entity)) {
+            const props = { ...entity.system.props, ...options.customProps };
+            if (this._inputStyle === 'range') {
+                inputElement.attr('min', this._getMinVal(entity, props, options));
+                inputElement.attr('max', this._getMaxVal(entity, props, options));
             }
-            else {
-                if (!this._allowDecimal && !Number.isInteger(Number(newValue))) {
-                    newValue = oldValue;
-                    ui.notifications.warn(game.i18n.localize('CSB.UserMessages.NumberField.ValueNotInteger'));
-                }
-                persistedValue = Number(newValue);
-                if (this._allowRelative && (newValue.startsWith('+') || newValue.startsWith('-'))) {
-                    persistedValue = Number(oldValue) + Number(newValue);
-                }
-                const min = this._getMinVal(entity, props, options);
-                if (persistedValue < min) {
-                    persistedValue = min;
-                    ui.notifications.warn(game.i18n.format('CSB.UserMessages.NumberField.ValueNotTooLow', { VALUE: min }));
-                }
-                const max = this._getMaxVal(entity, props, options);
-                if (persistedValue > max) {
-                    persistedValue = max;
-                    ui.notifications.warn(game.i18n.format('CSB.UserMessages.NumberField.ValueNotTooHigh', { VALUE: max }));
-                }
+            const fieldValue = options.overrideValue ??
+                foundry.utils.getProperty(props, this.key) ??
+                (this.defaultValue
+                    ? Number(ComputablePhrase.computeMessageStatic(this.defaultValue, props, {
+                        source: `${this.key}.defaultValue`,
+                        reference,
+                        defaultValue: '',
+                        triggerEntity: entity
+                    }).result)
+                    : '');
+            if (!options.noName) {
+                hiddenInputElement.attr('name', 'system.props.' + this.key);
             }
-            inputElement.val(persistedValue);
-            if (String(persistedValue) !== oldValue) {
-                Logger.debug('Saving value ' + persistedValue);
-                hiddenInputElement.attr('value', persistedValue).trigger('change');
+            if (options.changeCallback) {
+                hiddenInputElement.on('change', (ev) => {
+                    if (options.changeCallback) {
+                        void options.changeCallback(ev);
+                    }
+                });
             }
-        };
-        if (!entity.isTemplate) {
+            hiddenInputElement.val(fieldValue);
+            inputElement.val(fieldValue);
+            const persistValue = () => {
+                let newValue = String(inputElement.val());
+                const oldValue = String(hiddenInputElement.val());
+                let persistedValue;
+                if (isNaN(Number(newValue))) {
+                    persistedValue = Number(oldValue);
+                    ui.notifications.warn(game.i18n.localize('CSB.UserMessages.NumberField.ValueNotNumeric'));
+                }
+                else {
+                    if (!this._allowDecimal && !Number.isInteger(Number(newValue))) {
+                        newValue = oldValue;
+                        ui.notifications.warn(game.i18n.localize('CSB.UserMessages.NumberField.ValueNotInteger'));
+                    }
+                    persistedValue = Number(newValue);
+                    if (this._allowRelative && (newValue.startsWith('+') || newValue.startsWith('-'))) {
+                        persistedValue = Number(oldValue) + Number(newValue);
+                    }
+                    const min = this._getMinVal(entity, props, options);
+                    if (persistedValue < min) {
+                        persistedValue = min;
+                        ui.notifications.warn(game.i18n.format('CSB.UserMessages.NumberField.ValueNotTooLow', { VALUE: String(min) }));
+                    }
+                    const max = this._getMaxVal(entity, props, options);
+                    if (persistedValue > max) {
+                        persistedValue = max;
+                        ui.notifications.warn(game.i18n.format('CSB.UserMessages.NumberField.ValueNotTooHigh', { VALUE: String(max) }));
+                    }
+                }
+                inputElement.val(persistedValue);
+                if (String(persistedValue) !== oldValue) {
+                    Logger.debug('Saving value ' + persistedValue);
+                    hiddenInputElement.attr('value', persistedValue).trigger('change');
+                    hiddenInputElement[0].form?.dispatchEvent(new Event('change'));
+                }
+            };
             if (!isEditable) {
                 jQElement.append(inputElement);
             }
             else {
+                let hasBeenModified = false;
                 inputElement
                     .on('focus', () => {
                     inputElement.trigger('select');
                 })
-                    .on('blur', persistValue)
+                    .on('keydown', () => {
+                    if (inputElement.val() !== fieldValue) {
+                        hasBeenModified = true;
+                    }
+                })
+                    .on('blur', () => {
+                    if (hasBeenModified) {
+                        persistValue();
+                    }
+                })
                     .on('change', (event) => {
                     persistValue();
                     event.preventDefault();
                     event.stopPropagation();
                 });
+                fieldSpan.append(hiddenInputElement);
+                fieldSpan.append(inputElement);
                 if (this._showControls) {
+                    const min = this._getMinVal(entity, props, options);
+                    const max = this._getMaxVal(entity, props, options);
+                    const validCustomIncrements = Array.from(new Set((await ComputablePhrase.computeMessage(this._controlsCustomIncrements ?? '', props, {
+                        ...options,
+                        source: `${this.key}.controlsCustomIncrements`,
+                        reference,
+                        defaultValue: '',
+                        triggerEntity: entity
+                    })).result
+                        .split(',')
+                        .map(Number)
+                        .filter((n) => isFinite(n) && n != 0 && (this._allowDecimal || Number.isInteger(n))) ??
+                        []));
+                    const increments = validCustomIncrements.length > 0
+                        ? validCustomIncrements
+                        : NUMBER_FIELD_CONTROLS_DEFAULT_INCREMENTS[this._controlsStyle];
+                    const negativeButtons = [];
+                    const positiveButtons = [];
+                    let showIncrementValue = true;
+                    if (increments.every((num) => Math.abs(num) === 1)) {
+                        showIncrementValue = false;
+                    }
+                    increments
+                        .sort((a, b) => a - b)
+                        .forEach((value) => {
+                        const button = $('<button type="button"></button>');
+                        button.addClass('custom-system-number-field-control');
+                        button.on('click', () => {
+                            inputElement.val(Math.clamp(Number(inputElement.val()) + value, min, max));
+                        });
+                        if (value < 0) {
+                            button.text(showIncrementValue ? value : '-');
+                            negativeButtons.push(button);
+                        }
+                        else {
+                            button.text('+' + (showIncrementValue ? value : ''));
+                            positiveButtons.push(button);
+                        }
+                    });
                     if (this._controlsStyle === 'full') {
                         fieldSpan.addClass('custom-system-number-input-span-full-controls');
-                        const minusTenButton = $('<button type="button"></button >');
-                        minusTenButton.text('-10');
-                        minusTenButton.addClass('custom-system-number-field-control');
-                        minusTenButton.on('click', () => {
-                            inputElement.val(Math.max(Number(inputElement.val()) - 10, this._getMinVal(entity, props, options)));
-                        });
-                        const minusButton = $('<button type="button"></button >');
-                        minusButton.text('-1');
-                        minusButton.addClass('custom-system-number-field-control');
-                        minusButton.on('click', () => {
-                            inputElement.val(Math.max(Number(inputElement.val()) - 1, this._getMinVal(entity, props, options)));
-                        });
-                        const plusButton = $('<button type="button"></button >');
-                        plusButton.text('+1');
-                        plusButton.addClass('custom-system-number-field-control');
-                        plusButton.on('click', () => {
-                            inputElement.val(Math.min(Number(inputElement.val()) + 1, this._getMaxVal(entity, props, options)));
-                        });
-                        const plusTenButton = $('<button type="button"></button >');
-                        plusTenButton.text('+10');
-                        plusTenButton.addClass('custom-system-number-field-control');
-                        plusTenButton.on('click', () => {
-                            inputElement.val(Math.min(Number(inputElement.val()) + 10, this._getMaxVal(entity, props, options)));
-                        });
-                        fieldSpan.append(minusTenButton);
-                        fieldSpan.append(minusButton);
-                        fieldSpan.append(hiddenInputElement);
-                        fieldSpan.append(inputElement);
-                        fieldSpan.append(plusButton);
-                        fieldSpan.append(plusTenButton);
+                        for (let i = negativeButtons.length - 1; i >= 0; --i) {
+                            fieldSpan.prepend(negativeButtons[i]);
+                        }
+                        for (let i = 0; i < positiveButtons.length; ++i) {
+                            fieldSpan.append(positiveButtons[i]);
+                        }
                         fieldSpan.on('mouseleave', () => {
                             if (!inputElement.is(':focus')) {
                                 persistValue();
                             }
                         });
-                        jQElement.append(fieldSpan);
                     }
                     else {
-                        const minusButton = $('<button type="button"></button >');
-                        minusButton.append('<i class="fa fa-minus"></i>');
-                        minusButton.addClass('custom-system-number-field-control custom-system-number-field-control-minus');
-                        minusButton.on('click', () => {
-                            inputElement.val(Math.max(Number(inputElement.val()) - 1, this._getMinVal(entity, props, options)));
+                        fieldSpan.addClass('custom-system-number-input-span-hover-controls');
+                        const negativeButtonsSpan = $('<span></span>');
+                        negativeButtonsSpan.addClass('custom-system-number-input-span');
+                        negativeButtonsSpan.addClass('custom-system-number-field-controls-multi-buttons-span');
+                        negativeButtonsSpan.addClass('custom-system-number-field-control-minus');
+                        negativeButtons.forEach((button) => {
+                            button.addClass('custom-system-number-field-control-minus');
+                            negativeButtonsSpan.append(button);
                         });
-                        minusButton.hide();
-                        const plusButton = $('<button type="button"></button >');
-                        plusButton.append('<i class="fa fa-plus"></i>');
-                        plusButton.addClass('custom-system-number-field-control custom-system-number-field-control-plus');
-                        plusButton.on('click', () => {
-                            inputElement.val(Math.min(Number(inputElement.val()) + 1, this._getMaxVal(entity, props, options)));
+                        negativeButtonsSpan.hide();
+                        fieldSpan.prepend(negativeButtonsSpan);
+                        const positiveButtonsSpan = $('<span></span>');
+                        positiveButtonsSpan.addClass('custom-system-number-input-span');
+                        positiveButtonsSpan.addClass('custom-system-number-field-controls-multi-buttons-span');
+                        positiveButtonsSpan.addClass('custom-system-number-field-control-plus');
+                        positiveButtons.forEach((button) => {
+                            button.addClass('custom-system-number-field-control-plus');
+                            positiveButtonsSpan.append(button);
                         });
-                        plusButton.hide();
-                        fieldSpan.append(minusButton);
-                        fieldSpan.append(hiddenInputElement);
-                        fieldSpan.append(inputElement);
-                        fieldSpan.append(plusButton);
+                        positiveButtonsSpan.hide();
+                        fieldSpan.append(positiveButtonsSpan);
                         fieldSpan
                             .on('mouseover', () => {
-                            if ((inputElement.width() ?? 0) < 60) {
-                                minusButton.addClass('custom-system-number-field-control-outer');
-                                plusButton.addClass('custom-system-number-field-control-outer');
+                            const totalButtonsWidth = (negativeButtonsSpan?.width() ?? 0) + (positiveButtonsSpan?.width() ?? 0);
+                            if ((inputElement.width() ?? 0) < totalButtonsWidth) {
+                                negativeButtonsSpan.addClass('custom-system-number-field-control-outer');
+                                positiveButtonsSpan.addClass('custom-system-number-field-control-outer');
                             }
                             else {
-                                minusButton.removeClass('custom-system-number-field-control-outer');
-                                plusButton.removeClass('custom-system-number-field-control-outer');
+                                negativeButtonsSpan.removeClass('custom-system-number-field-control-outer');
+                                positiveButtonsSpan.removeClass('custom-system-number-field-control-outer');
                             }
-                            minusButton.show();
-                            plusButton.show();
+                            negativeButtonsSpan.show();
+                            positiveButtonsSpan.show();
                         })
                             .on('mouseleave', () => {
-                            minusButton.hide();
-                            plusButton.hide();
+                            negativeButtonsSpan.hide();
+                            positiveButtonsSpan.hide();
                             if (!inputElement.is(':focus')) {
                                 persistValue();
                             }
                         });
-                        jQElement.append(fieldSpan);
                     }
                 }
-                else {
-                    jQElement.append(inputElement);
-                    jQElement.append(hiddenInputElement);
-                }
+                jQElement.append(fieldSpan);
             }
         }
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             jQElement.addClass('custom-system-editable-component');
             inputElement.addClass('custom-system-editable-field');
+            inputElement.val(this.defaultValue ?? '');
             jQElement.on('click', (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
@@ -285,6 +362,17 @@ class NumberField extends InputComponent {
             jQElement.append(inputElement);
         }
         return jQElement;
+    }
+    setDefaultValue(entity, options = {}) {
+        if (foundry.utils.getProperty(entity.system.props, this.key) === undefined && this.defaultValue) {
+            const props = { ...entity.system.props, ...options.customProps };
+            foundry.utils.setProperty(entity.system.props, this.key, Number(ComputablePhrase.computeMessageStatic(this.defaultValue, props, {
+                source: `${this.key}.defaultValue`,
+                reference: options.reference,
+                defaultValue: '',
+                triggerEntity: entity
+            }).result));
+        }
     }
     /**
      * Returns serialized component
@@ -300,6 +388,7 @@ class NumberField extends InputComponent {
             allowRelative: this._allowRelative,
             showControls: this._showControls,
             controlsStyle: this._controlsStyle,
+            controlsCustomIncrements: this._controlsCustomIncrements,
             inputStyle: this._inputStyle
         };
     }
@@ -309,25 +398,9 @@ class NumberField extends InputComponent {
      */
     static fromJSON(json, templateAddress, parent) {
         return new NumberField({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
-            allowDecimal: json.allowDecimal,
-            minVal: json.minVal,
-            maxVal: json.maxVal,
-            allowRelative: json.allowRelative,
-            showControls: json.showControls,
-            controlsStyle: json.controlsStyle,
-            inputStyle: json.inputStyle,
-            label: json.label,
-            defaultValue: json.defaultValue,
-            size: json.size,
-            customSize: json.customSize,
-            cssClass: json.cssClass,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            ...json,
+            parent: parent,
+            templateAddress: templateAddress
         });
     }
     /**
@@ -350,25 +423,20 @@ class NumberField extends InputComponent {
      * Get configuration form for component creation / edition
      * @return The jQuery element holding the component
      */
-    static async getConfigForm(existingComponent, _entity) {
-        const mainElt = $('<div></div>');
-        mainElt.append(await renderTemplate(`systems/${game.system.id}/templates/_template/components/numberField.hbs`, {
+    static async getConfigForm(_entity, appId, existingComponent) {
+        const mainElt = document.createElement('div');
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/components/numberField.hbs`, {
             ...existingComponent,
             COMPONENT_SIZES,
             NUMBER_FIELD_CONTROLS_STYLES,
-            NUMBER_FIELD_INPUT_STYLES
-        }));
-        return mainElt;
-    }
-    /** Attaches event-listeners to the html of the config-form */
-    static attachListenersToConfigForm(html) {
-        $(html)
-            .find('#numberFieldSize')
-            .on('change', (event) => {
-            const target = $(event.currentTarget);
-            const customSizeBlock = $('.custom-system-size-custom');
+            NUMBER_FIELD_INPUT_STYLES,
+            appId
+        });
+        mainElt.querySelector('[name="size"]')?.addEventListener('change', (event) => {
+            const target = event.currentTarget;
+            const customSizeBlock = $(mainElt.querySelector('.custom-system-size-custom'));
             const slideValue = 200;
-            switch (target.val()) {
+            switch (target.value) {
                 case 'custom':
                     customSizeBlock.slideDown(slideValue);
                     break;
@@ -377,6 +445,22 @@ class NumberField extends InputComponent {
                     break;
             }
         });
+        const showControls = mainElt.querySelector('[name="showControls"]');
+        const controlsSettings = mainElt.querySelector('[name="numberFieldControlsSettings"]');
+        if (showControls && controlsSettings) {
+            const toggleFieldControlsSettingsBlock = () => (controlsSettings.style.display = showControls.checked ? 'block' : 'none');
+            showControls.addEventListener('change', toggleFieldControlsSettingsBlock);
+            toggleFieldControlsSettingsBlock();
+        }
+        const controlsStyleSelect = mainElt.querySelector('[name="controlsStyle"]');
+        const controlsCustomIncrements = mainElt.querySelector('[name="controlsCustomIncrements"]');
+        controlsCustomIncrements.placeholder =
+            NUMBER_FIELD_CONTROLS_DEFAULT_INCREMENTS[controlsStyleSelect.value].join(',');
+        controlsStyleSelect.addEventListener('change', () => {
+            controlsCustomIncrements.placeholder =
+                NUMBER_FIELD_CONTROLS_DEFAULT_INCREMENTS[controlsStyleSelect.value].join(',');
+        });
+        return mainElt;
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -384,34 +468,22 @@ class NumberField extends InputComponent {
      * @return The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
+    static extractConfig(rawConfigData, html) {
+        const configData = rawConfigData;
         const fieldData = {
-            ...super.extractConfig(html),
-            label: html.find('#numberFieldLabel').val()?.toString() ?? '',
-            defaultValue: html.find('#numberFieldValue').val()?.toString() ?? '',
-            size: html.find('#numberFieldSize').val()?.toString() ?? 'full-size',
-            allowDecimal: html.find('#numberFieldAllowDecimal').is(':checked'),
-            minVal: html.find('#numberFieldMinVal').val()?.toString() ?? '',
-            maxVal: html.find('#numberFieldMaxVal').val()?.toString() ?? '',
-            allowRelative: html.find('#numberFieldAllowRelative').is(':checked'),
-            showControls: html.find('#numberFieldShowControls').is(':checked'),
-            controlsStyle: html.find('#numberFieldControlsStyle').val()?.toString() ?? defaultControlsStyle,
-            inputStyle: html.find('#numberFieldInputStyle').val()?.toString() ?? defaultInputStyle
+            ...super.extractConfig(configData, html),
+            allowDecimal: configData.allowDecimal,
+            minVal: configData.minVal,
+            maxVal: configData.maxVal,
+            allowRelative: configData.allowRelative,
+            showControls: configData.showControls,
+            controlsStyle: configData.controlsStyle ?? defaultControlsStyle,
+            controlsCustomIncrements: configData.controlsCustomIncrements,
+            inputStyle: configData.inputStyle ?? defaultInputStyle
         };
-        if (fieldData.size === 'custom') {
-            fieldData.customSize = parseInt(String(html.find('#numberFieldCustomSize').val()));
-        }
-        this.validateConfig(fieldData);
         return fieldData;
     }
-    static validateConfig(json) {
-        super.validateConfig(json);
-        if (!json.key) {
-            throw new RequiredFieldError(game.i18n.localize('CSB.ComponentProperties.ComponentKey'), json);
-        }
-    }
 }
-NumberField.valueType = 'number';
 /**
  * @ignore
  */

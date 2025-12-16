@@ -1,0 +1,196 @@
+{
+    "id": "pin-cushion",
+    "title": "Pin Cushion",
+    "description": "Adds additional functionality on Journal Note/Scene Note and Journal directory",
+    "version": "13.0.2",
+    "authors": [
+        {
+            "name": "Cole Schultz",
+            "discord": "cole#9640"
+        },
+        {
+            "name": "Kandashi"
+        },
+        {
+            "name": "ghost",
+            "discord": "ghost#2000"
+        },
+        {
+            "name": "Evan Clarke",
+            "url": "https://patreon.com/deathsave",
+            "discord": "errational#2007",
+            "twitter": "@death_save_dev",
+            "reddit": "u/etherboy12"
+        },
+        {
+            "name": "Ethaks",
+            "ko-fi": "ethaks",
+            "discord": "Ethaks#2903",
+            "reddit": "u/ethaks"
+        },
+        {
+            "name": "p4535992",
+            "url": "https://github.com/p4535992",
+            "discord": "",
+            "twitter": "",
+            "patreon": "p4535992",
+            "github": "p4535992",
+            "ko-fi": "",
+            "reddit": "",
+            "email": ""
+        }
+    ],
+    "type": "module",
+    "socket": true,
+    "includes": [
+        "./assets/**",
+        "./lang/**",
+        "./languages/**",
+        "./scripts/**",
+        "./styles/**",
+        "./templates/**",
+        "./module.json",
+        "./README.md",
+        "./icons/**",
+        "./packs/**"
+    ],
+    "media": [
+        {
+            "type": "screenshot",
+            "url": "https://github.com/p4535992/media/raw/master/foundryvtt-pin-cushion/create_pin.png"
+        },
+        {
+            "type": "screenshot",
+            "url": "https://github.com/p4535992/media/raw/master/foundryvtt-pin-cushion/note-config.png"
+        },
+        {
+            "type": "screenshot",
+            "url": "https://github.com/p4535992/media/raw/master/foundryvtt-pin-cushion/journal-preview.png"
+        }
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "languages/en.json"
+        },
+        {
+            "lang": "fr",
+            "name": "Français",
+            "path": "languages/fr.json"
+        },
+        {
+            "lang": "pt-BR",
+            "name": "Português (Brasil)",
+            "path": "languages/pt-BR.json"
+        },
+        {
+            "lang": "es",
+            "name": "Español",
+            "path": "languages/es.json"
+        },
+        {
+            "lang": "ja",
+            "name": "日本語",
+            "path": "languages/ja.json"
+        },
+        {
+            "lang": "de",
+            "name": "Deutsch",
+            "path": "languages/de.json"
+        }
+    ],
+    "scripts": [
+        "scripts/libs/jquery.powertip.min.js"
+    ],
+    "esmodules": [
+        "module.js"
+    ],
+    "styles": [
+        "styles/pin-cushion.css",
+        "styles/jquery.powertip.css",
+        "styles/jquery.powertip-blue.css",
+        "styles/jquery.powertip-dark.css",
+        "styles/jquery.powertip-default.css",
+        "styles/jquery.powertip-green.css",
+        "styles/jquery.powertip-light.css",
+        "styles/jquery.powertip-orange.css",
+        "styles/jquery.powertip-purple.css",
+        "styles/jquery.powertip-red.css",
+        "styles/jquery.powertip-yellow.css"
+    ],
+    "compatibility": {
+        "minimum": 13,
+        "verified": 13,
+        "maximum": 13
+    },
+    "url": "https://github.com/p4535992/foundryvtt-pin-cushion",
+    "manifest": "https://github.com/p4535992/foundryvtt-pin-cushion/releases/latest/download/module.json",
+    "download": "https://github.com/p4535992/foundryvtt-pin-cushion/releases/download/13.0.2/module.zip",
+    "readme": "https://github.com/p4535992/foundryvtt-pin-cushion/blob/master/README.md",
+    "changelog": "https://github.com/p4535992/foundryvtt-pin-cushion/blob/master/CHANGELOG.md",
+    "bugs": "https://github.com/p4535992/foundryvtt-pin-cushion/issues",
+    "relationships": {
+        "systems": [],
+        "requires": [
+            {
+                "id": "lib-wrapper",
+                "type": "module",
+                "manifest": "https://github.com/ruipin/fvtt-lib-wrapper/releases/latest/download/module.json",
+                "compatibility": {}
+            },
+            {
+                "id": "socketlib",
+                "type": "module",
+                "manifest": "https://raw.githubusercontent.com/manuelVo/foundryvtt-socketlib/develop/module.json",
+                "compatibility": {}
+            }
+        ],
+        "conflicts": [
+            {
+                "id": "backgroundless-pins",
+                "reason": "Redundancy of features you can disable 'FVTT Backgroundless Pins' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "journal-thumbnail",
+                "reason": "Redundancy of features you can disable 'Thumbnails for Journal Entries' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "gmtext-in-notes",
+                "reason": "Redundancy of features you can disable 'GM-only tooltips for Notes' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "revealed-notes-manager",
+                "reason": "Redundancy of features you can disable 'Revealed Notes Manager' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "journal-sidebar-images",
+                "description": "Redundancy of features you can disable 'Journal Sidebar Images' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "map-note-hover-display",
+                "reason": "Redundancy of features you can disable 'Map Note Hover Display' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "one-click-note-creation",
+                "reason": "Redundancy of features you can disable 'One click note creation' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "jal",
+                "reason": "Redundancy of features you can disable 'Journal Anchor Links' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "disguise-unreachable-links",
+                "reason": "Redundancy of features you can disable 'Disguise Unreachable Links' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "journal-directory-pages",
+                "reason": "Redundancy of features you can disable 'Journal Directory Pages' module if you want, BUT IS NOT MANDATORY"
+            },
+            {
+                "id": "player-pin-defaults",
+                "reason": "Redundancy of features you can disable 'Player Pin Defaults' module if you want, BUT IS NOT MANDATORY"
+            }
+        ]
+    }
+}

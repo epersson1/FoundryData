@@ -277,5 +277,7 @@
     "DICESONICE.ChatCommandCompletionDescription": "Trage eine Würfel Formel ein.",
     "DICESONICE.ChatCommandDescription": "Würfle 3D Würfel ohne Chat Nachricht",
     "DICESONICE.hide3dDiceOnSecretRolls": "Verberge 3D Würfel bei GM/versteckten Würfen",
-    "DICESONICE.hide3dDiceOnSecretRollsHint": "Zeige anderen Spielern keine 3D Würfel beim GM/versteckten Wurf."
+    "DICESONICE.hide3dDiceOnSecretRollsHint": "Zeige anderen Spielern keine 3D Würfel beim GM/versteckten Wurf.",
+    "DICESONICE.ghostDiceForAll": "An alle Spieler",
+    "DICESONICE.ghostDiceForRollAuthor": "Nur an den Rollenden"
 }

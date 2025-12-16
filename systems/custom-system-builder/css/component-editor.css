@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,15 +8,55 @@
 
 .custom-system-form-field {
     margin: 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
 }
 
-.custom-system-form-field > label {
-    margin-right: 8px;
+.custom-system-form-field textarea {
+    flex: 1;
+    width: -moz-available;
 }
 
-.custom-system-form-field > label > input,
-.custom-system-form-field > label > select {
-    margin-left: 8px;
+.custom-system-form-field button {
+    min-width: 2em;
+}
+
+.custom-system-form-field.custom-system-form-field-multiline,
+.custom-system-form-field-label.custom-system-form-field-multiline {
+    flex-direction: column;
+}
+
+.custom-system-form-field-label {
+    margin: 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 0px;
+    flex-shrink: 0;
+}
+
+.custom-system-form-field label {
+    flex-shrink: 0;
+}
+
+.custom-system-field-title {
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+}
+
+.custom-system-rich-text-toggle {
+    margin: 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0px;
+    flex-shrink: 0;
 }
 
 .custom-system-component-editor {
@@ -44,12 +84,6 @@
     display: none;
 }
 
-.custom-system-form-field .custom-system-for-field-tooltip {
-    display: block;
-    font-size: 0.83em;
-    font-weight: bold;
-}
-
 .custom-system-formula-icon {
     margin-bottom: 1px;
     color: Dodgerblue;
@@ -57,4 +91,60 @@
 
 .custom-system-info-icon {
     margin-bottom: 1px;
+}
+
+.custom-system-form-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: start;
+}
+
+.custom-system-form-group-outer {
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    padding-left: 3px;
+    margin-bottom: 3px;
+}
+
+.custom-system-string-tags-field {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    flex-flow: row;
+    gap: 8px;
+    flex-grow: 1;
+
+    string-tags {
+        flex-grow: 1;
+
+        button {
+            flex: 0 0 36px;
+            line-height: var(--form-field-height);
+            background: rgba(0, 0, 0, 0.1);
+            border: 2px groove var(--color-border-light-highlight);
+
+            :hover {
+                outline: none;
+                box-shadow: 0 0 5px var(--color-shadow-primary);
+            }
+        }
+    }
+}
+
+prose-mirror .editor-container {
+    min-height: 100px;
+}
+
+.custom-system-componentSettings {
+    prose-mirror {
+        width: 100%;
+    }
+}
+
+.theme-dark {
+    .custom-system-info-icon {
+        color: var(--color-dark-3);
+    }
 }

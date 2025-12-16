@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+
+<svg
+   version="1.1"
+   id="_x32_"
+   viewBox="0 0 512 512"
+   xml:space="preserve"
+   width="800px"
+   height="800px"
+   fill="#000000"
+   sodipodi:docname="user-input-logo.svg"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs3"><pattern
+     inkscape:collect="always"
+     xlink:href="#pattern6-7"
+     preserveAspectRatio="xMidYMid"
+     id="pattern3"
+     patternTransform="translate(190,350)" /><pattern
+     patternUnits="userSpaceOnUse"
+     width="29"
+     height="20"
+     patternTransform="translate(190,350)"
+     preserveAspectRatio="xMidYMid"
+     style="fill:#000000"
+     id="pattern6-7"
+     inkscape:label=""
+     inkscape:collect="always"
+     inkscape:isstock="true"><path
+       style="fill:none;stroke:#000000;stroke-width:10;stroke-linecap:butt;stroke-dasharray:none;paint-order:stroke markers fill;stop-color:#000000"
+       d="M 0,5 C 19,5 10,15 29,15"
+       id="path4-2"
+       sodipodi:nodetypes="cc" /></pattern></defs><sodipodi:namedview
+   id="namedview3"
+   pagecolor="#ffffff"
+   bordercolor="#000000"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   showgrid="false"
+   inkscape:zoom="1.005"
+   inkscape:cx="376.61692"
+   inkscape:cy="494.52736"
+   inkscape:window-width="2804"
+   inkscape:window-height="1388"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="_x32_"><inkscape:grid
+     id="grid3"
+     units="px"
+     originx="0"
+     originy="0"
+     spacingx="0.64"
+     spacingy="0.64"
+     empcolor="#0099e5"
+     empopacity="0.30196078"
+     color="#0099e5"
+     opacity="0.14902"
+     empspacing="5"
+     enabled="true"
+     visible="false" /></sodipodi:namedview>
+
+<g
+   id="SVGRepo_bgCarrier"
+   stroke-width="0" />
+
+<g
+   id="SVGRepo_tracerCarrier"
+   stroke-linecap="round"
+   stroke-linejoin="round" />
+
+<g
+   id="SVGRepo_iconCarrier"
+   style="fill:#ffffff;fill-opacity:1"
+   transform="matrix(0.71890547,0,0,0.71890547,71.960199,71.960199)"> <style
+   type="text/css"
+   id="style1"
+   style="fill:url(#pattern3)"> .st0{fill:#FFFFFF;} </style> <g
+   id="g3"
+   style="fill:#ffffff;fill-opacity:1"> <rect
+   x="113.116"
+   y="174.636"
+   class="st0"
+   width="285.76801"
+   height="31.752001"
+   id="rect1"
+   style="fill:#ffffff;fill-opacity:1" /> <rect
+   x="113.116"
+   y="238.14"
+   class="st0"
+   width="285.76801"
+   height="31.752001"
+   id="rect2"
+   style="fill:#ffffff;fill-opacity:1" /> <rect
+   x="113.116"
+   y="301.64401"
+   class="st0"
+   width="150.82201"
+   height="31.752001"
+   id="rect3"
+   style="fill:#ffffff;fill-opacity:1" /> <polygon
+   class="st0"
+   points="315.535,305.612 331.232,461.675 361.512,425.038 418.729,512 461.581,483.799 404.372,396.837 444.558,379.387 "
+   id="polygon3"
+   style="fill:#ffffff;fill-opacity:1" /> <path
+   class="st0"
+   d="M 462.387,0 H 49.612 C 23.31,0 1.985,21.325 1.985,47.628 v 349.271 c 0,26.302 21.325,47.628 47.628,47.628 h 247.14 l -4.116,-39.69 H 49.612 c -4.38,0 -7.938,-3.566 -7.938,-7.938 V 103.194 H 470.325 V 396.9 c 0,4.372 -3.558,7.938 -7.938,7.938 H 437.86 l 26.333,39.597 c 25.458,-0.954 45.822,-21.846 45.822,-47.535 V 47.628 C 510.015,21.325 488.69,0 462.387,0 Z M 303.295,72.434 c -10.411,0 -18.853,-8.442 -18.853,-18.853 0,-10.41 8.442,-18.852 18.853,-18.852 10.41,0 18.852,8.442 18.852,18.852 0,10.411 -8.442,18.853 -18.852,18.853 z m 69.953,0 c -10.41,0 -18.853,-8.442 -18.853,-18.853 0,-10.41 8.442,-18.852 18.853,-18.852 10.411,0 18.853,8.442 18.853,18.852 0,10.411 -8.442,18.853 -18.853,18.853 z m 69.953,0 c -10.411,0 -18.853,-8.442 -18.853,-18.853 0,-10.41 8.442,-18.852 18.853,-18.852 10.411,0 18.853,8.442 18.853,18.852 0,10.411 -8.442,18.853 -18.853,18.853 z"
+   id="path3"
+   style="fill:#ffffff;fill-opacity:1" /> </g> </g>
+
+</svg>

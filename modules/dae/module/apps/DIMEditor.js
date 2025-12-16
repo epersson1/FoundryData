@@ -1,8 +1,10 @@
 import { debug } from "../../dae.js";
-const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
-export class DIMEditor extends HandlebarsApplicationMixin(ApplicationV2) {
+var ApplicationV2 = foundry.applications.api.ApplicationV2;
+var HandlebarsApplicationMixin = foundry.applications.api.HandlebarsApplicationMixin;
+const WeirdIntermediate = HandlebarsApplicationMixin(ApplicationV2);
+export class DIMEditor extends WeirdIntermediate {
     document; // could be an activity too
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    static DEFAULT_OPTIONS = {
         classes: ["macro-config", "dimeditor"],
         tag: "form",
         window: {
@@ -17,7 +19,7 @@ export class DIMEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             closeOnSubmit: true,
             handler: this.#processSubmitData
         }
-    }, { inplace: false });
+    };
     static PARTS = {
         body: { template: "./modules/dae/templates/DIMEditor.hbs", root: true },
         footer: { template: "templates/generic/form-footer.hbs" }
@@ -26,9 +28,16 @@ export class DIMEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         super(options);
         this.document = options.document;
     }
+    _initializeApplicationOptions(options) {
+        options = super._initializeApplicationOptions(options);
+        const suffix = options.document.uuid ?? foundry.utils.randomID();
+        options.uniqueId = `${this.constructor.name}-${suffix.replaceAll(".", "-")}`;
+        return options;
+    }
     async render(options) {
-        Hooks.once("renderDIMEditor", (app, html, data) => {
-            Hooks.callAll("renderMacroConfig", app, html, data);
+        Hooks.once("renderDIMEditor", (app, html, data, options) => {
+            // Marked as any because technically they want an actual MacroConfig version of things
+            Hooks.callAll("renderMacroConfig", app, html, data, options);
         });
         return super.render(options);
     }
@@ -40,29 +49,17 @@ export class DIMEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         context.buttons = [{
                 type: "submit", icon: "fa-solid fa-save", label: "MACRO.Save"
             }];
-        context.isV12 = !foundry.utils.isNewerVersion(game.version ?? "", "13");
         return context;
     }
-    /*
-      Override
-    */
-    _onEditImage(event) {
-        debug("DIMEditor | _onEditImage  | ", { event });
-        // return ui.notifications.error(settings.i18n("error.editImage"));
+    static async #processSubmitData(_event, form) {
+        const command = new foundry.applications.ux.FormDataExtended(form)?.get("command");
+        await this.updateMacro(command);
     }
-    /*
-      Override
-    */
-    static async #processSubmitData(event, form, formDataData) {
-        const command = new FormDataExtended(form)?.get("command");
-        // @ts-expect-error
-        await this.updateMacro(foundry.utils.mergeObject({ command, type: "script" }));
-    }
-    async updateMacro({ command, type }) {
+    async updateMacro(command) {
         let item = this.document;
         let macro = this.getMacro();
-        debug("DIMEditor | updateMacro  | ", { command, type, item, macro });
-        if (macro.command != command) {
+        debug("DIMEditor | updateMacro  | ", { command, item, macro });
+        if (macro.command !== command) {
             await this.setMacro(new Macro({
                 name: this.document.name,
                 img: this.document.img,
@@ -70,51 +67,44 @@ export class DIMEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 scope: "global",
                 command,
                 author: game.user?.id,
-                ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS?.OWNER }
+                ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER }
             }, {}));
         }
     }
     hasMacro() {
-        const command = foundry.utils.getProperty(this.document, "flags.dae.macro.command") ?? foundry.utils.getProperty(this.document, "flags.itemacro.macro");
+        const command = this.document.flags?.dae?.macro?.command ?? this.document.flags?.itemacro?.macro?.command;
         return !!command;
     }
     getMacro() {
-        // @ts-expect-error
+        // @ts-expect-error `macroData` is on the Activity pseudo-document with midi installed
         if (globalThis.MidiQOL?.activityTypes && this.document?.macroData)
             return this.document.macro;
-        let macroData = foundry.utils.getProperty(this.document, "flags.dae.macro")
-            ?? foundry.utils.getProperty(this.document, "flags.itemacro.macro")
-            ?? {};
-        if (!macroData.command && macroData.data)
-            macroData = macroData.data;
-        delete macroData.data;
-        macroData = foundry.utils.mergeObject(macroData, { img: this.document.img, name: this.document.name, scope: "global", type: "script" });
+        let macroData = this.document.flags?.dae?.macro ?? this.document.flags?.itemacro?.macro;
+        macroData = foundry.utils.mergeObject(macroData ?? {}, { img: this.document.img, name: this.document.name, scope: "global", type: "script" });
         debug("DIMEditor | getMacro | ", { macroData });
         return new Macro.implementation(macroData, {});
     }
     async setMacro(macro) {
-        // @ts-expect-error
+        // @ts-expect-error `macroData` is on the Activity pseudo-document with midi installed
         if (this.document.macroData) {
-            //@ts-expect-error
+            // @ts-expect-error `macroData` is on the Activity pseudo-document with midi installed
             await this.document.update({ "macroData.name": macro.name, "macroData.command": macro.command });
         }
-        if (macro instanceof Macro) {
-            // @ts-expect-error
-            await this.document.update({ "flags.dae.macro": macro.toObject() });
+        else if (macro instanceof Macro) {
+            await this.document.setFlag?.("dae", "macro", macro.toObject());
         }
     }
-    static preUpdateItemHook(item, updates, context, user) {
-        // @ts-expect-error
-        if (!game.settings?.get("dae", "DIMESyncItemacro") /*|| !game.modules?.get("itemacro") */)
+    static preUpdateItemHook(item, updates, _options, _userId) {
+        if (!game.settings.get("dae", "DIMESyncItemacro") /*|| !game.modules.get("itemacro") */)
             return true;
-        const existing = foundry.utils.getProperty(item, "flags.dae.macro")
-            ?? foundry.utils.getProperty(item, "flags.itemacro.macro")
+        const existing = item.flags?.dae?.macro
+            ?? item?.flags?.itemacro?.macro
             ?? { command: "" };
-        if (foundry.utils.getProperty(updates, "flags.dae.macro")) {
+        if (updates.flags?.dae?.macro) {
             const macroData = foundry.utils.mergeObject(existing, updates.flags.dae.macro);
             foundry.utils.setProperty(updates, "flags.itemacro.macro", macroData);
         }
-        else if (foundry.utils.getProperty(updates, "flags.itemacro.macro")) {
+        else if (updates.flags?.itemacro?.macro) {
             const macrodata = foundry.utils.mergeObject(existing, updates.flags.itemacro.macro);
             foundry.utils.setProperty(updates, "flags.dae.macro", macrodata);
         }

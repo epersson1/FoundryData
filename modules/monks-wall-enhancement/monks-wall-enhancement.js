@@ -33,7 +33,6 @@ export let patchFunc = (prop, func, type = "WRAPPER") => {
 }
 
 export class MonksWallEnhancement {
-    
     static init() {
         log("initializing");
 
@@ -49,78 +48,20 @@ export class MonksWallEnhancement {
         registerSettings();
         MonksWallEnhancement.registerHotKeys();
 
-        let sceneConfigUpdate = async function (wrapped, ...args) {
-            let [event, formData] = args;
-            const scene = this.document;
-            let { width, height, padding } = scene;
-            let { offsetX, offsetY } = scene.background;
-            let { sceneX, sceneY } = scene.dimensions;
-            let newData = foundry.utils.expandObject(formData);
-            const delta = foundry.utils.flattenObject(foundry.utils.diffObject(scene, newData));
-
-            let result = await wrapped(...args);
-
-            if (result == undefined)
-                return result;
-
-            const textureChange = ["offsetX", "offsetY", "scaleX", "scaleY", "rotation"].map(k => `background.${k}`);
-            if (scene.walls.size > 0 && ["width", "height", "padding", "grid.size", ...textureChange].some(k => k in delta)) {
-                const confirm = await Dialog.confirm({
-                    title: "Adjust walls",
-                    content: `<p>Monk's Wall Enhancements has detected that changes to the scene would affect current walls and can attempt to reposition them correctly.</p><p>Would you like to do that?</p>`
-                });
-
-                if (confirm) {
-                    let updates = [];
-
-                    let adjustX = (newData.width / width);
-                    let adjustY = (newData.height / height);
-                    //let changeX = (offsetX - foundry.utils.getProperty(newData, "background.offsetX")); // + ((newData.padding * newData.width) - (padding * width));
-                    //let changeY = (offsetY - foundry.utils.getProperty(newData, "background.offsetY")); // + ((newData.padding * newData.height) - (padding * height));
-
-                    for (let wall of scene.walls) {
-                        updates.push({
-                            _id: wall.id,
-                            c: [
-                                ((wall.c[0] - sceneX) * adjustX) + scene.dimensions.sceneX,// + changeX,
-                                ((wall.c[1] - sceneY) * adjustY) + scene.dimensions.sceneY,// + changeY,
-                                ((wall.c[2] - sceneX) * adjustX) + scene.dimensions.sceneX,// + changeX,
-                                ((wall.c[3] - sceneY) * adjustY) + scene.dimensions.sceneY// + changeY
-                            ]
-                        });
-                    }
-
-                    const cls = getDocumentClass(canvas.walls.constructor.documentName);
-                    cls.updateDocuments(updates, { parent: scene });
-                }
-            }
-
-            return result;
-        }
-
-        if (game.modules.get("lib-wrapper")?.active) {
-            libWrapper.register("monks-wall-enhancement", "SceneConfig.prototype._updateObject", sceneConfigUpdate, "WRAPPER");
-        } else {
-            const oldSceneConfigUpdate = SceneConfig.prototype._updateObject;
-            SceneConfig.prototype._updateObject = function (event) {
-                return sceneConfigUpdate.call(this, oldSceneConfigUpdate.bind(this), ...arguments);
-            }
-        }
-
-        patchFunc("WallsLayer.prototype._deactivate", function (wrapper, ...args) {
+        patchFunc("foundry.canvas.layers.WallsLayer.prototype._deactivate", function (wrapper, ...args) {
             wrapper(...args);
             const isToggled = setting("wallsDisplayToggle") && game.user.isGM;
             this.objects.visible = isToggled;
         })
 
-        patchFunc("WallsLayer.prototype._draw", async function (wrapper, ...args) {
+        patchFunc("foundry.canvas.layers.WallsLayer.prototype._draw", async function (wrapper, ...args) {
             await wrapper(...args);
             const isToggled = setting("wallsDisplayToggle") && game.user.isGM;
             this.objects.visible ||= isToggled;
         })
 
         if (setting("allow-key-movement")) {
-            patchFunc("ClientKeybindings.prototype._onPan", function (...args) {
+            patchFunc("foundry.helpers.interaction.ClientKeybindings.prototype._onPan", function (...args) {
                 let [context, movementDirections] = args;
                 // Case 1: Check for Tour
                 if ((Tour.tourInProgress) && (!context.repeat) && (!context.up)) {
@@ -175,10 +116,10 @@ export class MonksWallEnhancement {
                         let dy = 0;
 
                         // Assign movement offsets
-                        if (directions.has(ClientKeybindings.MOVEMENT_DIRECTIONS.LEFT)) dx -= 1;
-                        else if (directions.has(ClientKeybindings.MOVEMENT_DIRECTIONS.RIGHT)) dx += 1;
-                        if (directions.has(ClientKeybindings.MOVEMENT_DIRECTIONS.UP)) dy -= 1;
-                        else if (directions.has(ClientKeybindings.MOVEMENT_DIRECTIONS.DOWN)) dy += 1;
+                        if (directions.has(foundry.helpers.interaction.ClientKeybindings.MOVEMENT_DIRECTIONS.LEFT)) dx -= 1;
+                        else if (directions.has(foundry.helpers.interaction.ClientKeybindings.MOVEMENT_DIRECTIONS.RIGHT)) dx += 1;
+                        if (directions.has(foundry.helpers.interaction.ClientKeybindings.MOVEMENT_DIRECTIONS.UP)) dy -= 1;
+                        else if (directions.has(foundry.helpers.interaction.ClientKeybindings.MOVEMENT_DIRECTIONS.DOWN)) dy += 1;
 
                         // Perform the shift or rotation
                         let updates = [];
@@ -206,24 +147,25 @@ export class MonksWallEnhancement {
         }
 
         if (setting("allow-one-way-doors")) {
+            patchFunc("foundry.canvas.geometry.ClockwiseSweepPolygon.prototype._testEdgeInclusion", function (wrapper, ...args) {
+                if (foundry.utils.getProperty(canvas.scene, "flags.monks-wall-enhancement.use-one-way-door", false)) {
+                    const wallDirectionMode = this.config?.wallDirectionMode;
+                    let edge = args[0];
 
-            patchFunc("ClockwiseSweepPolygon.prototype._testEdgeInclusion", function (wrapper, ...args) {
-                const wallDirectionMode = this.config?.wallDirectionMode;
-                let edge = args[0];
-
-                const wdm = PointSourcePolygon.WALL_DIRECTION_MODES;
-                if (edge.direction && (wallDirectionMode !== wdm.BOTH) && edge.object?.isDoor) {
-                    const side = edge.orientPoint(this.origin);
-                    if (side) {
-                        if ((wallDirectionMode === wdm.NORMAL) === (side === edge.direction)) {
-                            return true;
+                    const wdm = foundry.canvas.geometry.PointSourcePolygon.WALL_DIRECTION_MODES;
+                    if (edge.direction && (wallDirectionMode !== wdm.BOTH) && edge.object?.isDoor) {
+                        const side = edge.orientPoint(this.origin);
+                        if (side) {
+                            if ((wallDirectionMode === wdm.NORMAL) === (side === edge.direction)) {
+                                return true;
+                            }
                         }
                     }
                 }
                 return wrapper(...args);
             }, "MIXED");
 
-            Object.defineProperty(DoorControl.prototype, "isVisible", {
+            Object.defineProperty(foundry.canvas.containers.DoorControl.prototype, "isVisible", {
                 get: function () {
                     if (!canvas.visibility.tokenVision) return true;
 
@@ -231,13 +173,15 @@ export class MonksWallEnhancement {
                     const w = this.wall;
                     if ((w.document.door === CONST.WALL_DOOR_TYPES.SECRET) && !game.user.isGM) return false;
 
-                    if (!game.user.isGM && w.document.dir) {
-                        // If all controlled tokens are on the wrong side of the door, then hide the door control
-                        if (!game.canvas.tokens.controlled.some((t) => {
-                            const side = w.edge.orientPoint({ x: t.x + ((t.shape?.width ?? 0) / 2), y: t.y + ((t.shape?.height ?? 0) / 2) });
-                            return side !== w.document.dir;
-                        })) {
-                            return false;
+                    if (foundry.utils.getProperty(canvas.scene, "flags.monks-wall-enhancement.use-one-way-door", false)) {
+                        if (!game.user.isGM && w.document.dir) {
+                            // If all controlled tokens are on the wrong side of the door, then hide the door control
+                            if (!game.canvas.tokens.controlled.some((t) => {
+                                const side = w.edge.orientPoint({ x: t.x + ((t.shape?.width ?? 0) / 2), y: t.y + ((t.shape?.height ?? 0) / 2) });
+                                return side !== w.document.dir;
+                            })) {
+                                return false;
+                            }
                         }
                     }
 
@@ -260,7 +204,7 @@ export class MonksWallEnhancement {
         }
 
         if (setting("snap-to-midpoint")) {
-            patchFunc("WallsLayer.prototype.getSnappedPoint", function (wrapper, ...args) {
+            patchFunc("foundry.canvas.layers.WallsLayer.prototype.getSnappedPoint", function (wrapper, ...args) {
                 if (canvas.forceSnapVertices) {
                     let [point] = args;
                     const M = CONST.GRID_SNAPPING_MODES;
@@ -272,10 +216,10 @@ export class MonksWallEnhancement {
         }
 
         if (setting("swap-wall-direction")) {
-            patchFunc("Wall.prototype._onClickRight2", function (wrapper, ...args) {
+            patchFunc("foundry.canvas.placeables.Wall.prototype._onClickRight2", function (wrapper, ...args) {
                 let [event] = args;
                 let wall = this.document;
-                const wdm = PointSourcePolygon.WALL_DIRECTION_MODES;
+                const wdm = foundry.canvas.geometry.PointSourcePolygon.WALL_DIRECTION_MODES;
 
                 if (event.data.originalEvent.ctrlKey) {
                     wall.update({ c: [wall.c[2], wall.c[3], wall.c[0], wall.c[1]] });
@@ -286,19 +230,48 @@ export class MonksWallEnhancement {
                 }
             }, "MIXED");
         }
-        
-        let oldClickTool = SceneControls.prototype._onClickTool;
-        SceneControls.prototype._onClickTool = function (event) {
+
+        patchFunc("foundry.applications.ui.SceneControls.prototype.activate", async function (wrapper, ...args) {
+            const [options] = args;
+            if (options.control == 'walls') {
+                for (let tool of Object.values(this.controls.walls.tools)) {
+                    tool.icon = MonksWallEnhancement.getIcon(tool);
+                }
+                let result = await wrapper.call(this, ...args);
+                let wallCtrl = ui.controls.controls.walls;
+                let removeIcons = new Set(Object.values(wallCtrl.tools).map(t => t.icon.split(' ')).flat());
+                $('#scene-controls button[data-tool="walltype"]')
+                    .removeClass([...removeIcons].join(' '))
+                    .addClass(ui.controls.controls.walls.tools[MonksWallEnhancement.tool.name].icon)
+                    .addClass('active');
+                return result;
+            } else if (options.tool && setting('condense-wall-type') && ui.controls.control.name == "walls") {
+                if (MonksWallEnhancement.types.includes(options.tool)) {
+                    let { name, icon } = ui.controls.tools[options.tool];
+                    MonksWallEnhancement.tool = { name, icon };
+                    let wallCtrl = ui.controls.controls.walls;
+                    let removeIcons = new Set(Object.values(wallCtrl.tools).map(t => t.icon.split(' ')).flat());
+                    $('#scene-controls button[data-tool="walltype"]')
+                        .removeClass([...removeIcons].join(' '))
+                        .addClass(ui.controls.controls.walls.tools[options.tool].icon)
+                        .addClass('active');
+                }
+            }
+            return wrapper.call(this, ...args);
+        }, "WRAPPER");
+        /*
+        let oldClickTool = foundry.applications.ui.SceneControls.prototype._onClickTool;
+        foundry.applications.ui.SceneControls.prototype.activate = function (event) {
             const li = event.currentTarget;
             const control = this.control;
             const toolName = li.dataset.tool;
-            const tool = control.tools.find(t => t.name === toolName);
+            const tool = control.tools[toolName];
 
             if (control.name == 'walls') {
                 if (MonksWallEnhancement.types.includes(tool?.name)) {
                     MonksWallEnhancement.tool = tool;
                     if (setting('condense-wall-type')) {
-                        const typebutton = control.tools.find(t => t.name === 'walltype');
+                        const typebutton = control.tools['walltype'];
                         typebutton.icon = MonksWallEnhancement.getIcon(tool);
                     }
                 } else if (setting('condense-wall-type'))
@@ -306,7 +279,7 @@ export class MonksWallEnhancement {
             }
 
             return oldClickTool.call(this, event);
-        }
+        }*/
 
         //Drag points together
         let wallDragStart = function (wrapped, ...args) {
@@ -314,7 +287,7 @@ export class MonksWallEnhancement {
 
             let event = args[0];
 
-            let dragtogether = ui.controls.control.tools.find(t => { return t.name == "toggledragtogether" });
+            let dragtogether = ui.controls.control.tools["toggledragtogether"];
             if (dragtogether != undefined && dragtogether.active) {
                 MonksWallEnhancement.dragpoints = [];
                 //find any points that should be dragged with selected point
@@ -337,10 +310,10 @@ export class MonksWallEnhancement {
             return result;
         }
         if (game.modules.get("lib-wrapper")?.active) {
-            libWrapper.register("monks-wall-enhancement", "Wall.prototype._onDragLeftStart", wallDragStart, "WRAPPER");
+            libWrapper.register("monks-wall-enhancement", "foundry.canvas.placeables.Wall.prototype._onDragLeftStart", wallDragStart, "WRAPPER");
         } else {
-            const oldWallDragStart = Wall.prototype._onDragLeftStart;
-            Wall.prototype._onDragLeftStart = function (event) {
+            const oldWallDragStart = foundry.canvas.placeables.Wall.prototype._onDragLeftStart;
+            foundry.canvas.placeables.Wall.prototype._onDragLeftStart = function (event) {
                 return wallDragStart.call(this, oldWallDragStart.bind(this), ...arguments);
             }
         }
@@ -349,7 +322,7 @@ export class MonksWallEnhancement {
             let event = args[0];
             const { clones, destination } = event.data.interactionData;
 
-            let dragtogether = ui.controls.control.tools.find(t => { return t.name == "toggledragtogether" });
+            let dragtogether = ui.controls.control.tools["toggledragtogether"];
             if (dragtogether != undefined && dragtogether.active && MonksWallEnhancement.dragpoints?.length > 0 && clones.length === 1) {
                 for (let dragpoint of MonksWallEnhancement.dragpoints) {
                     const w = dragpoint.wall;
@@ -364,10 +337,10 @@ export class MonksWallEnhancement {
         }
 
         if (game.modules.get("lib-wrapper")?.active) {
-            libWrapper.register("monks-wall-enhancement", "Wall.prototype._onDragLeftMove", wallDragMove, "WRAPPER");
+            libWrapper.register("monks-wall-enhancement", "foundry.canvas.placeables.Wall.prototype._onDragLeftMove", wallDragMove, "WRAPPER");
         } else {
-            const oldWallDragMove = Wall.prototype._onDragLeftMove;
-            Wall.prototype._onDragLeftMove = function (event) {
+            const oldWallDragMove = foundry.canvas.placeables.Wall.prototype._onDragLeftMove;
+            foundry.canvas.placeables.Wall.prototype._onDragLeftMove = function (event) {
                 return wallDragMove.call(this, oldWallDragMove.bind(this), ...arguments);
             }
         }
@@ -379,12 +352,12 @@ export class MonksWallEnhancement {
             const { clones, destination } = event.data.interactionData;
 
             const layer = this.layer;
-            const snap = layer._forceSnap || !originalEvent.shiftKey;
+            const snap = layer.gridPrecision == 0 ? false : !!layer._forceSnap || !originalEvent.shiftKey;
 
-            let snaptowall = ui.controls.control.tools.find(t => { return t.name == "snaptowall" });
+            let snaptowall = ui.controls.control.tools["snaptowall"];
             if (snaptowall.active && !snap) {
                 //find the closest point.
-                let closestPt = MonksWallEnhancement.findClosestPoint(null, destination.x, destination.y);
+                let closestPt = MonksWallEnhancement.findClosestPoint(this.id, destination.x, destination.y);
                 if (closestPt) {
                     destination.x = closestPt.x;
                     destination.y = closestPt.y;
@@ -396,7 +369,7 @@ export class MonksWallEnhancement {
             const pt = this.layer._getWallEndpointCoordinates(destination, { snap });
 
             if (clones.length === 1 && MonksWallEnhancement.dragpoints?.length > 0) {
-                let history = layer.history[layer.history.length - 1];
+                
                 for (let dragpoint of MonksWallEnhancement.dragpoints) {
                     const p0 = dragpoint.fixed ? dragpoint.wall.coords.slice(2, 4) : dragpoint.wall.coords.slice(0, 2);
                     const coords = dragpoint.fixed ? pt.concat(p0) : p0.concat(pt);
@@ -404,8 +377,9 @@ export class MonksWallEnhancement {
                         return dragpoint.wall.document.delete(); // If we collapsed the wall, delete it
                     }
                     await dragpoint.wall.document.update({ c: coords });
+                    let original_change = layer.history[layer.history.length - 2];
                     let change = layer.history.pop();
-                    history.data = history.data.concat(change.data);
+                    original_change.data = original_change.data.concat(change.data);
                 }
 
                 MonksWallEnhancement.dragpoints = [];
@@ -415,10 +389,10 @@ export class MonksWallEnhancement {
         }
 
         if (game.modules.get("lib-wrapper")?.active) {
-            libWrapper.register("monks-wall-enhancement", "Wall.prototype._onDragLeftDrop", wallDragDrop, "WRAPPER");
+            libWrapper.register("monks-wall-enhancement", "foundry.canvas.placeables.Wall.prototype._onDragLeftDrop", wallDragDrop, "WRAPPER");
         } else {
-            const oldWallDragDrop = Wall.prototype._onDragLeftDrop;
-            Wall.prototype._onDragLeftDrop = function (event) {
+            const oldWallDragDrop = foundry.canvas.placeables.Wall.prototype._onDragLeftDrop;
+            foundry.canvas.placeables.Wall.prototype._onDragLeftDrop = function (event) {
                 return wallDragDrop.call(this, oldWallDragDrop.bind(this), ...arguments);
             }
         }
@@ -428,8 +402,8 @@ export class MonksWallEnhancement {
             let event = args[0];
             const { origin } = event.data.interactionData;
 
-            let oldSnap = this._forceSnap;
-            let snaptowall = ui.controls.control.tools.find(t => { return t.name == "snaptowall" });
+            let oldSnap = !!this._forceSnap;
+            let snaptowall = ui.controls.control.tools["snaptowall"];
             if (snaptowall.active) {
                 //find the closest point.
                 let pt = MonksWallEnhancement.findClosestPoint(null, origin.x, origin.y);
@@ -447,10 +421,10 @@ export class MonksWallEnhancement {
         }
 
         if (game.modules.get("lib-wrapper")?.active) {
-            libWrapper.register("monks-wall-enhancement", "WallsLayer.prototype._onDragLeftStart", wallLayerDragLeftStart, "MIXED");
+            libWrapper.register("monks-wall-enhancement", "foundry.canvas.layers.WallsLayer.prototype._onDragLeftStart", wallLayerDragLeftStart, "MIXED");
         } else {
-            const oldWallDragLeftStart = WallsLayer.prototype._onDragLeftStart;
-            WallsLayer.prototype._onDragLeftStart = function (event) {
+            const oldWallDragLeftStart = foundry.canvas.layers.WallsLayer.prototype._onDragLeftStart;
+            foundry.canvas.layers.WallsLayer.prototype._onDragLeftStart = function (event) {
                 return wallLayerDragLeftStart.call(this, oldWallDragLeftStart.bind(this), ...arguments);
             }
         }
@@ -460,8 +434,8 @@ export class MonksWallEnhancement {
             let event = args[0];
             const { origin } = event.data.interactionData;
 
-            let drawwall = ui.controls.control.tools.find(t => { return t.name == "toggledrawwall" });
-            let findwall = { active: false }; //ui.controls.control.tools.find(t => { return t.name == "findwall" });
+            let drawwall = ui.controls.control.tools["toggledrawwall"];
+            let findwall = { active: false }; //ui.controls.control.tools["findwall"];
 
             if (drawwall.active && ui.controls.control.activeTool != 'select') {
                 if (MonksWallEnhancement.freehandPts == undefined) {
@@ -473,7 +447,7 @@ export class MonksWallEnhancement {
                     }
 
                     const tool = game.activeTool;
-                    const data = this._getWallDataFromActiveTool(tool);
+                    const data = MonksWallEnhancement.getWallDataFromActiveTool(tool);
                     if (data.sight === CONST.WALL_SENSE_TYPES.NONE) MonksWallEnhancement.wallColor =  0x77E7E8;
                     else if (data.sight === CONST.WALL_SENSE_TYPES.LIMITED) MonksWallEnhancement.wallColor =  0x81B90C;
                     else if (data.move === CONST.WALL_SENSE_TYPES.NONE) MonksWallEnhancement.wallColor =  0xCA81FF;
@@ -488,10 +462,10 @@ export class MonksWallEnhancement {
         }
 
         if (game.modules.get("lib-wrapper")?.active) {
-            libWrapper.register("monks-wall-enhancement", "WallsLayer.prototype._onClickLeft", wallLayerLeftClick, "MIXED");
+            libWrapper.register("monks-wall-enhancement", "foundry.canvas.layers.WallsLayer.prototype._onClickLeft", wallLayerLeftClick, "MIXED");
         } else {
-            const oldWallLeftClick = WallsLayer.prototype._onClickLeft;
-            WallsLayer.prototype._onClickLeft = function (event) {
+            const oldWallLeftClick = foundry.canvas.layers.WallsLayer.prototype._onClickLeft;
+            foundry.canvas.layers.WallsLayer.prototype._onClickLeft = function (event) {
                 return wallLayerLeftClick.call(this, oldWallLeftClick.bind(this), ...arguments);
             }
         }
@@ -500,7 +474,7 @@ export class MonksWallEnhancement {
             let event = args[0];
             const { origin, destination, preview } = event.data.interactionData;
 
-            let drawwall = ui.controls.control.tools.find(t => { return t.name == "toggledrawwall" });
+            let drawwall = ui.controls.control.tools["toggledrawwall"];
             if (drawwall.active) {
                 this.preview.removeChild(preview);
                 if (MonksWallEnhancement.freehandPts == undefined) {
@@ -526,10 +500,10 @@ export class MonksWallEnhancement {
         }
 
         if (game.modules.get("lib-wrapper")?.active) {
-            libWrapper.register("monks-wall-enhancement", "WallsLayer.prototype._onDragLeftMove", wallLayerDragMove, "MIXED");
+            libWrapper.register("monks-wall-enhancement", "foundry.canvas.layers.WallsLayer.prototype._onDragLeftMove", wallLayerDragMove, "MIXED");
         } else {
-            const oldWallDragLeftMove = WallsLayer.prototype._onDragLeftMove;
-            WallsLayer.prototype._onDragLeftMove = function () {
+            const oldWallDragLeftMove = foundry.canvas.layers.WallsLayer.prototype._onDragLeftMove;
+            foundry.canvas.layers.WallsLayer.prototype._onDragLeftMove = function () {
                 return wallLayerDragMove.call(this, oldWallDragLeftMove.bind(this), ...arguments);
             }
         }
@@ -539,11 +513,11 @@ export class MonksWallEnhancement {
             const { originalEvent } = event.data;
             const { destination, preview } = event.data.interactionData;
 
-            let drawwall = ui.controls.control.tools.find(t => { return t.name == "toggledrawwall" });
+            let drawwall = ui.controls.control.tools["toggledrawwall"];
             if (drawwall.active) {
                 let wallpoints = MonksWallEnhancement.simplify(MonksWallEnhancement.freehandPts, setting("simplify-distance"));
                 const cls = getDocumentClass(this.constructor.documentName);
-                const snap = this._forceSnap || !originalEvent.shiftKey;
+                const snap = !!this._forceSnap || !originalEvent.shiftKey;
                 let docs = [];
 
                 for (let i = 0; i < wallpoints.length - 1; i++) {
@@ -569,8 +543,8 @@ export class MonksWallEnhancement {
 
                 return this._onDragLeftCancel(event);
             } else {
-                let oldSnap = this._forceSnap;
-                let snaptowall = ui.controls.control.tools.find(t => { return t.name == "snaptowall" });
+                let oldSnap = !!this._forceSnap;
+                let snaptowall = ui.controls.control.tools["snaptowall"];
                 if (snaptowall.active) {
                     //find the closest point.
                     let pt = MonksWallEnhancement.findClosestPoint(null, destination.x, destination.y);
@@ -594,10 +568,10 @@ export class MonksWallEnhancement {
         }
 
         if (game.modules.get("lib-wrapper")?.active) {
-            libWrapper.register("monks-wall-enhancement", "WallsLayer.prototype._onDragLeftDrop", wallLayerDragLeftDrop, "MIXED");
+            libWrapper.register("monks-wall-enhancement", "foundry.canvas.layers.WallsLayer.prototype._onDragLeftDrop", wallLayerDragLeftDrop, "MIXED");
         } else {
-            const oldWallDragLeftDrop = WallsLayer.prototype._onDragLeftDrop;
-            WallsLayer.prototype._onDragLeftDrop = function () {
+            const oldWallDragLeftDrop = foundry.canvas.layers.WallsLayer.prototype._onDragLeftDrop;
+            foundry.canvas.layers.WallsLayer.prototype._onDragLeftDrop = function () {
                 return wallLayerDragLeftDrop.call(this, oldWallDragLeftDrop.bind(this), ...arguments);
             }
         }
@@ -612,10 +586,10 @@ export class MonksWallEnhancement {
         }
 
         if (game.modules.get("lib-wrapper")?.active) {
-            libWrapper.register("monks-wall-enhancement", "WallsLayer.prototype._onDragLeftCancel", wallLayerDragLeftCancel, "MIXED");
+            libWrapper.register("monks-wall-enhancement", "foundry.canvas.layers.WallsLayer.prototype._onDragLeftCancel", wallLayerDragLeftCancel, "MIXED");
         } else {
-            const oldWallDragLeftCancel = WallsLayer.prototype._onDragLeftCancel;
-            WallsLayer.prototype._onDragLeftCancel = function () {
+            const oldWallDragLeftCancel = foundry.canvas.layers.WallsLayer.prototype._onDragLeftCancel;
+            foundry.canvas.layers.WallsLayer.prototype._onDragLeftCancel = function () {
                 return wallLayerDragLeftCancel.call(this, oldWallDragLeftCancel.bind(this), ...arguments);
             }
         }
@@ -664,7 +638,7 @@ export class MonksWallEnhancement {
                 return wrapped(...args);
         }
 
-        patchFunc("Wall.prototype._onClickLeft2", wallClickLeft2, "MIXED")
+        patchFunc("foundry.canvas.placeables.Wall.prototype._onClickLeft2", wallClickLeft2, "MIXED")
 
         if (setting("toggle-secret")) {
             let doorRightDown = async function (...args) {
@@ -688,14 +662,49 @@ export class MonksWallEnhancement {
             }
 
             if (game.modules.get("lib-wrapper")?.active) {
-                libWrapper.register("monks-wall-enhancement", "DoorControl.prototype._onRightDown", doorRightDown, "OVERRIDE");
+                libWrapper.register("monks-wall-enhancement", "foundry.canvas.containers.DoorControl.prototype._onRightDown", doorRightDown, "OVERRIDE");
             } else {
-                const oldWallLayerClickLeft2 = DoorControl.prototype._onRightDown;
-                DoorControl.prototype._onRightDown = function () {
+                const oldWallLayerClickLeft2 = foundry.canvas.containers.DoorControl.prototype._onRightDown;
+                foundry.canvas.containers.DoorControl.prototype._onRightDown = function () {
                     return doorRightDown.call(this, ...arguments);
                 }
             }
         }
+    }
+
+    static getWallDataFromActiveTool(tool) {
+
+        // Using the clone tool
+        if (tool === "clone" && this._cloneType) return this._cloneType;
+
+        // Default wall data
+        const wallData = {
+            light: CONST.WALL_SENSE_TYPES.NORMAL,
+            sight: CONST.WALL_SENSE_TYPES.NORMAL,
+            sound: CONST.WALL_SENSE_TYPES.NORMAL,
+            move: CONST.WALL_SENSE_TYPES.NORMAL
+        };
+
+        // Tool-based wall restriction types
+        switch (tool) {
+            case "invisible":
+                wallData.sight = wallData.light = wallData.sound = CONST.WALL_SENSE_TYPES.NONE; break;
+            case "terrain":
+                wallData.sight = wallData.light = wallData.sound = CONST.WALL_SENSE_TYPES.LIMITED; break;
+            case "ethereal":
+                wallData.move = wallData.sound = CONST.WALL_SENSE_TYPES.NONE; break;
+            case "doors":
+                wallData.door = CONST.WALL_DOOR_TYPES.DOOR; break;
+            case "secret":
+                wallData.door = CONST.WALL_DOOR_TYPES.SECRET; break;
+            case "window": {
+                const d = canvas.dimensions.distance;
+                wallData.sight = wallData.light = CONST.WALL_SENSE_TYPES.PROXIMITY;
+                wallData.threshold = { light: 2 * d, sight: 2 * d, attenuation: true };
+                break;
+            }
+        }
+        return wallData;
     }
 
     static registerHotKeys() {
@@ -751,7 +760,48 @@ export class MonksWallEnhancement {
     }
 
     static changeTool(tool) {
-        $(`#controls .control-tool[data-tool="${tool}"]`).click();
+        $(`#scene-controls .control.tool[data-tool="${tool}"]`).click();
+    }
+
+    static async sceneConfigUpdate(scene, data) {
+        let { width, height, padding } = scene;
+        let { offsetX, offsetY } = scene.background;
+        let { sceneX, sceneY } = scene.dimensions;
+        const delta = foundry.utils.flattenObject(foundry.utils.diffObject(scene, data));
+
+        const textureChange = ["offsetX", "offsetY", "scaleX", "scaleY", "rotation"].map(k => `background.${k}`);
+        if (scene.walls.size > 0 && ["width", "height", "padding", "grid.size", ...textureChange].some(k => k in delta)) {
+            const confirm = await foundry.applications.api.DialogV2.confirm({
+                window: {
+                    title: i18n("MonksWallEnhancement.AdjustWalls"),
+                },
+                content: `<p>Monk's Wall Enhancements has detected that changes to the scene would affect current walls and can attempt to reposition them correctly.</p><p>Would you like to do that?</p>`
+            });
+
+            if (confirm) {
+                let updates = [];
+
+                let adjustX = (data.width / width);
+                let adjustY = (data.height / height);
+                //let changeX = (offsetX - foundry.utils.getProperty(newData, "background.offsetX")); // + ((newData.padding * newData.width) - (padding * width));
+                //let changeY = (offsetY - foundry.utils.getProperty(newData, "background.offsetY")); // + ((newData.padding * newData.height) - (padding * height));
+
+                for (let wall of scene.walls) {
+                    updates.push({
+                        _id: wall.id,
+                        c: [
+                            ((wall.c[0] - sceneX) * adjustX) + scene.dimensions.sceneX,// + changeX,
+                            ((wall.c[1] - sceneY) * adjustY) + scene.dimensions.sceneY,// + changeY,
+                            ((wall.c[2] - sceneX) * adjustX) + scene.dimensions.sceneX,// + changeX,
+                            ((wall.c[3] - sceneY) * adjustY) + scene.dimensions.sceneY// + changeY
+                        ]
+                    });
+                }
+
+                const cls = getDocumentClass(canvas.walls.constructor.documentName);
+                cls.updateDocuments(updates, { parent: scene });
+            }
+        }
     }
 
     static findClosestPoint(id, x, y) {
@@ -773,7 +823,7 @@ export class MonksWallEnhancement {
             }
         });
 
-        return (closestDist < 10 ? closestPt : null);
+        return (closestDist < setting("snap-tolerance") ? closestPt : null);
     }
 
     static getIcon(tool) {
@@ -1125,7 +1175,7 @@ export class MonksWallEnhancement {
                 dir: CONST.WALL_DIRECTIONS.BOTH,
                 door: CONST.WALL_DOOR_TYPES.NONE,
                 ds: CONST.WALL_DOOR_STATES.CLOSED
-            }, canvas.walls._getWallDataFromActiveTool(tool.name));
+            }, MonksWallEnhancement.getWallDataFromActiveTool(tool.name));
 
             if (drawing.flags?.levels)
                 wd.flags = { 'levels': drawing.flags?.levels };
@@ -1219,7 +1269,7 @@ export class MonksWallEnhancement {
             dir: CONST.WALL_DIRECTIONS.BOTH,
             door: CONST.WALL_DOOR_TYPES.NONE,
             ds: CONST.WALL_DOOR_STATES.CLOSED
-        }, canvas.walls._getWallDataFromActiveTool(tool.name));
+        }, MonksWallEnhancement.getWallDataFromActiveTool(tool.name));
 
         let wallpoints = [
             { x: this.dimensions.sceneX, y: this.dimensions.sceneY },
@@ -1255,156 +1305,185 @@ export class MonksWallEnhancement {
         ui.notifications.info(`${updates.length} doors have been closed`);
     }
 }
-Hooks.once('init', async function () {
+Hooks.on('init', () => {
     MonksWallEnhancement.init();
 });
 
 Hooks.on("ready", MonksWallEnhancement.ready);
 
 Hooks.on("getSceneControlButtons", (controls) => {
-    const wallCtrls = [];
+    let wallTools = controls["walls"].tools;
+    let order = wallTools["clone"].order + 0.01;
     if (game.settings.get('monks-wall-enhancement', 'show-drag-points-together')) {
-        wallCtrls.push(
-            {
-                name: "toggledragtogether",
-                title: i18n("MonksWallEnhancement.DragPointsTogether"),
-                icon: "fas fa-project-diagram",
-                toggle: true,
-                active: true
-            }
-        );
+        wallTools["toggledragtogether"] = 
+        {
+            name: "toggledragtogether",
+            title: i18n("MonksWallEnhancement.DragPointsTogether"),
+            icon: "fas fa-project-diagram",
+            toggle: true,
+            active: true,
+            order: order += 0.01,
+        }
     }
 
-    wallCtrls.push(
-        {
-            name: "toggledrawwall",
-            title: i18n("MonksWallEnhancement.FreehandDrawWall"),
-            icon: "fas fa-signature",
-            toggle: true,
-            active: false
+    wallTools["toggledrawwall"] =
+    {
+        name: "toggledrawwall",
+        title: i18n("MonksWallEnhancement.FreehandDrawWall"),
+        icon: "fas fa-signature",
+        toggle: true,
+        active: false,
+        order: order += 0.01,
+    };
+    wallTools["joinwallpoints"] =
+    {
+        name: "joinwallpoints",
+        title: i18n("MonksWallEnhancement.JoinWallPoints"),
+        icon: "fas fa-broom",
+        button: true,
+        onChange: () => {
+            MonksWallEnhancement.joinPoints();
         },
-        {
-            name: "joinwallpoints",
-            title: i18n("MonksWallEnhancement.JoinWallPoints"),
-            icon: "fas fa-broom",
-            button: true,
-            onClick: () => {
-                MonksWallEnhancement.joinPoints();
-            }
+        order: order += 0.01,
+    };
+    /*wallTools["findwall"] = {
+        name: "findwall",
+        title: "Find wall from Point",
+        icon: "fas fa-ruler",
+        toggle: true,
+        active: false,
+        order: order += 0.01,
+    };*/
+    wallTools["snaptowall"] = {
+        name: "snaptowall",
+        title: i18n("MonksWallEnhancement.SnapToPoint"),
+        icon: "fas fa-arrow-down-up-across-line",
+        toggle: true,
+        active: false,
+        order: order += 0.01,
+    };
+    wallTools["togglewalls"] = {
+        name: "togglewalls",
+        title: i18n("MonksWallEnhancement.ToggleWallsDisplay"),
+        icon: "fas fa-eye",
+        toggle: true,
+        active: setting("wallsDisplayToggle") && game.user.isGM,
+        onChange: (event, toggled) => {
+            game.settings.set("monks-wall-enhancement", "wallsDisplayToggle", toggled)
         },
-        /*{
-            name: "findwall",
-            title: "Find wall from Point",
-            icon: "fas fa-ruler",
-            toggle: true,
-            active: false
-        },*/
-        {
-            name: "snaptowall",
-            title: i18n("MonksWallEnhancement.SnapToPoint"),
-            icon: "fas fa-arrow-down-up-across-line",
-            toggle: true,
-            active: false
-        },
-        {
-            name: "togglewalls",
-            title: i18n("MonksWallEnhancement.ToggleWallsDisplay"),
-            icon: "fas fa-eye",
-            toggle: true,
-            active: setting("wallsDisplayToggle") && game.user.isGM,
-            onClick: toggled => game.settings.set("monks-wall-enhancement", "wallsDisplayToggle", toggled)
-        },
-    );
+        order: order += 0.01,
+    };
     
-    let wallTools = controls.find(control => control.name === "walls").tools;
-    wallTools.splice(wallTools.findIndex(e => e.name === 'clone') + 1, 0, ...wallCtrls);
         
     if (setting('condense-wall-type')) {
-        const wallTypeBtn = [{
+        wallTools["walltype"] = {
             name: "walltype",
             icon: MonksWallEnhancement.getIcon(MonksWallEnhancement.tool),
-            onClick: () => {
+            onChange: () => {
                 //click the button that should be clicked
-                let wallControl = ui.controls.controls.find(e => e.name == 'walls');
+                let wallControl = ui.controls.controls['walls'];
                 wallControl.activeTool = MonksWallEnhancement.tool.name;
-            }
-        }];
-
-        wallTools.splice(wallTools.findIndex(e => e.name === 'select') + 1, 0, ...wallTypeBtn);
+            },
+            order: wallTools["select"].order + 0.01
+        };
     }
 
     if (setting("remove-close-doors")) {
-        wallTools.findSplice((t) => t.name === "close-doors");
+        delete wallTools["closeDoors"];
     }
 
     if (game.user.isGM) {
-        let drawingTools = controls.find(control => control.name === "drawings").tools;
+        let drawingTools = controls["drawings"].tools;
 
-        const convertToWalls = [{
+        drawingTools["converttowalls"] = {
             name: "converttowalls",
             title: "Convert To Walls",
             icon: "fas fa-block-brick",
             toggle: false,
             button: true,
             active: true,
-            onClick: MonksWallEnhancement.convertDrawings
-        }];
-        drawingTools.splice(drawingTools.findIndex(e => e.name === 'clear'), 0, ...convertToWalls);
+            onChange: MonksWallEnhancement.convertDrawings,
+            order: drawingTools["clear"].order + 0.01
+        };
     }
 });
 
 Hooks.on("renderSceneControls", (controls, html) => {
     if (setting('condense-wall-type')) {
-        if (controls.activeControl == 'walls') {
-            let wallBtn = $('li[data-tool="walltype"]', html);
+        if (controls.control.name == 'walls') {
+            let wallBtn = $('button[data-tool="walltype"]', html);
+            wallBtn.removeAttr('data-tooltip');
 
-            let wallTypes = $('<ol>').addClass('control-tools').appendTo($('<div>').attr('id', 'wall-ctrls').appendTo(wallBtn));
+            let pos = wallBtn.position();
+
+            $('<i>').addClass("fas fa-caret-right").css({ position: "absolute", top: pos.top + 8, left: pos.left + wallBtn.outerWidth() }).appendTo(wallBtn);
+
+            let wallTypes = $('<menu>').addClass('flexrow control-tools').attr('id', 'wall-ctrls').appendTo(wallBtn);
             for (let type of MonksWallEnhancement.types)
-                $('li[data-tool="' + type + '"]', html).appendTo(wallTypes);
+                $('button[data-tool="' + type + '"]', html).parent().appendTo(wallTypes);
 
-            let wallControl = controls.controls.find(e => e.name == 'walls');
+            let wallControl = controls.controls["walls"];
 
             wallBtn.toggleClass('active', MonksWallEnhancement.types.includes(wallControl.activeTool));
-            let pos = wallBtn.position();
-            wallTypes.parent().css({ top: pos.top, left: pos.left + wallBtn.width() });
+            
+            wallTypes.css({ top: pos.top, left: pos.left + wallBtn.outerWidth(), zIndex: 999, background: "rgba(255, 255, 255, 0.5)" });
         } else {
             $('#wall-ctrls').remove();
         }
     }
 
-    if (controls.activeControl == 'walls' && setting("alter-images")) {
+    /*
+    if (controls.control.name == 'walls' && setting("alter-images")) {
         $('.control-tool[data-tool="walls"]', html).find("i").removeClass("fa-bars").addClass("fa-person-shelter");
         $('.control-tool[data-tool="invisible"]', html).find("i").removeClass("fa-eye-slash").addClass("fa-person-through-window");
         $('.control-tool[data-tool="ethereal"]', html).attr("data-tooltip", $('.control-tool[data-tool="ethereal"]', html).attr("data-tooltip").replace("Ethereal Walls", "Ethereal Walls <small>(aka Curtains)</small>")).find("i").removeClass("fa-mask").addClass("fa-person-booth");
     }
+    */
 });
 
 Hooks.on('renderSceneConfig', async (app, html, options) => {
-    let tab = $('.tab[data-tab="basic"]', html);
-    tab.append($('<hr>'))
+    let tab = $('.tab[data-tab="basics"]', html);
+    if (setting("allow-one-way-doors")) {
+        tab.append($('<div>')
+            .addClass("form-group")
+            .append($('<label>').html("Use One Way Doors"))
+            .append($("<div>").addClass("form-fields")
+                .append($("<input>").attr("type", "checkbox").attr("name", "flags.monks-wall-enhancement.use-one-way-door").prop("checked", app.document.getFlag("monks-wall-enhancement", "use-one-way-door", false)))
+            ));
+    }
+    tab.append($('<hr>').css("margin", 0))
         .append($('<div>')
             .addClass("form-group")
             .append($('<label>').html("Wall updates"))
             .append($("<div>").addClass("flexrow")
-                .append($("<button>").attr("type", "button").on("click", MonksWallEnhancement.wallScene.bind(app.object)).html('<i class="fas fa-block-brick"></i> Wall Scene'))
-                .append($("<button>").attr("type", "button").on("click", MonksWallEnhancement.closeDoors.bind(app.object)).html('<i class="fas fa-door-open"></i> Close Doors'))
+                .append($("<button>").attr("type", "button").on("click", MonksWallEnhancement.wallScene.bind(app.document)).html('<i class="fas fa-block-brick"></i> Wall Scene'))
+                .append($("<button>").attr("type", "button").on("click", MonksWallEnhancement.closeDoors.bind(app.document)).html('<i class="fas fa-door-open"></i> Close Doors'))
             )
         );
 
     app.setPosition({ height: 'auto' });
 });
 
-Hooks.on("getSceneNavigationContext", (html, menu) => {
+Hooks.on("getSceneContextOptions", (html, menu) => {
     menu.push({
         name: "Close All Doors",
         icon: '<i class="fas fa-door-open"></i>',
-        condition: li => game.user.isGM,
+        condition: li => game.user.isGM && game.scenes.get(li.dataset.sceneId || li.dataset.entryId)?.active,
         callback: li => {
-            let scene = game.scenes.get(li.data("sceneId"));
+            let scene = game.scenes.get(li.dataset.sceneId || li.dataset.entryId);
             if (scene)
                 MonksWallEnhancement.closeDoors.call(scene);
         }
     });
+});
+
+Hooks.on("preUpdateScene", (scene, data, options, userId) => {
+    if (game.user.isGM) {
+        const delta = foundry.utils.flattenObject(foundry.utils.diffObject(scene, data));
+        if (delta.width || delta.height || delta.padding || delta.background?.offsetX || delta.background?.offsetY || delta.grid?.size) {
+            MonksWallEnhancement.sceneConfigUpdate(scene, data);
+        }
+    }
 });
 
 Hooks.on('renderWallConfig', async (app, html, options) => {
@@ -1414,7 +1493,7 @@ Hooks.on('renderWallConfig', async (app, html, options) => {
             .attr('type', 'button')
             .addClass('edit-wall-points').html('<i class="fas fa-pencil"></i>').on('click', () => {
                 //Open a dialog to edit the points
-                let wall = app.object;
+                let wall = app.document;
                 let points = wall.c;
 
                 let html = `

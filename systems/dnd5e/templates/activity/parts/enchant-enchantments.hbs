@@ -8,13 +8,10 @@
                 <i class="fas fa-plus"></i>
             </button>
         </legend>
-        {{#with fields.enchant.fields as |fields|}}
-        {{#unless ../activity.isSpell}}{{ formField fields.identifier value=../source.enchant.identifier }}{{/unless}}
-        {{/with}}
         <multi-select name="appliedEffects" class="hidden-tags">
             {{ selectOptions allEnchantments }}
         </multi-select>
-        <ul class="separated-list enchantments unlist">
+        <ul class="separated-list enchantments flexcol unlist">
             {{#each appliedEffects}}
             <li data-index="{{ index }}" data-effect-id="{{ effect.id }}" data-expand-id="effects.{{ effect.id }}">
                 {{> ".enchantment" }}
@@ -34,13 +31,11 @@
     {{{ contentLink }}}
     <div class="list-controls flexrow">
         <button type="button" class="unbutton control-button" data-action="dissociateEffect"
-                data-tooltip="DND5E.EFFECT.Action.Dissociate"
-                aria-label="{{ localize 'DND5E.EFFECT.Action.Dissociate' }}">
+                data-tooltip aria-label="{{ localize 'DND5E.EFFECT.Action.Dissociate' }}">
             <i class="fa-solid fa-minus" inert></i>
         </button>
         <button type="button" class="unbutton control-button" data-action="deleteEffect"
-                data-tooltip="DND5E.ENCHANT.Enchantment.Action.Delete"
-                aria-label="{{ localize 'DND5E.ENCHANT.Enchantment.Action.Delete' }}">
+                data-tooltip aria-label="{{ localize 'DND5E.ENCHANT.Enchantment.Action.Delete' }}">
             <i class="fa-solid fa-trash" inert></i>
         </button>
     </div>
@@ -55,7 +50,7 @@
     <div class="collapsible-content">
         <div class="wrapper">
             <div class="form-group">
-                <label>{{ localize "DND5E.ENCHANT.FIELDS.effects.FIELDS.level.label" }}</label>
+                <label>{{ localize "DND5E.ENCHANT.FIELDS.effects.element.level.label" }}</label>
                 <div class="form-fields range-fields">
                     {{ formInput fields.level.fields.min name=(concat prefix "level.min") value=data.level.min
                                  placeholder="0" ariaLabel=(localize "DND5E.LevelLimit.Min")
@@ -64,12 +59,15 @@
                     {{ formInput fields.level.fields.max name=(concat prefix "level.max") value=data.level.max
                                  placeholder="∞" ariaLabel=(localize "DND5E.LevelLimit.Max") }}
                 </div>
-                <p class="hint">{{ localize "DND5E.ENCHANT.FIELDS.effects.FIELDS.level.hint" }}</p>
+                <p class="hint">{{ localize "DND5E.ENCHANT.FIELDS.effects.element.level.hint" }}</p>
             </div>
             {{#with fields.riders.fields as |fields|}}
-            {{ formField fields.activity name=(concat ../prefix "riders.activity") options=../activityOptions }}
-            {{ formField fields.effect name=(concat ../prefix "riders.effect") options=../effectOptions }}
-            {{ formField fields.item name=(concat ../prefix "riders.item") value=../data.riders.item }}
+            {{ formField fields.activity name=(concat ../prefix "riders.activity") options=../activityOptions
+                         rootId=@root.partId }}
+            {{ formField fields.effect name=(concat ../prefix "riders.effect") options=../effectOptions
+                         rootId=@root.partId }}
+            {{ formField fields.item name=(concat ../prefix "riders.item") value=../data.riders.item
+                         rootId=@root.partId }}
             {{/with}}
         </div>
     </div>

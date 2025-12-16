@@ -1,0 +1,54 @@
+{{#if hasAttack}}
+<fieldset>
+    <legend>{{localize "COSMERE.Item.Sheet.Attack.Title"}}</legend>
+
+    {{!-- Attack type --}}
+    <div class="form-group">
+        <label>{{localize "COSMERE.Item.Sheet.Attack.Type"}}</label>
+        <div class="form-fields">
+            <select name="system.attack.type"
+                {{#if (not editable)}}
+                disabled
+                {{/if}}
+            >
+                {{selectOptions attackTypeSelectOptions selected=item.system.attack.type localize=true}}
+            </select>
+        </div>
+    </div>
+
+    {{!-- Range --}}
+    <div class="form-group">
+        <label>{{localize "COSMERE.Item.Sheet.Attack.Range"}}</label>
+        <div class="form-fields">
+            {{#if hasRange}}
+            <input type="number" 
+                name="system.attack.range.value" 
+                min="0"
+                value="{{item.system.attack.range.value}}"
+                placeholder="{{localize "COSMERE.Item.Sheet.Attack.RangeShort"}}"
+                {{#if (not editable)}}
+                readonly
+                {{/if}}
+            >
+            <span class="delim">/</span>
+            <input type="number" 
+                name="system.attack.range.long" 
+                min="0"
+                value="{{item.system.attack.range.long}}"
+                placeholder="{{localize "COSMERE.Item.Sheet.Attack.RangeLong"}}"
+                {{#if (not editable)}}
+                readonly
+                {{/if}}
+            >
+            {{/if}}
+            <select name="system.attack.range.unit"
+                {{#if (not editable)}}
+                disabled
+                {{/if}}
+            >
+                {{selectOptions rangeUnitSelectOptions selected=item.system.attack.range.unit localize=true}}
+            </select>
+        </div>
+    </div>
+</fieldset>    
+{{/if}}

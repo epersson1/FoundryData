@@ -1,19 +1,26 @@
-import { CustomItem } from '../documents/item.js';
+/*
+ * Author: Jean-Baptiste Louvet-Daniel
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+import CustomItem from '../documents/CustomItem.js';
 import { castToPrimitive, quoteString } from '../utils.js';
 import Logger from '../Logger.js';
 import Formula from './Formula.js';
-import { CustomActor } from '../documents/actor.js';
+import CustomActor from '../documents/CustomActor.js';
 import { UncomputableError } from '../errors/UncomputableError.js';
 export class FormulaFunctionImporter {
     static importCustomFunctions(mathInstance, props, options) {
         const customFunctions = {
-            sameRow: (columnName, fallbackValue = null) => {
+            sameRow: function (columnName, fallbackValue) {
+                const hasExplicitFallback = arguments.length > 1;
                 const fullReference = `${options.reference}.${columnName}`;
+                const defaultReturnValue = hasExplicitFallback ? fallbackValue : options.defaultValue;
                 // Fetching the value inside dynamic table's row
-                const returnValue = castToPrimitive(foundry.utils.getProperty(props, fullReference)) ??
-                    fallbackValue ??
-                    options.defaultValue;
-                if (returnValue === undefined) {
+                const returnValue = castToPrimitive(foundry.utils.getProperty(props, fullReference)) ?? defaultReturnValue;
+                if (!hasExplicitFallback && returnValue === undefined) {
                     throw new UncomputableError(`Uncomputable token "sameRow(${quoteString(columnName)})". Failed to obtain value from the same row in the column "${columnName}". Make sure, that the column-key is correct.`, options.source, options.formula, props);
                 }
                 options.computedTokens[`sameRow(${quoteString(columnName)})`] = returnValue;
@@ -238,8 +245,8 @@ export class FormulaFunctionImporter {
                 options.computedTokens[`find(${quoteString(extensibleTableKey)}, ${quoteString(targetColumn)}, ${quoteString(filterColumn)}, ${quoteString(filterValue)}, ${quoteString(comparisonOperator)})`] = returnValue;
                 return returnValue;
             },
-            first: (list = [], fallbackValue = null) => {
-                let returnValue = fallbackValue ?? options.defaultValue;
+            first: (list = [], fallbackValue = Symbol('undefined')) => {
+                let returnValue = typeof fallbackValue !== 'symbol' ? fallbackValue : options.defaultValue;
                 if (list.length > 0) {
                     returnValue = castToPrimitive(list[0]);
                 }
@@ -256,25 +263,26 @@ export class FormulaFunctionImporter {
                 console.table(dataLog);
                 return dataLog;
             },
-            ref: (valueRef, fallbackValue = null) => {
-                let returnValue = fallbackValue ?? options.defaultValue;
+            ref: function (valueRef, fallbackValue) {
+                const hasExplicitFallback = arguments.length > 1;
+                let returnValue = hasExplicitFallback ? fallbackValue : options.defaultValue;
                 let realValue = undefined;
                 if (valueRef) {
                     realValue = foundry.utils.getProperty(props, valueRef);
                     returnValue = castToPrimitive(realValue) ?? returnValue;
                 }
-                if (returnValue === undefined ||
+                if ((!hasExplicitFallback && returnValue === undefined) ||
                     (realValue === undefined && options.availableKeys.includes(valueRef))) {
                     throw new UncomputableError(`Uncomputable token ref(${quoteString(valueRef)})`, options.source, options.formula, props);
                 }
-                options.computedTokens[`ref(${quoteString(valueRef)}, ${quoteString(fallbackValue)})`] = returnValue;
+                options.computedTokens[`ref(${quoteString(valueRef)}${hasExplicitFallback ? `, ${quoteString(fallbackValue)}` : ''})`] = returnValue;
                 return returnValue;
             },
             replace: (text, pattern, replacement) => {
-                return text.replace(pattern, replacement);
+                return text.toString().replace(pattern, replacement);
             },
             replaceAll: (text, pattern, replacement) => {
-                return text.replaceAll(pattern, replacement);
+                return text.toString().replaceAll(pattern, replacement);
             },
             concat: (...values) => {
                 return ''.concat(...values.map(String));
@@ -291,17 +299,18 @@ export class FormulaFunctionImporter {
                     throw new UncomputableError('Uncomputable token recalculate()', options.source, options.formula, props);
                 }
             },
-            fetchFromParent: (formula, opt) => {
+            fetchFromParent: (formula, opt = { fallback: Symbol('undefined') }) => {
+                opt.fallback = typeof opt.fallback !== 'symbol' ? opt.fallback : options.defaultValue;
                 if (options.triggerEntity?.entity instanceof CustomItem) {
                     const parentEntity = opt?.top
                         ? options?.triggerEntity?.entity?.parent
                         : options?.triggerEntity?.entity?.getParent();
                     if (!parentEntity) {
-                        return opt?.fallback ?? options.defaultValue;
+                        return opt.fallback;
                     }
                     const returnValue = castToPrimitive(new Formula(formula).computeStatic(parentEntity.system.props, {
                         ...options,
-                        defaultValue: opt?.fallback ?? options.defaultValue
+                        defaultValue: opt.fallback
                     }).result);
                     mathInstance.import(this.importCustomFunctions(mathInstance, props, options), {
                         override: true
@@ -312,7 +321,8 @@ export class FormulaFunctionImporter {
                     throw new UncomputableError('fetchFromParent() is only usable in Items', options.source, options.formula, props);
                 }
             },
-            fetchFromActor: (actorName, formula, fallbackValue = null) => {
+            fetchFromActor: (actorName, formula, fallbackValue = Symbol('undefined')) => {
+                fallbackValue = typeof fallbackValue !== 'symbol' ? fallbackValue : options.defaultValue;
                 let actor;
                 switch (actorName) {
                     case 'selected':
@@ -333,26 +343,27 @@ export class FormulaFunctionImporter {
                     const actorProps = actor.system.props;
                     const returnValue = castToPrimitive(new Formula(formula).computeStatic(actorProps, {
                         ...options,
-                        defaultValue: fallbackValue ?? options.defaultValue
+                        defaultValue: fallbackValue
                     }).result);
                     mathInstance.import(this.importCustomFunctions(mathInstance, props, options), {
                         override: true
                     });
                     return returnValue;
                 }
-                return fallbackValue ?? options.defaultValue;
+                return fallbackValue;
             },
-            fetchFromUuid: (uuid, formula, fallback = null) => {
+            fetchFromUuid: (uuid, formula, fallback = Symbol('undefined')) => {
+                fallback = typeof fallback !== 'symbol' ? fallback : options.defaultValue;
                 const entity = fromUuidSync(uuid);
                 if (!(entity instanceof CustomActor || entity instanceof CustomItem)) {
-                    return fallback ?? options.defaultValue;
+                    return fallback;
                 }
                 if (!entity) {
-                    return fallback ?? options.defaultValue;
+                    return fallback;
                 }
                 const returnValue = castToPrimitive(new Formula(formula).computeStatic(entity.system.props, {
                     ...options,
-                    defaultValue: fallback ?? options.defaultValue
+                    defaultValue: fallback
                 }).result);
                 mathInstance.import(this.importCustomFunctions(mathInstance, props, options), {
                     override: true
@@ -365,7 +376,8 @@ export class FormulaFunctionImporter {
                 }
                 return args.shift() ?? null;
             },
-            setPropertyInEntity: (entityName, propertyName, formula, fallbackValue = null) => {
+            setPropertyInEntity: (entityName, propertyName, formula, fallbackValue = Symbol('undefined')) => {
+                fallbackValue = typeof fallbackValue !== 'symbol' ? fallbackValue : options.defaultValue;
                 let entity;
                 switch (entityName) {
                     case 'self':
@@ -398,7 +410,7 @@ export class FormulaFunctionImporter {
                 const actorProps = entity.system.props;
                 const value = castToPrimitive(new Formula(formula).computeStatic({ ...props, target: actorProps }, {
                     ...options,
-                    defaultValue: fallbackValue ?? options.defaultValue
+                    defaultValue: fallbackValue
                 }).result);
                 const uuid = entity.uuid.replaceAll('.', '-');
                 const keys = typeof propertyName === 'string' ? [propertyName] : propertyName;
@@ -457,7 +469,18 @@ export class FormulaFunctionImporter {
                 return value.replaceAll("'", "\\'");
             },
             array: (...values) => {
-                return values;
+                if (values.length === 1) {
+                    const firstVal = values[0];
+                    if (typeof firstVal === 'string') {
+                        return firstVal.split(',');
+                    }
+                    else {
+                        return [firstVal];
+                    }
+                }
+                else {
+                    return values;
+                }
             }
         };
         return customFunctions;

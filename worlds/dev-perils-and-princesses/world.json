@@ -9,32 +9,6 @@
     "verified": "12"
   },
   "systemVersion": "2.0.0",
-  "lastPlayed": "Mon Apr 14 2025 11:16:15 GMT-0400 (Eastern Daylight Time)",
-  "playtime": 213759,
-  "packs": [
-    {
-      "label": "Gifts",
-      "type": "Item",
-      "name": "gifts",
-      "path": "packs/gifts",
-      "system": "perils-and-princesses",
-      "ownership": {
-        "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER"
-      },
-      "flags": {}
-    },
-    {
-      "label": "Items",
-      "type": "Item",
-      "name": "items",
-      "path": "packs/items",
-      "system": "perils-and-princesses",
-      "ownership": {
-        "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER"
-      },
-      "flags": {}
-    }
-  ]
+  "lastPlayed": "Sun May 18 2025 17:24:57 GMT-0400 (Eastern Daylight Time)",
+  "playtime": 214151
 }

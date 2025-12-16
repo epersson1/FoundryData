@@ -36,7 +36,6 @@ export default class ItemMacro extends Macro {
   }
 
   async #executeScript(scope = {}, ...otherArgs) {
-    debugger;
     const item = this.item;
     const speaker = ChatMessage.getSpeaker({actor: item.actor});
     const actor = item.actor ?? game.actors.get(speaker.actor);

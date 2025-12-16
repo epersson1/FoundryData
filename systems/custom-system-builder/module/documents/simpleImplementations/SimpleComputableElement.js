@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,6 +9,8 @@
  * Simple computable element class, used initially to compute hidden attributes in the sheet
  */
 export default class SimpleComputableElement {
+    key;
+    phrase;
     /**
      * @param key The key of the computable element, used to set it into the props
      * @param phrase The formula to compute
@@ -19,13 +21,13 @@ export default class SimpleComputableElement {
     }
     /**
      * Get the function to compute the value of the component
-     * @param _entity The entity to compute the element from
+     * @param _templateSystem The entity to compute the element from
      * @param _modifiers The modifiers of the entity to eventually apply to the computed value
      * @param options Options to compute the value
      * @param keyOverride An optional key to override the initial key of the prop
      * @returns The anonymous function to compute the property
      */
-    getComputeFunctions(_entity, _modifiers, options, keyOverride) {
+    getComputeFunctions(_templateSystem, _modifiers, options, keyOverride) {
         const computationKey = keyOverride ?? this.key;
         if (!computationKey) {
             return {};

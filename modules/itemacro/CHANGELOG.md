@@ -1,5 +1,19 @@
 # Changelog
 
+## v3.0.1
+* Fixed element search logic to work with both AppV1 and AppV2 sheets.
+* Prevented Event Propagation on rollable clicks with Character Sheet Hook enabled.  
+
+## v3.0.0
+* Updated Item Macro for Foundry v13, dropping v12 support.
+* Button to open Macro Config now appears on Item Sheets that extend AppV1 as well as ApplicationV2
+* Item Macro Config now uses CodeMirror
+* Item Macro Config can now also be opened using `new game.modules.get('itemacro').ItemMacroConfig.openConfig(item)`;
+* Update SWADE support to also be able to listen to `swadeAction` Hook.
+
+### v2.2.1
+* Removed debugger
+
 ## v2.2.0
 * Change how additional parameters are passed to Item Macro
   * First parameters is expected to be a `scope` object and its fields will be available in Item Macro under `args` argument, for example `args.activity`

@@ -19,7 +19,8 @@
   "midi-qol.RequiresTargets.Hint": "Require tokens to be targeted before rolls. Never means never require targets to be set, In Combat means only in combat and always whenever an item with targets is rolled.",
   "midi-qol.requiresTargetsOptions": {
     "none": "Never",
-    "combat": "In Combat",
+    "combat": "In combat",
+    "tokens": "Tokens in scene",
     "always": "Always"
   },
   "midi-qol.AutoApplyDamage.Name": "Auto apply damage to target",
@@ -30,7 +31,7 @@
   "midi-qol.ItemRollButtons.Name": "Add attack/damage buttons to item inventory list",
   "midi-qol.ItemRollButtons.Hint": "Add Roll Buttons to item description - these buttons support ctrl/alt/shift to skip the dialog",
   "midi-qol.AddChatDamageButtons.Name": "Add damage buttons to chat message",
-  "midi-qol.AddChatDamageButtons.Hint": "Add Enable the dnd5e damage tray on chat messages.",
+  "midi-qol.AddChatDamageButtons.Hint": "Enable the dnd5e damage tray on chat messages.",
   "midi-qol.AddChatDamageButtonsOptions": {
     "none": "None",
     "gm": "Only add buttons for GM",
@@ -72,32 +73,13 @@
   "midi-qol.noTemplateSeen": "Template has not been placed",
   "midi-qol.AutoTarget.Name": "Auto target on template draw",
   "midi-qol.AutoTarget.Hint": "When placing a template (e.g. spell) auto target tokens inside the template. If 'Center + Levels' is set in ranged targeting Levels Volumetric Templates will be used (if installed)",
-  "midi-qol._comment for translators_noDamageOnSaveSpells": "In foundry v9 the array json element is no longer supported, so only the v9 version will be used",
-  "midi-qol.noDamageonSaveSpells": [
-    "Acid Splash",
-    "Sword Burst",
-    "Thunderclap",
-    "Vicious Mockery",
-    "Create Bonfire",
-    "Lightning Lure",
-    "Poison Spray",
-    "Cordon of Arrow",
-    "Disintegrate",
-    "Sacred Flame",
-    "Cordon of Arrows",
-    "Frostbite",
-    "Infestation",
-    "Toll the Dead",
-    "Word of Radiance",
-    "Catapult",
-    "Earth Tremor"
-  ],
-  "midi-qol.noDamageonSaveSpellsv9": "Acid Splash, Sword Burst, Thunderclap, Vicious Mockery, Create Bonfire, Lightning Lure, Poison Spray, Cordon of Arrow, Disintegrate, Sacred Flame, Cordon of Arrows, Frostbite,  Infestation, Toll the Dead, Word of Radiance, Catapult,  Earth Tremor",
   "midi-qol.undoDamageFrom": "Undo applied damage from ",
   "midi-qol.noGM": "No GM user connected cannot apply effects/update Hit Points",
   "midi-qol.noSelection": "No Token/Actor selected",
   "midi-qol.showGM.Name": "GM Sees all whispered messages",
   "midi-qol.showGM.Hint": "GM sees all whispered messages sent even if the game settings say the GM won't see them",
+  "midi-qol.PreferredGM.Name": "Preferred GM",
+  "midi-qol.PreferredGM.Hint": "Preferred GM for socket calls. If 'none' the first gm on the current scene will be used.",
   "midi-qol.ColoredBorders.Name": "Colored Border Messages",
   "midi-qol.ColoredBorders.Hint": "Each chat message has a border in the player characters color",
   "midi-qol.AutoEffects.Name": "Auto apply item effects",
@@ -108,8 +90,8 @@
     "applyRemove": "Apply Effects and remove button",
     "applyLeave": "Apply effects but leave button"
   },
-  "midi-qol.RangeTarget.Name": "Auto target for ranged target spells/attacks",
-  "midi-qol.RangeTarget.Hint": "Auto target for ranged target types if the target type is creature/enemy/ally",
+  "midi-qol.RangeTarget.Name": "Auto target for radius/emanation spells/attacks",
+  "midi-qol.RangeTarget.Hint": "Auto target for radius/emanation targets if the target type is creature/enemy/ally",
   "midi-qol.PlayerRollSaves.Name": "Prompt Players to Roll Saves",
   "midi-qol.PlayerRollSaves.Hint": "Players Roll saves. None means midi will roll the save. Otherwise, the player will get a whispered chat message or Monk's Token bar prompt.",
   "midi-qol.rollNPCSaves.Name": "Prompt GM to Roll Saves (Unlinked)",
@@ -127,7 +109,7 @@
   "midi-qol.UseTokenNames.Name": "Chat cards use token name",
   "midi-qol.UseTokenNames.Hint": "Chat card titles and target names use the token name rather than the actor name",
   "midi-qol.CriticalDamage.Name": "Choose critical damage for Players",
-  "midi-qol.CriticalDamage.Hint": "DND5e Settings Only - standard dnd5e critical roll, Max Normal Damage - base weapon dice only (no critical dice) but all maximised, Max Critical Dice - critical dice maximised, Max All Dice - item + critical dice maximised, double dice value - result of dice x2, Explode Critical Dice - roll normal critical exploding any critical dice, Only Weapon Extra Critical - the only bonus damage for critical is from the item extra critical field, Max Base Roll Crit - use maximum base damage then roll critical dice as usual",
+  "midi-qol.CriticalDamage.Hint": "DND5e Settings Only - standard dnd5e critical roll, Max Normal Damage - base weapon dice only (no critical dice) but all maximised, Max Critical Dice - critical dice maximised, Max All Dice - item + critical dice maximised, double dice value - result of dice x2, Explode Critical Dice - roll normal critical exploding any critical dice, Only Item Extra Critical - the only bonus damage for critical is from the item extra critical field, Max Base Roll Crit - use maximum base damage then roll critical dice as usual",
   "midi-qol.CriticalDamageGM.Name": "Choose critical damage for GM",
   "midi-qol.CriticalDamageGM.Hint": "",
   "midi-qol.CriticalDamageChoices": {
@@ -149,6 +131,8 @@
   "midi-qol.MergeCard.Hint": "Merge Attack, Hits, Damage, Saves to a single chat card",
   "midi-qol.MergeCardCondensed.Name": "Condense Attack/Damage Rolls",
   "midi-qol.MergeCardCondensed.Hint": "Conserve a little chat log space by making attack and damage rolls smaller ",
+  "midi-qol.DisplayItemProperties.Name": "Display Item Properties",
+  "midi-qol.DisplayItemProperties.Hint": "Display item properties in the chat card. Disabling saves some chat card space.",
   "midi-qol.ConfigTitle": "Midi-QOL Configuration",
   "midi-qol.WorkflowSettings": "Workflow Settings",
   "midi-qol.CheckSaveText.Name": "Search item description",
@@ -194,7 +178,8 @@
   "midi-qol.autoCheckHitOptions": {
     "none": "None",
     "all": "Check - all see result",
-    "whisper": "Check - only GM sees"
+    "whisper": "Check - only GM sees results",
+    "gmOnly": "Check - only GM sees anything"
   },
   "midi-qol.clickOptions": {
     "off": "Off",
@@ -216,8 +201,9 @@
     "none": "Off",
     "allNoRoll": "Save - All see result only",
     "all": "Save - All see result + save total",
-    "whisper": "Save - only GM sees",
-    "allShow": "Save - All see Result + Rolls"
+    "allShow": "Save - All see Result + Rolls",
+    "whisper": "Save - only GM sees results + rolls",
+    "gmOnly": "Save - only GM sees anything"
   },
   "midi-qol.rangeTargetOptions": {
     "none": "None",
@@ -273,13 +259,19 @@
     "auto": "Auto",
     "autoDialog": "Auto roll and show roll dialog",
     "mtb": "Monks Token Bar",
+    "ftb": "Flash Token Bar",
     "rer": "Rippers Epic Rolls"
   },
   "midi-qol.playerRollSavesOptions": {
-    "none": "None",
-    "noneDialog": "Auto roll and show roll dialog",
+    "none": "None (private roll)",
+    "nonePublic": "None (public roll)",
+    "noneDialogPublic": "Auto roll and show roll dialog (public roll)",
+    "noneDialogPrivate": "Auto roll and show roll dialog (private roll)",
+    "noneDialogSelf": "Auto roll and show roll dialog (self roll)",
+    "noneDialogBlind": "Auto roll and show roll dialog (blind roll)",
     "chat": "Chat Message",
     "mtb": "Monks Token Bar",
+    "ftb": "Flash Token Bar",
     "rer": "Rippers Epic Rolls"
   },
   "midi-qol.playerRollSavesOptionsReduced": {
@@ -332,19 +324,6 @@
   "midi-qol.ForceHideRoll.Hint": "Display nothing to non-recipients for private/blind/self-rolls. Thanks to felix.mueller.86@web.de",
   "midi-qol.EnableWorkflow.Name": "Enable roll automation support",
   "midi-qol.EnableWorkflow.Hint": "If enabled automation of rolls can be configured in the Workflow Settings panel",
-  "midi-qol.magicalProp": "Magical",
-  "midi-qol.confirmTargetsProp": "Confirm Targets",
-  "midi-qol.noDamageSaveProp": "No Damage Save",
-  "midi-qol.fullDamageSaveProp": "Full Damage Save",
-  "midi-qol.defaultDamageType": "midi-none",
-  "midi-qol.halfDamageSaveProp": "Half Damage Save",
-  "midi-qol.rollOtherProp": "Also Roll Other",
-  "midi-qol.otherCritProp": "Critical Other",
-  "midi-qol.magicalDamageProp": "Magic Damage",
-  "midi-qol.magicalEffectProp": "Magic Effect",
-  "midi-qol.concentrationEffectProp": "Concentration",
-  "midi-qol.noConcentrationEffectProp": "No Conc Save",
-  "midi-qol.toggleEffectProp": "Toggle effect",
   "midi-qol.playerControlsInvisibleTokens.Name": "Players control owned hidden tokens",
   "midi-qol.playerControlsInvisibleTokens.Hint": "Experimental - might work",
   "midi-qol.Debug.Name": "Enable debug",
@@ -352,12 +331,13 @@
   "midi-qol.AllowUseMacro.Name": "Add item on use macro to sheet",
   "midi-qol.AllowActorUseMacro.Name": "Add actor on use macro to sheet",
   "midi-qol.AllowUseMacro.Hint": "When enabled adds a macro name field which will be called on use. See the Readme for the details",
-  "midi-qol.onUseMacroLabel": " On Use Macros",
+  "midi-qol.onUseMacroLabel": " On-Use Macros",
   "midi-qol.onUseMacroOptions": {
     "preTargeting": "Called before targeting is resolved (*)",
     "preItemRoll": "Called before the item is rolled (*)",
     "templatePlaced": "Only called once a template is placed",
     "preAttackRoll": "Before Attack Roll",
+    "preAttackRollConfig": "Before Attack Configuration",
     "preCheckHits": "Before Check Hits",
     "postAttackRoll": "After Attack Roll",
     "preDamageRoll": "Before Damage Roll",
@@ -365,6 +345,7 @@
     "damageBonus": "Return a damage bonus",
     "preSave": "Before Checking Saves",
     "postSave": "After Checking Saves",
+    "preDamageRollConfig": "Before Damage Configuration",
     "preDamageApplication": "Before Damage Application",
     "preActiveEffects": "Before Active Effects",
     "postActiveEffects": "After Active Effects ",
@@ -375,7 +356,7 @@
     "preTargetSave": "Target is about to roll a saving throw",
     "isSave": "Target rolled a save",
     "isSaveSuccess": "Target rolled a successful save",
-    "isSaveFailure": "target failed a saving throw",
+    "isSaveFailure": "Target failed a saving throw",
     "preTargetDamageApplication": "Target is about to be damaged by an item",
     "postTargetEffectApplication": "Target has an effect applied by a rolled item",
     "isDamaged": "Target is damaged by an attack",
@@ -406,7 +387,7 @@
   "midi-qol.SingleConcentrationRoll.Name": "Single Concentration Check",
   "midi-qol.SingleConcentrationRoll.Hint": "If enabled and the attack is rolling normal damage + a save + other/versatile damage only roll a single concentration check for the combined damage",
   "midi-qol.TempHPDamageConcentrationCheck.Name": "Temporary HP Concentration Check",
-  "midi-qol.TempHPDamageConcentrationCheck.Hint": "If enabled loss of temporary HP will trigger a concentration check",
+  "midi-qol.TempHPDamageConcentrationCheck.Hint": "If enabled loss of temporary HP will trigger a concentration check.<br><strong>Disabling this is homebrew. Rules as written DND5E is that temp hp damage triggers a concentration check</strong>",
   "midi-qol.RemoveConcentrationEffects.Name": "Remove concentration when effects removed",
   "midi-qol.RemoveConcentrationEffects.Hint": "Check when effects (effects & templates) are removed. If all effects and templates for the concentration spell/feature have been removed remove concentration",
   "midi-qol.RemoveConcentrationEffectsOptions": {
@@ -538,7 +519,7 @@
   "midi-qol.DefaultSaveMult.Name": "Default saving throw multiplier",
   "midi-qol.DefaultSaveMult.Hint": "If there are no other modifiers a saving throw will do this fraction of the damage of the original attack. Default 0.5, half damage on save. You should only change this if you know how multipliers work",
   "midi-qol.RequireMagical.Name": "Require 'Magical' property",
-  "midi-qol.RequireMagical.Hint": "Magical Property is either the dnd5e property <strong>Magical</strong> or the <strong>midi-qol Magic Damage</strong> property. If set the item does magical damage. <br><strong>Off</strong> non-weapons do magical damage by default, weapons do magical damage if attack bonus > 0.<br><strong>Non Spell</strong> means only spells do magical damage by default.<br><strong>All</strong> no item does magical damage by default",
+  "midi-qol.RequireMagical.Hint": "Magical Property is either the dnd5e property <strong>Magical</strong> or the <strong>midi-qol Magic Damage</strong> property. If set the item does magical damage. <br><strong>Off</strong> non-weapons do magical damage by default, weapons do magical damage if the item's magical property set.<br><strong>Non Spell</strong> means only spells do magical damage by default.<br><strong>All</strong> no item does magical damage by default",
   "midi-qol.RequireMagicalOptions": {
     "off": "Off: Non-weapons do magical damage",
     "nonspell": "Non spells do non-magical damage",
@@ -564,18 +545,22 @@
   "midi-qol.ExportJSon": "Export Roll Stats to Json file",
   "midi-qol.ExportCSV": "Export Roll Stats to CSV file",
   "midi-qol.AutoCEEffectsOptions": {
-    "none": "Don't Apply",
-    "itempri": "Apply Item effects, if absent apply CE",
-    "cepri": "Apply CE, if absent apply item effects",
-    "both": "Apply CE and item effects"
+    "none": "Only activity effects",
+    "itempri": "Apply activity effects, if absent apply CE",
+    "cepri": "Apply CE, if absent apply activity effects",
+    "both": "Apply CE and activity effects"
   },
   "midi-qol.AutoCEEffects.Name": "Apply Convenient Effects",
-  "midi-qol.AutoCEEffects.Hint": "Apply convenient effects which match item name when item used. Requires auto apply active effects enabled as well.",
+  "midi-qol.AutoCEEffects.Hint": "Apply convenient effects which match activity name (if no match, item name) when item used. Requires auto apply active effects enabled as well.",
   "midi-qol.BonusACCover": "AC Cover",
   "midi-qol.NoChangelogs": "Midi-qol supports and recommends the ChangeLogs or Module Manager+ modules to show you any changes since you last updated",
   "midi-qol.ActiveDefenceString": "Active Defence",
   "midi-qol.ActiveDefence.Name": "Active Defence",
+  "midi-qol.ActiveDefenceModifier.Name": "Active Defence Modifier",
+  "midi-qol.ActiveDefenceModifier.Hint": "The active defence DC will be attack bonus + (22 - this modifier) and the active defence roll will be AC - modifier + 1d20. <br>The value does not matter just choose what makes the rolls look good to you. <br> Suggested values are <strong>12</strong>, 10 or 0",
   "midi-qol.ActiveDefence.Hint": "Instead of GM rolling 'To Hit', players make a defence roll.",
+  "midi-qol.ActiveDefenceDC.Name": "Show Active Defence DC",
+  "midi-qol.ActiveDefenceDC.Hint": "If set the active defence DC will be shown in the chat card",
   "midi-qol.ActiveDefenceShow.Name": "Default display for active defence rolls",
   "midi-qol.ActiveDefenceShow.Hint": "If set to 'Self Roll' the roll will be hidden from the GM regardless of other settings",
   "midi-qol.GMHide3dDice.Name": "Hide GM attack/damage/saving throw 3d dice rolls - overrides other settings (merge card only)",
@@ -648,11 +633,12 @@
   "midi-qol.TargetConfirmationConfig.Name": "Target Confirmation",
   "midi-qol.TargetConfirmationConfig.Hint": "When rolling an item confirm targets before completing",
   "midi-qol.TargetConfirmation.Name": "Target Confirmation",
-  "midi-qol.TargetConfirmation.Blurb": "Select up to {targetCount} {targetType}. Shift-Click to select multiple targets",
-  "midi-qol.TargetConfirmation.BlurbAny": "Select any number of targets. Shift-Click to select multiple targets",
+  "midi-qol.TargetConfirmation.Blurb": "Select up to {targetCount} {targetType}. <br>Shift-Click a token to add to the target list.<br>Right click in the list to remove a target",
+  "midi-qol.TargetConfirmation.BlurbAny": "Select any number of targets.<br>Shift-Click a token to add to the target list.<br>Right click in the list to remove a target",
   "midi-qol.AddDead.Name": "Add effect when HP = 0",
   "midi-qol.AddDead.Hint1": "Player Controlled",
   "midi-qol.AddDead.Hint2": "GM Controlled",
+  "midi-qol.markDefeated": "Mark defeated in combat tracker",
   "midi-qol.AddDeadOptions": {
     "none": "Do Not Update",
     "overlay": "Add effect as overlay",
@@ -730,10 +716,8 @@
   },
   "midi-qol.EnforceReactions.Title": "Reaction Used",
   "midi-qol.EnforceReactions.Content": "You have used your reaction this round. Do you want to proceed anyway?",
-  "midi-qol.DisplayHitResultNumeric.Name": "Display target AC",
   "midi-qol.EnforceBonusActions.Title": "Bonus Action Used",
   "midi-qol.EnforceBonusActions.Content": "You have used your bonus action this round. Do you want to proceed anyway?",
-  "midi-qol.MidiProperties": "Midi-qol Item Properties",
   "midi-qol.SoundSettings.Name": "Configure Midi Custom Sounds",
   "midi-qol.SoundSettings.Hint": "Setup midi-qol custom sounds for item rolls",
   "midi-qol.SoundSettings.Label": "Configure Midi Custom Sounds",
@@ -788,10 +772,12 @@
   "midi-qol.MeasuredTemplate": "Template",
   "midi-qol.AutoRemoveTemplate.Name": "Auto remove placed template on spell expiry",
   "midi-qol.AutoRemoveSummonedCreature.Name": "Auto remove summoned creatures on item expiry/concentration removal (for dnd5e summons items)",
+  "midi-qol.AutoUndoTransformations.Name": "Auto undo transformations on effect/concentration expiry/removal",
+  "midi-qol.AutoUndoTransformations.Hint": "When transforming a target add an effect/concentration to the caster that tracks the transformations and automatically revert the target to their original form on expiry/concentration removal",
   "midi-qol.AttackPerTarget.Name": "Roll a separate attack per target",
   "midi-qol.SkillAbilityCheckAdvantage.Name": "Ability Check Advantage gives Skill Advantage",
   "midi-qol.SkillAbilityCheckAdvantage.Hint": "If an actor has advantage/disadvantage on ability checks, skills based on that ability also have advantage/disadvantage",
-  "midi-qol.ignoreTotalCover": "No Full cover",
+  "midi-qol.ignoreTotalCover": "No Full cover (Deprecated)",
   "midi-qol.InitPromptTitle": "Initiative Roll",
   "midi-qol.HighlightSuccess.Name": "Color code Hit/Miss/Save Display",
   "midi-qol.HighlightSuccess.Hint": "When displaying hits/misses, hits/saves are in green and misses/failed saves in red",
@@ -878,10 +864,11 @@
   "midi-qol.TargetConfirmationAllies": "Confirm targets if any target is an ally",
   "midi-qol.OutOfRange": "Out of Range",
   "midi-qol.SaveDROrder.Name": "Damage Reduction Save Order",
-  "midi-qol.SaveDROrder.Hint": "Order in which damage reduction is applied. If 'none' damage reduction is applied",
+  "midi-qol.SaveDROrder.Hint": "Order in which damage reduction is applied.<br>dm.midi is midi specific damage reduction. <br>dm is dnd5e damage reduction",
   "midi-qol.SaveDROrderOptions": {
-    "DRSavedr": "Damage Reduction -> Saves -> damage resistance (dr/dv/di)",
-    "SaveDRdr": "Saves -> Damage Reduction -> damage resistance (dr/dv/di)"
+    "DRSaveDr": "dm.midi/dnd5e.dm -> Saves/(dr/dv/di) - dnd5e RAW",
+    "SaveDRDr": "Saves -> dm.midi/dm.dnd5e -> (dr/dv/di)",
+    "SaveDrDR": "Saves -> dm -> (dr/dv/di) -> dm.midi"
   },
   "midi-qol.WaitingForPreviousWorkflow": "Previous roll of {name} has not completed.",
   "midi-qol.ResolvePreviousWorkflow": "Choose what to do with the previous roll",
@@ -901,6 +888,8 @@
   "midi-qol.ConcentrationIncapacitatedConditionCheck.Hint": "Incapacitated, Dead,  Unconscious, Petrified, Paralysed and Stunned remove concentration",
   "midi-qol.AutoCompleteWorkflow.Name": "Autocomplete workflow if required",
   "midi-qol.AutoCompleteWorkflow.Hint": "Workflows will be marked as complete if rolled before completion, no extra rolls will be performed",
+  "midi-qol.SavesBeforeDamage.Name": "Roll saves before damage (Experimental)",
+  "midi-qol.SavesBeforeDamage.Hint": "If enabled saves are rolled before damage is rolled otherwise saves are rolled after damage is rolled",
   "midi-qol.emanationNoTemplate": "Emanation/Radius - No Template",
   "midi-qol.emanationTemplate.counted.one": "Emanation No Template",
   "midi-qol.emanationTemplate.counted.other": "Emanation No Template",
@@ -908,6 +897,8 @@
   "midi-qol.MidiFieldsTab.Name": "Display Midi item fields in a separate tab",
   "midi-qol.UndoChatColor.Name": "Undo Chat Cards Color",
   "midi-qol.UndoChatColor.Hint": "Delete means remove the chat card on undo. Otherwise, the undone chats are recoloured",
+  "midi-qol.WaitForDamageApplication.Name": "Wait for damage application",
+  "midi-qol.WaitForDamageApplication.Hint": "Wait for the GM client to apply damage before completing the workflow. Disabling will give a small performance improvement but may interfere with some 3rd party modules",
   "DND5E.DamageApplication.Change.Absorption": "{type} Absorption",
   "DND5E.DamageApplication.Change.Spell": "Custom Spell",
   "DND5E.DamageApplication.Change.Magic": "Custom Magical",
@@ -944,6 +935,16 @@
     "Friendly": "Friendly",
     "notFriendly": "Not Friendly"
   },
+  "midi-qol.ConfigDialogOptions": {
+    "default": "Midi Settings",
+    "always": "Always show",
+    "never": "Never show"
+  },
+  "midi-qol.ConsumeDialogOptions": {
+    "default": "Midi Settings",
+    "always": "Always show",
+    "never": "Never show"
+  },
   "midi-qol.TriggeredActivityTargetOptions": {
     "self": "Target item owner",
     "targets": "Same targets",
@@ -961,6 +962,19 @@
     "firstSaveTarget": "First saved target",
     "firstFailedSaveTarget": "First failed save target"
   },
+  "midi-qol.ActivationAutomation.Name": "Activation Cost Automation",
+  "midi-qol.ActivationAutomation.Hint": "Automatically activate activities with short/long rest or encounter start or turn start/end activation costs.",
+  "midi-qol.ActivationAutomationOptions": {
+    "none": "No Automation/No Chat",
+    "chat": "Default dnd5e behavior",
+    "auto": "Auto trigger self targeted activities"
+  },
+  "midi-qol.dummyCards.Name": "Always display attack/damage cards for hidden merge cards",
+  "midi-qol.dummyCards.Hint": "(Experimental) For GM rolls (self, private, blind) display an attack/damage roll card which will trigger a 'gm rollsed some dice' card on the players chats. Only for the case that you want the players to know you rolled something, but not what it was",
+  "midi-qol.dnd5eConcentrationTrackingDisabled": "<br><strong><center>DND5E Concentration Tracking Disabled</strong><br></center><br><center>Concentration Tracking is disabled in the dnd5e system settings.</center><center>Enable in DND5E settings to enable midi concentration settings</center><br>",
+  "midi-qol.ItemSheetMidiTab": "Midi QoL",
+  "midi-qol.AddOnUseMacro": "Add On-Use Macro",
+  "midi-qol.CustomMacro": "Custom Macro",
   "midi-qol.SHARED": {
     "use-condition": {
       "header": "Midi Conditions"
@@ -981,14 +995,46 @@
         "label": "Active Effect Condition",
         "hint": "Condition to apply active effects"
       },
+      "otherActivityId": {
+        "label": "Use Other Activity",
+        "hint": "Extra activity to preform 'other' damage"
+      },
+      "otherActivityAsParentType": {
+        "label": "Override action type",
+        "hint": "Replace other damage properties activity type with this activity (mwak, rwak etc)"
+      },
       "midiProperties": {
         "rollMode": {
           "label": "Roll Mode",
           "hint": "Roll mode to use for the activity"
         },
-        "forceDialog": {
-          "label": "Force Configuration Dialog",
-          "hint": "Force Configuration Dialog when attack rolled"
+        "removeChatButtons": {
+          "label": "Remove Chat Buttons",
+          "hint": "Remove buttons from the activity chat card"
+        },
+        "ignoreFullCover": {
+          "label": "Ignore Full Cover",
+          "hint": "Ignore full cover when applying damage/saves"
+        },
+        "chooseEffects": {
+          "label": "Choose Effects",
+          "hint": "Choose effects to apply"
+        },
+        "autoConsume": {
+          "label": "Auto Consume",
+          "hint": "Automatically consume resources when activity used"
+        },
+        "forceConsumeDialog": {
+          "label": "Force Consume Dialog",
+          "hint": "Force Configuration Dialog when activity used"
+        },
+        "forceRollDialog": {
+          "label": "Force Roll Config",
+          "hint": "Force Roll/Attack Configuration Dialog when activity used"
+        },
+        "forceDamageDialog": {
+          "label": "Force Damage Config",
+          "hint": "Force Damage Configuration Dialog when activity used and the activity rolls damage"
         },
         "confirmTargets": {
           "label": "Target Confirmation",
@@ -1034,6 +1080,22 @@
           "label": "Other Activity Compatible",
           "hint": "Can be used as an other activity"
         },
+        "toggleEffect": {
+          "label": "Toggle Effect",
+          "hint": "Disabling an effect will toggle it rather than removing it"
+        },
+        "magicEffect": {
+          "label": "Magic Effect",
+          "hint": "Saves against this activity are treated as saves against magic"
+        },
+        "magicDamage": {
+          "label": "Magic Damage",
+          "hint": "Damage from this activity is treated as magic damage"
+        },
+        "noConcentrationCheck": {
+          "label": "No Concentration Save",
+          "hint": "The activity's damage does not trigger a concentration save"
+        },
         "ignoreTraits": {
           "idi": {
             "label": "Immunity",
@@ -1055,7 +1117,15 @@
             "label": "Modification",
             "hint": "Ignore damage modification when applying damage"
           }
+        },
+        "autoCEEffects": {
+          "label": "Apply Convenient Effects",
+          "hint": "Apply convenient effects which match activity name (if no match, item name) when item used. Requires auto apply active effects enabled as well."
         }
+      },
+      "friendlySummon": {
+        "label": "Friendly Summons",
+        "hint": "The summoned token has the same disposition as the caster"
       },
       "isOverTimeFlag": {
         "label": "Is Over Time",
@@ -1126,9 +1196,13 @@
         "label": "Ammunition",
         "hint": "Default ammunition to consume"
       },
-      "otherActivityId": {
-        "label": "Apply Other Activity",
-        "hint": "Extra activity to preform 'other' damage"
+      "attackRollPerTarget": {
+        "label": "Attack Roll Per Target",
+        "hint": "Roll a separate attack roll for each target. Creates a chat card for each target."
+      },
+      "fumbleThreshold": {
+        "label": "Fumble Threshold",
+        "hint": "If the attack roll is less than or equal to this value it is a fumble"
       }
     }
   },
@@ -1148,6 +1222,22 @@
     "Title": {
       "one": "Midi Damage",
       "other": "Midi Damage"
+    },
+    "FIELDS": {
+      "damage": {
+        "label": "Damage",
+        "critical": {
+          "label": "Critical Damage",
+          "allow": {
+            "label": "Allow Critical Damage",
+            "hint": "Allow critical damage to be applied"
+          },
+          "bonus": {
+            "label": "Bonus Critical Damage",
+            "hint": "Bonus critical damage to be applied if critical damage is allowed"
+          }
+        }
+      }
     }
   },
   "midi-qol.ENCHANT": {
@@ -1201,6 +1291,20 @@
     "Title": {
       "one": "Midi Save",
       "other": "Midi Saves"
+    },
+    "extras": {
+      "header": "Midi Save Fields"
+    },
+    "FriendlySave": {
+      "Default": "Roll save",
+      "FriendlySuccess": "Friends Succeed",
+      "FriendlyFail": "Friends Fail"
+    },
+    "FIELDS": {
+      "friendlySave": {
+        "label": "Friendly Save",
+        "hint": "If enabled allow allies to succeed or fail rather than rolling a save"
+      }
     }
   },
   "midi-qol.UTILITY": {
@@ -1215,6 +1319,13 @@
       "other": "Midi Summons"
     }
   },
+  "midi-qol.TRANSFORM": {
+    "Title": {
+      "one": "Midi Transform",
+      "other": "Midi Transforms"
+    },
+    "AlreadyTransformed": "{name} already Transformed"
+  },
   "midi-qol.fields": {
     "use-condition-header": "Midi Activity Allow Use Condition",
     "attack-extras": "Midi Attack Fields",
@@ -1222,8 +1333,10 @@
     "force-dialog": "Force Configuration Dialog",
     "midi-automation-only": "Only use in midi automation"
   },
-  "midi-qol.BaseDamageFlavor": "Base Damage",
-  "midi-qol.OtherDamageFlavor": "Other Damage",
+  "midi-qol.BaseDamageFlavor": "Damage",
+  "midi-qol.BaseHealingFlavor": "Healing",
+  "midi-qol.OtherDamageFlavor": "Other",
+  "midi-qol.OtherHealingFlavor": "Other Healing",
   "midi-qol.RequireAmmunition.Name": "Require ammunition available to roll attack",
   "midi-qol.CheckTwoHanded.Name": "Require no shield equipped for two-handed/off-hand attacks",
   "midi-qol.NoAmmunition": "There are 0 {name} in your inventory",
@@ -2483,35 +2596,35 @@
       "name": "Grants No Advantage (All Attacks)",
       "description": "Any attack against the target will not have advantage"
     },
-    "flags.midi-qol.grants.{noAdvantage.attack.heal": {
+    "flags.midi-qol.grants.noAdvantage.attack.heal": {
       "name": "Grants No Advantage (Heal)",
       "description": "Any healing attack against the target will not have advantage"
     },
-    "flags.midi-qol.grants.{noAdvantage.attack.msak": {
+    "flags.midi-qol.grants.noAdvantage.attack.msak": {
       "name": "Grants No Advantage (Melee Spell Attack)",
       "description": "Any Melee Spell Attack against the target will not have advantage"
     },
-    "flags.midi-qol.grants.{noAdvantage.attack.mwak": {
+    "flags.midi-qol.grants.noAdvantage.attack.mwak": {
       "name": "Grants No Advantage (Melee Weapon Attack)",
       "description": "Any Melee Weapon Attack against the target will not have advantage"
     },
-    "flags.midi-qol.grants.{noAdvantage.attack.rsak": {
+    "flags.midi-qol.grants.noAdvantage.attack.rsak": {
       "name": "Grants No Advantage (Ranged Spell Attack)",
       "description": "Any Ranged Spell attack against the target will not have advantage"
     },
-    "flags.midi-qol.grants.{noAdvantage.attack.rwak": {
+    "flags.midi-qol.grants.noAdvantage.attack.rwak": {
       "name": "Grants No Advantage (Ranged Weapon Attack)",
       "description": "Any Ranged Weapon attack against the target will not have advantage"
     },
-    "flags.midi-qol.grants.{noAdvantage.attack.save": {
+    "flags.midi-qol.grants.noAdvantage.attack.save": {
       "name": "Grants No Advantage (Save)",
       "description": "No saving throw forced by the actor will have advantage"
     },
-    "flags.midi-qol.grants.{noAdvantage.attack.check": {
+    "flags.midi-qol.grants.noAdvantage.attack.check": {
       "name": "Grants No Advantage (Check)",
       "description": "No ability check forced by the actor will have advantage"
     },
-    "flags.midi-qol.grants.{noAdvantage.attack.skill": {
+    "flags.midi-qol.grants.noAdvantage.attack.skill": {
       "name": "Grants No Advantage (Skill)",
       "description": "No Skill roll forced by the actor will have advantage"
     },

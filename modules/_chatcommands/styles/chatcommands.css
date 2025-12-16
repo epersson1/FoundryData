@@ -2,27 +2,57 @@
     position: relative;
 }
 
-#chat-form #autocomplete-suggestion {
+#autocomplete-suggestion {
     position: absolute;
-    top: 0;
-    left: 0;
+    bottom: 8px; /* Gap of parent chat-form */
+    left: 4px; /* Padding of parent chat-form */
     z-index: 1;
     opacity: 0.5;
     box-shadow: none;
     outline: none;
     pointer-events: none;
     background: transparent;
+    padding: var(--chat-message-spacing);
+    width: calc(100% - 8px);
+    height: var(--chat-input-height);
+    border: 2px solid transparent;
+    font-family: var(--font-body);
+}
+
+#chat-notifications #autocomplete-suggestion {
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    margin: 0 0 2px;
+    opacity: 0;
+    transition: opacity var(--ui-fade-duration) step-start;
+}
+#chat-notifications #chat-message:focus ~ #autocomplete-suggestion {
+    opacity: 0.5;
+    transition-timing-function: step-end;
+}
+
+/* Keep message input expanded and suggestion visible when menu is focused. */
+#chat-notifications #autocomplete-menu:focus-within ~ #chat-message {
+    --ui-fade-delay: 0;
+    height: var(--chat-input-height);
+    opacity: 1;
+}
+#chat-notifications #autocomplete-menu:focus-within ~ #autocomplete-suggestion {
+    opacity: 0.5;
 }
 
 #autocomplete-menu {
     flex: 0;
     position: relative;
+    pointer-events: all;
+}
+.chat-form #autocomplete-menu {
+    margin-bottom: -8px;
 }
 
 #autocomplete-menu #context-menu {
     bottom: 0;
-    margin-left: 6px;
-    width: calc(100% - 12px);
     display: flex;
     flex-direction: column;
 }
@@ -132,13 +162,22 @@
     height: 16px;
     width: 16px;
     left: 50%;
-    top: 50%;
+    bottom: 0;
     border: solid 5px var(--color-border-light-2);
     border-bottom-color: var(--color-border-light-1);
     border-radius: 50%;
     animation: 1.5s linear infinite spinner;
-    transform: translate(-50%, -50%);
+}
+#chatcommand-loading::before {
+    bottom: 42px; /* (100px height / 2) - 16px self + 8px gap */
 }
 #chatcommand-loading[data-active="0"]::before {
     display: none;
+}
+#chat-notifications #chatcommand-loading::before {
+    bottom: 16px;
+    transition: bottom var(--ui-fade-duration) ease;
+}
+#chat-notifications #chat-message:focus ~ #chatcommand-loading::before {
+    bottom: calc(var(--chat-input-height) / 2 - 14px);
 }

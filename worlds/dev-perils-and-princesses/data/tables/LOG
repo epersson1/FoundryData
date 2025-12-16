@@ -1,3 +1,8 @@
-2025/04/14-11:16:15.319 4aa8 Recovering log #129
-2025/04/14-11:16:15.349 4aa8 Delete type=0 #129
-2025/04/14-11:16:15.349 4aa8 Delete type=3 #127
+2025/05/18-17:21:01.343 36c4 Recovering log #144
+2025/05/18-17:21:01.371 36c4 Delete type=0 #144
+2025/05/18-17:21:01.371 36c4 Delete type=3 #143
+2025/05/18-17:24:57.706 4a8c Level-0 table #148: started
+2025/05/18-17:24:57.706 4a8c Level-0 table #148: 0 bytes OK
+2025/05/18-17:24:57.731 4a8c Delete type=0 #146
+2025/05/18-17:24:57.823 4a8c Manual compaction at level-0 from '!tables!xGprvzGlTCQh70q5' @ 72057594037927935 : 1 .. '!tables.results!xGprvzGlTCQh70q5.xaipGBhtlL084Jng' @ 0 : 0; will stop at (end)
+2025/05/18-17:24:57.941 4a8c Manual compaction at level-1 from '!tables!xGprvzGlTCQh70q5' @ 72057594037927935 : 1 .. '!tables.results!xGprvzGlTCQh70q5.xaipGBhtlL084Jng' @ 0 : 0; will stop at (end)

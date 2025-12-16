@@ -1,24 +1,30 @@
-import { debugEnabled, warn } from "../../midi-qol.js";
-import { Workflow } from "../Workflow.js";
-import { ReplaceDefaultActivities, configSettings } from "../settings.js";
+import { debugEnabled, GameSystemConfig, warn } from "../../midi-qol.js";
+import { replaceDefaultActivities, configSettings } from "../settings.js";
+import { getTokenDocument } from "../utils.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
-export var MidiSummonActivity;
-export var MidiSummonSheet;
+export let MidiSummonActivity;
+export let MidiSummonSheet;
 export function setupSummonActivity() {
 	if (debugEnabled > 0)
 		warn("MidiQOL | SummonActivity | setupSummonActivity | Called");
 	//@ts-expect-error
-	const GameSystemConfig = game.system.config;
-	//@ts-expect-error
 	MidiSummonSheet = defineMidiSummonSheetClass(game.system.applications.activity.SummonSheet);
 	MidiSummonActivity = defineMidiSummonActivityClass(GameSystemConfig.activityTypes.summon.documentClass);
-	if (ReplaceDefaultActivities) {
+	if (replaceDefaultActivities) {
 		// GameSystemConfig.activityTypes["dnd5eSummon"] = GameSystemConfig.activityTypes.summon;
 		GameSystemConfig.activityTypes.summon = { documentClass: MidiSummonActivity };
 	}
 	else {
 		GameSystemConfig.activityTypes["midiSummon"] = { documentClass: MidiSummonActivity };
 	}
+	//@ts-expect-error
+	Hooks.on("dnd5e.summonToken", (activity, profile, tokenData, options) => {
+		if (!activity.friendlySummon)
+			return;
+		const caster = getTokenDocument(activity.actor);
+		if (caster)
+			tokenData.disposition = caster.disposition;
+	});
 }
 let defineMidiSummonSheetClass = (baseClass) => {
 	return class MidiSummonSheet extends MidiActivityMixinSheet(baseClass) {
@@ -26,7 +32,7 @@ let defineMidiSummonSheetClass = (baseClass) => {
 };
 let defineMidiSummonActivityClass = (ActivityClass) => {
 	return class MidiSummonActivity extends MidiActivityMixin(ActivityClass) {
-		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.SUMMON"];
+		static LOCALIZATION_PREFIXES = ["midi-qol.SUMMON", ...super.LOCALIZATION_PREFIXES];
 		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.SUMMON.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
@@ -35,15 +41,17 @@ let defineMidiSummonActivityClass = (ActivityClass) => {
 				chatCard: "modules/midi-qol/templates/activity-card.hbs",
 				dialog: ActivityClass.metadata.usage.dialog,
 				actions: {
-				// placeSummons: MidiSummonActivity.#placeSummons
+				// placeSummons: MidiSummonActivity.#placeSummons 
+				// not doing this as it would require a physical copy of the dnd5e #placeSummons code
+				// Downside is that the summons button on the activity card will not create a remove summoned creature effect since there is no workflow looked up
 				},
 			},
 		}, { inplace: false, insertKeys: true, insertValues: true });
-		static #placeSummons(event, target, message) {
-			//@ts-expect-error
-			if (message)
-				this.workflow = Workflow.getWorkflow(message.uuid);
-			ActivityClass.#placeSummons.bind(this)(event, target, message);
+		static defineSchema() {
+			return {
+				...super.defineSchema(),
+				friendlySummon: new foundry.data.fields.BooleanField({ initial: false, name: "friendlySummon", required: false })
+			};
 		}
 		get possibleOtherActivity() {
 			return false;
@@ -53,6 +61,8 @@ let defineMidiSummonActivityClass = (ActivityClass) => {
 		}
 		get selfTriggerableOnly() {
 			return false;
+		}
+		async _triggerSubsequentActions(config, results) {
 		}
 	};
 };

@@ -1,0 +1,57 @@
+<ul class="item-list bullet-list">
+    <li class="item header">
+        <section class="details">            
+            <span class="title">{{localize "COSMERE.Actor.Sheet.Details.Connections.Label"}}</span>
+        </section>
+    </li>
+
+    {{#each connections as |connection|}}
+    <li class="item collapsible {{#if connection.expanded}}expanded{{/if}}" data-id="{{connection.id}}">
+        <section class="details">
+            <i class="bullet fade icon faded fa-solid fa-diamond"></i>
+            <input class="name fade" type="text" value="{{connection.name}}" readonly>
+
+            <div class="controls icon faded">
+                <a role="button"
+                    data-action="toggle-expand-connection"
+                    {{#if connection.expanded}}
+                    data-tooltip="GENERIC.HideDetails"
+                    {{else}}
+                    data-tooltip="GENERIC.ViewDetails"
+                    {{/if}}
+                >
+                    {{#if connection.expanded}}
+                        <i class="fa-solid fa-compress"></i>
+                    {{else}}
+                        <i class="fa-solid fa-expand"></i>
+                    {{/if}}
+                </a>
+                {{#if @root.editable}}
+                <a
+                    data-action="toggle-controls"
+                    data-tooltip="APPLICATION.TOOLS.ToggleControls"
+                >
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </a>
+                {{/if}}
+            </div>
+        </section>
+        <section class="description collapsible-content">
+            <div class="wrapper">
+                {{{connection.descriptionHTML}}}
+            </div>
+        </section>     
+    </li>  
+    {{/each}}
+
+    {{#if editable}}
+    <li class="item new">
+        <a data-action="add-connection">
+            <i class="fa-solid fa-plus"></i>
+            <span>
+                {{localize "COSMERE.Actor.Sheet.Details.Connections.New"}}
+            </span>
+        </a>
+    </li>
+    {{/if}}
+</ul>

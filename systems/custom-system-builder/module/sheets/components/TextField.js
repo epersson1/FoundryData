@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,13 +10,26 @@
  * @module
  */
 import Logger from '../../Logger.js';
-import InputComponent, { COMPONENT_SIZES } from './InputComponent.js';
-import { RequiredFieldError } from '../../errors/ComponentValidationError.js';
+import InputComponent from './InputComponent.js';
+import { COMPONENT_SIZES } from './SizedComponent.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
 /**
  * TextField component
  * @ignore
  */
 class TextField extends InputComponent {
+    /**
+     * Text field allowed characters
+     */
+    _charList;
+    /**
+     * Max input length
+     */
+    _maxLength;
+    /**
+     * Input autocomplete formula
+     */
+    _autocomplete;
     /**
      * Text field constructor
      */
@@ -36,77 +49,78 @@ class TextField extends InputComponent {
      */
     async _getElement(entity, isEditable = true, options = {}) {
         const { reference } = options;
-        const props = { ...entity.system.props, ...options.customProps };
         const jQElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-text-field');
         const inputElement = $('<input />');
         inputElement.attr('type', 'text');
-        inputElement.attr('id', `${entity.uuid}-${this.key}`);
-        if (!entity.isTemplate) {
-            inputElement.attr('name', 'system.props.' + this.key);
-        }
-        if (!isEditable) {
-            inputElement.attr('disabled', 'disabled');
-        }
-        const fieldValue = foundry.utils.getProperty(props, this.key) ??
-            (this.defaultValue
-                ? ComputablePhrase.computeMessageStatic(this.defaultValue, props, {
-                    source: `${this.key}.defaultValue`,
-                    reference,
-                    defaultValue: '',
-                    triggerEntity: entity
-                }).result
-                : '');
-        inputElement.val(fieldValue);
-        let changeEventAdded = false;
-        inputElement.on('keydown', () => {
-            const oldValue = String(inputElement.val());
-            // Triggers the change only once
-            if (!changeEventAdded) {
-                changeEventAdded = true;
-                inputElement.one('change', () => {
-                    changeEventAdded = false;
-                    let newValue = String(inputElement.val());
-                    if (this._maxLength && this._maxLength > 0 && newValue.length > this._maxLength) {
-                        newValue = newValue.substring(0, this._maxLength);
-                    }
-                    if (this._charList) {
-                        const validationRegex = new RegExp('^[' + this._charList.replace('\\', '\\\\') + ']*$');
-                        if (!newValue.match(validationRegex)) {
-                            newValue = oldValue;
-                            ui.notifications.warn(game.i18n.localize('CSB.UserMessages.TextField.WrongValue'));
-                        }
-                    }
-                    inputElement.val(newValue);
-                });
-            }
-        });
+        inputElement.attr('id', this.getSluggedId(entity));
         jQElement.append(inputElement);
-        if (!entity.isTemplate && this._autocomplete) {
-            let autocompleteOptions;
-            try {
-                autocompleteOptions = ComputablePhrase.computeMessageStatic(this._autocomplete, props, {
-                    source: `${this.key}.autocompleteOptions`,
-                    reference,
-                    defaultValue: '',
-                    triggerEntity: entity
-                }).result;
+        if (TemplateSystem.isAppliedTemplateSystem(entity)) {
+            const props = { ...entity.system.props, ...options.customProps };
+            inputElement.attr('name', 'system.props.' + this.key);
+            const fieldValue = foundry.utils.getProperty(props, this.key) ??
+                (this.defaultValue
+                    ? ComputablePhrase.computeMessageStatic(this.defaultValue, props, {
+                        source: `${this.key}.defaultValue`,
+                        reference,
+                        defaultValue: '',
+                        triggerEntity: entity
+                    }).result
+                    : '');
+            inputElement.val(fieldValue);
+            if (!isEditable) {
+                inputElement.attr('disabled', 'disabled');
             }
-            catch (err) {
-                Logger.error(err.message, err);
-                autocompleteOptions = '';
+            let changeEventAdded = false;
+            inputElement.on('keydown', () => {
+                const oldValue = String(inputElement.val());
+                // Triggers the change only once
+                if (!changeEventAdded) {
+                    changeEventAdded = true;
+                    inputElement.one('change', () => {
+                        changeEventAdded = false;
+                        let newValue = String(inputElement.val());
+                        if (this._maxLength && this._maxLength > 0 && newValue.length > this._maxLength) {
+                            newValue = newValue.substring(0, this._maxLength);
+                        }
+                        if (this._charList) {
+                            const validationRegex = new RegExp('^[' + this._charList.replace('\\', '\\\\') + ']*$');
+                            if (!newValue.match(validationRegex)) {
+                                newValue = oldValue;
+                                ui.notifications.warn(game.i18n.localize('CSB.UserMessages.TextField.WrongValue'));
+                            }
+                        }
+                        inputElement.val(newValue);
+                    });
+                }
+            });
+            if (this._autocomplete) {
+                let autocompleteOptions;
+                try {
+                    autocompleteOptions = ComputablePhrase.computeMessageStatic(this._autocomplete, props, {
+                        source: `${this.key}.autocompleteOptions`,
+                        reference,
+                        defaultValue: '',
+                        triggerEntity: entity
+                    }).result;
+                }
+                catch (err) {
+                    Logger.error(err.message, err);
+                    autocompleteOptions = '';
+                }
+                const autocompleteDataList = $('<datalist></datalist>');
+                autocompleteDataList.attr('id', `${this.getSluggedId(entity)}-autocompleteOptions`);
+                inputElement.attr('list', `${this.getSluggedId(entity)}-autocompleteOptions`);
+                autocompleteDataList.append(autocompleteOptions.split(',').map((optionValue) => {
+                    const optionElt = $('<option />');
+                    optionElt.attr('value', optionValue);
+                    return optionElt;
+                }));
+                jQElement.append(autocompleteDataList);
             }
-            const autocompleteDataList = $('<datalist></datalist>');
-            autocompleteDataList.attr('id', `${entity.uuid}-${this.key}.autocompleteOptions`);
-            inputElement.attr('list', `${entity.uuid}-${this.key}.autocompleteOptions`);
-            autocompleteDataList.append(autocompleteOptions.split(',').map((optionValue) => {
-                const optionElt = $('<option />');
-                optionElt.attr('value', optionValue);
-                return optionElt;
-            }));
-            jQElement.append(autocompleteDataList);
         }
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
+            inputElement.val(this.defaultValue ?? '');
             jQElement.addClass('custom-system-editable-component');
             inputElement.addClass('custom-system-editable-field');
             jQElement.on('click', (ev) => {
@@ -116,6 +130,17 @@ class TextField extends InputComponent {
             });
         }
         return jQElement;
+    }
+    setDefaultValue(entity, options = {}) {
+        if (foundry.utils.getProperty(entity.system.props, this.key) === undefined && this.defaultValue) {
+            const props = { ...entity.system.props, ...options.customProps };
+            foundry.utils.setProperty(entity.system.props, this.key, ComputablePhrase.computeMessageStatic(this.defaultValue, props, {
+                source: `${this.key}.defaultValue`,
+                reference: options.reference,
+                defaultValue: '',
+                triggerEntity: entity
+            }).result);
+        }
     }
     /**
      * Returns serialized component
@@ -134,21 +159,9 @@ class TextField extends InputComponent {
      */
     static fromJSON(json, templateAddress, parent) {
         return new TextField({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
-            charList: json.charList,
-            maxLength: json.maxLength,
-            autocomplete: json.autocomplete,
-            label: json.label,
-            defaultValue: json.defaultValue,
-            size: json.size,
-            customSize: json.customSize,
-            cssClass: json.cssClass,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            ...json,
+            parent: parent,
+            templateAddress: templateAddress
         });
     }
     /**
@@ -171,23 +184,18 @@ class TextField extends InputComponent {
      * Get configuration form for component creation / edition
      * @return The jQuery element holding the component
      */
-    static async getConfigForm(existingComponent, _entity) {
-        const mainElt = $('<div></div>');
-        mainElt.append(await renderTemplate(`systems/${game.system.id}/templates/_template/components/textField.hbs`, {
+    static async getConfigForm(_entity, appId, existingComponent) {
+        const mainElt = document.createElement('div');
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/components/textField.hbs`, {
             ...existingComponent,
-            COMPONENT_SIZES
-        }));
-        return mainElt;
-    }
-    /** Attaches event-listeners to the html of the config-form */
-    static attachListenersToConfigForm(html) {
-        $(html)
-            .find('#textFieldSize')
-            .on('change', (event) => {
-            const target = $(event.currentTarget);
-            const customSizeBlock = $('.custom-system-size-custom');
+            COMPONENT_SIZES,
+            appId
+        });
+        mainElt.querySelector('[name="size"]')?.addEventListener('change', (event) => {
+            const target = event.currentTarget;
+            const customSizeBlock = $(mainElt.querySelector('.custom-system-size-custom'));
             const slideValue = 200;
-            switch (target.val()) {
+            switch (target.value) {
                 case 'custom':
                     customSizeBlock.slideDown(slideValue);
                     break;
@@ -196,6 +204,7 @@ class TextField extends InputComponent {
                     break;
             }
         });
+        return mainElt;
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -203,28 +212,15 @@ class TextField extends InputComponent {
      * @return The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
-        const maxLengthString = html.find('#textFieldMaxLength').val()?.toString();
+    static extractConfig(rawConfigData, html) {
+        const configData = rawConfigData;
         const fieldData = {
-            ...super.extractConfig(html),
-            label: html.find('#textFieldLabel').val()?.toString(),
-            defaultValue: html.find('#textFieldValue').val()?.toString(),
-            size: html.find('#textFieldSize').val()?.toString() ?? 'full-size',
-            charList: html.find('#textFieldCharList').val()?.toString(),
-            maxLength: maxLengthString ? parseInt(maxLengthString) : undefined,
-            autocomplete: html.find('#textFieldAutocomplete').val()?.toString()
+            ...super.extractConfig(configData, html),
+            charList: configData.charList,
+            maxLength: configData.maxLength,
+            autocomplete: configData.autocomplete
         };
-        if (fieldData.size === 'custom') {
-            fieldData.customSize = parseInt(String(html.find('#textFieldCustomSize').val()));
-        }
-        this.validateConfig(fieldData);
         return fieldData;
-    }
-    static validateConfig(json) {
-        super.validateConfig(json);
-        if (!json.key) {
-            throw new RequiredFieldError(game.i18n.localize('CSB.ComponentProperties.ComponentKey'), json);
-        }
     }
 }
 /**

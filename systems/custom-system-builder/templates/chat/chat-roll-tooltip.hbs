@@ -1,11 +1,11 @@
-{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
-   - 
+{{! Author: Jean-Baptiste Louvet-Daniel
+   -
    - This Source Code Form is subject to the terms of the Mozilla Public
-   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
-   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla.org/MPL/2.0/. }}
 
-<div class='inline-roll'>
-    <div class='dice-tooltip'>
+<div class='inline-roll custom-inline-roll'>
+    <div class='dice-tooltip custom-roll-tooltip' popover="manual">
         <section class='tooltip-part'>
             <div class='dice'>
                 <header class='part-header flexrow'>
@@ -47,12 +47,8 @@
 
                                 <div>
                                     {{#each this.dice}}
-                                        <span
-                                            class='custom-system-dice-pool  {{#if (gt ../this.dice.length 1)}}custom-system-dice-pool-multiple{{/if}}'
-                                            title='{{#if this.flavor}}{{this.flavor}}&#013;{{/if}}{{this.formula}} = {{this.total}}'
-                                        >{{#each this.dice}}<span
-                                                    class='roll {{this.classes}} custom-system-roll-tooltip-dice'
-                                                >{{{this.result}}}</span>{{/each}}</span>
+                                        <span class='custom-system-dice-pool  {{#if (gt ../this.dice.length 1)}}custom-system-dice-pool-multiple{{/if}}' title='{{#if this.flavor}}{{this.flavor}}&#013;{{/if}}{{this.formula}} = {{this.total}}'>{{#each this.dice}}<span
+                                                    class='roll {{this.classes}} custom-system-roll-tooltip-dice'>{{{this.result}}}</span>{{/each}}</span>
                                     {{/each}}
                                 </div>
                             {{/if}}

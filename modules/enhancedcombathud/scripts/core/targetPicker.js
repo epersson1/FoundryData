@@ -14,7 +14,7 @@ export class TargetPicker{
     this._targetCount = game.user.targets.size;
     this._maxTargets = targets;
 
-    const targetTool = document.querySelector('.control-tool[data-tool="target"]')
+    const targetTool = document.querySelector('.control.tool[data-tool="target"]')
     targetTool?.click();
 
     this.promise = new Promise((resolve, reject) => {
@@ -75,7 +75,7 @@ export class TargetPicker{
   }
 
   init() {
-    if(game.settings.get("enhancedcombathud", "rangepickerclear")) (canvas.tokens.placeables[0] ?? _token)?.setTarget(false);
+    if(game.settings.get("enhancedcombathud", "rangepickerclear")) game.user.targets.forEach(t => t.setTarget(false, { releaseOthers: true }));
     const element = document.createElement("div");
     element.classList.add("ech-target-picker");
     document.body.appendChild(element);
@@ -98,7 +98,7 @@ export class TargetPicker{
 
   end(res) {
     clearRanges(true);
-    document.querySelector(".control-tool").click();
+    document.querySelector(".control.tool").click();
     activeTargetPicker = null;
     this.resolve(res);
     this.element.remove();
@@ -106,7 +106,7 @@ export class TargetPicker{
     document.removeEventListener("mousemove", this.movelistener);
     document.removeEventListener("mouseup", this.clicklistener);
     document.removeEventListener("keyup", this.keyuplistener);
-    document.querySelector('.control-tool[data-tool="select"]')?.click();
+    document.querySelector('.control.tool[data-tool="select"]')?.click();
   }
 }
 

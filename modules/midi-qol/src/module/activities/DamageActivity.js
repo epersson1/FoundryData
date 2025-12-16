@@ -1,18 +1,16 @@
-import { debugEnabled, warn } from "../../midi-qol.js";
+import { debugEnabled, GameSystemConfig, warn } from "../../midi-qol.js";
 import { Workflow } from "../Workflow.js";
-import { ReplaceDefaultActivities, configSettings } from "../settings.js";
+import { replaceDefaultActivities, configSettings } from "../settings.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
-export var MidiDamageActivity;
-export var MidiDamageSheet;
+export let MidiDamageActivity;
+export let MidiDamageSheet;
 export function setupDamageActivity() {
 	if (debugEnabled > 0)
 		warn("MidiQOL | DamageActivity | setupDamageActivity | Called");
 	//@ts-expect-error
-	const GameSystemConfig = game.system.config;
-	//@ts-expect-error
 	MidiDamageSheet = defineMidiDamageSheetClass(game.system.applications.activity.DamageSheet);
 	MidiDamageActivity = defineMidiDamageActivityClass(GameSystemConfig.activityTypes.damage.documentClass);
-	if (ReplaceDefaultActivities) {
+	if (replaceDefaultActivities) {
 		// GameSystemConfig.activityTypes["dnd5eDamage"] = GameSystemConfig.activityTypes.damage;
 		GameSystemConfig.activityTypes.damage = { documentClass: MidiDamageActivity };
 	}
@@ -22,7 +20,7 @@ export function setupDamageActivity() {
 }
 let defineMidiDamageActivityClass = (ActivityClass) => {
 	return class MidiDamageActivity extends MidiActivityMixin(ActivityClass) {
-		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.DAMAGE"];
+		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES];
 		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.DAMAGE.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
@@ -36,8 +34,9 @@ let defineMidiDamageActivityClass = (ActivityClass) => {
 		}, { inplace: false, insertKeys: true, insertValues: true });
 		static #rollDamage(event, target, message) {
 			const workflow = Workflow.getWorkflow(message?.uuid);
-			//@ts-expect-error
-			this.rollDamage({ event, workflow });
+			if (workflow)
+				workflow.activity = this;
+			this.rollDamage({ event, workflow }, {}, {});
 		}
 		get possibleOtherActivity() {
 			return true;
@@ -45,8 +44,12 @@ let defineMidiDamageActivityClass = (ActivityClass) => {
 		get selfTriggerableOnly() {
 			return false;
 		}
+		get canUseOtherActivity() {
+			return true;
+		}
 		async rollDamage(config, dialog, message) {
 			config.midiOptions ??= {};
+			// @ts-expect-error
 			config.midiOptions.fastForwardDamage ??= game.user?.isGM ? configSettings.gmAutoFastForwardDamage : ["all", "damage"].includes(configSettings.autoFastForward);
 			return super.rollDamage(config, dialog, message);
 		}

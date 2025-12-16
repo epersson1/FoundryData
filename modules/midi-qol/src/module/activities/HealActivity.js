@@ -1,18 +1,16 @@
-import { debugEnabled, warn } from "../../midi-qol.js";
+import { debugEnabled, GameSystemConfig, warn } from "../../midi-qol.js";
 import { Workflow } from "../Workflow.js";
-import { ReplaceDefaultActivities, configSettings } from "../settings.js";
+import { replaceDefaultActivities, configSettings } from "../settings.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
-export var MidiHealActivity;
-export var MidiHealSheet;
+export let MidiHealActivity;
+export let MidiHealSheet;
 export function setupHealActivity() {
 	if (debugEnabled > 0)
 		warn("MidiQOL | HealActivity | setupHealActivity | Called");
 	//@ts-expect-error
-	const GameSystemConfig = game.system.config;
-	//@ts-expect-error
 	MidiHealSheet = defineMidiHealSheetClass(game.system.applications.activity.HealSheet);
 	MidiHealActivity = defineMidiHealActivityClass(GameSystemConfig.activityTypes.heal.documentClass);
-	if (ReplaceDefaultActivities) {
+	if (replaceDefaultActivities) {
 		// GameSystemConfig.activityTypes["dnd5eHeal"] = GameSystemConfig.activityTypes.heal;
 		GameSystemConfig.activityTypes.heal = { documentClass: MidiHealActivity };
 	}
@@ -22,7 +20,7 @@ export function setupHealActivity() {
 }
 let defineMidiHealActivityClass = (ActivityClass) => {
 	return class MidiHealActivity extends MidiActivityMixin(ActivityClass) {
-		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.HEAL"];
+		static LOCALIZATION_PREFIXES = ["midi-qol.HEAL", ...super.LOCALIZATION_PREFIXES];
 		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.HEAL.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
@@ -36,14 +34,16 @@ let defineMidiHealActivityClass = (ActivityClass) => {
 		}, { inplace: false, insertKeys: true, insertValues: true });
 		static #rollHealing(event, target, message) {
 			const workflow = Workflow.getWorkflow(message?.uuid);
-			//@ts-expect-error
-			return this.rollDamage(event, workflow);
+			return this.rollDamage({ event, workflow }, {}, {});
 		}
 		get possibleOtherActivity() {
 			return true;
 		}
 		get selfTriggerableOnly() {
 			return false;
+		}
+		get canUseOtherActivity() {
+			return true;
 		}
 		async rollDamage(config = {}, dialog = {}, message = {}) {
 			config.midiOptions ??= {};

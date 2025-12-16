@@ -20,10 +20,9 @@
 		"MinusOneDieLong": "Decrease Dice Size",
 		"KeepHighest": "Keep Highest",
 		"KeepLowest": "Keep Lowest",
-		"del": "del",
-		"clear": "clear",
+		"Roll": "Roll",
 
-		"Calculator": "Calculator",
+		"Optional": "Optional",
 
 		"DiceCreator": {
 			"CreateDice": "Create Dice",
@@ -40,21 +39,33 @@
 			},
 			"Label": {
 				"name": "Label",
-				"hint": "(Optional) The label shown in case the dice has no image."
+				"hint": "The label shown in case the dice has no image."
 			},
 			"Tooltip": {
 				"name": "Tooltip",
-				"hint": "(Optional) The tooltip shown when hovering over the button. Defaults to the Formula."
+				"hint": "The tooltip shown when hovering over the button. Defaults to the Formula."
 			},
 			"Color": {
 				"name": "Color",
-				"hint": "(Optional) The color that fills the image. Defaults to white."
+				"hint": "The color that fills the image."
 			}
 		},
 
 		"DiceRows": {
-			"Instruction1": "Click any dice button to edit it.",
-			"Instruction2": "Right-Click any dice button to delete it."
+			"compactMode": {
+				"label": "Compact Mode",
+				"hint": "Disables any additional dice rows and merges the original two rows together."
+			},
+			"hideNumberInput": {
+				"label": "Hide Number Input"
+			},
+			"hideNumberButtons": {
+				"label": "Hide +/- Buttons"
+			},
+			"hideRollButton": {
+				"label": "Hide Roll Button"
+			},
+			"Instruction1": "Click any dice button to edit it. Right-Click any dice button to delete it."
 		},
 
 		"KEYBINGINDS": {
@@ -64,28 +75,40 @@
 		},
 
 		"SETTINGS": {
-			"DiceCalculatorSettings": "Dice Calculator Configuration",
 			"DiceCreator": "Dice Creator",
 			"DiceRowSettings": "Dice Rows Configuration",
-			"GeneralSettings": "General Settings",
-			"General": "General",
 			"autoOpenPopout": {
 				"name": "Auto Open Popout",
 				"hint": "Opens the Dice Tray popout automatically on page load."
 			},
 			"enableDiceTray": {
 				"name": "Enable Dice Tray",
-				"hint": "Enable showing a dice tray below the chat message area."
+				"hint": "Enable showing a dice tray below the chat message area. This is a user setting for players that don't want the tray."
 			},
-			"enableDiceCalculator": {
-				"name": "Enable Dice Calculator",
-				"hint": "Enable showing a dice calculator dialog when clicking the d20 icon near the chat box."
+			"hideAdv": {
+				"name": "Hide Extra Buttons",
+				"hint": "Hides the KH/KL buttons."
 			},
 			"popout": {
-				"name": "Add button to popout Dice Tray",
+				"name": "Dice Tray Popout Button",
 				"hint": "Adds a button on the Controls bar to toggle the Dice Tray popout. You can also toggle the popout by setting a keybinding.",
 				"options": {
 					"all": "All Controls"
+				}
+			},
+			"rightClickCommand": {
+				"name": "Right Click Command",
+				"hint": "Sets which behavior right-clicking a dice button should have.",
+				"options": {
+					"decrease": "Default (Decrease Dice)",
+					"roll": "Roll One Dice"
+				}
+			},
+			"PF2E": {
+				"flatCheckLabel": "{dc} {text}",
+				"flatCheck": {
+					"name": "Add Flat Check Buttons",
+					"hint": "Replaces the Fortune/Misfortune buttons for DC 5/11 Flat Check buttons."
 				}
 			},
 			"SWADE": {

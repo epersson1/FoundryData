@@ -1,14 +1,18 @@
-2025/04/09-20:44:27.856 39c8 Recovering log #30
-2025/04/09-20:44:27.891 39c8 Delete type=0 #30
-2025/04/09-20:44:27.891 39c8 Delete type=3 #28
-2025/04/09-23:46:29.844 1f20 Level-0 table #36: started
-2025/04/09-23:46:29.945 1f20 Level-0 table #36: 22289 bytes OK
-2025/04/09-23:46:29.995 1f20 Delete type=0 #34
-2025/04/09-23:46:30.086 1f20 Manual compaction at level-0 from '!settings!6r7r80ds4mbLAdIb' @ 72057594037927935 : 1 .. '!settings!rSUGrWc7IfAHXgIT' @ 0 : 0; will stop at '!settings!rSUGrWc7IfAHXgIT' @ 16 : 1
-2025/04/09-23:46:30.086 1f20 Compacting 1@0 + 1@1 files
-2025/04/09-23:46:30.148 1f20 Generated table #37@0: 11 keys, 6678 bytes
-2025/04/09-23:46:30.148 1f20 Compacted 1@0 + 1@1 files => 6678 bytes
-2025/04/09-23:46:30.168 1f20 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/04/09-23:46:30.170 1f20 Delete type=2 #32
-2025/04/09-23:46:30.171 1f20 Delete type=2 #36
-2025/04/09-23:46:30.279 1f20 Manual compaction at level-0 from '!settings!rSUGrWc7IfAHXgIT' @ 16 : 1 .. '!settings!rSUGrWc7IfAHXgIT' @ 0 : 0; will stop at (end)
+2025/09/14-19:04:08.001 12a4 Recovering log #96
+2025/09/14-19:04:08.001 12a4 Level-0 table #98: started
+2025/09/14-19:04:08.031 12a4 Level-0 table #98: 1265 bytes OK
+2025/09/14-19:04:08.079 12a4 Delete type=0 #96
+2025/09/14-19:04:08.079 12a4 Delete type=3 #94
+2025/09/14-19:11:43.640 2bb8 Level-0 table #101: started
+2025/09/14-19:11:43.667 2bb8 Level-0 table #101: 4192 bytes OK
+2025/09/14-19:11:43.682 2bb8 Delete type=0 #99
+2025/09/14-19:11:43.682 2bb8 Manual compaction at level-0 from '!settings!6r7r80ds4mbLAdIb' @ 72057594037927935 : 1 .. '!settings!yucu9mZckmsVmKLD' @ 0 : 0; will stop at '!settings!rSUGrWc7IfAHXgIT' @ 143 : 1
+2025/09/14-19:11:43.682 2bb8 Compacting 3@0 + 1@1 files
+2025/09/14-19:11:43.758 2bb8 Generated table #102@0: 22 keys, 8521 bytes
+2025/09/14-19:11:43.765 2bb8 Compacted 3@0 + 1@1 files => 8521 bytes
+2025/09/14-19:11:43.799 2bb8 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/09/14-19:11:43.799 2bb8 Delete type=2 #93
+2025/09/14-19:11:43.799 2bb8 Delete type=2 #95
+2025/09/14-19:11:43.799 2bb8 Delete type=2 #98
+2025/09/14-19:11:43.799 2bb8 Delete type=2 #101
+2025/09/14-19:11:43.898 2bb8 Manual compaction at level-0 from '!settings!rSUGrWc7IfAHXgIT' @ 143 : 1 .. '!settings!yucu9mZckmsVmKLD' @ 0 : 0; will stop at (end)

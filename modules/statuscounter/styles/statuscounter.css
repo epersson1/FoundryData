@@ -1,0 +1,22 @@
+.status-icon-wrapper {
+    display: inline-block;
+    position: relative;
+}
+
+.status-icon-counter {
+    pointer-events: none;
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    text-shadow: 0 0 2px black, 0 0 4px black;
+}
+
+.combatant.defeated .status-icon-counter {
+    opacity: 0.6;
+    transform: scale(0.9);
+}
+
+.effect-item .vae-sic-counter {
+    left: unset !important;
+    right: 5%;
+}

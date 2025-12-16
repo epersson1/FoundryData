@@ -19,7 +19,7 @@ export class DAEFieldBrowser {
     memoizedFilterFields;
     /**
      * Creates an instance of DAEFieldBrowser.
-     * @param {Record<string, any>} validFields - The valid fields for the browser.
+     * @param {Record<string, {name: string, description?: string}>} validFields - The valid fields for the browser.
      * @param {DAEActiveEffectConfig} effectConfig - The effect configuration class.
      */
     constructor(validFields, effectConfig) {
@@ -61,30 +61,35 @@ export class DAEFieldBrowser {
    */
     enrichValidFields() {
         return Object.entries(this.validFields)
-            .map(([key, name]) => {
+            .map(([key, { name, description }]) => {
             const category = DAEFieldBrowser.knownFieldData[key]?.category;
-            let localisationPrefix = `dae.${category ?? ""}.fieldData`;
+            let localisationPrefix = `dae.${category ?? "Unknown"}.fieldData`;
             const nameLocalizationPath = `${localisationPrefix}.${key}.name`;
             const descriptionLocalizationPath = `${localisationPrefix}.${key}.description`;
             const localizedName = i18n(nameLocalizationPath);
             const localizedDescription = i18n(descriptionLocalizationPath);
-            const finalName = 
-            // If the field already has a name, use it, otherwise attempt to localize or use the key itself
+            // If we have a localization, use it, otherwise use the default field's name, or finally the key itself
             // Logic looks a bit weird because DAE already sets the value of the validFields kvp to its key if missing.
-            (typeof name === 'string' && name !== '' && name !== key) ? name :
-                (localizedName !== nameLocalizationPath ? localizedName : key);
-            // For descriptions, simply check if the localization string is present.
-            let finalDescription = localizedDescription !== descriptionLocalizationPath ? localizedDescription : '';
+            const finalName = (localizedName !== "") && (localizedName !== nameLocalizationPath)
+                ? localizedName
+                : (typeof name === "string" && name !== "" && name !== key && !name.startsWith("dae.genericSuffixes"))
+                    ? name
+                    : key;
+            // Same logic for descriptions
+            let finalDescription = (localizedDescription !== "") && (localizedDescription !== descriptionLocalizationPath)
+                ? localizedDescription
+                : (typeof description === "string" && description !== "" && !description.startsWith("dae.genericSuffixes"))
+                    ? description
+                    : '';
             if (daeSystemClass.fieldMappings[key])
-                finalDescription += ` use ${daeSystemClass.fieldMappings[key]} instead`;
+                finalDescription += ` deprecated: use ${daeSystemClass.fieldMappings[key]} instead`;
             return {
                 key,
                 name: finalName,
                 description: finalDescription,
                 category: DAEFieldBrowser.knownFieldData[key]?.category || 'Other'
             };
-        })
-            .filter(field => field.category !== 'Hidden');
+        }).filter(field => field.category !== 'Hidden');
     }
     updateBrowser() {
         if (!this.browserElement) {

@@ -1,14 +1,15 @@
-2025/04/09-20:44:27.326 39c8 Recovering log #27
-2025/04/09-20:44:27.359 39c8 Delete type=0 #27
-2025/04/09-20:44:27.359 39c8 Delete type=3 #25
-2025/04/09-23:46:28.819 1f20 Level-0 table #32: started
-2025/04/09-23:46:28.936 1f20 Level-0 table #32: 209187 bytes OK
-2025/04/09-23:46:28.953 1f20 Delete type=0 #30
-2025/04/09-23:46:29.069 1f20 Manual compaction at level-0 from '!actors!9XDRb3VqolrBJ3L1' @ 72057594037927935 : 1 .. '!actors.items.effects!SwEpC6EhhKKnODN3.omu86uTrRlmwZwNj.7eIAGMmoXW7HZwvW' @ 0 : 0; will stop at '!actors.items.effects!SwEpC6EhhKKnODN3.omu86uTrRlmwZwNj.YkTwiYdMpJUMprtU' @ 608 : 1
-2025/04/09-23:46:29.069 1f20 Compacting 1@0 + 1@1 files
-2025/04/09-23:46:29.114 1f20 Generated table #33@0: 25 keys, 11940 bytes
-2025/04/09-23:46:29.115 1f20 Compacted 1@0 + 1@1 files => 11940 bytes
-2025/04/09-23:46:29.145 1f20 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/04/09-23:46:29.145 1f20 Delete type=2 #24
-2025/04/09-23:46:29.146 1f20 Delete type=2 #32
-2025/04/09-23:46:29.212 1f20 Manual compaction at level-0 from '!actors.items.effects!SwEpC6EhhKKnODN3.omu86uTrRlmwZwNj.YkTwiYdMpJUMprtU' @ 608 : 1 .. '!actors.items.effects!SwEpC6EhhKKnODN3.omu86uTrRlmwZwNj.7eIAGMmoXW7HZwvW' @ 0 : 0; will stop at (end)
+2025/09/14-19:04:06.806 62c Recovering log #88
+2025/09/14-19:04:06.807 62c Level-0 table #90: started
+2025/09/14-19:04:06.871 62c Level-0 table #90: 77427 bytes OK
+2025/09/14-19:04:06.920 62c Delete type=0 #88
+2025/09/14-19:04:06.920 62c Delete type=3 #87
+2025/09/14-19:04:13.928 2bb8 Compacting 1@0 + 1@1 files
+2025/09/14-19:04:13.984 2bb8 Generated table #92@0: 90 keys, 55438 bytes
+2025/09/14-19:04:13.984 2bb8 Compacted 1@0 + 1@1 files => 55438 bytes
+2025/09/14-19:04:14.003 2bb8 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/09/14-19:04:14.003 2bb8 Delete type=2 #86
+2025/09/14-19:04:14.004 2bb8 Delete type=2 #90
+2025/09/14-19:11:42.949 2bb8 Level-0 table #94: started
+2025/09/14-19:11:42.949 2bb8 Level-0 table #94: 0 bytes OK
+2025/09/14-19:11:42.966 2bb8 Delete type=0 #91
+2025/09/14-19:11:42.966 2bb8 Manual compaction at level-0 from '!actors!0hsH3NYwZdQNiGtS' @ 72057594037927935 : 1 .. '!actors.items.effects!SwEpC6EhhKKnODN3.xYu9TYAzLjdKrlf7.LPs5G9wG4e4LEJmn' @ 0 : 0; will stop at (end)

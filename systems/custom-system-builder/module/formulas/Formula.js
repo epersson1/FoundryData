@@ -1,16 +1,32 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
+import CustomDialogV2 from '../applications/CustomDialogV2.js';
 import { UncomputableError } from '../errors/UncomputableError.js';
 import Logger from '../Logger.js';
 import Panel from '../sheets/components/Panel.js';
 import { FormulaFunctionImporter } from './FormulaFunctionImporter.js';
+import { castToPrimitive } from '../utils.js';
+import AbortFormulaError from '../errors/AbortFormulaError.js';
 const userInputDisplayRegex = /^(?<name>.+?)(:(?<displayName>.+?))?(\[(?<type>.+?)])?$/;
 const userInputValuesRegex = /^(?<key>".+?"|.+?)(,(?<value>".+?"|.+?))?$/;
+export const mathjsBlacklist = new Set([
+    'end',
+    'height',
+    'name',
+    'uuid',
+    'id',
+    'img',
+    'index',
+    'item',
+    'target',
+    'this',
+    'tabs'
+]);
 /**
  * @typedef {ComputablePhraseOptions} FormulaOptions
  * @type {Object}
@@ -24,32 +40,82 @@ const userInputValuesRegex = /^(?<key>".+?"|.+?)(,(?<value>".+?"|.+?))?$/;
  * @property {string?} formula Formula override used by compute method
  */
 /**
+ * @typedef {Object} NodeExplanation
+ * @type {Object}
+ * @property {string} display
+ * @property {string} handle
+ * @property {Array<NodeExplanation>} children
+ * @property {string} value
+ */
+/**
  * Class holding formula details, for explanation
  */
 class Formula {
+    /**
+     * The raw uncomputed formula
+     * @type {string}
+     * @private
+     */
+    _raw;
+    /**
+     * The formula's computed result
+     * @type {string}
+     * @private
+     */
+    _result;
+    /**
+     * Local variables used in the formula's computing
+     * @type {Object}
+     * @private
+     */
+    _localVars;
+    /**
+     * The parsed version of the formulas, with needed replacements of tokens with unique identifiers
+     * @type {string}
+     * @private
+     */
+    _parsed;
+    /**
+     * Indicates if the formula contains dice rolls
+     * @type {boolean}
+     * @private
+     */
+    _hasDice;
+    /**
+     * All formulas computed variables, except for rolls
+     * @type {NodeExplanation}
+     * @private
+     */
+    _tokens;
+    /**
+     * Formula computed rolls
+     * @type {Array<{formula: string, roll: Roll.Data, expandRollInChatCard: boolean}>}
+     * @private
+     */
+    _rolls;
+    /**
+     * Indicates if formula should be hidden from players
+     * @type {boolean}
+     * @private
+     */
+    _hidden = false;
+    /**
+     * Indicates if formula should be explained
+     * @type {boolean}
+     * @private
+     */
+    _explanation = true;
+    /**
+     * List of updates to make at the end of a computation. Populated at computation time with the calls to the `setPropertyInEntity` function.
+     * @type {Record<string, DefferedUpdate>}
+     * @private
+     */
+    _updates = {};
     /**
      * Construct a new formula from a string
      * @param {string} formula The formula to compute
      */
     constructor(formula) {
-        /**
-         * Indicates if formula should be hidden from players
-         * @type {boolean}
-         * @private
-         */
-        this._hidden = false;
-        /**
-         * Indicates if formula should be explained
-         * @type {boolean}
-         * @private
-         */
-        this._explanation = true;
-        /**
-         * List of updates to make at the end of a computation. Populated at computation time with the calls to the `setPropertyInEntity` function.
-         * @type {Record<string, DefferedUpdate>}
-         * @private
-         */
-        this._updates = {};
         this._raw = formula;
     }
     /**
@@ -89,14 +155,14 @@ class Formula {
     }
     /**
      * All formulas computed variables, except for rolls
-     * @return {Array<Object>}
+     * @return {NodeExplanation}
      */
     get tokens() {
         return this._tokens;
     }
     /**
      * Formula computed rolls
-     * @return {Object<Roll>}
+     * @return {Array<{formula: string, roll: Roll.Data, expandRollInChatCard: boolean}>}
      */
     get rolls() {
         return this._rolls;
@@ -190,58 +256,68 @@ class Formula {
                     reference: reference,
                     customProps: localVars
                 });
-                let userData = await new Promise((resolve) => {
-                    Dialog.prompt({
-                        content: '',
-                        callback: (html) => {
-                            let values = {};
-                            let inputs = $(html).find('input,select');
-                            let conditionalModifiers = options.triggerEntity.getSortedConditionalModifiers();
-                            for (let groupKey of Object.keys(conditionalModifiers)) {
-                                conditionalModifiers[groupKey].forEach((modifier) => {
-                                    const modifierKey = ComputablePhrase.computeMessageStatic(modifier.key, modifier.originalEntity.entity.system.props, {
-                                        source: `modifier.${modifier.key}.key`,
-                                        defaultValue: 0,
-                                        triggerEntity: modifier.originalEntity
-                                    }).result;
-                                    foundry.utils.setProperty(values, modifierKey, foundry.utils.getProperty(options.triggerEntity.system.props, modifierKey));
-                                });
-                            }
-                            for (let elt of inputs) {
-                                let eltName = $(elt).prop('name').replace('system.props.', '');
-                                if (eltName) {
-                                    if (elt.type === 'checkbox') {
-                                        values[eltName] = $(elt).is(':checked');
-                                    }
-                                    else if (elt.type === 'radio') {
-                                        if ($(elt).is(':checked')) {
-                                            values[eltName] = $(elt).val();
-                                        }
-                                    }
-                                    else {
-                                        values[eltName] = $(elt).val();
+                try {
+                    let userData = await new Promise((resolve, reject) => {
+                        new CustomDialogV2({
+                            content: tmpPanelElt[0],
+                            window: {
+                                contentClasses: [templateItem.id]
+                            },
+                            buttons: {
+                                ok: {
+                                    default: true,
+                                    icon: 'fas fa-checkmark',
+                                    label: game.i18n.localize('Submit')
+                                }
+                            },
+                            position: {
+                                width: 'auto',
+                                height: 'auto'
+                            },
+                            rejectClose: true,
+                            submitOnClose: true,
+                            submit: (result, event, button, dialog) => {
+                                if (result !== 'ok') {
+                                    reject(new AbortFormulaError('Dialog rejected by the user'));
+                                }
+                                const formData = new FormDataExtended(dialog.querySelector('form'));
+                                // Get data from User Input Template
+                                const values = Object.fromEntries(Array.from(formData.entries()).map(([key, value]) => {
+                                    return [key.replace('system.props.', ''), castToPrimitive(value)];
+                                }));
+                                let labels = dialog.querySelectorAll('div[data-value]');
+                                for (let elt of labels) {
+                                    let eltName = elt.dataset.name.replace('system.props.', '');
+                                    if (eltName) {
+                                        values[eltName] = elt.dataset.value;
                                     }
                                 }
-                            }
-                            let labels = $(html).find('div[data-value]');
-                            for (let elt of labels) {
-                                let eltName = $(elt).data('name').replace('system.props.', '');
-                                if (eltName) {
-                                    values[eltName] = $(elt).data('value');
+                                // Get updated modifiers or Active Effect data if needed
+                                let conditionalModifiers = options.triggerEntity.getSortedConditionalModifiers();
+                                for (let groupKey of Object.keys(conditionalModifiers)) {
+                                    conditionalModifiers[groupKey].forEach((modifier) => {
+                                        const modifierKey = ComputablePhrase.computeMessageStatic(modifier.key, modifier.originalEntity.entity.system.props, {
+                                            source: `modifier.${modifier.key}.key`,
+                                            defaultValue: 0,
+                                            triggerEntity: modifier.originalEntity
+                                        }).result;
+                                        foundry.utils.setProperty(values, modifierKey, foundry.utils.getProperty(options.triggerEntity.system.props, modifierKey));
+                                    });
                                 }
+                                let activeEffects = options.triggerEntity.getSortedActiveEffects(options.triggerEntity.system, true);
+                                for (const key of Object.keys(activeEffects)) {
+                                    foundry.utils.setProperty(values, key, foundry.utils.getProperty(options.triggerEntity.system.props, key));
+                                }
+                                resolve(values);
                             }
-                            resolve(values);
-                        },
-                        render: (html) => {
-                            $(html[0]).append(tmpPanelElt);
-                        },
-                        rejectClose: false,
-                        options: {
-                            width: undefined
-                        }
+                        }).render({ force: true });
                     });
-                });
-                localVars = { ...localVars, ...userData };
+                    localVars = { ...localVars, ...userData };
+                }
+                catch (err) {
+                    Logger.debug(err.message);
+                    throw err;
+                }
             }
             formula = formula.replace(userInputTemplateToken.value[0], `"${userInputTemplateName}"`);
             this._hidden = true;
@@ -287,62 +363,72 @@ class Formula {
             userInputToken = userInputTokens.next();
         }
         if (allUserVars.length > 0) {
-            let content = await renderTemplate(`systems/${game.system.id}/templates/_template/dialogs/user-input.hbs`, {
-                allUserVars: allUserVars
+            let content = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/dialogs/user-input.hbs`, {
+                allUserVars: allUserVars,
+                appId: foundry.utils.randomID()
             });
-            let userData = await new Promise((resolve) => {
-                Dialog.prompt({
-                    content: content,
-                    callback: (html) => {
-                        let values = {};
-                        let inputs = $(html).find('.custom-system-user-input');
-                        for (let elt of inputs) {
-                            if (elt.type === 'checkbox') {
-                                values[$(elt).data('var-name')] = $(elt).is(':checked');
+            try {
+                let userData = await new Promise((resolve, reject) => {
+                    new CustomDialogV2({
+                        content: content,
+                        buttons: {
+                            ok: {
+                                default: true,
+                                icon: 'fas fa-checkmark',
+                                label: game.i18n.localize('Submit')
                             }
-                            else if (elt.type === 'radio') {
-                                if ($(elt).is(':checked')) {
-                                    values[$(elt).data('var-name')] = $(elt).val();
+                        },
+                        submit: (result, event, button, dialog) => {
+                            if (result !== 'ok') {
+                                reject(new AbortFormulaError('Dialog rejected by the user'));
+                            }
+                            const formData = new FormDataExtended(dialog.querySelector('form'));
+                            // Get data from User Input Template
+                            const values = formData.object;
+                            resolve(values);
+                        },
+                        onRender: (html) => {
+                            html.querySelector('input,select')?.focus();
+                            html.querySelector('input')?.select();
+                            html.addEventListener('click', (event) => {
+                                const target = event.target.closest('.custom-system-user-input-button');
+                                if (target) {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    const btn = target;
+                                    const targetRef = btn.dataset.inputref;
+                                    const action = btn.dataset.inputaction;
+                                    const targetInput = html.querySelector(`#${targetRef}`);
+                                    const targetVal = Number.isNaN(parseInt(targetInput.value))
+                                        ? 0
+                                        : parseInt(targetInput.value);
+                                    const actionOperation = action.split('-')[0];
+                                    const actionAmount = parseInt(action.split('-')[1]);
+                                    switch (actionOperation) {
+                                        case 'add':
+                                            targetInput.value = targetVal + actionAmount;
+                                            break;
+                                        case 'sub':
+                                            targetInput.value = targetVal - actionAmount;
+                                            break;
+                                    }
                                 }
-                            }
-                            else {
-                                values[$(elt).data('var-name')] = $(elt).val();
-                            }
-                        }
-                        resolve(values);
-                    },
-                    render: (html) => {
-                        $(html).find('input,select')[0]?.focus();
-                        $(html).find('input')[0]?.select();
-                        $(html)
-                            .find('.custom-system-user-input-block button.custom-system-user-input-button')
-                            .on('click', (ev) => {
-                            const btn = $(ev.currentTarget);
-                            const targetRef = btn.data('input-ref');
-                            const action = btn.data('action');
-                            const targetInput = $(html).find(`#${targetRef}`);
-                            const targetVal = Number.isNaN(parseInt(targetInput.val()))
-                                ? 0
-                                : parseInt(targetInput.val());
-                            const actionOperation = action.split('-')[0];
-                            const actionAmount = parseInt(action.split('-')[1]);
-                            switch (actionOperation) {
-                                case 'add':
-                                    targetInput.val(targetVal + actionAmount);
-                                    break;
-                                case 'sub':
-                                    targetInput.val(targetVal - actionAmount);
-                                    break;
-                            }
-                        });
-                    },
-                    rejectClose: false,
-                    options: {
-                        width: undefined
-                    }
+                            });
+                        },
+                        position: {
+                            width: 'auto',
+                            height: 'auto'
+                        },
+                        rejectClose: true,
+                        submitOnClose: true
+                    }).render({ force: true });
                 });
-            });
-            localVars = { ...localVars, ...userData };
+                localVars = { ...localVars, ...userData };
+            }
+            catch (err) {
+                Logger.debug(err.message);
+                throw err;
+            }
         }
         // Handling rolls - rolls are enclosed in brackets []
         let rollMessages = formula.matchAll(/\[(:?\[[^\[\]]+\]|.)+?\]/g);
@@ -430,7 +516,7 @@ class Formula {
         }
         Logger.debug('Tokens for computation', { formula: strippedFormula, scope: mathTokens });
         let result;
-        let explanation = [];
+        let explanation;
         let onUndefinedSymbol = mathInstance.SymbolNode.onUndefinedSymbol;
         try {
             mathInstance.SymbolNode.onUndefinedSymbol = (name) => {
@@ -443,6 +529,9 @@ class Formula {
             };
             let node = mathInstance.parse(strippedFormula);
             result = node.evaluate(mathTokens);
+            if (result?.isResultSet) {
+                result = result.entries;
+            }
             for (const [key, value] of Object.entries(textVars)) {
                 result = result.replace(key, value);
             }
@@ -461,7 +550,7 @@ class Formula {
             }
             else {
                 result = undefined;
-                Logger.error(err.message, err, { formula, props });
+                Logger.error(err.message, err, { formula, props, source });
             }
         }
         finally {
@@ -626,9 +715,9 @@ class Formula {
 }
 /**
  * Handles text variables by extracting them and replacing them with tokens
- * @param formula
- * @param textVars Text vars are formula-local tokens which hold the texts
- * @returns {Object}
+ * @param {string} formula
+ * @param {Record<string, string>} textVars Text vars are formula-local tokens which hold the texts
+ * @returns {{formula: string, textVars: Record<string, string>}}
  * @ignore
  */
 const handleTextVars = (formula, textVars = {}) => {

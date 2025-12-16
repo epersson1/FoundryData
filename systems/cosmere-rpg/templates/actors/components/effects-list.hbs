@@ -1,0 +1,63 @@
+<ul class="item-list effect-list {{#if editable}}editable{{/if}}">
+    <li class="item header">
+        <section class="details">
+            <span class="title">{{localize effectsTitle}}</span>
+            <span class="subtitle wide">
+                {{localize "COSMERE.Sheet.Effects.Source"}}
+            </span>
+            <div class="subtitle thin"></div>
+            <div class="controls icon active">
+                {{#if @root.editable}}
+                <div></div>
+                {{/if}}
+            </div>
+        </section>        
+    </li>
+
+    {{#each effects as |effect|}}
+    <li class="item effect {{#if effect.active}}active{{/if}}" 
+        data-id="{{effect.id}}"
+        {{#if (not (eq effect.parent @root.actor))}}
+        data-parent-id="{{effect.parent.id}}"
+        {{/if}}
+    >
+        <section class="details">
+            <div class="img">
+                <img src="{{effect.img}}">
+            </div>
+            <div class="name">
+                <span>{{effect.name}}</span>
+            </div>
+            <div class="detail wide source">
+                <span>{{effect.sourceName}}</span>
+            </div>
+            <div class="detail thin action">
+                {{#if effect.active}}
+                <a class="icon active"
+                    data-action="toggle-effect-active"
+                    data-tooltip="COSMERE.Sheet.Effects.Disable"
+                >
+                    <i class="fa-solid fa-toggle-on"></i>
+                </a>
+                {{else}}
+                <a class="icon faded"
+                    data-action="toggle-effect-active"
+                    data-tooltip="COSMERE.Sheet.Effects.Enable"
+                >
+                    <i class="fa-solid fa-toggle-off"></i>
+                </a>
+                {{/if}}
+            </div>
+            <div class="controls icon faded">
+                {{#if @root.editable}}
+                <a data-action="toggle-effect-controls" 
+                    data-tooltip="APPLICATION.TOOLS.ToggleControls"
+                >
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </a>
+                {{/if}}
+            </div>
+        </section>        
+    </li>
+    {{/each}}
+</ul>

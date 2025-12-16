@@ -2,7 +2,7 @@
 	"id": "plutonium",
 	"title": "Plutonium",
 	"description": "A <a href=\"https://5e.tools\" target=\"_blank\" rel=\"noopener noreferrer\">5etools</a> integration for Foundry VTT.",
-	"version": "2.4.3",
+	"version": "2.13.0",
 	"authors": [
 		{
 			"name": "Giddy",
@@ -19,12 +19,12 @@
 	"bugs": "https://discord.gg/nGvRCDs",
 	"changelog": "https://raw.githubusercontent.com/TheGiddyLimit/plutonium-next/master/CHANGELOG.md",
 	"url": "https://www.patreon.com/Giddy5e",
-	"manifest": "https://raw.githubusercontent.com/TheGiddyLimit/plutonium-next/master/module.json",
-	"download": "https://github.com/TheGiddyLimit/plutonium-next/raw/master/plutonium.zip",
+	"manifest": "https://github.com/TheGiddyLimit/plutonium-next/releases/latest/download/module.json",
+	"download": "https://github.com/TheGiddyLimit/plutonium-next/releases/latest/download/plutonium.zip",
 	"compatibility": {
-		"minimum": "12",
-		"verified": "12.331",
-		"maximum": "12.999"
+		"minimum": "13",
+		"verified": "13.351",
+		"maximum": "13.999"
 	},
 	"socket": true,
 	"persistentStorage": true,
@@ -56,10 +56,18 @@
 				"id": "dnd5e",
 				"type": "system",
 				"compatibility": {
-					"minimum": "4.1.0",
-					"verified": "4.3.5",
-					"maximum": "4.3.999"
+					"minimum": "5.1.0",
+					"verified": "5.2.0",
+					"maximum": "5.2.999"
 				}
+			},
+			{
+				"id": "dnd4e",
+				"type": "system"
+			},
+			{
+				"id": "lancer",
+				"type": "system"
 			}
 		],
 		"requires": [

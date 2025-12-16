@@ -1,17 +1,15 @@
-import { debugEnabled, warn } from "../../midi-qol.js";
-import { ReplaceDefaultActivities, configSettings } from "../settings.js";
+import { debugEnabled, GameSystemConfig, warn } from "../../midi-qol.js";
+import { replaceDefaultActivities, configSettings } from "../settings.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
-export var MidiEnchantActivity;
-export var MidiEnchantSheet;
+export let MidiEnchantActivity;
+export let MidiEnchantSheet;
 export function setupEnchantActivity() {
 	if (debugEnabled > 0)
 		warn("MidiQOL | EnchantActivity | setupEnchantActivity | Called");
 	//@ts-expect-error
-	const GameSystemConfig = game.system.config;
-	//@ts-expect-error
 	MidiEnchantSheet = defineMidiEnchantSheetClass(game.system.applications.activity.EnchantSheet);
 	MidiEnchantActivity = defineMidiEnchantActivityClass(GameSystemConfig.activityTypes.enchant.documentClass);
-	if (ReplaceDefaultActivities) {
+	if (replaceDefaultActivities) {
 		// GameSystemConfig.activityTypes["dnd5eEnchant"] = GameSystemConfig.activityTypes.enchant;
 		GameSystemConfig.activityTypes.enchant = { documentClass: MidiEnchantActivity };
 	}
@@ -21,7 +19,7 @@ export function setupEnchantActivity() {
 }
 let defineMidiEnchantActivityClass = (ActivityClass) => {
 	return class MidiEnchantActivity extends MidiActivityMixin(ActivityClass) {
-		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.ENCHANT"];
+		static LOCALIZATION_PREFIXES = ["midi-qol.ENCHANT", ...super.LOCALIZATION_PREFIXES];
 		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.ENCHANT.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
@@ -34,9 +32,11 @@ let defineMidiEnchantActivityClass = (ActivityClass) => {
 			return false;
 		}
 		get isTriggerableActivity() {
-			return false;
+			return true;
 		}
 		async _triggerSubsequentActions(config, results) {
+			// for enchantment activities we do want to support the dnd5e default behaviour
+			await super._triggerSubsequentActions(config, results);
 		}
 	};
 };

@@ -47,6 +47,9 @@ export class PNPActorSheet extends api.HandlebarsApplicationMixin(
     header: {
       template: 'systems/perils-and-princesses/templates/actor/header.hbs',
     },
+    header_npc: {
+      template: 'systems/perils-and-princesses/templates/actor/header_npc.hbs',
+    },
     tabs: {
       // Foundry-provided generic template
       template: 'templates/generic/tab-navigation.hbs',
@@ -71,22 +74,26 @@ export class PNPActorSheet extends api.HandlebarsApplicationMixin(
       template: 'systems/perils-and-princesses/templates/actor/gift.hbs',
       scrollable: [""],
     },
+    npc: {
+      template: 'systems/perils-and-princesses/templates/actor/npc.hbs',
+      scrollable: [""],
+    }
   };
 
   /** @override */
   _configureRenderOptions(options) {
     super._configureRenderOptions(options);
-    // Not all parts always render
-    options.parts = ['header', 'tabs', 'biography'];
     // Don't show the other tabs if only limited view
     if (this.document.limited) return;
     // Control which parts show based on document subtype
     switch (this.document.type) {
       case 'character':
+        options.parts = ['header', 'tabs', 'biography'];
         options.parts.push('features', 'gear', 'gift', 'spells');
         break;
       case 'npc':
-        options.parts.push('gear', 'gift');
+        options.parts = ['header_npc', 'tabs', 'biography'];
+        options.parts.push('npc');
         break;
     }
   }
@@ -452,7 +459,7 @@ export class PNPActorSheet extends api.HandlebarsApplicationMixin(
           adv: {
             label: "Advantage",
             callback: async () => {
-              let roll = new Roll("2d20kh1", this.actor.getRollData());
+              let roll = new Roll("2d20kl1", this.actor.getRollData());
               await roll.toMessage({
                 speaker: ChatMessage.getSpeaker({ actor: this.actor }),
                 flavor: `${label} (Advantage)`,
@@ -474,7 +481,7 @@ export class PNPActorSheet extends api.HandlebarsApplicationMixin(
           dis: {
             label: "Disadvantage",
             callback: async () => {
-              let roll = new Roll("2d20kl1", this.actor.getRollData());
+              let roll = new Roll("2d20kh1", this.actor.getRollData());
               await roll.toMessage({
                 speaker: ChatMessage.getSpeaker({ actor: this.actor }),
                 flavor: `${label} (Disadvantage)`,

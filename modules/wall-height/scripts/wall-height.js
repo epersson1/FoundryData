@@ -4,7 +4,7 @@ import { MODULE_SCOPE, TOP_KEY, BOTTOM_KEY, ENABLE_ADVANCED_VISION_KEY, ENABLE_A
 
 const MODULE_ID = "wall-height";
 
-Object.defineProperty(Token.prototype, "losHeight", {
+Object.defineProperty(foundry.canvas.placeables.Token.prototype, "losHeight", {
     get: function myProperty() {
         return getTokenLOSheight(this);
     },
@@ -106,7 +106,6 @@ function registerSettings() {
 }
 
 Hooks.on("renderWallConfig", (app, html, data) => {
-    html = html[0] ?? html;
     const { advancedVision } = getSceneSettings(canvas.scene);
     if (!advancedVision) return;
     let { top, bottom } = getWallBounds(app.document);
@@ -115,7 +114,7 @@ Hooks.on("renderWallConfig", (app, html, data) => {
     const topLabel = game.i18n.localize(`${MODULE_SCOPE}.WallHeightTopLabel`);
     const bottomLabel = game.i18n.localize(`${MODULE_SCOPE}.WallHeightBottomLabel`);
     const moduleLabel = game.i18n.localize(`${MODULE_SCOPE}.ModuleLabel`);
-    html.querySelector(`.door-options`).insertAdjacentHTML(
+    html.querySelector(`[name="door"]`).closest("fieldset").insertAdjacentHTML(
         "afterend",
         `
     <fieldset>
@@ -204,8 +203,8 @@ Hooks.on("renderAmbientSoundConfig", (app, html, data) => {
     app.setPosition({ height: "auto" });
 });
 
-Hooks.on("renderTokenConfig", (app, html, data) => {
-    html = html[0] ?? html;
+const renderTokenConfig = (app, html, data) => {
+    if(html.querySelector(`input[name="flags.${MODULE_SCOPE}.tokenHeight"]`)) return;
     const tokenHeight = app.token.getFlag(MODULE_SCOPE, "tokenHeight") || 0;
     const label = game.i18n.localize(`${MODULE_SCOPE}.tokenHeightLabel`);
     const losHeight = app.document?.object?.losHeight ?? 0;
@@ -221,17 +220,19 @@ Hooks.on("renderTokenConfig", (app, html, data) => {
               ${app.document?.object?.losHeight ? `<p class="hint">${hint}</p>` : ""}         
             </div>
   `;
-    html.querySelector('input[name="lockRotation"]').closest(".form-group").insertAdjacentHTML("afterend", newHtml);
+    html.querySelector('[name="lockRotation"]').closest(".form-group").insertAdjacentHTML("afterend", newHtml);
     app.setPosition({ height: "auto" });
-});
+};
+
+Hooks.on("renderTokenConfig",  renderTokenConfig);
+Hooks.on("renderPrototypeTokenConfig",  renderTokenConfig);
 
 Hooks.on("renderSceneConfig", (app, html, data) => {
-    html = html[0] ?? html;
     const { advancedVision } = getSceneSettings(app.document);
     const enableVisionKeyLabel = game.i18n.localize(`${MODULE_SCOPE}.AdvancedVisionLabel`);
     const moduleLabel = game.i18n.localize(`${MODULE_SCOPE}.ModuleLabel`);
-    html.querySelector(`input[name="environment.globalLight.enabled"]`)
-        .closest(".form-group")
+    html.querySelector(`[name="environment.globalLight.enabled"]`)
+        .closest("fieldset")
         .insertAdjacentHTML(
             "afterend",
             `

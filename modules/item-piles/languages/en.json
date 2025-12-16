@@ -8,6 +8,9 @@
       "RequestTrade": "Request Trade",
       "GiveToCharacter": "Give To Character"
     },
+    "Hints": {
+      "CtrlClear": "Control + click to clear"
+    },
     "PlayerList": {
       "TradeButton": "Trade"
     },
@@ -22,7 +25,7 @@
       "vault": "Vault"
     },
     "Notifications": {
-      "SystemSupportFound": "System support found! Applying default system settings to Item Piles...",
+      "SystemSupportFound": "System support found! Applying default system settings to Item Piles",
       "UpdateItemPileSuccess": "Item Pile successfully updated.",
       "UpdateMerchantSuccess": "Merchant successfully updated.",
       "ItemTransferred": "{source_actor_name}'s {item_name} was given to {target_actor_name}.",
@@ -57,9 +60,11 @@
       "CantSortVault": "Failed to sort items - either there are simply too many items, or something went wrong",
       "VaultItemNotExpander": "That item is not a vault expander",
       "DroppedIsNotItem": "You can't drop documents of type \"{type}\" into this item pile!",
-      "VaultInvalidItemDropped": "You cannot drop this type of item into this vault!",
+      "DroppedFolderNotSupported": "You can't drop folders containing type \"{type}\" into this item pile!",
+      "ItemPileInvalidItemDropped": "You cannot drop this type of item into this item pile!",
       "VaultSameItemOrigin": "You can't drop items into the vault that originate from the vault!",
-      "VaultNoGmItemSidebar": "Only GMs can drop items from the sidebar!"
+      "VaultNoGmItemSidebar": "Only GMs can drop items from the sidebar!",
+      "LogEmpty": "The log for \"{actor_name}\" is empty and has nothing to export"
     },
     "Inspect": {
       "Title": "Inspecting Pile Contents",
@@ -188,7 +193,7 @@
       "TableTimesToRoll": "Times to roll on table:",
       "TableCustomCategory": "Add items to custom category:",
       "Log": "Activity Log",
-      "LogSearch": "Log Search:",
+      "LogSearch": "Search log:",
       "LogUserActor": "{actor_name} ({user_name})",
       "LogBought": "bought",
       "LogSold": "sold",
@@ -198,7 +203,12 @@
       "LogSetNotForSale": "{instigator} set <strong>{item}</strong> <span>not for sale</span",
       "LogSetVisible": "{instigator} set <strong>{item}</strong> to <span>visible</span",
       "LogSetHidden": "{instigator} set <strong>{item}</strong> to <span>hidden</span",
-      "LogTransaction": "{instigator} {action} {quantity}{item} for {price}"
+      "LogTransaction": "{instigator} {action} {quantity}{item} for {price}",
+      "LogFreeTransaction": "{instigator} {action} {quantity}{item} for free",
+      "SetNotForSale": "Set not for sale",
+      "SetForSale": "Set for sale",
+      "SetHidden": "Hide",
+      "SetVisible": "Show"
     },
     "Vault": {
       "VaultTab": "Vault",
@@ -248,7 +258,7 @@
       },
       "NoSystemFound": {
         "Title": "System Not Recognized",
-        "Content": "This system is not currently fully supported. This means that the module does not know how to best handle this system's items, but can still operate in a limited fashion.<br><br>You can configure the module's settings yourself, but it requires a bit of technical know-how.<br><br>If you have any questions, ping <strong>Wasp#2005</strong> on the Foundry discord."
+        "Content": "<p><strong>This system is not supported.</strong></p><p>This means that the module does not know how to best handle this system's items, but can still operate in a limited fashion.</p><p>You can configure the module's settings yourself, but it requires a bit of technical know-how.</p><p>If you have any questions, take a screenshot of the dialog that opens after you close this, and ask for assistance in your system's channel on the Foundry discord.</p>"
       },
       "NewSystemVersion": {
         "Title": "New System Version",
@@ -361,7 +371,7 @@
         "Title": "Editing Currencies",
         "Content": "As a GM, you can update the currencies on this item pile:",
         "Secondary": "Secondary Currencies:",
-        "NoCurrency": "{actor_name} has no valid currencies...",
+        "NoCurrency": "{actor_name} has no valid currencies",
         "Submit": "Submit"
       },
       "DropCurrencies": {
@@ -489,7 +499,10 @@
           "AddSellOption": "Add Selling Option",
           "DropMeClickMe": "Click to add an attribute or drag & drop an item to add",
           "PricePreset": "Or select a price preset:",
-          "SelectPreset": "Select price preset"
+          "SelectPreset": "Select price preset",
+          "AddOverheadCostOption": "Add Overhead Cost",
+          "OverheadCostOptions": "Overhead Cost Options",
+          "OverheadCostOptionsExplanation": "Here you can configure an overhead cost that is always added to the price of this item when a merchant sells it. This is affected by price modifiers."
         },
         "VaultTab": {
           "GridSize": "Grid Size",
@@ -571,7 +584,7 @@
       "ItemPileConfig": {
         "Title": "Item Pile Configuration: {actor_name}",
         "Configure": "Item Pile",
-        "Update": "Update",
+        "Update": "Config Update",
         "Main": {
           "Title": "Main Settings",
           "EnabledPile": "Enabled",
@@ -718,7 +731,12 @@
           "LogMerchantActivity": "Log Merchant Activity",
           "LogMerchantActivityExplanation": "When enabled, this causes the merchant to log events such as buying and selling items, and GMs updating the status (quantity, visibility, and for sale) of items.",
           "ClearMerchantLog": "Clear Merchant Logs",
-          "ClearMerchantLogExplanation": "This will clear the merchant logs, removing all entries. This cannot be undone."
+          "ClearMerchantLogExplanation": "This will clear the merchant logs, removing all entries. This cannot be undone.",
+          "ExportMerchantLog": "Export Merchant Logs",
+          "ExportMerchantLogExplanation": "This will export and download a text file log of the logs, sorted in oldest to newest information.",
+          "AddOverheadCostOption": "Add Overhead Cost",
+          "OverheadCostOptions": "Overhead Cost Options",
+          "OverheadCostOptionsExplanation": "Here you can configure an overhead cost that is always added to the price of items when the merchant sells them. This is affected by price modifiers."
         },
         "Vault": {
           "Title": "Vault Settings",

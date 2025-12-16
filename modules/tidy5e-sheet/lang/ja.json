@@ -109,7 +109,7 @@
         "ButtonTooltip": "Configure Max Prepared Spells",
         "MoreFormulas": "More formulas"
     },
-    "TIDY5E.TabSelection": {
+    "TIDY5E.TabConfiguration": {
         "Title": "Tab Selection: {documentName}",
         "MenuOptionText": "Tab Selection",
         "AvailableHeader": "Available Tabs",
@@ -230,17 +230,6 @@
     "TIDY5E.Settings.UseDefaultSheetHpTabbing": {
         "name": "Use default sheet HP keyboard tabbing",
         "hint": "The default 5e sheet allows keyboard tabbing from the current HP input to the current temp HP input. Enabling this replicates that behaviour. This setting is ignored if \"Use Accessible Keyboard Support\" is turned off."
-    },
-    "TIDY5E.Settings.DefaultTheme": {
-        "name": "Default Color Theme",
-        "hint": "The default theme for all users who do not have a specific theme selected."
-    },
-    "TIDY5E.Settings.SheetTheme": {
-        "name": "Tidy5eカラーテーマ",
-        "hint": "Tidy5eシートのカラーテーマを、ライトカラーまたはダークカラーに設定します。",
-        "default": "Default",
-        "light": "Light",
-        "dark": "Dark"
     },
     "TIDY5E.Settings.UseClassicControls": {
         "name": "一覧表示で従来のアイテム操作を使用",
@@ -420,10 +409,6 @@
     "TIDY5E.Settings.LockLevelSelector": {
         "name": "非GMのレベル操作をロック",
         "hint": "レベルのドロップダウンをロックし、非GM以外の人が操作できないようにします。この欄を操作する他のModは影響されません。"
-    },
-    "TIDY5E.Settings.LockConfigureSheet": {
-        "name": "非GMのシート設定をロック",
-        "hint": "シート設定の入力をロックし、非GM以外の人が操作できないようにします。この欄を操作する他のModは影響されません。"
     },
     "TIDY5E.Settings.LockItemQuantity": {
         "name": "非GMのアイテム所持数変更をロック",
@@ -641,21 +626,6 @@
     "TIDY5E.Settings.SortFavoriteItemsAlphabetically": {
         "name": "Sort Favorites Alphabetically",
         "hint": "Sorts favorites alphabetically."
-    },
-    "TIDY5E.Settings.PermanentlyUnlockCharacterSheetForGM": {
-        "name": "Character Sheet: Always Unlocked for GM",
-        "hint": "Treat the character sheet as though it were always unlocked, regardless of the lock setting. The GM can always edit the character, but they can also toggle lock/unlock for a player who also owns the character.",
-        "title": "This sheet is always unlocked for the GM, regardless of the lock setting."
-    },
-    "TIDY5E.Settings.PermanentlyUnlockNPCSheetForGM": {
-        "name": "NPC Sheet: Always Unlocked for GM",
-        "hint": "Treat the NPC sheet as though it were always unlocked, regardless of the lock setting. The GM can always edit the NPC, but they can also toggle lock/unlock for a player who also owns the NPC.",
-        "title": "This sheet is always unlocked for the GM, regardless of the lock setting."
-    },
-    "TIDY5E.Settings.PermanentlyUnlockVehicleSheetForGM": {
-        "name": "Vehicle Sheet: Always Unlocked for GM",
-        "hint": "Treat the vehicle sheet as though it were always unlocked, regardless of the lock setting. The GM can always edit the vehicle, but they can also toggle lock/unlock for a player who also owns the vehicle.",
-        "title": "This sheet is always unlocked for the GM, regardless of the lock setting."
     },
     "TIDY5E.ThemeSettings": {
         "SheetMenu": {

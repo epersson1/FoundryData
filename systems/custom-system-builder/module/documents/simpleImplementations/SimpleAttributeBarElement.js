@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,6 +9,10 @@
  * Simple attribute bar class, used initially to compute custom attribute bars in sheets
  */
 export default class SimpleAttributeBarElement {
+    key;
+    valueFormula;
+    maxFormula;
+    _isEditable;
     /**
      * @param key Attribute bar key
      * @param valueFormula Formula for the value of the Attribute bar
@@ -24,24 +28,24 @@ export default class SimpleAttributeBarElement {
     /**
      * @inheritdoc
      */
-    getMaxValue(entity, options, keyOverride) {
-        return Number(ComputablePhrase.computeMessageStatic(String(this.maxFormula), entity.system.props, {
+    getMaxValue(templateSystem, options, keyOverride) {
+        return Number(ComputablePhrase.computeMessageStatic(String(this.maxFormula), templateSystem.entity.system.props, {
             ...options,
             source: keyOverride ?? this.key,
-            availableKeys: Object.keys(entity.system.props),
-            triggerEntity: entity,
+            availableKeys: Object.keys(templateSystem.entity.system.props),
+            triggerEntity: templateSystem,
             defaultValue: 0
         }).result);
     }
     /**
      * @inheritdoc
      */
-    getValue(entity, options, keyOverride) {
-        return Number(ComputablePhrase.computeMessageStatic(String(this.valueFormula), entity.system.props, {
+    getValue(templateSystem, options, keyOverride) {
+        return Number(ComputablePhrase.computeMessageStatic(String(this.valueFormula), templateSystem.entity.system.props, {
             ...options,
             source: keyOverride ?? this.key,
-            availableKeys: Object.keys(entity.system.props),
-            triggerEntity: entity,
+            availableKeys: Object.keys(templateSystem.entity.system.props),
+            triggerEntity: templateSystem,
             defaultValue: 0
         }).result);
     }

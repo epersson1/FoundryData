@@ -1,3 +1,5 @@
-2025/04/06-19:58:26.140 3d3c Recovering log #207
-2025/04/06-19:58:26.167 3d3c Delete type=0 #207
-2025/04/06-19:58:26.167 3d3c Delete type=3 #206
+2025/12/04-20:35:31.124 37ec Recovering log #267
+2025/12/04-20:35:31.124 37ec Level-0 table #269: started
+2025/12/04-20:35:31.155 37ec Level-0 table #269: 796 bytes OK
+2025/12/04-20:35:31.187 37ec Delete type=0 #267
+2025/12/04-20:35:31.187 37ec Delete type=3 #266

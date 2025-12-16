@@ -1,0 +1,38 @@
+{
+  "id": "shared-pnp-items",
+  "title": "Shared PnP Items",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "perils-and-princesses",
+        "type": "system",
+        "compatibility": {}
+      }
+    ]
+  },
+  "description": "Sharing data between worlds",
+  "authors": [
+    {
+      "name": "Ellen",
+      "flags": {}
+    }
+  ],
+  "packs": [
+    {
+      "name": "items",
+      "label": "Items",
+      "path": "packs/items",
+      "type": "Item",
+      "system": "perils-and-princesses",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ]
+}

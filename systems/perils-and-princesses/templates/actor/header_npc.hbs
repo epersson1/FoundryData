@@ -1,0 +1,34 @@
+{{! Sheet Header }}
+<header class='sheet-header'>
+  <img
+    class='profile-img'
+    src='{{actor.img}}'
+    data-edit='img'
+    data-action='onEditImage'
+    title='{{actor.name}}'
+    height='100'
+    width='100'
+  />
+  <div class='header-fields'>
+    <div class='document-name'>
+      <input
+        name='name'
+        type='text'
+        value='{{actor.name}}'
+        placeholder='Name'
+      />
+    </div>
+    {{! The grid classes are defined in scss/global/_grid.scss. To use,
+      use both the "grid" and "grid-Ncol" class where "N" can be any number
+      from 1 to 12 and will create that number of columns.  }}
+      <div class="resource flex-group-center">
+              <label for="system.health.value" class="resource-label">Health</label>
+              <div class="resource-content flexrow flex-center flex-between">
+              <input type="text" name="system.health.value" value="{{system.health.value}}" data-dtype="Number"/>
+              <span> / </span>
+              <input type="text" name="system.health.max" value="{{system.health.max}}" data-dtype="Number"/>
+              </div>
+            </div>
+    </div>
+  </div>
+</header>

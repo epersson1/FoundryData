@@ -2,11 +2,11 @@
     "id": "magicitems",
     "title": "Magic Items",
     "description": "Module that adds the ability to create magical items with spells or feats that belong to the item itself, such as staffs or magic wands, which will be automatically inherited from the character who owns the item.",
-    "version": "4.3.1",
+    "version": "5.0.0-beta.2",
     "compatibility": {
         "minimum": 12,
         "verified": 12.331,
-        "maximum": 12.999
+        "maximum": 13.999
     },
     "authors": [
         {
@@ -67,6 +67,11 @@
             "lang": "ja",
             "name": "Japanese",
             "path": "languages/ja.json"
+        },
+        {
+            "lang": "zh-tw",
+            "name": "Chinese (Simplified)",
+            "path": "languages/zh_SIMPLIFIED.json"
         }
     ],
     "packs": [
@@ -133,7 +138,7 @@
     ],
     "url": "https://github.com/PwQt/magic-items-2",
     "manifest": "https://github.com/PwQt/magic-items-2/releases/latest/download/module.json",
-    "download": "https://github.com/PwQt/magic-items-2/releases/download/4.3.1/module.zip",
+    "download": "https://github.com/PwQt/magic-items-2/releases/download/5.0.0-beta.2/module.zip",
     "readme": "https://github.com/PwQt/magic-items-2/blob/master/README.md",
     "bugs": "https://github.com/PwQt/magic-items-2/issues",
     "relationships": {
@@ -143,9 +148,9 @@
                 "type": "system",
                 "manifest": "https://raw.githubusercontent.com/foundryvtt/dnd5e/master/system.json",
                 "compatibility": {
-                    "minimum": "3.3.0",
-                    "verified": "3.3.1",
-                    "maximum": "3.3.999"
+                    "minimum": "4.3.0",
+                    "verified": "4.3.8",
+                    "maximum": "4.4.999"
                 }
             }
         ],

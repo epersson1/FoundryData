@@ -1,14 +1,18 @@
-2025/04/09-20:44:27.414 2e3c Recovering log #26
-2025/04/09-20:44:27.458 2e3c Delete type=0 #26
-2025/04/09-20:44:27.458 2e3c Delete type=3 #24
-2025/04/09-23:46:29.162 1f20 Level-0 table #31: started
-2025/04/09-23:46:29.197 1f20 Level-0 table #31: 27239 bytes OK
-2025/04/09-23:46:29.211 1f20 Delete type=0 #29
-2025/04/09-23:46:29.245 1f20 Manual compaction at level-0 from '!messages!0fa9XXpB9GcyQzPB' @ 72057594037927935 : 1 .. '!messages!znNIrMwjdQLKAZBb' @ 0 : 0; will stop at '!messages!znNIrMwjdQLKAZBb' @ 83 : 1
-2025/04/09-23:46:29.245 1f20 Compacting 1@0 + 1@1 files
-2025/04/09-23:46:29.298 1f20 Generated table #32@0: 101 keys, 42556 bytes
-2025/04/09-23:46:29.298 1f20 Compacted 1@0 + 1@1 files => 42556 bytes
-2025/04/09-23:46:29.319 1f20 compacted to: files[ 0 1 0 0 0 0 0 ]
-2025/04/09-23:46:29.344 1f20 Delete type=2 #9
-2025/04/09-23:46:29.351 1f20 Delete type=2 #31
-2025/04/09-23:46:29.465 1f20 Manual compaction at level-0 from '!messages!znNIrMwjdQLKAZBb' @ 83 : 1 .. '!messages!znNIrMwjdQLKAZBb' @ 0 : 0; will stop at (end)
+2025/09/14-19:04:07.059 12a4 Recovering log #81
+2025/09/14-19:04:07.059 12a4 Level-0 table #83: started
+2025/09/14-19:04:07.079 12a4 Level-0 table #83: 8134 bytes OK
+2025/09/14-19:04:07.120 12a4 Delete type=0 #81
+2025/09/14-19:04:07.120 12a4 Delete type=3 #80
+2025/09/14-19:04:07.120 2bb8 Compacting 4@0 + 1@1 files
+2025/09/14-19:04:07.255 2bb8 Generated table #85@0: 443 keys, 182090 bytes
+2025/09/14-19:04:07.255 2bb8 Compacted 4@0 + 1@1 files => 182090 bytes
+2025/09/14-19:04:07.270 2bb8 compacted to: files[ 0 1 0 0 0 0 0 ]
+2025/09/14-19:04:07.270 2bb8 Delete type=2 #66
+2025/09/14-19:04:07.278 2bb8 Delete type=2 #70
+2025/09/14-19:04:07.279 2bb8 Delete type=2 #73
+2025/09/14-19:04:07.279 2bb8 Delete type=2 #78
+2025/09/14-19:04:07.280 2bb8 Delete type=2 #83
+2025/09/14-19:11:43.174 2bb8 Level-0 table #87: started
+2025/09/14-19:11:43.174 2bb8 Level-0 table #87: 0 bytes OK
+2025/09/14-19:11:43.191 2bb8 Delete type=0 #84
+2025/09/14-19:11:43.207 2bb8 Manual compaction at level-0 from '!messages!0UTjLZzmB0Qb2yeD' @ 72057594037927935 : 1 .. '!messages!znNIrMwjdQLKAZBb' @ 0 : 0; will stop at (end)

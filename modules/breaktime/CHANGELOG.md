@@ -1,3 +1,21 @@
+## Version 13.03
+
+Added BreakTime to the Game so that it can be accessed via a Macro
+
+Added a key binding to toggle away status
+
+Fixed issue with count down timer not showing
+
+Added Polish translation, Thank you Jakub and Lioheart
+
+## Version 13.02
+
+Fixing some additional v13 compatibility issues
+
+## Version 13.01
+
+v13 Compatibility
+
 ## Version 12.03
 
 Fixed issue with the break time start sound playing when player re-opens the breaktime window

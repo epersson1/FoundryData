@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,18 +9,34 @@
  * @ignore
  * @module
  */
-import InputComponent, { COMPONENT_SIZES } from './InputComponent.js';
+import InputComponent from './InputComponent.js';
 import { ComponentValidationError, RequiredFieldError } from '../../errors/ComponentValidationError.js';
+import { isAppliedTemplateEntity } from '../../definitions.js';
+import { COMPONENT_SIZES } from './SizedComponent.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
 /**
  * Dropdown component
  * @ignore
  */
 class Dropdown extends InputComponent {
+    _selectedOptionType;
+    /** Options */
+    _options;
+    /** Dynamic table key */
+    _tableKey;
+    /** Key of the column to use as options keys */
+    _tableKeyColumn;
+    /** Key of the column to use as labels */
+    _tableLabelColumn;
+    /** Formula of the column to use as options keys */
+    _formulaKeyOptions;
+    /** Formula of the column to use as labels */
+    _formulaLabelOptions;
     /** Dropdown constructor */
     constructor(props) {
         super(props);
-        this._selectedOptionType = props.selectedOptionType;
-        this._options = props.options;
+        this._selectedOptionType = props.selectedOptionType ?? 'custom';
+        this._options = props.options ?? [];
         this._tableKey = props.tableKey;
         this._tableKeyColumn = props.tableKeyColumn;
         this._tableLabelColumn = props.tableLabelColumn;
@@ -44,39 +60,42 @@ class Dropdown extends InputComponent {
         const jQElement = await super._getElement(entity, isEditable, options);
         jQElement.addClass('custom-system-select');
         const selectElement = $('<select />');
-        selectElement.attr('id', `${entity.uuid}-${this.key}`);
-        if (!entity.isTemplate) {
-            selectElement.attr('name', 'system.props.' + this.key);
-        }
-        if (!isEditable) {
-            selectElement.attr('disabled', 'disabled');
-        }
+        selectElement.attr('id', this.getSluggedId(entity));
         if (!this.defaultValue) {
             const emptyOption = $('<option></option>');
             emptyOption.attr('value', '');
             selectElement.append(emptyOption);
         }
         const optionKeys = new Set();
-        if (!entity.isTemplate) {
+        if (TemplateSystem.isAppliedTemplateSystem(entity)) {
+            selectElement.attr('name', 'system.props.' + this.key);
+            if (!isEditable) {
+                selectElement.attr('disabled', 'disabled');
+            }
             if (this._selectedOptionType === 'table') {
                 let baseProps = entity.system.props;
                 let tableKey = this._tableKey;
-                if (tableKey.startsWith('parent.')) {
-                    baseProps = entity.entity.parent?.system.props;
+                if (tableKey.startsWith('parent.') &&
+                    entity.entity.parent &&
+                    isAppliedTemplateEntity(entity.entity.parent)) {
+                    baseProps = entity.entity.parent.system.props;
                     tableKey = tableKey.split('.', 2)[1];
                 }
                 const dynamicProps = foundry.utils.getProperty(baseProps, tableKey);
                 if (dynamicProps) {
                     for (const rowIndex in dynamicProps) {
                         if (dynamicProps[rowIndex] && !dynamicProps[rowIndex]?.$deleted) {
-                            selectElement.append(this._addOption(optionKeys, dynamicProps[rowIndex][this._tableKeyColumn], this._tableLabelColumn
-                                ? dynamicProps[rowIndex][this._tableLabelColumn]
-                                : dynamicProps[rowIndex][this._tableKeyColumn]));
+                            const optionElement = this._generateOption(optionKeys, String(dynamicProps[rowIndex][this._tableKeyColumn]), this._tableLabelColumn
+                                ? String(dynamicProps[rowIndex][this._tableLabelColumn])
+                                : String(dynamicProps[rowIndex][this._tableKeyColumn]));
+                            if (optionElement) {
+                                selectElement.append(optionElement);
+                            }
                         }
                     }
                 }
             }
-            else if (this._selectedOptionType === 'formula' && !entity.isTemplate) {
+            else if (this._selectedOptionType === 'formula' && TemplateSystem.isAppliedTemplateSystem(entity)) {
                 const keyOptions = (await ComputablePhrase.computeMessage(this._formulaKeyOptions, props, {
                     ...options,
                     source: `${this.key}.keyOptions`,
@@ -96,13 +115,19 @@ class Dropdown extends InputComponent {
                 }
                 else {
                     for (let i = 0; i < keyOptions.length; i++) {
-                        selectElement.append(this._addOption(optionKeys, keyOptions[i], labelOptions[0] === '' ? keyOptions[i] : labelOptions[i]));
+                        const optionElement = this._generateOption(optionKeys, keyOptions[i], labelOptions[0] === '' ? keyOptions[i] : labelOptions[i]);
+                        if (optionElement) {
+                            selectElement.append(optionElement);
+                        }
                     }
                 }
             }
             else {
                 for (const option of this._options) {
-                    selectElement.append(this._addOption(optionKeys, option.key, option.value));
+                    const optionElement = this._generateOption(optionKeys, option.key, option.value);
+                    if (optionElement) {
+                        selectElement.append(optionElement);
+                    }
                 }
             }
             const selectedValue = foundry.utils.getProperty(props, this.key) ??
@@ -115,7 +140,7 @@ class Dropdown extends InputComponent {
             selectElement.val(optionKeys.has(selectedValue) ? selectedValue : selectElement.find('option:first').val());
         }
         jQElement.append(selectElement);
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             jQElement.addClass('custom-system-editable-component');
             selectElement.addClass('custom-system-editable-field');
             jQElement.on('click', (ev) => {
@@ -125,6 +150,17 @@ class Dropdown extends InputComponent {
             });
         }
         return jQElement;
+    }
+    setDefaultValue(entity, options = {}) {
+        if (foundry.utils.getProperty(entity.system.props, this.key) === undefined && this.defaultValue) {
+            const props = { ...entity.system.props, ...options.customProps };
+            foundry.utils.setProperty(entity.system.props, this.key, ComputablePhrase.computeMessageStatic(this.defaultValue, props, {
+                source: `${this.key}.defaultValue`,
+                reference: options.reference,
+                defaultValue: '',
+                triggerEntity: entity
+            }).result);
+        }
     }
     /** Returns serialized component */
     toJSON() {
@@ -143,25 +179,9 @@ class Dropdown extends InputComponent {
     /** Creates Dropdown from JSON description */
     static fromJSON(json, templateAddress, parent) {
         return new Dropdown({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
-            label: json.label,
-            defaultValue: json.defaultValue,
-            selectedOptionType: json.selectedOptionType ?? 'custom',
-            options: json.options,
-            tableKey: json.tableKey,
-            tableKeyColumn: json.tableKeyColumn,
-            tableLabelColumn: json.tableLabelColumn,
-            formulaKeyOptions: json.formulaKeyOptions,
-            formulaLabelOptions: json.formulaLabelOptions,
-            size: json.size,
-            customSize: json.customSize,
-            cssClass: json.cssClass,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            ...json,
+            parent: parent,
+            templateAddress: templateAddress
         });
     }
     /**
@@ -181,87 +201,72 @@ class Dropdown extends InputComponent {
         return game.i18n.localize('CSB.ComponentProperties.ComponentType.Dropdown');
     }
     /** Get configuration form for component creation / edition */
-    static async getConfigForm(existingComponent, _entity) {
+    static async getConfigForm(_entity, appId, existingComponent) {
         const predefinedValues = { ...existingComponent };
         predefinedValues.selectedOptionType = predefinedValues.selectedOptionType ?? 'custom';
-        const mainElt = $('<div></div>');
-        mainElt.append(await renderTemplate(`systems/${game.system.id}/templates/_template/components/dropdown.hbs`, {
+        const mainElt = document.createElement('div');
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/components/dropdown.hbs`, {
             ...predefinedValues,
-            COMPONENT_SIZES
-        }));
-        return mainElt;
-    }
-    /** Attaches event-listeners to the html of the config-form */
-    static attachListenersToConfigForm(html) {
-        const deleteOptionRow = (event) => {
-            const target = $(event.currentTarget);
-            const row = target.parents('tr');
-            // Remove it from the DOM
-            $(row).remove();
-        };
-        $(html)
-            .find('.custom-system-delete-option')
-            .on('click', (event) => deleteOptionRow(event));
-        $(html)
-            .find('#addOption')
-            .on('click', (event) => {
-            const target = $(event.currentTarget);
-            // Last row contains only the add button
-            const lastRow = target.parents('tr');
-            // Create new row
-            const newRow = $(`
-<tr class="custom-system-dropdown-option">
-    <td>
-        <input type="text" class="custom-system-dropdown-option-key" />
-    </td>
-    <td>
-        <input type="text" class="custom-system-dropdown-option-value" />
-    </td>
-    <td>
-        <a class="custom-system-delete-option">
-            <i class="fas fa-trash"></i>
-        </a>
-    </td>
-</tr>`);
-            $(newRow)
-                .find('.custom-system-delete-option')
-                .on('click', (event) => deleteOptionRow(event));
-            // Insert new row before control row
-            lastRow.before(newRow);
+            COMPONENT_SIZES,
+            appId
         });
-        $(html)
-            .find("input[name='dropdownOptionMode']")
-            .on('click', (event) => {
-            const target = $(event.currentTarget);
-            const customOptions = $('.custom-system-custom-options');
-            const dynamicTableOptions = $('.custom-system-dynamic-options');
-            const formulaOptions = $('.custom-system-formula-options');
-            const slideValue = 200;
-            switch (target[0].id) {
-                case 'customOptions':
-                    customOptions.slideDown(slideValue);
-                    dynamicTableOptions.slideUp(slideValue);
-                    formulaOptions.slideUp(slideValue);
-                    break;
-                case 'dynamicTableOptions':
-                    customOptions.slideUp(slideValue);
-                    dynamicTableOptions.slideDown(slideValue);
-                    formulaOptions.slideUp(slideValue);
-                    break;
-                case 'formulaOptions':
-                    customOptions.slideUp(slideValue);
-                    dynamicTableOptions.slideUp(slideValue);
-                    formulaOptions.slideDown(slideValue);
-                    break;
+        mainElt.addEventListener('click', (event) => {
+            const target = event.target.closest('.custom-system-delete-option');
+            if (target) {
+                const row = target.closest('tr');
+                // Remove it from the DOM
+                row.remove();
             }
         });
-        $(html)
-            .find('#selectSize')
-            .on('change', (event) => {
-            const target = $(event.currentTarget);
-            const customSizeBlock = $('.custom-system-size-custom');
+        mainElt.querySelector('.addOption')?.addEventListener('click', (event) => {
+            const target = event.currentTarget;
+            // Create new row
+            const newRow = mainElt
+                .querySelector('.custom-system-dropdown-option-template')
+                ?.content.cloneNode(true);
+            const newIndex = String(parseInt(Array.from(target
+                .closest('.custom-system-form-field')
+                .querySelectorAll('.custom-system-dropdown-option'))?.pop()?.dataset?.index ?? '-1') + 1);
+            newRow.querySelector('.custom-system-dropdown-option').dataset.index = newIndex;
+            newRow.querySelector('.custom-system-dropdown-option-key').name =
+                `optionKeys.${newIndex}`;
+            newRow.querySelector('.custom-system-dropdown-option-value').name =
+                `optionValues.${newIndex}`;
+            // Insert new row
+            target.closest('table')?.querySelector('tbody')?.append(newRow);
+        });
+        mainElt.querySelectorAll("input[name='dropdownOptionMode']").forEach((elt) => {
+            elt.addEventListener('change', (event) => {
+                const target = event.currentTarget;
+                const customOptions = $('.custom-system-custom-options');
+                const dynamicTableOptions = $('.custom-system-dynamic-options');
+                const formulaOptions = $('.custom-system-formula-options');
+                const slideValue = 200;
+                console.log('Selected ' + target.value);
+                switch (target.value) {
+                    case 'custom':
+                        customOptions.slideDown(slideValue);
+                        dynamicTableOptions.slideUp(slideValue);
+                        formulaOptions.slideUp(slideValue);
+                        break;
+                    case 'table':
+                        customOptions.slideUp(slideValue);
+                        dynamicTableOptions.slideDown(slideValue);
+                        formulaOptions.slideUp(slideValue);
+                        break;
+                    case 'formula':
+                        customOptions.slideUp(slideValue);
+                        dynamicTableOptions.slideUp(slideValue);
+                        formulaOptions.slideDown(slideValue);
+                        break;
+                }
+            });
+        });
+        mainElt.querySelector('[name="size"]')?.addEventListener('change', (event) => {
+            const target = event.currentTarget;
+            const customSizeBlock = $(mainElt.querySelector('.custom-system-size-custom'));
             const slideValue = 200;
-            switch (target.val()) {
+            switch (target.value) {
                 case 'custom':
                     customSizeBlock.slideDown(slideValue);
                     break;
@@ -270,6 +275,7 @@ class Dropdown extends InputComponent {
                     break;
             }
         });
+        return mainElt;
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -278,47 +284,39 @@ class Dropdown extends InputComponent {
      * @return {DropdownJson} The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
+    static extractConfig(rawConfigData, html) {
+        const configData = rawConfigData;
         const options = [];
-        const selectedOptionType = html.find('#dynamicTableOptions').is(':checked')
-            ? 'table'
-            : html.find('#formulaOptions').is(':checked')
-                ? 'formula'
-                : 'custom';
+        const selectedOptionType = configData.dropdownOptionMode ?? 'custom';
         let tableKey;
         let tableKeyColumn;
         let tableLabelColumn;
         let formulaKeyOptions;
         let formulaLabelOptions;
         switch (selectedOptionType) {
-            case 'custom':
-                for (const optionRow of html.find('tr.custom-system-dropdown-option')) {
-                    const key = $(optionRow).find('.custom-system-dropdown-option-key').val()?.toString() ?? '';
-                    let value = $(optionRow).find('.custom-system-dropdown-option-value').val()?.toString() ?? '';
-                    if (value === '') {
-                        value = key;
-                    }
+            case 'custom': {
+                const optionKeys = configData.optionKeys ?? {};
+                const optionValues = configData.optionValues ?? {};
+                Object.entries(optionKeys).forEach(([idx, key]) => {
                     options.push({
-                        key: key,
-                        value: value
+                        key,
+                        value: optionValues[idx]
                     });
-                }
+                });
                 break;
+            }
             case 'table':
-                tableKey = html.find('#selectDynamicTableKey').val()?.toString();
-                tableKeyColumn = html.find('#selectDynamicTableKeyColumn').val()?.toString();
-                tableLabelColumn = html.find('#selectDynamicTableLabelColumn').val()?.toString();
+                tableKey = configData.tableKey;
+                tableKeyColumn = configData.tableKeyColumn;
+                tableLabelColumn = configData.tableLabelColumn;
                 break;
             case 'formula':
-                formulaKeyOptions = html.find('#formulaKeyOptions').val()?.toString();
-                formulaLabelOptions = html.find('#formulaLabelOptions').val()?.toString();
+                formulaKeyOptions = configData.formulaKeyOptions;
+                formulaLabelOptions = configData.formulaLabelOptions;
                 break;
         }
         const fieldData = {
-            ...super.extractConfig(html),
-            label: html.find('#selectLabel').val()?.toString(),
-            defaultValue: html.find('#selectDefaultValue').val()?.toString(),
-            size: html.find('#selectSize').val()?.toString() ?? 'full-size',
+            ...super.extractConfig(configData, html),
             selectedOptionType: selectedOptionType,
             options: options,
             tableKey: tableKey,
@@ -327,19 +325,13 @@ class Dropdown extends InputComponent {
             formulaKeyOptions: formulaKeyOptions,
             formulaLabelOptions: formulaLabelOptions
         };
-        if (fieldData.size === 'custom') {
-            fieldData.customSize = parseInt(String(html.find('#selectCustomSize').val()));
-        }
-        this.validateConfig(fieldData);
         return fieldData;
     }
     static validateConfig(json) {
         super.validateConfig(json);
-        if (!json.key) {
-            throw new RequiredFieldError(game.i18n.localize('CSB.ComponentProperties.ComponentKey'), json);
-        }
         switch (json.selectedOptionType) {
             case 'custom':
+                json.options ??= [];
                 json.options.forEach((option) => {
                     if (option.key === '') {
                         throw new ComponentValidationError(game.i18n.localize('CSB.ComponentProperties.Errors.DropdownOptionValidationError'), 'options', json);
@@ -362,19 +354,21 @@ class Dropdown extends InputComponent {
         }
     }
     /**
-     * Adds an option to the provided collection
+     * Generates an option for the provided collection
      * @param collection {Set}
      * @param key {String}
      * @param value {String}
      * @returns {JQuery}
      * @private
      */
-    _addOption(collection, key, value) {
-        const optionElement = $('<option></option>');
-        collection.add(key);
-        optionElement.attr('value', key);
-        optionElement.text(value);
-        return optionElement;
+    _generateOption(collection, key, value) {
+        if (!collection.has(key)) {
+            const optionElement = $('<option></option>');
+            collection.add(key);
+            optionElement.attr('value', key);
+            optionElement.text(value === '' ? key : value);
+            return optionElement;
+        }
     }
 }
 /**

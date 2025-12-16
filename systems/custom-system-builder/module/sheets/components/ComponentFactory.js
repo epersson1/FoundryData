@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,12 +10,10 @@
  * This is a singleton object exported globally
  */
 export class ComponentFactory {
-    constructor() {
-        /**
-         * Record of the available component types
-         */
-        this._componentTypes = {};
-    }
+    /**
+     * Record of the available component types
+     */
+    _componentTypes = {};
     /**
      * Returns currently registered component types
      * @returns All available component types

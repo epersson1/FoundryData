@@ -1,7 +1,7 @@
 {
-	"CONTROLS.MeasureSelect": "Rectangular Select Templates",
-	"CONTROLS.LightSelect": "Rectangular Select Lights",
-	"CONTROLS.SoundSelect": "Rectangular Select Ambient Sounds",
+	"CONTROLS.MeasureSelect": "Select Templates",
+	"CONTROLS.LightSelect": "Select Lights",
+	"CONTROLS.SoundSelect": "Select Ambient Sounds",
 
 	"PLUT.Delete": "Delete",
 	"PLUT.Reset": "Reset",

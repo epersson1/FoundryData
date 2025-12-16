@@ -6,6 +6,10 @@
     opacity: 0.3;
 }
 
+#dice-config {
+    overflow: visible;
+}
+
 #dice-config .window-content {
     overflow-y: hidden;
 }
@@ -24,6 +28,10 @@
     flex: 1;
 }
 
+dialog.dice-so-nice .form-group label {
+    flex: 2;
+}
+
 .dice-so-nice .setting-timeBeforeHide input {
     flex: 1;
     text-align: right;
@@ -33,15 +41,14 @@
     flex: 0;
 }
 
-.dice-so-nice nav.sheet-tabs {
-    border-bottom: 1px solid #000;
-    line-height: 25px;
-}
-
 .dice-so-nice section.content .settings-list {
     max-height: calc(100vh - 150px);
     overflow-y: auto;
     padding-right: 0.5em;
+}
+
+.dice-so-nice .settings-list .form-group {
+    margin: 3px 0;
 }
 
 #dice-configuration-canvas {
@@ -92,7 +99,7 @@
     text-align: right;
 }
 
-.dice-so-nice .dsn-hidden{
+.dice-so-nice .dsn-hidden {
     display:none;
 }
 
@@ -136,6 +143,19 @@
     box-shadow: none;
 }
 
+.dice-so-nice .tab.active {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.dice-so-nice .tab.active[data-group="dsn-main"] {
+    padding: 0 6px;
+}
+
+.dice-so-nice .tab .range-value {
+    flex: 0;
+}
+
 .dice-so-nice .dsn-appearance-tabs span {
     border-left: 1px;
     border-top: 1px;
@@ -167,25 +187,29 @@
 
 .dice-so-nice .dsn-appearance-tabs {
     height: 30px;
+    border: none;
+    line-height: normal;
+    display: block;
 }
 
 .dice-so-nice .dsn-appearance-tabs span.item.active {
     opacity: 1;
 }
 
-.dice-so-nice .dsn-appearance-tabs i.fas.fa-times {
+.dice-so-nice .dsn-appearance-tabs i.fa-solid.fa-times {
     font-size: 11px;
     vertical-align: top;
     padding: 0px 2px;
     transition: all .2s ease-in-out;
     display: none;
+    pointer-events: all;
 }
 
-.dice-so-nice .dsn-appearance-tabs i.fas.fa-times:hover {
+.dice-so-nice .dsn-appearance-tabs i.fa-solid.fa-times:hover {
     transform: scale(1.2);
 }
 
-.dice-so-nice .dsn-appearance-tabs .active i.fas.fa-times {
+.dice-so-nice .dsn-appearance-tabs .active i.fa-solid.fa-times {
     display: inline-block;
 }
 
@@ -201,6 +225,10 @@
     border: none;
     font-weight: normal;
     cursor: auto;
+}
+
+.dice-so-nice .tabAppearance {
+    gap: 0.3rem;
 }
 
 .dice-so-nice .tabAppearance a.system-control {
@@ -310,5 +338,5 @@
 
 /************** DICE EDITOR ************/
 .dice-so-nice .dsn-dice-editor-button {
-    flex:1;
+    flex: 1;
 }

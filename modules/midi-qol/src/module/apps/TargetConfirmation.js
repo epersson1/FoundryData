@@ -1,9 +1,10 @@
-import { i18n, error, i18nFormat } from "../../midi-qol.js";
+import { i18n, error, i18nFormat, allAttackTypes } from "../../midi-qol.js";
 import { checkMechanic, checkRule, configSettings, targetConfirmation } from "../settings.js";
-import { FULL_COVER, HALF_COVER, THREE_QUARTERS_COVER, activityHasAreaTarget, checkActivityRange, computeCoverBonus, computeFlankingStatus, getIconFreeLink, getToken, isValidTarget, markFlanking, tokenForActor, updateUserTargets } from "../utils.js";
+import { FULL_COVER, HALF_COVER, THREE_QUARTERS_COVER, activityHasAreaTarget, checkActivityRange, computeCoverBonus, computeFlankingStatus, getToken, isInCombat, isValidTarget, markFlanking, tokenForActor, updateUserTargets, getTokenName } from "../utils.js";
 import { getTokenPlayerName } from "../utils.js";
 import { TroubleShooter } from "./TroubleShooter.js";
-const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+var ApplicationV2 = foundry.applications.api.ApplicationV2;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
 export class TargetConfirmationDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	callback;
 	data;
@@ -12,16 +13,27 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 		super(options);
 		this.position.left = TargetConfirmationDialog.xPosition;
 		this.position.top = TargetConfirmationDialog.yPosition;
-		this.data = { actor, activity, user, targets: [], options };
+		let maxTargets = activity.target?.affects?.count ? Number(activity.target.affects.count) : +Infinity;
+		const inCombat = activity.item.parent && isInCombat(activity.item.parent);
+		const requiresTargets = configSettings.requiresTargets === "always"
+			|| (configSettings.requiresTargets === "tokens" && (canvas?.scene?.tokens.size ?? 0) > 0)
+			|| (configSettings.requiresTargets === "combat" && inCombat);
+		// @ts-expect-error no dnd5e-types
+		if (activity.item.type === "weapon" && !activity.target?.affects?.count) {
+			if (requiresTargets && configSettings.enforceSingleWeaponTarget && allAttackTypes.includes(activity.actionType)) {
+				maxTargets = 1;
+			}
+		}
+		this.data = { actor, activity, user, targets: [], options, maxTargets };
 		const keys = {}; // TODO see if this needs to be set from the workflow event or let it get processed later
-		// Handle alt/ctrl etc keypresses when completing the dialog
+		// Handle alt/ctrl etc keypress when completing the dialog
 		this.callback = function (value) {
 			foundry.utils.setProperty(options, "workflowOptions.advantage", options.workflowOptions?.advantage);
 			foundry.utils.setProperty(options, "workflowOptions.disadvantage", options.workflowOptions?.disadvantage);
 			foundry.utils.setProperty(options, "workflowOptions.fastForward", options.workflowOptions?.fastForward);
 			return options.callback ? options.callback(value) : value;
 		};
-		if (["ceflanked", "ceflankedNoconga"].includes(checkRule("checkFlanking")) && game.user?.targets) {
+		if (["ceflanked", "ceflankedNoconga", "midiFlanked", "midiFlankedNoConga"].includes(checkRule("checkFlanking")) && game.user?.targets) {
 			const actor = this.data.activity.actor;
 			const token = tokenForActor(actor);
 			if (token)
@@ -32,14 +44,12 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 		this.hookId = Hooks.on("targetToken", (user, token, targeted) => {
 			if (user !== game.user)
 				return;
-			const maxTargets = this.data.activity.target?.affects?.count;
-			if (maxTargets && game.user.targets?.size > maxTargets)
-				ui.notifications?.warn(i18nFormat("midi-qol.wrongNumberTargets", { allowedTargets: maxTargets }));
+			if (this.data.maxTargets && game.user.targets?.size > this.data.maxTargets)
+				ui.notifications?.warn(i18nFormat("midi-qol.wrongNumberTargets", { allowedTargets: this.data.maxTargets }));
 			if (game.user.targets) {
 				const validTargets = [];
 				for (let target of game.user.targets) {
-					if (maxTargets && validTargets.length >= maxTargets)
-						break;
+					// if (maxTargets && validTargets.length >= maxTargets) break;
 					if (isValidTarget(target))
 						validTargets.push(target.id);
 				}
@@ -56,10 +66,8 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 	static get xPosition() {
 		const left = 100;
 		const middle = window.innerWidth / 2 - 155;
-		let adjustment = 10;
-		if ((game.release?.generation ?? 12) < 13)
-			adjustment = (ui.sidebar?.element.hasClass("collapsed") ? 10 : (ui.sidebar?.position.width ?? 300));
-		const right = window.innerWidth - 310 - adjustment;
+		let adjustment = 20;
+		const right = window.innerWidth - adjustment - (ui.sidebar?.element.clientWidth ?? 10) - 300;
 		switch (targetConfirmation.gridPosition?.x) {
 			case -1: return left;
 			case 0: return middle;
@@ -79,13 +87,15 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 		}
 	}
 	static PARTS = {
-		main: { template: "modules/midi-qol/templates/targetConfirmation.hbs" }
+		main: { template: "modules/midi-qol/templates/targetConfirmation.hbs" },
+		footer: { template: "templates/generic/form-footer.hbs" }
 	};
-	static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+	static DEFAULT_OPTIONS = {
 		id: "midi-qol-targetConfirmation",
 		window: {
 			title: "midi-qol.TargetConfirmation.Name",
-			resizable: true
+			resizable: true,
+			contentClasses: ["standard-form"]
 		},
 		classes: ["midi-targeting"],
 		position: {
@@ -93,38 +103,43 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 			height: "auto",
 			left: 100,
 			top: 100
+		},
+		actions: {
+			roll: this.#onRoll,
+			cancel: this.#onCancel,
+			clearTargets: this.#onClearTargets
 		}
-	}, { inplace: false });
+	};
 	async _prepareContext(options) {
-		let data = foundry.utils.mergeObject(this.data, await super._prepareContext(options));
+		let context = { ...this.data, ...await super._prepareContext(options) };
 		const targets = Array.from(game.user?.targets ?? []);
-		data.targets = [];
-		const maxTargets = this.data.activity.target?.affects?.count;
+		context.targets = [];
 		const actor = this.data.activity.actor;
 		const token = tokenForActor(actor);
 		for (let target of targets) {
-			if (maxTargets && data.targets.length >= maxTargets)
-				break;
+			// if (maxTargets && data.targets.length >= maxTargets) break;
 			switch (this.data.activity.target?.affects?.type ?? "any") {
 				case "enemy":
 					if ((token?.document?.disposition ?? 1) * target.document.disposition >= 0)
 						continue;
+					break;
 				case "ally":
 					if ((token?.document?.disposition ?? 1) * target.document.disposition < 0)
 						continue;
+					break;
 				default: break;
 			}
 			let img = target.document.texture.src;
-			if (VideoHelper.hasVideoExtension(img)) {
+			if (foundry.helpers.media.VideoHelper.hasVideoExtension(img)) {
 				img = await game.video?.createThumbnail(img, { width: 50, height: 50 }) ?? "";
 			}
 			let details = [];
 			if (["ceflanked", "ceflankedNoconga", "midiFlanked", "midiFlankedNoConga"].includes(checkRule("checkFlanking"))) {
-				if (token && computeFlankingStatus(token, target))
+				if (token && await computeFlankingStatus(token, target))
 					details.push((i18n("midi-qol.Flanked") ?? "Flanked"));
 			}
 			let attackerToken = token;
-			if (token && checkMechanic("checkRange") !== "none" && (["mwak", "msak", "mpak", "rwak", "rsak", "rpak"].includes(this.data.activity.actionType))) {
+			if (token && checkMechanic("checkRange") !== "none" && (["mwak", "msak", "mpak", "rwak", "rsak", "rpak", "utility", "check", "save", "damage"].includes(this.data.activity.actionType))) {
 				const { result, attackingToken } = checkActivityRange(this.data.activity, token, new Set([target]), false);
 				if (attackingToken)
 					attackerToken = attackingToken;
@@ -142,10 +157,8 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 			}
 			// TODO look at doing save cover bonus calculations here - need the template
 			if (typeof configSettings.optionalRules.coverCalculation === "string" && configSettings.optionalRules.coverCalculation !== "none") {
-				// TODO confirm this is right for auto template targeting.
-				const isRangeTargeting = ["ft", "m"].includes(this.data.activity.range?.units) && ["creature", "ally", "enemy"].includes(this.data.activity.target.affects.type);
-				if (!activityHasAreaTarget(this.data.activity) && !isRangeTargeting) {
-					const targetCover = attackerToken ? computeCoverBonus(attackerToken, target, this.data.activity.item) : 0;
+				if (!activityHasAreaTarget(this.data.activity)) {
+					const targetCover = attackerToken ? computeCoverBonus(attackerToken, target, this.data.activity) : 0;
 					switch (targetCover) {
 						case HALF_COVER:
 							details.push(`${i18n("DND5E.CoverHalf")} ${i18n("DND5E.Cover")}`);
@@ -164,13 +177,12 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 			}
 			let name;
 			if (game.user?.isGM) {
-				name = getIconFreeLink(target);
+				name = getTokenName(target);
 			}
 			else {
-				name = getTokenPlayerName(target);
+				name = getTokenPlayerName(target) ?? "";
 			}
-			//@ts-expect-error .disposition
-			const relativeDisposition = token?.document.disposition * target.document.disposition;
+			const relativeDisposition = (token?.document.disposition ?? 0) * target.document.disposition;
 			let displayedDisposition = undefined;
 			if (target.document.disposition !== CONST.TOKEN_DISPOSITIONS.SECRET) {
 				if (relativeDisposition === CONST.TOKEN_DISPOSITIONS.FRIENDLY) {
@@ -181,7 +193,7 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 				displayedDisposition = i18n("TOKEN.DISPOSITION.HOSTILE");
 				}*/
 			}
-			data.targets.push({
+			context.targets.push({
 				name, // : name: game.user.isGM ? getLinkText(target.actor) : getTokenPlayerName(target),
 				img,
 				displayedDisposition,
@@ -191,31 +203,47 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 			});
 		}
 		if (this.data.activity.target) {
-			if (this.data.activity.target.affects.count)
-				data.blurb = i18nFormat("midi-qol.TargetConfirmation.Blurb", { targetCount: this.data.activity.target.affects.count ?? "any", targetType: this.data.activity.target.affects.type ?? "targets" });
+			if (this.data.maxTargets)
+				context.blurb = i18nFormat("midi-qol.TargetConfirmation.Blurb", { targetCount: this.data.maxTargets, targetType: this.data.activity.target.affects.type || "targets" });
 			else
-				data.blurb = i18n("midi-qol.TargetConfirmation.BlurbAny");
+				context.blurb = i18n("midi-qol.TargetConfirmation.BlurbAny");
 		}
-		return data;
+		context.buttons = [
+			{ type: "button", icon: "fa-solid fa-dice-d20", label: "DND5E.Roll", action: "roll" },
+			{ type: "button", icon: "fa-solid fa-stop", label: "Cancel", action: "cancel" },
+			{ type: "hidden", icon: "fa-solid fa-check", label: "Clear", action: "clearTargets" }
+		];
+		return context;
+	}
+	static #onRoll() {
+		if (this.data.maxTargets && (game.user?.targets?.size ?? 0) > this.data.maxTargets) {
+			ui.notifications?.warn(i18nFormat("midi-qol.wrongNumberTargets", { allowedTargets: this.data.maxTargets }));
+			return;
+		}
+		this.doCallback(true);
+		this.close();
+	}
+	static #onCancel() {
+		this.doCallback(false);
+		this.close();
+	}
+	static #onClearTargets() {
+		updateUserTargets([]);
+		this.data.targets = [];
+		this.render();
 	}
 	async _onRender(context, options) {
 		await super._onRender(context, options);
-		this.element.querySelector(".midi-roll-confirm")?.addEventListener("click", () => {
-			this.doCallback(true);
-			this.close();
-		});
-		this.element.querySelector(".midi-roll-cancel")?.addEventListener("click", () => {
-			this.doCallback(false);
-			this.close();
-		});
 		if (canvas) {
+			// TODO: This doing anything? 
 			let targetNames = this.element.getElementsByClassName("content-link midi-qol");
 			for (let targetName of Array.from(targetNames)) {
 				targetName.addEventListener("click", async (event) => {
 					event.stopPropagation();
 					// @ts-expect-error
 					const doc = await fromUuid(event.currentTarget?.dataset.uuid);
-					return doc?.sheet.render({ force: true });
+					//@ts-expect-error render not updated for v2 parameters
+					return doc?.sheet?.render({ force: true });
 				});
 			}
 			let imgs = this.element.getElementsByTagName("img");
@@ -231,8 +259,7 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 				i.closest(".midi-qol-box")?.addEventListener('click', async function () {
 					const token = getToken(i.id);
 					if (token)
-						await canvas?.ping(token.center);
-					console.error("ping");
+						await canvas.ping(token.center);
 				});
 				i.closest(".midi-qol-box")?.addEventListener('mouseover', function () {
 					const token = getToken(i.id);
@@ -266,6 +293,5 @@ export class TargetConfirmationDialog extends HandlebarsApplicationMixin(Applica
 			TroubleShooter.recordError(err, message);
 			error(message, err);
 		}
-		this.callback = undefined;
 	}
 }

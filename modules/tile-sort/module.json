@@ -1,7 +1,7 @@
 {
     "title": "Tile Sort",
     "description": "Manage Z-index of tiles",
-    "version": "2.0",
+    "version": "3.0.0",
     "authors": [
         {
             "name": "theripper93",
@@ -26,7 +26,7 @@
     ],
     "url": "https://github.com/theripper93/tile-sort",
     "manifest": "https://github.com/theripper93/tile-sort/releases/latest/download/module.json",
-    "download": "https://github.com/theripper93/tile-sort/releases/download/2.0/module.zip",
+    "download": "https://github.com/theripper93/tile-sort/releases/download/3.0.0/module.zip",
     "socket": true,
     "id": "tile-sort",
     "relationships": {
@@ -39,7 +39,7 @@
         ]
     },
     "compatibility": {
-        "minimum": "12",
-        "verified": "12"
+        "minimum": "13",
+        "verified": "13"
     }
 }

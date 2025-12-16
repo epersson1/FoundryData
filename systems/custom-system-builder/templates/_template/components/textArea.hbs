@@ -1,28 +1,26 @@
-{{! Copyright 2024 Jean-Baptiste Louvet-Daniel
-   - 
+{{! Author: Jean-Baptiste Louvet-Daniel
+   -
    - This Source Code Form is subject to the terms of the Mozilla Public
-   - License, v\. 2\.0\. If a copy of the MPL was not distributed with this
-   - file, You can obtain one at https://mozilla\.org/MPL/2\.0/\. }}
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla.org/MPL/2.0/. }}
 
 <div class='custom-system-form-field'>
-    <label for='textAreaLabel'>{{localize 'CSB.ComponentProperties.InputComponent.Label'}}</label>
-    <input id='textAreaLabel' type='text' data-key='label' value='{{label}}' />
+    <label for='textAreaLabel-{{appId}}'>{{localize 'CSB.ComponentProperties.InputComponent.Label'}}</label>
+    <input id='textAreaLabel-{{appId}}' type='text' data-key='label' name='label' value='{{label}}' />
 </div>
 
 <div class='custom-system-form-field'>
-    <label for='textAreaStyle'>{{localize 'CSB.ComponentProperties.TextArea.Style.SectionTitle'}}*</label>
-    <select id='textAreaStyle' data-key='style'>
+    <label for='textAreaStyle-{{appId}}'>{{localize 'CSB.ComponentProperties.TextArea.Style.SectionTitle'}}*</label>
+    <select id='textAreaStyle-{{appId}}' data-key='style' name='textAreaStyle'>
         {{selectOptions RICH_TEXT_AREA_STYLES selected=style localize=true}}
     </select>
 </div>
 
 <div class='custom-system-form-field'>
-    <label for='textAreaValue'>{{localize 'CSB.ComponentProperties.DefaultValue'}}
+    <label for='textAreaValue-{{appId}}'>{{localize 'CSB.ComponentProperties.DefaultValue'}}
         {{> icon-formula}}
-        {{> icon-info title=(localize "CSB.ComponentProperties.AllowFormulaCreateTimeOnly")}}
+        {{> icon-info title=(localize 'CSB.ComponentProperties.AllowFormulaCreateTimeOnly')}}
     </label>
-    <div class="custom-system-dialog-editor editor prosemirror">
-        <div id='textAreaValue' class="editor-content" data-key='defaultValue'></div>
-    </div>
-    <textarea id="textAreaPreviousValue" style="display: none;">{{defaultValue}}</textarea>
+
+    <prose-mirror id='textAreaValue-{{appId}}' name='textAreaValue' value='{{defaultValue}}'></prose-mirror>
 </div>

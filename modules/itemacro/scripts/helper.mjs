@@ -76,7 +76,12 @@ export class helper {
 
 
       if (app && !app.isEditable) return;
-      let itemImages = html.find(str);
+      let itemImages = [];
+      if (html.find) {
+        itemImages = html.find(str);
+      } else {
+        itemImages = html.querySelectorAll(str);
+      }
 
       logger.debug("changeButtonExecution | ", {app, html, str, itemImages});
 
@@ -108,6 +113,7 @@ export class helper {
           img.off();
           img.click((event) => {
             logger.debug("Img Click | ", img, event);
+            event.stopPropagation();
             item.executeMacro({event});
           });
         }

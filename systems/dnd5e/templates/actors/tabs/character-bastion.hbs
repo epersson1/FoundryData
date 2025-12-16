@@ -1,4 +1,4 @@
-<div class="tab bastion" data-group="primary" data-tab="bastion">
+<section class="tab {{ tab.cssClass }}" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
 
     {{!-- Name --}}
     <section class="name">
@@ -15,12 +15,12 @@
         {{!-- Roster --}}
         <section class="roster">
             <h3 class="icon">
-                <i class="fas fa-shield"></i>
+                <i class="fas fa-shield" inert></i>
                 <span class="roboto-upper">{{ localize "DND5E.FACILITY.FIELDS.defenders.max.label" }}</span>
             </h3>
             <ul class="unlist">
             {{#each defenders}}
-            <li class="defender" data-action="viewOccupant" data-actor-uuid="{{ uuid }}" data-tooltip="{{ name }}"
+            <li class="defender" data-action="showDocument" data-uuid="{{ uuid }}" data-tooltip="{{ name }}"
                 data-facility-id="{{ facility }}" data-prop="system.defenders" data-index="{{ @key }}">
                 <img src="{{ img }}" alt="{{ name }}">
                 {{#if @root.editable}}
@@ -41,7 +41,7 @@
         {{!-- Basic Facilities --}}
         <section class="facilities basic">
             <h3 class="icon">
-                <i class="fas fa-chess-rook"></i>
+                <i class="fas fa-chess-rook" inert></i>
                 <span class="roboto-upper">{{ localize "DND5E.FACILITY.Types.Basic.Label.other" }}</span>
             </h3>
             <ul class="unlist">
@@ -49,7 +49,8 @@
                     {{> ".facility" }}
                 {{/each}}
                 {{#each facilities.basic.available}}
-                <li class="facility empty roboto-upper" data-action="addFacility" data-type="basic">
+                <li class="facility empty roboto-upper" data-action="findItem" data-item-type="facility"
+                    data-facility-type="basic">
                     {{ localize label }}
                 </li>
                 {{/each}}
@@ -60,7 +61,7 @@
         {{#with facilities.special}}
         <section class="facilities special">
             <h3 class="icon">
-                <i class="fas fa-building-columns"></i>
+                <i class="fas fa-building-columns" inert></i>
                 <span class="roboto-upper">{{ localize "DND5E.FACILITY.Types.Special.Label.other" }}</span>
                 <span class="counter">{{ value }} &sol; {{ max }}</span>
             </h3>
@@ -69,7 +70,8 @@
                     {{> ".facility" }}
                 {{/each}}
                 {{#each available}}
-                <li class="facility empty roboto-upper" data-action="addFacility" data-type="special">
+                <li class="facility empty roboto-upper" data-action="findItem" data-item-type="facility"
+                    data-facility-type="special">
                     {{ localize label }}
                 </li>
                 {{/each}}
@@ -86,14 +88,20 @@
             <dnd5e-icon src="systems/dnd5e/icons/svg/ink-pot.svg"></dnd5e-icon>
             <span class="roboto-upper">{{ localize "DND5E.FACILITY.Description" }}</span>
         </h3>
-        {{ editor bastion.description target="system.bastion.description" button=false editable=editable
-                  engine="prosemirror" collaborate=false }}
+        {{#if editable}}
+        <prose-mirror name="system.bastion.description" value="{{ source.bastion.description }}"
+                      document-uuid="{{ actor.uuid }}"></prose-mirror>
+        {{else}}
+        <div class="editor">
+            <div class="editor-content">{{{ bastion.description }}}</div>
+        </div>
+        {{/if}}
     </section>
 
-</div>
+</section>
 
 {{#*inline ".facility"}}
-<li class="facility {{#unless building.built}}building{{/unless}} {{#if disabled}}disabled{{/if}}"
+<li class="facility {{#unless building.built}}building{{/unless}} {{#if disabled}}damaged{{/if}}"
     data-item-id="{{ id }}" data-facility-id="{{ id }}" style="--underlay: url('{{ img }}')">
     {{#if (and progress.max executing)}}
     <div class="facility-progress meter progress" role="meter" aria-valuemin="0" aria-valuenow="{{ progress.pct }}"
@@ -107,7 +115,7 @@
     </div>
     {{/if}}
     <div class="facility-header">
-        <div class="name-stacked {{ @root.rollableClass }}" data-action="useFacility">
+        <div class="name-stacked {{ ifThen disabled '' @root.rollableClass }}" data-action="useFacility">
             <span class="title">{{ name }}</span>
             <span class="subtitle">{{{ subtitle }}}</span>
         </div>
@@ -129,21 +137,21 @@
     {{#if hirelings.length}}
     <div class="slots facility-occupants hirelings" data-prop="system.hirelings">
         {{#each hirelings}}
-            {{> ".occupant" type="hireling" index=@key }}
+            {{> ".occupant" type="hireling" }}
         {{/each}}
     </div>
     {{/if}}
     {{#if defenders.length}}
     <div class="slots facility-occupants defenders" data-prop="system.defenders">
         {{#each defenders}}
-            {{> ".occupant" type="defender" index=@key }}
+            {{> ".occupant" type="defender" }}
         {{/each}}
     </div>
     {{/if}}
     {{#if creatures.length}}
     <div class="slots facility-occupants creatures" data-prop="system.trade.creatures">
         {{#each creatures}}
-            {{> ".occupant" type="creature" index=@key }}
+            {{> ".occupant" type="creature" }}
         {{/each}}
     </div>
     {{/if}}
@@ -151,14 +159,19 @@
 {{/inline}}
 
 {{#*inline ".occupant"}}
-<div {{#if actor}}data-actor-uuid="{{ actor.uuid }}" data-action="viewOccupant"{{/if}}
-      class="slot occupant-slot {{ type }} {{#if empty}}empty{{/if}}" data-index="{{ index }}">
+<div {{#if actor}}data-uuid="{{ actor.uuid }}" data-action="showDocument"{{/if}}
+      class="slot occupant-slot {{ type }} {{#if empty}}empty{{/if}} {{#if pending}}pending{{/if}}"
+      data-index="{{ index }}" {{#if pending}}data-tooltip="{{ localize "DND5E.Bastion.Trade.Pending" }}"{{/if}}>
     {{#if actor}}
+    {{#unless pending}}
     <img src="{{ actor.img }}" alt="{{ actor.name }}">
+    {{/unless}}
+    {{/if}}
     {{#if @root.editable}}
+    {{#if (or actor pending)}}
     <a class="deletion-control" data-action="deleteOccupant"
        aria-label="{{ localize "DND5E.FACILITY.Action.DeleteOccupant" }}">
-        <i class="fas fa-circle-xmark"></i>
+        <i class="fas fa-circle-xmark" inert></i>
     </a>
     {{/if}}
     {{/if}}

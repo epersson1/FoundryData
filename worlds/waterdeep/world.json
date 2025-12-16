@@ -3,14 +3,14 @@
   "id": "waterdeep",
   "system": "dnd5e",
   "joinTheme": "default",
-  "coreVersion": "12.331",
+  "coreVersion": "13.351",
   "compatibility": {
-    "minimum": "12",
-    "verified": "12"
+    "minimum": "13",
+    "verified": "13.351"
   },
-  "systemVersion": "4.3.6",
-  "lastPlayed": "Sun Apr 13 2025 22:07:56 GMT-0400 (Eastern Daylight Time)",
-  "playtime": 39677,
+  "systemVersion": "5.2.2",
+  "lastPlayed": "Thu Dec 04 2025 20:50:13 GMT-0500 (Eastern Standard Time)",
+  "playtime": 77328,
   "packs": [
     {
       "type": "Item",
@@ -48,5 +48,8 @@
       },
       "flags": {}
     }
-  ]
+  ],
+  "safeMode": false,
+  "description": "",
+  "flags": {}
 }

@@ -1,12 +1,11 @@
 {
     "id": "pause-text",
-    "name": "pause-text",
     "title": "Alternative Pause Text",
     "description": "Set the pause message to a list of messages, whatever you prefer. Can be synced between players. You can also change the image. Supported formats are jpg, png, webp and gif. Forked from pause-icon.",
-    "version": "2.1.3",
+    "version": "3.3.0",
     "compatibility": {
-        "minimum": 10,
-        "verified": 12
+        "minimum": 13,
+        "verified": 13
     },
     "authors": [
         {
@@ -44,9 +43,8 @@
     },
     "esmodules": [
         "scripts/messages.js",
-        "scripts/script.js"
+        "scripts/main.js"
     ],
-    "scripts": [],
     "styles": [
         "styles/pt-config.css"
     ],
@@ -74,7 +72,7 @@
     ],
     "url": "https://github.com/Zombiefleischer/pause-text",
     "manifest": "https://github.com/Zombiefleischer/pause-text/releases/latest/download/module.json",
-    "download": "https://github.com/Zombiefleischer/pause-text/releases/download/v2.1.3/module.zip",
+    "download": "https://github.com/Zombiefleischer/pause-text/releases/download/v3.3.0/module.zip",
     "readme": "https://github.com/Zombiefleischer/pause-text/blob/master/README.md",
     "license": "https://github.com/mouse0270/Zombiefleischer/pause-text/blob/master/LICENSE",
     "bugs": "https://github.com/Zombiefleischer/pause-text/issues"

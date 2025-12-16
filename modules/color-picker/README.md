@@ -11,62 +11,38 @@ This module uses a modified version of the [jscolor](https://github.com/EastDesi
 For info about **jscolor** Color Picker, see the [jscolor website](https://jscolor.com).
 
 # How to Use
-## Register a Module Setting
-As with FoundryVTT's [ClientSettings.register](https://foundryvtt.com/api/ClientSettings.html#register) function, use the `ColorPicker.register(module, key, {settingOptions}, {pickerOptions})` function to register a new color picker setting for a module. `module` is the ID of the module, `key` is the name of the setting, `{settingOptions}` is a comma-separated list of options related to the `ClientSettings.register` function (see Setting Options) and `{pickerOptions}` is a comma-separated list of options for the picker (see Picker Options).
+## Registering a Setting
+To create a setting that works as a color picker, you just need to set the type on the setting to be `new game.colorPicker.ColorPickerField()`.
 
-## Setting Options
-### **name**
-The name of the setting for end users.
+Example:
+```
+game.settings.register("your-module", "your-setting-key", {
+    name: "Your Cool Color",
+    hint: "This color is used for cool stuff",
+    scope: "client",
+    config: true,
+    type: new game.colorPicker.ColorPickerField(),
+});
+```
+You can optionally provide the [picker options](#Picker-Options) you wish to use like so:
 
-Example: `name: 'Background Color'`
+```type: new game.colorPicker.ColorPickerField({ format: "hex", height: 200 })```
 
-### **hint**
-The description of the registered setting and its behavior.
+## In a Handlebars Template
+To use the color picker in any hbs template file (the most common use case being a settings menu), provide the type through the data context with `new game.colorPicker.ColorPickerField()` as above. Then just use either the formInput or formGroup helper. You can learn more about those helpers on the [community wiki](https://foundryvtt.wiki/en/development/api/helpers).
 
-Example: `hint: 'Set the background color'`
+Picker options are passed in a string format similar to inline CSS: `pickerOptions="required: false; alphaChannel: true; format: 'hexa';"` 
 
-### **default**
-The default color value, e.g., `'#FF0000FF'` for opaque red. If unset, the default is `'#FFFFFFFF'`.
+Example:
 
-Example: `default: '#FF0000FF'`
-
-### **scope**
-The scope of the setting: 
-- **'client':** The setting affects only the client.
-- **'world':** The setting affects all clients.
-
-Example: `scope: 'world'`
-
-### **config**
-Whether to display the setting in the configuration view. If set to `false`, the color picker will not be available. Default is `true`.
-
-Example: `config: false`
-
-## Module Setting Examples
-````
-ColorPicker.register(
-  'my-module',
-  'background-color', 
-  {
-    name: 'Background Color',
-    hint: 'Set the background color'
-    scope: 'world',
-    config: true
-  },
-  {
-    format: 'hexa',
-    alphaChannel: true
-  }
-)
-````
-## Add an Input
-1. Add the following html to your template file: 
-   ````
-   <input type="text" data-color-picker="{pickerOptions}" value="">
-   ````
-   - *`pickerOptions` is a list of comma-separated options in the format: `option: value`. See "Picker Options" for a list of options*
-   - *`type` does not need to be defined, but Foundry VTT will automatically format the element if it is included.*
-2. Add `ColorPicker.install()` to your script after the template is rendered.
+In `_prepareContext()` of ApplicationV2 class:
+```
+return { colorPickerField: new game.colorPicker.ColorPickerField() };
+```
+In Handlebars template:
+```
+{{formInput colorPickerField value=innerColor name="innerColor" id="innerColor" pickerOptions="required: false; alphaChannel: true; format: 'hexa';"}}
+```
 
 # Picker Options
 ### **alpha**
@@ -89,7 +65,7 @@ The DOM element that will be used to edit and display the alpha value (opacity).
 ### **backgroundColor**
 The background color of the color picker (in CSS color notation). Default is `'rgba(255, 255, 255, 1)'`.
 
-Example: `backgroundColor: 'rgba(218, 216, 204, 1`
+Example: `backgroundColor: 'rgba(218, 216, 204, 1)`
 
 ### **borderColor**
 The border color of the color picker (in CSS color notation). Default is `'rgba(187, 187, 187 ,1)'`.
@@ -336,3 +312,65 @@ Example: `width: 200`
 The z-index of the color picker box. Default is `5000`.
 
 Example: `zIndex: 1`
+
+
+# The Old Way
+> [!CAUTION]
+> It's recommended to use the ColorPickerField directly as described above. The old method remains functional for the time being but mostly as a way to keep existing modules working. This may be deprecated in the future.
+
+## Register a Module Setting
+As with FoundryVTT's [ClientSettings.register](https://foundryvtt.com/api/ClientSettings.html#register) function, use the `ColorPicker.register(module, key, {settingOptions}, {pickerOptions})` function to register a new color picker setting for a module. `module` is the ID of the module, `key` is the name of the setting, `{settingOptions}` is a comma-separated list of options related to the `ClientSettings.register` function (see [Setting Options](#Setting-Options)) and `{pickerOptions}` is a comma-separated list of options for the picker (see [Picker Options](#Picker-Options)).
+
+## Setting Options
+### **name**
+The name of the setting for end users.
+
+Example: `name: 'Background Color'`
+
+### **hint**
+The description of the registered setting and its behavior.
+
+Example: `hint: 'Set the background color'`
+
+### **default**
+The default color value, e.g., `'#FF0000FF'` for opaque red. If unset, the default is `'#FFFFFFFF'`.
+
+Example: `default: '#FF0000FF'`
+
+### **scope**
+The scope of the setting:
+- **'client':** The setting affects only the client.
+- **'world':** The setting affects all clients.
+
+Example: `scope: 'world'`
+
+### **config**
+Whether to display the setting in the configuration view. If set to `false`, the color picker will not be available. Default is `true`.
+
+Example: `config: false`
+
+## Module Setting Examples
+````
+ColorPicker.register(
+  'my-module',
+  'background-color',
+  {
+    name: 'Background Color',
+    hint: 'Set the background color'
+    scope: 'world',
+    config: true
+  },
+  {
+    format: 'hexa',
+    alphaChannel: true
+  }
+)
+````
+## Add an Input
+1. Add the following html to your template file:
+   ````
+   <input type="text" data-color-picker="{pickerOptions}" value="">
+   ````
+   - *`pickerOptions` is a list of comma-separated options in the format: `option: value`. See "Picker Options" for a list of options*
+   - *`type` does not need to be defined, but Foundry VTT will automatically format the element if it is included.*
+2. Add `ColorPicker.install()` to your script after the template is rendered.

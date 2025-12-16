@@ -1,0 +1,12 @@
+<section>
+    {{#each statuses}}
+    <div class="form-group">
+        <label>
+            <input type="checkbox" name="{{this.statusId}}" checked />
+            {{this.label}}
+        </label>
+    </div>
+    {{else}}
+    <p>{{localize "statuscounter.counterDefaults.none"}}</p>
+    {{/each}}
+</section>

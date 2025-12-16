@@ -1,22 +1,18 @@
-import { debugEnabled, geti18nOptions, i18n, warn } from "../../midi-qol.js";
+import { debugEnabled, GameSystemConfig, i18n, warn } from "../../midi-qol.js";
 import { Workflow } from "../Workflow.js";
-import { ReplaceDefaultActivities, configSettings } from "../settings.js";
+import { replaceDefaultActivities, autoCheckSavesOptions, configSettings } from "../settings.js";
 import { MidiActivityMixin, MidiActivityMixinSheet } from "./MidiActivityMixin.js";
 import { MidiSaveActivity } from "./SaveActivity.js";
 import { getSceneTargets } from "./activityHelpers.js";
-export var MidiCheckActivity;
-export var MidiCheckSheet;
-var CheckActivity;
+export let MidiCheckActivity;
+export let MidiCheckSheet;
 export function setupCheckActivity() {
 	if (debugEnabled > 0)
 		warn("MidiQOL | CheckActivity | setupCheckActivity | Called");
 	//@ts-expect-error
-	const GameSystemConfig = game.system.config;
-	CheckActivity = GameSystemConfig.activityTypes.check.documentClass;
-	//@ts-expect-error
 	MidiCheckSheet = defineMidiCheckSheetClass(game.system.applications.activity.CheckSheet);
-	MidiCheckActivity = defineMidiCheckActivityClass(CheckActivity);
-	if (ReplaceDefaultActivities) {
+	MidiCheckActivity = defineMidiCheckActivityClass(GameSystemConfig.activityTypes.check.documentClass);
+	if (replaceDefaultActivities) {
 		// GameSystemConfig.activityTypes["dnd5eAttack"] = GameSystemConfig.activityTypes.attack;
 		GameSystemConfig.activityTypes.check = { documentClass: MidiCheckActivity };
 	}
@@ -26,8 +22,8 @@ export function setupCheckActivity() {
 }
 let defineMidiCheckActivityClass = (ActivityClass) => {
 	return class MidiCheckActivity extends MidiActivityMixin(ActivityClass) {
-		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "DND5E.SAVE", "DND5E.CHECK", "midi-qol.CHECK"];
-		static supermetadata = super.metadata;
+		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.SAVE", "midi-qol.CHECK", "DND5E.DAMAGE"];
+		static superMetadata = super.metadata;
 		static metadata = foundry.utils.mergeObject(super.metadata, {
 			title: configSettings.activityNamePrefix ? "midi-qol.CHECK.Title.one" : ActivityClass.metadata.title,
 			dnd5eTitle: ActivityClass.metadata.title,
@@ -35,30 +31,52 @@ let defineMidiCheckActivityClass = (ActivityClass) => {
 			usage: {
 				chatCard: "modules/midi-qol/templates/activity-card.hbs",
 				actions: {
-					// rollCheck: MidiCheckActivity.#rollCheck, Having this means having to track CheckActivity.#rollCheck code changes
-					// Currently not needed as there is no workflow activity
+					rollCheck: MidiCheckActivity.#rollCheck, // Having this means having to track CheckActivity.#rollCheck code changes
+					// Needed so the workflow can be inserted
 					rollDamage: MidiSaveActivity.metadata.usage.actions.rollDamage,
 				}
 			},
-		}, { inplace: false, insertKeys: true, invsertValues: true });
+		}, { inplace: false, insertKeys: true, insertValues: true });
 		static defineSchema() {
 			const { StringField, ArrayField, BooleanField, SchemaField, ObjectField } = foundry.data.fields;
 			//@ts-expect-error
 			const dataModels = game.system.dataModels;
 			const { ActivationField: ActivationField, CreatureTypeField, CurrencyTemplate, DamageData, DamageField, DurationField, MovementField, RangeField, RollConfigField, SensesField, SourceField, TargetField, UsesField } = dataModels.shared;
+			const FormulaField = dataModels.fields.FormulaField;
 			const schema = {
 				...super.defineSchema(),
-				damage: new SchemaField({
-					onSave: new StringField({ name: "onSave", initial: "half" }),
-					parts: new ArrayField(new DamageField())
+				otherActivityId: new StringField({ name: "otherActivity", initial: "none" }),
+				otherActivityAsParentType: new BooleanField({
+					name: "otherActivityAsParentType",
+					initial: true,
+					required: false,
+					label: i18n("midi-qol.SHARED.FIELDS.otherActivityAsParentType.label"),
+					hint: i18n("midi-qol.SHARED.FIELDS.otherActivityAsParentType.hint")
 				}),
+				damage: new SchemaField({
+					onSave: new StringField({
+						initial: "half",
+						default: "half",
+						name: "onSave",
+						hint: i18n("DND5E.SAVE.FIELDS.damage.onSave.hint"),
+						label: i18n("DND5E.SAVE.FIELDS.damage.onSave.label")
+					}),
+					parts: new ArrayField(new DamageField()),
+					critical: new SchemaField({
+						allow: new BooleanField(),
+						bonus: new FormulaField(),
+					}),
+				}),
+				friendlySave: new StringField({ initial: "default", name: "friendlySave" })
 				// WIP
 				// saveDisplay: new StringField({initial: "default"}),
 			};
 			return schema;
 		}
 		static async #rollCheck(event, target, message) {
-			let workflow = message ? Workflow.getWorkflow(message._uuid) : null;
+			let workflow = message ? Workflow.getWorkflow(message.uuid) : null;
+			if (workflow)
+				workflow.activity = this;
 			// return ActivityClass.#rollCheck return ActivityClass.#rollCheck.bind(this)(event, target);
 			// Can't do this as it's private
 			const targets = getSceneTargets();
@@ -66,28 +84,45 @@ let defineMidiCheckActivityClass = (ActivityClass) => {
 				targets.push(game.user?.character);
 			if (!targets.length)
 				ui.notifications?.warn("DND5E.ActionWarningNoToken", { localize: true });
-			let { ability, dc, skill, tool } = target.dataset;
-			dc = parseInt(dc);
-			//@ts-expect-error this is bound to an activity instance. There are no dnd5e types so make it any
+			let { ability, dc: dcStr, skill, tool } = target.dataset;
+			let dc = parseInt(dcStr ?? "0");
 			const check = this.check;
-			//@ts-expect-error this is bound to an activity instance. There are no dnd5e types so make it any
 			const item = this.item;
 			const rollData = { event, target: Number.isFinite(dc) ? dc : check.dc.value };
-			if (ability in globalThis.dnd5e.config.abilities)
+			if (ability && (ability in globalThis.dnd5e.config.abilities))
 				rollData.ability = ability;
 			for (const token of targets) {
 				const actor = token instanceof Actor ? token : token.actor;
-				const speaker = ChatMessage.getSpeaker({ actor, scene: canvas?.scene, token: token instanceof Token ? token.document : null });
+				const speaker = ChatMessage.getSpeaker({ actor, scene: canvas.scene, token: token instanceof Token ? token.document : null });
 				const messageData = { data: { speaker } };
 				if (!actor)
 					continue;
+				if (["none", "allShow"].includes(configSettings.autoCheckSaves) || actor?.hasPlayerOwner)
+					messageData.rollMode = game.settings.get("core", "rollMode");
+				else
+					messageData.rollMode = CONST.DICE_ROLL_MODES.PRIVATE;
+				if (!game.user?.isGM) {
+					if (configSettings.playerRollSaves === "noneDialogPublic")
+						messageData.rollMode = CONST.DICE_ROLL_MODES.PUBLIC;
+					else if (configSettings.playerRollSaves === "noneDialogPrivate")
+						messageData.rollMode = CONST.DICE_ROLL_MODES.PRIVATE;
+					else if (configSettings.playerRollSaves === "noneDialogSelf")
+						messageData.rollMode = CONST.DICE_ROLL_MODES.SELF;
+					else if (configSettings.playerRollSaves === "noneDialogBlind")
+						messageData.rollMode = CONST.DICE_ROLL_MODES.BLIND;
+					else
+						messageData.rollMode = game.settings.get("core", "rollMode");
+				}
 				//@ts-expect-error no dnd5e types
 				if (skill)
 					await actor.rollSkill({ ...rollData, skill }, {}, messageData);
 				else if (tool) {
 					rollData.tool = tool;
+					// @ts-expect-error no dnd5e-types
 					if ((item.type === "tool") && !check.associated.size) {
+						// @ts-expect-error no dnd5e-types
 						rollData.bonus = item.system.bonus;
+						// @ts-expect-error no dnd5e-types
 						rollData.prof = item.system.prof;
 						rollData.item = item;
 					}
@@ -102,13 +137,18 @@ let defineMidiCheckActivityClass = (ActivityClass) => {
 		get possibleOtherActivity() {
 			return true;
 		}
+		get canUseOtherActivity() {
+			return true;
+		}
 		get isSelfTriggerableOnly() {
 			return false;
 		}
-		async rollDamage(config = {}, dialog = {}, message = {}) {
+		async _triggerSubsequentActions(config, results) {
+		}
+		async rollDamage(config, dialog = {}, message = {}) {
 			message = foundry.utils.mergeObject({
 				"data.flags.dnd5e.roll": {
-					damageOnSave: this.damage.onSave
+					damageOnSave: this.damage?.onSave
 				}
 			}, message);
 			return super.rollDamage(config, dialog, message);
@@ -138,7 +178,8 @@ export function defineMidiCheckSheetClass(baseClass) {
 				template: "modules/midi-qol/templates/activity/check-effect.hbs",
 				templates: [
 					...super.PARTS.effect.templates,
-					"systems/dnd5e/templates/activity/parts/save-damage.hbs",
+					"modules/midi-qol/templates/activity/parts/save-extras.hbs",
+					"modules/midi-qol/templates/activity/parts/save-damage.hbs",
 					"systems/dnd5e/templates/activity/parts/damage-part.hbs",
 					"systems/dnd5e/templates/activity/parts/damage-parts.hbs",
 				]
@@ -146,13 +187,18 @@ export function defineMidiCheckSheetClass(baseClass) {
 		};
 		async _prepareEffectContext(context) {
 			context = await super._prepareEffectContext(context);
+			context.FriendlySaveOptions = [
+				{ value: "default", label: i18n("midi-qol.SAVE.FriendlySave.Default") },
+				{ value: "friendlySuccess", label: i18n("midi-qol.SAVE.FriendlySave.FriendlySuccess") },
+				{ value: "friendlyFail", label: i18n("midi-qol.SAVE.FriendlySave.FriendlyFail") },
+			];
 			context.onSaveOptions = [
 				{ value: "none", label: i18n("DND5E.SAVE.FIELDS.damage.onSave.None") },
 				{ value: "half", label: i18n("DND5E.SAVE.FIELDS.damage.onSave.Half") },
 				{ value: "full", label: i18n("DND5E.SAVE.FIELDS.damage.onSave.Full") }
 			];
 			// WIP
-			let autoCheckOptions = foundry.utils.duplicate(geti18nOptions("autoCheckSavesOptions"));
+			let autoCheckOptions = foundry.utils.duplicate(autoCheckSavesOptions);
 			delete autoCheckOptions["none"];
 			context.SaveDisplayOptions = Object.keys(autoCheckOptions).reduce((acc, key) => {
 				acc.push({ value: key, label: autoCheckOptions[key] });

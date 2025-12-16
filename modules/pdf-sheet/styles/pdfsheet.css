@@ -1,0 +1,66 @@
+#pdf-sheet-form {
+  display: flex;
+  flex-direction: column;
+}
+
+#pdf-header {
+  display: flex;
+}
+
+#pdf-upload {
+  flex: 2;
+  margin: auto;
+}
+
+#pdf-download {
+  flex: 1;
+  font-size: 12px;
+}
+
+#pdf-export {
+  display: none;
+  position: absolute;
+  height: 40px;
+  width: 40px;
+  border-radius: 100px;
+  right: 20px;
+  bottom: 20px;
+  border: solid;
+  background-image: url(/ui/parchment.jpg);
+}
+
+/* Fix icon margin */
+#pdf-export .fas {
+  margin: 0;
+}
+
+#fieldList {
+  flex: 1;
+  list-style: none;
+  padding: 0;
+}
+
+#fieldList > li:first-child {
+  margin-top: 0;
+}
+
+#fieldList > li:last-child {
+  margin-bottom: 0;
+}
+
+#fieldList > li {
+  margin: 10px 0;
+  display: flex;
+}
+
+#fieldList > li > label {
+  flex: 1;
+  margin: auto;
+}
+
+#fieldList > li > textarea {
+  resize: vertical;
+  flex: 2;
+  min-height: 2em;
+  height: 2em;
+}

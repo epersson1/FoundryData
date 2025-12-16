@@ -1,5 +1,5 @@
-2025/04/06-19:58:27.085 3a9c Recovering log #211
-2025/04/06-19:58:27.085 3a9c Level-0 table #214: started
-2025/04/06-19:58:27.143 3a9c Level-0 table #214: 7010 bytes OK
-2025/04/06-19:58:27.309 3a9c Delete type=0 #211
-2025/04/06-19:58:27.309 3a9c Delete type=3 #210
+2025/12/04-20:35:32.437 37ec Recovering log #279
+2025/12/04-20:35:32.437 37ec Level-0 table #281: started
+2025/12/04-20:35:32.474 37ec Level-0 table #281: 5495 bytes OK
+2025/12/04-20:35:32.512 37ec Delete type=0 #279
+2025/12/04-20:35:32.512 37ec Delete type=3 #278

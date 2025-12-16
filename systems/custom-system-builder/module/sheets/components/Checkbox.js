@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,23 +9,25 @@
  * @ignore
  * @module
  */
-import InputComponent, { COMPONENT_SIZES } from './InputComponent.js';
-import { RequiredFieldError } from '../../errors/ComponentValidationError.js';
+import InputComponent from './InputComponent.js';
+import { COMPONENT_SIZES } from './SizedComponent.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
 /**
  * Checkbox component
  * @ignore
  */
 class Checkbox extends InputComponent {
+    static valueType = 'boolean';
+    /**
+     * Checkbox default state
+     */
+    _defaultChecked;
     /**
      * Checkbox constructor
      */
     constructor(props) {
         super(props);
-        /**
-         * Checkbox default state
-         */
-        this._defaultChecked = false;
-        this._defaultChecked = props.defaultChecked;
+        this._defaultChecked = props.defaultChecked ?? false;
     }
     /**
      * Renders component
@@ -41,23 +43,24 @@ class Checkbox extends InputComponent {
         jQElement.addClass('custom-system-checkbox');
         const inputElement = $('<input />');
         inputElement.attr('type', 'checkbox');
-        inputElement.attr('id', `${entity.uuid}-${this.key}`);
-        if (!entity.isTemplate) {
-            inputElement.attr('name', 'system.props.' + this.key);
-        }
+        inputElement.attr('id', this.getSluggedId(entity));
         const checkedStatus = foundry.utils.getProperty(props, this.key);
         const checked = checkedStatus || (checkedStatus === undefined && this._defaultChecked);
         if (checked) {
             inputElement.attr('checked', 'checked');
         }
-        if (!entity.isTemplate) {
-            foundry.utils.setProperty(entity.system.props, this.key, checked);
-        }
-        if (!isEditable) {
-            inputElement.attr('disabled', 'disabled');
-        }
         jQElement.append(inputElement);
-        if (entity.isTemplate) {
+        if (TemplateSystem.isAppliedTemplateSystem(entity)) {
+            inputElement.attr('name', 'system.props.' + this.key);
+            foundry.utils.setProperty(entity.system.props, this.key, checked);
+            if (!isEditable) {
+                inputElement.attr('disabled', 'disabled');
+            }
+        }
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
+            if (this._defaultChecked) {
+                inputElement.attr('checked', 'checked');
+            }
             jQElement.addClass('custom-system-editable-component');
             inputElement.addClass('custom-system-editable-field');
             jQElement.on('click', (ev) => {
@@ -67,6 +70,11 @@ class Checkbox extends InputComponent {
             });
         }
         return jQElement;
+    }
+    setDefaultValue(entity, _options = {}) {
+        if (foundry.utils.getProperty(entity.system.props, this.key) === undefined) {
+            foundry.utils.setProperty(entity.system.props, this.key, this._defaultChecked);
+        }
     }
     /**
      * Returns serialized component
@@ -83,18 +91,9 @@ class Checkbox extends InputComponent {
      */
     static fromJSON(json, templateAddress, parent) {
         return new Checkbox({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
-            label: json.label,
-            size: json.size,
-            customSize: json.customSize,
-            defaultChecked: json.defaultChecked,
-            cssClass: json.cssClass,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            ...json,
+            parent: parent,
+            templateAddress: templateAddress
         });
     }
     /**
@@ -117,23 +116,18 @@ class Checkbox extends InputComponent {
      * Get configuration form for component creation / edition
      * @returns The jQuery element holding the component
      */
-    static async getConfigForm(existingComponent, _entity) {
-        const mainElt = $('<div></div>');
-        mainElt.append(await renderTemplate(`systems/${game.system.id}/templates/_template/components/checkbox.hbs`, {
+    static async getConfigForm(_entity, appId, existingComponent) {
+        const mainElt = document.createElement('div');
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/components/checkbox.hbs`, {
             ...existingComponent,
-            COMPONENT_SIZES
-        }));
-        return mainElt;
-    }
-    /** Attaches event-listeners to the html of the config-form */
-    static attachListenersToConfigForm(html) {
-        $(html)
-            .find('#checkboxSize')
-            .on('change', (event) => {
-            const target = $(event.currentTarget);
-            const customSizeBlock = $('.custom-system-size-custom');
+            COMPONENT_SIZES,
+            appId
+        });
+        mainElt.querySelector('[name="size"]')?.addEventListener('change', (event) => {
+            const target = event.currentTarget;
+            const customSizeBlock = $(mainElt.querySelector('.custom-system-size-custom'));
             const slideValue = 200;
-            switch (target.val()) {
+            switch (target.value) {
                 case 'custom':
                     customSizeBlock.slideDown(slideValue);
                     break;
@@ -142,6 +136,7 @@ class Checkbox extends InputComponent {
                     break;
             }
         });
+        return mainElt;
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -149,27 +144,15 @@ class Checkbox extends InputComponent {
      * @returns The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
+    static extractConfig(rawConfigData, html) {
+        const configData = rawConfigData;
         const fieldData = {
-            ...super.extractConfig(html),
-            label: html.find('#checkboxLabel').val()?.toString(),
-            size: html.find('#checkboxSize').val()?.toString() ?? 'full-size',
-            defaultChecked: html.find('#checkboxDefaultChecked').is(':checked')
+            ...super.extractConfig(configData, html),
+            defaultChecked: configData.defaultChecked
         };
-        if (fieldData.size === 'custom') {
-            fieldData.customSize = parseInt(String(html.find('#checkboxCustomSize').val()));
-        }
-        this.validateConfig(fieldData);
         return fieldData;
     }
-    static validateConfig(json) {
-        super.validateConfig(json);
-        if (!json.key) {
-            throw new RequiredFieldError(game.i18n.localize('CSB.ComponentProperties.ComponentKey'), json);
-        }
-    }
 }
-Checkbox.valueType = 'boolean';
 /**
  * @ignore
  */

@@ -1,0 +1,67 @@
+{
+    "statuscounter": {
+        "rebindNumberKeys": {
+            "name": "キーを設定",
+            "hint": "状態異常アイコンを増やすときに使用するキーを上書きできます。"
+        },
+        "rebindMouseButtons": {
+            "name": "マウスボタン設定",
+            "hint": "左クリックで状態異常カウンターを増やす、右クリックでカウンターを減らすマウスの挙動を上書きできます。状態異常のコマ全体表示はShift+クリックで設定できます。A specific stack amount can be set with Alt + Left click。"
+        },
+        "multiSelect": {
+            "name": "Modify all selected tokens",
+            "hint": "Adjusts effects and counters for all selected tokens."
+        },
+        "displayOne": {
+            "name": "「1」表示",
+            "hint": "カウンターの数が1であることを数字で表示するタイミングを設定します。",
+            "always": "常に",
+            "countdown": "減らす時",
+            "never": "表示しない"
+        },
+        "counterFontSize": {
+            "name": "カウンター文字サイズ",
+            "hint": "カウンターの文字サイズを設定します。"
+        },
+        "counterColor": {
+            "name": "カウンター色",
+            "hint": "RRGGBBフォーマットの文字色を指定できます。"
+        },
+        "countdownColor": {
+            "name": "カウントダウン色",
+            "hint": "戦闘中のカウントダウンをRRGGBBフォーマットで指定できます。"
+        },
+        "counterDefaults": {
+            "name": "Reset defaults",
+            "hint": "Opens a dialog to reset default configurations for one or more status effects.",
+            "reset": "Reset selected effects",
+            "none": "There are no defaults configured."
+        },
+        "config": {
+            "title": "Counter configuration",
+            "value": "Amount",
+            "type": {
+                "name": "Type",
+                "default": "シンプル"
+            },
+            "durationType": {
+                "name": "Duration",
+                "hint": "Determines how the remaining duration of the effect is displayed.",
+                "none": "None",
+                "round": "ラウンド",
+                "turn": "ターン"
+            },
+            "localEffect": "Local effect {name} cannot be configured.",
+            "modifyDuration": {
+                "name": "Modify duration",
+                "hint": "Mouse and keyboard inputs for the token change the duration (instead of the amount)."
+            },
+            "multiplyEffect": {
+                "name": "Amplify effect",
+                "hint": "Multiplies the modifications of the effect with the amount of the counter. This only applies to additive and multiplicative modifiers."
+            },
+            "save": "Save",
+            "saveDefault": "Save as default for {status}"
+        }
+    }
+}

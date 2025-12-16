@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,10 +10,15 @@
  * @module
  */
 import Container from './Container.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
 /**
  * @ignore
  */
 class Tab extends Container {
+    /** Tab name */
+    _name;
+    static addWrapperOnTemplate = false;
+    static draggable = false;
     /** Tab constructor */
     constructor(props) {
         super(props);
@@ -41,7 +46,7 @@ class Tab extends Container {
         const mainPanelElement = $('<div></div>');
         mainPanelElement.addClass('flexcol flex-group-center');
         mainPanelElement.append(await this.renderContents(entity, isEditable, options));
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             mainPanelElement.append(await this.renderTemplateControls(entity));
         }
         jQElement.append(mainPanelElement);
@@ -80,15 +85,10 @@ class Tab extends Container {
     /** Creates Tab from JSON description */
     static fromJSON(json, templateAddress, parent) {
         const tab = new Tab({
-            name: json.name,
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
+            ...json,
             contents: [],
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            parent: parent,
+            templateAddress: templateAddress
         });
         tab._contents = componentFactory.createMultipleComponents(json.contents, templateAddress + '-contents', tab);
         return tab;
@@ -110,8 +110,6 @@ class Tab extends Container {
         return game.i18n.localize('CSB.ComponentProperties.ComponentType.Tab');
     }
 }
-Tab.addWrapperOnTemplate = false;
-Tab.draggable = false;
 /**
  * @ignore
  */

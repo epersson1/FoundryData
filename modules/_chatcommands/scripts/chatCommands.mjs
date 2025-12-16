@@ -26,11 +26,15 @@ class ChatCommands {
         game.chatCommands = new ChatCommands();
         game.modules.get("_chatcommands").api = game.chatCommands;
         Hooks.on("chatMessage", (chat, message, data) => game.chatCommands.handleMessage(chat, message, data));
-        Hooks.on('renderChatLog', (_, html) => {
-            const loader = document.createElement("div");
-            loader.id = "chatcommand-loading";
-            loader.dataset.active = 0;
-            html[0].querySelector("#chat-message").before(loader);
+        Hooks.on("moveChatInput", input => {
+            let loader = document.getElementById("chatcommand-loading");
+            if (!loader) {
+                loader = document.createElement("div");
+                loader.id = "chatcommand-loading";
+                loader.dataset.active = 0;
+            }
+
+            input.after(loader);
         });
     }
 
@@ -260,7 +264,7 @@ class ChatCommands {
         // Invoke the command with its parameters.
         let result = commandInfo.command.invoke(chat, commandInfo.parameters, messageData);
         if (result instanceof Promise) {
-            const loader = chat.element[0].querySelector("#chatcommand-loading");
+            const loader = document.getElementById("chatcommand-loading");
             loader.dataset.active++;
             result.then(r =>
                 this._resumeMessageHandling(chat, commandInfo.command, commandInfo.parameters, r ?? {}, messageData))

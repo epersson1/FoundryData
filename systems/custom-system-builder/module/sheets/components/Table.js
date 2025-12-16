@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,19 +10,45 @@
  * @module
  */
 import Label from './Label.js';
-import templateFunctions from '../template-functions.js';
 import Container from './Container.js';
 import { updateKeysOnCopy } from '../../utils.js';
 import { NotGreaterThanZeroError } from '../../errors/ComponentValidationError.js';
+import ComponentSettingsApplication from '../../applications/ComponentSettingsApplication.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
 /**
  * Table component
  * @ignore
  */
 class Table extends Container {
     /**
+     * Column count
+     * @type {Number}
+     * @private
+     */
+    _cols;
+    /**
+     * Row count
+     * @type {Number}
+     * @private
+     */
+    _rows;
+    /**
+     * Table layout
+     * @type {string|null}
+     * @private
+     */
+    _layout;
+    /**
+     * Table contents
+     * @override
+     * @type {Array<Array<Component>>}
+     * @private
+     */
+    _contents;
+    /**
      * Constructor
      * @param {Object} data Component data
-     * @param {string} data.key Component key
+     * @param {string} [data.key] Component key
      * @param {string|null} [data.tooltip] Component tooltip
      * @param {string} data.templateAddress Component address in template, i.e. component path from entity.system object
      * @param {Number} [data.cols=1] Column count
@@ -75,9 +101,13 @@ class Table extends Container {
             : baseElement.find('.custom-system-component-contents');
         let jQElement = $('<table></table>');
         let tableBody = $('<tbody></tbody>');
+        const ignoreCells = [];
         for (let rowNum = 0; rowNum < this._rows; rowNum++) {
             let tableRow = $('<tr></tr>');
             for (let colNum = 0; colNum < this._cols; colNum++) {
+                if (ignoreCells.includes(`${rowNum}-${colNum}`)) {
+                    continue;
+                }
                 let cellAlignment = this._layout ? this._layout.substr(colNum, 1) : 'l';
                 let cellClass;
                 switch (cellAlignment) {
@@ -95,11 +125,19 @@ class Table extends Container {
                 let cell = $('<td></td>');
                 cell.addClass(cellClass);
                 cell.addClass('custom-system-cell');
-                if (this.contents?.[rowNum]?.[colNum]) {
-                    cell.append(await this.contents[rowNum][colNum].render(entity, isEditable, options));
+                const component = this.contents?.[rowNum]?.[colNum];
+                if (component) {
+                    cell.append(await component.render(entity, isEditable, options));
+                    cell.attr('colspan', component.colSpan);
+                    cell.attr('rowspan', component.rowSpan);
+                    for (let rowSpan = rowNum; rowSpan <= rowNum + component.rowSpan - 1; rowSpan++) {
+                        for (let colSpan = colNum; colSpan <= colNum + component.colSpan - 1; colSpan++) {
+                            ignoreCells.push(`${rowSpan}-${colSpan}`);
+                        }
+                    }
                 }
                 else {
-                    if (entity.isTemplate) {
+                    if (TemplateSystem.isBuilderTemplateSystem(entity)) {
                         cell.append(await this.renderTemplateControls(entity, { rowNum, colNum }));
                     }
                     else {
@@ -127,13 +165,22 @@ class Table extends Container {
      * @param {Object} options Component options
      * @param {Number} options.rowNum New component's row number
      * @param {Number} options.colNum New component's col number
+     * @param {Component?} component Existing component
      */
-    openComponentEditor(entity, { rowNum, colNum }) {
-        // Open dialog to edit new component
-        templateFunctions.component((action, component) => {
-            // This is called on dialog validation
-            this.addNewComponent(entity, component, { rowNum, colNum });
-        }, { entity });
+    async openComponentEditor(entity, { rowNum, colNum, allowedComponents }, component) {
+        if (allowedComponents) {
+            allowedComponents = allowedComponents.filter((value) => entity.allowedComponents.includes(value));
+        }
+        else {
+            allowedComponents = entity.allowedComponents;
+        }
+        new ComponentSettingsApplication(entity, this, {
+            component,
+            allowedComponents,
+            options: { rowNum, colNum }
+        }).render({
+            force: true
+        });
     }
     /**
      * Adds new component to container, handling rowLayout
@@ -191,7 +238,8 @@ class Table extends Container {
         else {
             componentToAdd = components[0];
         }
-        this._contents[rowNum][colNum] = componentFactory.createOneComponent(componentToAdd);
+        this._contents[rowNum][colNum] = componentFactory.createOneComponent(componentToAdd, undefined, this);
+        this.recalculateAddresses(this.templateAddress);
         await this.save(entity);
     }
     deleteComponent(component) {
@@ -205,48 +253,13 @@ class Table extends Container {
     }
     replaceComponent(oldComponent, newComponent) {
         for (let i = 0; i < this._contents.length; i++) {
-            for (let j = 0; j < this._contents[i].length; j++) {
+            for (let j = 0; j < this._contents[i]?.length ?? 0; j++) {
                 if (this._contents[i][j] === oldComponent) {
-                    this._contents[i][j] = componentFactory.createOneComponent(newComponent);
+                    this._contents[i][j] = componentFactory.createOneComponent(newComponent, oldComponent.templateAddress, this);
                     return;
                 }
             }
         }
-    }
-    /**
-     * Returns an object of all the component's keys in the Container and their default value
-     * @param {TemplateSystem} entity The entity containing the Container
-     * @returns {Object}
-     */
-    getAllProperties(entity) {
-        let properties = { [this.propertyKey]: undefined };
-        for (let row of this.contents) {
-            if (row) {
-                for (let component of row) {
-                    if (component) {
-                        if (component instanceof Container) {
-                            properties = {
-                                ...properties,
-                                ...component.getAllProperties(entity)
-                            };
-                        }
-                        else {
-                            properties = {
-                                ...properties,
-                                [component.propertyKey]: component.defaultValue
-                                    ? ComputablePhrase.computeMessageStatic(component.defaultValue, entity.system.props, {
-                                        source: `${this.key}.${component.propertyKey}.defaultValue`,
-                                        defaultValue: '',
-                                        triggerEntity: entity
-                                    }).result
-                                    : undefined
-                            };
-                        }
-                    }
-                }
-            }
-        }
-        return properties;
     }
     getAllKeys() {
         let keys = [this.key];
@@ -268,6 +281,7 @@ class Table extends Container {
     }
     /**
      * @inheritdoc
+     * @returns {Record<string, Component>}
      */
     getComponentMap() {
         const componentMap /*: Record<string, Component>*/ = {};
@@ -286,6 +300,33 @@ class Table extends Container {
         return componentMap;
     }
     /**
+     * Go through the contents to get every property name in a flat array
+     * @override
+     */
+    getProperties() {
+        const properties = [];
+        for (let row of this.contents) {
+            if (row) {
+                for (let component of row) {
+                    if (component) {
+                        properties.push(...component.getProperties());
+                    }
+                }
+            }
+        }
+        return properties;
+    }
+    recalculateAddresses(newAddress) {
+        this._templateAddress = newAddress;
+        this.contents.forEach((row, rowIdx) => {
+            row.forEach((component, colIdx) => {
+                if (component) {
+                    component.recalculateAddresses(`${this.templateAddress}-contents-${rowIdx}-${colIdx}`);
+                }
+            });
+        });
+    }
+    /**
      * @typedef {ContainerJson} TableJson
      * @type {Object}
      * @property {number} cols
@@ -296,7 +337,7 @@ class Table extends Container {
     /**
      * Returns serialized component
      * @override
-     * @return {Object}
+     * @return {TableJson}
      */
     toJSON() {
         let jsonObj = super.toJSON();
@@ -330,18 +371,10 @@ class Table extends Container {
     static fromJSON(json, templateAddress, parent = null) {
         let tableContents = [];
         let table = new Table({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
-            cols: json.cols,
-            rows: json.rows,
-            layout: json.layout,
+            ...json,
             contents: tableContents,
-            cssClass: json.cssClass,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            parent: parent,
+            templateAddress: templateAddress
         });
         for (let [rowIdx, row] of (json.contents ?? []).entries()) {
             const rowContents = [];
@@ -375,30 +408,33 @@ class Table extends Container {
     }
     /**
      * Get configuration form for component creation / edition
-     * @param {TableJson?} existingComponent
+     * @param {TableJson & JSONObject} existingComponent
      * @param {TemplateSystem} entity
-     * @return {Promise<JQuery>} The jQuery element holding the component
+     * @return {Promise<HTMLElement>} The jQuery element holding the component
      */
-    static async getConfigForm(existingComponent, entity) {
+    static async getConfigForm(entity, appId, existingComponent) {
         const predefinedValues = { ...existingComponent };
         predefinedValues.rows = predefinedValues?.rows ?? 1;
         predefinedValues.cols = predefinedValues?.cols ?? 1;
-        let mainElt = $('<div></div>');
-        mainElt.append(await renderTemplate(`systems/${game.system.id}/templates/_template/components/table.hbs`, predefinedValues));
+        const mainElt = document.createElement('div');
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/components/table.hbs`, {
+            ...predefinedValues,
+            appId
+        });
         return mainElt;
     }
     /**
      * Extracts configuration from submitted HTML form
      * @override
-     * @param {JQuery} html The submitted form
+     * @param {HTMLElement} html The submitted form
      * @return {TableJson} The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
-        let fieldData = super.extractConfig(html);
-        fieldData.rows = Number(html.find('#tableRows').val());
-        fieldData.cols = Number(html.find('#tableCols').val());
-        fieldData.layout = html.find('#tableLayout').val();
+    static extractConfig(configData, html) {
+        let fieldData = super.extractConfig(configData, html);
+        fieldData.rows = configData.rows ?? 1;
+        fieldData.cols = configData.cols ?? 1;
+        fieldData.layout = configData.layout;
         return fieldData;
     }
     /**

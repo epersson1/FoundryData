@@ -25,7 +25,8 @@ const CONSTANTS = {
   DISPLAY_OPTIONS: {
     BOTTOM: 0,
     TOP: 1
-  }
+  },
+  CHARGES_SPENT_PATH: "system.uses.spent"
 };
 CONSTANTS.PATH = `modules/${CONSTANTS.MODULE_NAME}/`;
 const _Logger = class _Logger {
@@ -980,7 +981,7 @@ function isRealNumber(inNumber) {
 __name(isRealNumber, "isRealNumber");
 const _MagicItemHelpers = class _MagicItemHelpers {
   static isUsingNew5eSheet(sheet) {
-    return sheet?.constructor?.name === "ActorSheet5eCharacter2" || sheet?.constructor?.name === "ActorSheet5eNPC2";
+    return sheet?.constructor?.name === "ActorSheet5eCharacter2" || sheet?.constructor?.name === "ActorSheet5eNPC2" || sheet?.constructor?.name === "ItemSheet5e2";
   }
   static isMidiItemEffectWorkflowOn() {
     return game.modules.get("midi-qol")?.active && game.settings.get("midi-qol", "ConfigSettings")?.autoItemEffects !== "off";
@@ -1234,48 +1235,13 @@ const _AbstractMagicItemEntry = class _AbstractMagicItemEntry {
     return MagicItemHelpers.getEntityNameCompendiumWithBabele(this.pack, this.name);
   }
   async renderSheet() {
-    this.entity().then((entity) => {
-      entity.ownership.default = CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED;
-      const sheet = entity.sheet;
-      sheet.render(true);
-    });
+    let entity = await MagicItemHelpers.fetchEntity(this);
+    entity.ownership.default = CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED;
+    const sheet = entity.sheet;
+    sheet.render(true);
   }
-  entity() {
-    return new Promise((resolve, reject) => {
-      if (this.pack === "world") {
-        let entity = this.entityCls().collection?.instance?.get(this.id);
-        if (entity) {
-          resolve(entity);
-        } else {
-          Logger.warn(game.i18n.localize("MAGICITEMS.WarnNoMagicItemSpell") + this.name, true);
-          reject();
-        }
-      } else {
-        const pack2 = game.packs.find((p) => p.collection === this.pack);
-        if (!pack2) {
-          Logger.warn(`Cannot retrieve pack for if ${this.pack}`, true);
-        } else {
-          pack2.getDocument(this.id)?.then((entity) => {
-            if (entity) {
-              resolve(entity);
-            } else {
-              Logger.warn(game.i18n.localize("MAGICITEMS.WarnNoMagicItemSpell") + this.name, true);
-              reject();
-            }
-          });
-        }
-      }
-    });
-  }
-  entityCls() {
-    return CONFIG["Item"];
-  }
-  data() {
-    return new Promise((resolve) => {
-      this.entity().then((entity) => {
-        resolve(entity.toJSON());
-      });
-    });
+  async data() {
+    return await MagicItemHelpers.fetchEntity(this);
   }
 };
 __name(_AbstractMagicItemEntry, "AbstractMagicItemEntry");
@@ -1398,7 +1364,7 @@ const _MagicItemTable = class _MagicItemTable extends AbstractMagicItemEntry {
     return MagicItemHelpers.localized(MAGICITEMS.tableUsages);
   }
   async roll(actor) {
-    let entity = await this.entity();
+    let entity = await MagicItemHelpers.fetchEntity(this);
     let result = await entity.draw();
     if (result && result.results && result.results.length === 1 && result.results[0].collection) {
       const collectionId = result.results[0].documentCollection;
@@ -1743,16 +1709,23 @@ const _MagicItem = class _MagicItem {
   }
   async updateInternalCharges(isChecked, item) {
     let itemData = await RetrieveHelpers.getItemAsync(item);
-    const itemChargeData = itemData.system.uses;
-    if (isChecked && itemChargeData?.per) {
-      this.charges = itemChargeData.max;
-      this.uses = itemChargeData.value;
+    const itemUseData = itemData.system.uses;
+    if (isChecked && itemUseData.recovery?.length) {
+      let possibleRecoveries = itemUseData.recovery.filter(
+        (el, idx) => ["lr", "sr", "day", "dawn", "dusk"].includes(el.period)
+      );
+      let recovery;
+      if (possibleRecoveries?.length) {
+        recovery = possibleRecoveries[0];
+      }
+      this.charges = itemUseData.max;
+      this.uses = itemUseData.value;
       this.chargeType = MAGICITEMS.CHARGE_TYPE_WHOLE_ITEM;
       this.rechargeable = false;
-      this.recharge = itemChargeData.recovery;
-      this.rechargeType = this.chargesTypeCompatible(itemChargeData);
-      this.rechargeUnit = MAGICITEMS.RECHARGE_TRANSLATION[itemChargeData.per];
-    } else if (isChecked && !itemChargeData?.per) {
+      this.recharge = recovery.formula ?? 0;
+      this.rechargeType = this.chargesTypeCompatible(recovery);
+      this.rechargeUnit = MAGICITEMS.RECHARGE_TRANSLATION[recovery.period];
+    } else if (isChecked && !itemUseData.recovery.length) {
       this.charges = 0;
       this.uses = 0;
       this.chargeType = MAGICITEMS.CHARGE_TYPE_WHOLE_ITEM;
@@ -1761,10 +1734,15 @@ const _MagicItem = class _MagicItem {
       this.rechargeType = MAGICITEMS.NUMERIC_RECHARGE;
     }
   }
-  chargesTypeCompatible(chargeData) {
-    if (["lr", "sr", "day"].includes(chargeData.per)) {
+  /**
+   * Method to translate the way charges are handled into Magic Items charges
+   * @param {*} rechargeData
+   * @returns
+   */
+  chargesTypeCompatible(rechargeData) {
+    if (["lr", "sr", "day"].includes(rechargeData.period)) {
       return MAGICITEMS.FORMULA_FULL;
-    } else if (NumberUtils.parseIntOrGetDefault(chargeData.recovery, 0) !== 0) {
+    } else if (NumberUtils.parseIntOrGetDefault(rechargeData.formula, 0) !== 0) {
       return MAGICITEMS.NUMERIC_RECHARGE;
     } else {
       return MAGICITEMS.FORMULA_RECHARGE;
@@ -1776,7 +1754,7 @@ let MagicItem = _MagicItem;
 const magicItemTabs = [];
 const _MagicItemTab = class _MagicItemTab {
   static bind(app, html, item) {
-    if (_MagicItemTab.isAcceptedItemType(item.document)) {
+    if (_MagicItemTab.isAcceptedItemType(item.item)) {
       let tab = magicItemTabs[app.id];
       if (!tab) {
         tab = new _MagicItemTab(app);
@@ -1846,7 +1824,12 @@ const _MagicItemTab = class _MagicItemTab {
     };
   }
   async render(app) {
-    let template = await renderTemplate(`modules/${CONSTANTS.MODULE_ID}/templates/magic-item-tab.hbs`, this.magicItem);
+    let template = null;
+    if (_MagicItemTab.isUsingNew5eSheet(this.item)) {
+      template = await renderTemplate(`modules/${CONSTANTS.MODULE_ID}/templates/magic-item-tab-v2.hbs`, this.magicItem);
+    } else {
+      template = await renderTemplate(`modules/${CONSTANTS.MODULE_ID}/templates/magic-item-tab.hbs`, this.magicItem);
+    }
     let el = this.html.find(`.magicitems-content`);
     if (el.length) {
       el.replaceWith(template);
@@ -1966,15 +1949,6 @@ const _MagicItemTab = class _MagicItemTab {
         }
       });
     });
-    html.find("input[name='flags.magicitems.internal']").click(async (evt) => {
-      await magicItem.updateInternalCharges(evt.target.checked, item);
-      onMagicItemUpdatingCallback?.();
-      item.update({
-        flags: {
-          [CONSTANTS.MODULE_ID]: magicItem.serializeData()
-        }
-      });
-    });
     magicItem.spells.forEach((spell, idx) => {
       html.find(`a[data-spell-idx="${idx}"]`).click((evt) => {
         spell.renderSheet();
@@ -1999,6 +1973,9 @@ const _MagicItemTab = class _MagicItemTab {
   }
   static isAllowedToShow() {
     return game.user.isGM || !game.settings.get(CONSTANTS.MODULE_ID, "hideFromPlayers");
+  }
+  static isUsingNew5eSheet(item) {
+    return item?.sheet && MagicItemHelpers.isUsingNew5eSheet(item?.sheet);
   }
 };
 __name(_MagicItemTab, "MagicItemTab");
@@ -2097,49 +2074,56 @@ const _AbstractOwnedMagicItemEntry = class _AbstractOwnedMagicItemEntry {
     }
     return destroyed;
   }
-  showNoChargesMessage(callback) {
+  async showNoChargesMessage(callback) {
     const message = game.i18n.localize("MAGICITEMS.SheetNoChargesMessage");
-    const title = game.i18n.localize("MAGICITEMS.SheetDialogTitle");
-    let d = new Dialog({
-      title,
-      content: `<b>'${this.magicItem.name}'</b> - ${message} <b>'${this.item.name}'</b><br><br>`,
-      buttons: {
-        use: {
-          icon: '<i class="fas fa-check"></i>',
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title: game.i18n.localize("MAGICITEMS.SheetDialogTitle") },
+      content: `<p>
+                  <b>${this.magicItem.name}</b> - ${message} <b>${this.item.name}</b>
+                </p>`,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "use",
+          icon: "fas fa-check",
           label: game.i18n.localize("MAGICITEMS.SheetDialogUseAnyway"),
-          callback: () => callback()
+          callback: (event, button, dialog2) => callback()
         },
-        close: {
-          icon: '<i class="fas fa-times"></i>',
+        {
+          action: "close",
           label: game.i18n.localize("MAGICITEMS.SheetDialogClose"),
-          callback: () => d.close()
+          icon: "fas fa-times",
+          default: true,
+          callback: () => dialog.close()
         }
-      },
-      default: "close"
+      ]
     });
-    d.render(true);
+    dialog.render({ force: true });
   }
   activeEffectMessage(callback) {
     const message = game.i18n.localize("MAGICITEMS.ToggleActiveEffectDialogMessage");
     const title = game.i18n.localize("MAGICITEMS.ToggleActiveEffectDialogTitle");
-    let x = new Dialog({
-      title,
-      content: `${message}<br><br>`,
-      buttons: {
-        use: {
-          icon: '<i class="fas fa-check"></i>',
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title },
+      content: `<p>${message}</p>`,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "use",
+          icon: "fas fa-check",
           label: game.i18n.localize("MAGICITEMS.ToggleActiveEffectDialogYes"),
-          callback: () => callback()
+          callback: () => callback(),
+          default: true
         },
-        close: {
-          icon: '<i class="fas fa-times"></i>',
+        {
+          action: "close",
+          icon: "fas fa-times",
           label: game.i18n.localize("MAGICITEMS.ToggleActiveEffectDialogNo"),
-          callback: () => x.close()
+          callback: () => dialog.close()
         }
-      },
-      default: "use"
+      ]
     });
-    x.render(true);
+    dialog.render({ force: true });
   }
   async askSummonningMessage(summonOptions) {
     let html = await renderTemplate(
@@ -2333,7 +2317,8 @@ const _OwnedMagicItemSpell = class _OwnedMagicItemSpell extends AbstractOwnedMag
     let consumption = this.item.consumption;
     if (!this.ownedItem) {
       let data = await this.item.data();
-      if (typeof data.system.save.scaling === "undefined") {
+      let save = data.system.activities?.getByType("save");
+      if (!Array.isArray(save) || save.length === 0) {
         data = foundry.utils.mergeObject(data, {
           "system.save.scaling": "spell"
         });
@@ -2375,7 +2360,9 @@ const _OwnedMagicItemSpell = class _OwnedMagicItemSpell extends AbstractOwnedMag
     let proceed = /* @__PURE__ */ __name(async () => {
       let spell = this.ownedItem;
       let clonedOwnedItem = this.ownedItem;
-      let itemUseConfiguration = {};
+      let itemUseConfiguration = {
+        consumeSpellSlot: false
+      };
       if (MagicItemHelpers.canSummon() && (spell.system.summons?.creatureTypes?.length > 1 || spell.system.summons?.profiles?.length > 1)) {
         const sOptions = MagicItemHelpers.createSummoningOptions(spell);
         const summoningDialogResult = await this.askSummonningMessage(sOptions);
@@ -2405,7 +2392,6 @@ const _OwnedMagicItemSpell = class _OwnedMagicItemSpell extends AbstractOwnedMag
       }
       if (spell.effects?.size > 0 && !MagicItemHelpers.isMidiItemEffectWorkflowOn()) {
         spell = spell.clone({ effects: {} }, { keepId: true });
-        spell.prepareFinalAttributes();
       }
       let chatData = await spell.use(itemUseConfiguration, {
         configureDialog: false,
@@ -2429,7 +2415,7 @@ const _OwnedMagicItemSpell = class _OwnedMagicItemSpell extends AbstractOwnedMag
     if (this.hasCharges(consumption)) {
       await proceed();
     } else {
-      this.showNoChargesMessage(async () => {
+      await this.showNoChargesMessage(async () => {
         await proceed();
       });
     }
@@ -2527,14 +2513,17 @@ const _OwnedMagicItem = class _OwnedMagicItem extends MagicItem {
     await this.magicItemActor.destroyItem(this);
   }
   async consume(consumption) {
-    if (this.item.system.uses.value) {
+    if (this.internal && this.item.system.uses !== "undefined") {
       const usage = Math.max(this.item.system.uses.value - consumption, 0);
+      const spent = Math.max(this.item.system.uses.spent + consumption, 0);
       var embeddedDocument = await RetrieveHelpers.getItemAsync(this.item);
       embeddedDocument.update({
-        [CONSTANTS.CURRENT_CHARGES_PATH]: usage
+        [CONSTANTS.CURRENT_CHARGES_PATH]: usage,
+        [CONSTANTS.CHARGES_SPENT_PATH]: spent
       });
       this.uses = usage;
     } else if (this.uses) {
+      this.uses = Math.max(this.uses - consumption, 0);
       if (!this.item.system.uses.autoDestroy) {
         if (await this.destroyed()) {
           if (this.destroyType === MAGICITEMS.DESTROY_JUST_DESTROY) {
@@ -2640,7 +2629,7 @@ const _OwnedMagicItem = class _OwnedMagicItem extends MagicItem {
     } else {
       this.setUses(this.item.system.uses.value);
     }
-    this.update();
+    await this.update();
   }
   entryBy(itemId) {
     return this.ownedEntries.filter((entry) => entry.id === itemId)[0];
@@ -2656,7 +2645,7 @@ const _OwnedMagicItem = class _OwnedMagicItem extends MagicItem {
       this.removeSpell(this.spells.findIndex((spell) => spell.id === entry.id));
     }
   }
-  update() {
+  async update() {
     this.magicItemActor.suspendListening();
     this.item.update({
       flags: {
@@ -2671,11 +2660,17 @@ const _OwnedMagicItem = class _OwnedMagicItem extends MagicItem {
   }
   formatMessage(msg) {
     return `
-            <div class="dnd5e chat-card item-card">
-                <header class="card-header flexrow">
-                    <img src="${this.img}" title="Palla di Fuoco" width="36" height="36" />
-                    <h3 class="item-name">${this.name}</h3>
-                </header>
+            <div class="dnd5e2 chat-card midi-chat-card">
+                <section class="card-header description">
+                  <header class="summary">
+                    <img class="gold-icon" src="${this.img}" alt="${this.name}" />
+                    <div class="name-stacked border">
+                      <span class="title">
+                        ${this.name}
+                      </span>
+                    </div>
+                  </header>
+                </section>
 
                 <div class="card-content">${msg}</div>
             </div>`;
@@ -3003,14 +2998,14 @@ const _MagicItemSheet = class _MagicItemSheet {
    * @param html
    * @param data
    */
-  static bind(app, html, data) {
+  static async bind(app, html, data) {
     if (MagicItemActor.get(app.actor.id)) {
       let sheet = magicItemSheets[app.id];
       if (!sheet) {
         sheet = new _MagicItemSheet(app.actor.id);
         magicItemSheets[app.id] = sheet;
       }
-      sheet.init(html, data);
+      await sheet.init(html, data);
     }
   }
   /**
@@ -3020,7 +3015,7 @@ const _MagicItemSheet = class _MagicItemSheet {
    */
   constructor(actorId) {
     this.actor = MagicItemActor.get(actorId);
-    this.actor.onChange(() => this.render());
+    this.actor.onChange(async () => await this.render());
   }
   /**
    * Set the rendered html from the original sheet and render if the actor has magic items.
@@ -3028,11 +3023,11 @@ const _MagicItemSheet = class _MagicItemSheet {
    * @param html
    * @param data
    */
-  init(html, data) {
+  async init(html, data) {
     this.html = html;
     this.data = data;
     if (this.actor.hasMagicItems()) {
-      this.render();
+      await this.render();
     }
   }
   /**
@@ -3790,6 +3785,20 @@ Hooks.on(`renderItemSheet5e`, (app, html, data) => {
   }
   MagicItemTab.bind(app, html, data);
 });
+Hooks.on(`renderItemSheet5e2`, (app, html, data) => {
+  data.tabs.push({
+    classes: "item",
+    label: "Magic Items",
+    tab: "magicitems"
+  });
+  if (tidyApi?.isTidy5eItemSheet(app)) {
+    return;
+  }
+  if (!MagicItemTab.isAllowedToShow()) {
+    return;
+  }
+  MagicItemTab.bind(app, html, data);
+});
 Hooks.on(`renderActorSheet5eCharacter`, (app, html, data) => {
   if (tidyApi?.isTidy5eCharacterSheet(app)) {
     return;
@@ -3842,7 +3851,6 @@ Hooks.on("updateItem", async (item, change, options, userId) => {
       if (miItem) {
         await miItem.updateInternalCharges(item.flags.magicitems?.internal, item);
         miItem.rechargeableLabel = miItem.getRechargeableLabel();
-        miItem.update();
       }
     }
     if (miActor && miActor.listening && miActor.actor.id === actor.id) {
@@ -3875,6 +3883,13 @@ Hooks.on("preDeleteItem", async (item, options, userId) => {
   const actorEntity = item.actor;
   if (!actorEntity) {
     return;
+  }
+});
+Hooks.on("dnd5e.dropItemSheetData", (item, sheet, data) => {
+  const isOnMagicItemsTab = !!sheet.form?.querySelector(".active .magicitems-content");
+  const isItemType = data.type === "Item";
+  if (isOnMagicItemsTab && isItemType) {
+    return false;
   }
 });
 //# sourceMappingURL=module.js.map

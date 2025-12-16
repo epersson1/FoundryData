@@ -1,32 +1,27 @@
 import { i18n } from "../../midi-qol.js";
-import { configSettings, defaultTargetConfirmationSettings, targetConfirmation } from "../settings.js";
+import { defaultTargetConfirmationSettings, targetConfirmation } from "../settings.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 export class TargetConfirmationConfig extends HandlebarsApplicationMixin(ApplicationV2) {
-	gridMappings;
-	selectedPosition;
-	i;
-	constructor(options) {
-		super(options);
-		this.gridMappings = {
-			"midi-qol-grid1": { x: -1, y: -1 },
-			"midi-qol-grid2": { x: 0, y: -1 },
-			"midi-qol-grid3": { x: 1, y: -1 },
-			"midi-qol-grid4": { x: -1, y: 0 },
-			"midi-qol-grid5": { x: 0, y: 0 },
-			"midi-qol-grid6": { x: 1, y: 0 },
-			"midi-qol-grid7": { x: -1, y: 1 },
-			"midi-qol-grid8": { x: 0, y: 1 },
-			"midi-qol-grid9": { x: 1, y: 1 }
-		};
-		this.selectedPosition = targetConfirmation.gridPosition ?? foundry.utils.duplicate(defaultTargetConfirmationSettings.gridPosition);
-	}
+	gridMappings = {
+		"midi-qol-grid1": { x: -1, y: -1 },
+		"midi-qol-grid2": { x: 0, y: -1 },
+		"midi-qol-grid3": { x: 1, y: -1 },
+		"midi-qol-grid4": { x: -1, y: 0 },
+		"midi-qol-grid5": { x: 0, y: 0 },
+		"midi-qol-grid6": { x: 1, y: 0 },
+		"midi-qol-grid7": { x: -1, y: 1 },
+		"midi-qol-grid8": { x: 0, y: 1 },
+		"midi-qol-grid9": { x: 1, y: 1 }
+	};
+	selectedPosition = targetConfirmation.gridPosition ?? foundry.utils.duplicate(defaultTargetConfirmationSettings.gridPosition);
 	static PARTS = {
 		main: { template: "modules/midi-qol/templates/targetConfirmationConfig.hbs" }
 	};
-	static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+	static DEFAULT_OPTIONS = {
 		id: "midi-qol-target-confirmation-config",
 		window: {
-			title: "midi-qol.ConfigTitle"
+			title: "midi-qol.ConfigTitle",
+			contentClasses: ["standard-form"]
 		},
 		position: {
 			width: 400,
@@ -38,7 +33,7 @@ export class TargetConfirmationConfig extends HandlebarsApplicationMixin(Applica
 		actions: {
 			submit: TargetConfirmationConfig.#onSubmit
 		}
-	}, { inplace: false });
+	};
 	// scrollY: [".tab.workflow"],
 	// tabs: [{ navSelector: ".tabs", contentSelector: ".content", initial: "gm" }]
 	async _updateObject(event, formData) {
@@ -49,13 +44,8 @@ export class TargetConfirmationConfig extends HandlebarsApplicationMixin(Applica
 			newSettings = foundry.utils.duplicate(defaultTargetConfirmationSettings);
 			newSettings.gridPosition = formData.gridPosition;
 		}
-		//@ts-expect-error
-		game.settings?.set("midi-qol", "TargetConfirmation", newSettings);
-		this.render(true);
-		//@ts-expect-error
-		game.settings?.set("midi-qol", "LateTargeting", "none");
-		if (game.user?.isGM)
-			configSettings.gmLateTargeting = "none";
+		game.settings.set("midi-qol", "TargetConfirmation", newSettings);
+		this.render({ force: true });
 	}
 	async _onRender(context, options) {
 		await super._onRender(context, options);
@@ -90,11 +80,9 @@ export class TargetConfirmationConfig extends HandlebarsApplicationMixin(Applica
 	}
 	async _preClose(options) {
 		targetConfirmation.gridPosition = this.selectedPosition;
-		// @ts-expect-error
-		await game.settings?.set("midi-qol", "TargetConfirmation", targetConfirmation);
+		await game.settings.set("midi-qol", "TargetConfirmation", targetConfirmation);
 	}
 	static async #onSubmit(event, target) {
-		// @ts-expect-error
 		this.close();
 	}
 }

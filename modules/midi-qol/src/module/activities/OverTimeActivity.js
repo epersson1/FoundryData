@@ -1,14 +1,12 @@
-import { debugEnabled, i18n, warn } from "../../midi-qol.js";
+import { debugEnabled, GameSystemConfig, i18n, warn } from "../../midi-qol.js";
 import { evalActivationCondition } from "../utils.js";
 import { MidiActivityMixin, MidiActivityMixinSheet, MidiConditionField } from "./MidiActivityMixin.js";
-export var MidiOverTimeActivity;
-export var MidiOverTimeSheet;
+export let MidiOverTimeActivity;
+export let MidiOverTimeSheet;
 // Not currently used - might be relevant later on
 export function setupOvertimeActivity() {
 	if (debugEnabled > 0)
 		warn("MidiQOL | ForwardActivity | setupOverTimeActivity | Called");
-	//@ts-expect-error
-	const GameSystemConfig = game.system.config;
 	//@ts-expect-error
 	MidiOverTimeSheet = defineMidiOverTimeSheetClass(game.system.applications.activity.ForwardSheet);
 	MidiOverTimeActivity = defineMidiOverTimeActivityClass(GameSystemConfig.activityTypes.forward.documentClass);
@@ -45,7 +43,7 @@ let defineMidiOverTimeSheetClass = (baseClass) => {
 };
 let defineMidiOverTimeActivityClass = (ActivityClass) => {
 	return class MidiOverTimeActivity extends MidiActivityMixin(ActivityClass) {
-		static LOCALIZATION_PREFIXES = [...super.LOCALIZATION_PREFIXES, "midi-qol.OVERTIME"];
+		static LOCALIZATION_PREFIXES = ["midi-qol.OVERTIME", ...super.LOCALIZATION_PREFIXES];
 		static defineSchema() {
 			const { StringField, ArrayField, BooleanField, SchemaField, ObjectField, NumberField, DocumentIdField } = foundry.data.fields;
 			const schema = {
@@ -71,13 +69,15 @@ let defineMidiOverTimeActivityClass = (ActivityClass) => {
 		get isTriggerableActivity() {
 			return false;
 		}
-		async confirmCanProceed(config, dialog, message, options) {
+		async _triggerSubsequentActions(config, results) {
+		}
+		async postChatCardChecks(config, dialog, message, options) {
 			if (this.useCondition) { // reactions condition evaluation is handled elsewhere
-				if (!(await evalActivationCondition(config.workflow, this.useCondition, this.targets.first(), { async: true }))) {
+				if (!(await evalActivationCondition(config.workflow, this.useCondition, config.workflow?.targets.first(), { async: true }))) {
 					return this.removeWorkflow(config.workflow);
 				}
 			}
-			return super.confirmCanProceed(config, dialog, message, options);
+			return super.postChatCardChecks(config, dialog, message, options);
 		}
 	};
 };

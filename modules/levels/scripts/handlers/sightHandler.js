@@ -59,7 +59,7 @@ export class SightHandler {
     }
 
     static advancedLosTestInLos(sourceToken, tokenOrPoint, type = "sight", source) {
-        if (!(tokenOrPoint instanceof Token) || CONFIG.Levels.settings.get("preciseTokenVisibility") === false) return this.checkCollision(sourceToken, tokenOrPoint, type, { sourcePolygon: source });
+        if (!(tokenOrPoint instanceof foundry.canvas.placeables.Token) || CONFIG.Levels.settings.get("preciseTokenVisibility") === false) return this.checkCollision(sourceToken, tokenOrPoint, type, { sourcePolygon: source });
         const sourceCenter = {
             x: sourceToken.vision.x,
             y: sourceToken.vision.y,
@@ -83,7 +83,7 @@ export class SightHandler {
             return normalized;
         }
 
-        const point = tokenOrPoint instanceof Token ? tokenOrPoint.center : tokenOrPoint;
+        const point = tokenOrPoint instanceof foundry.canvas.placeables.Token ? tokenOrPoint.center : tokenOrPoint;
 
         //check angled vision
         const angle = normalizeAngle(Math.atan2(point.y - sourceToken.vision.y, point.x - sourceToken.vision.x));
@@ -98,7 +98,7 @@ export class SightHandler {
         const range = sourceToken.vision.radius;
         if (range === 0) return false;
         if (range === Infinity) return true;
-        const tokensSizeAdjust = tokenOrPoint instanceof Token ? (Math.min(tokenOrPoint.w, tokenOrPoint.h) || 0) / Math.SQRT2 : 0;
+        const tokensSizeAdjust = tokenOrPoint instanceof foundry.canvas.placeables.Token ? (Math.min(tokenOrPoint.w, tokenOrPoint.h) || 0) / Math.SQRT2 : 0;
         const dist = (this.getUnitTokenDist(sourceToken, tokenOrPoint) * canvas.dimensions.size) / canvas.dimensions.distance - tokensSizeAdjust;
         return dist <= range;
     }
@@ -110,7 +110,7 @@ export class SightHandler {
         const z1 = token1.losHeight;
         let x2, y2, z2;
 
-        if (tokenOrPoint2 instanceof Token) {
+        if (tokenOrPoint2 instanceof foundry.canvas.placeables.Token) {
             x1 = tokenOrPoint2.center.x;
             y1 = tokenOrPoint2.center.y;
             z1 = tokenOrPoint2.losHeight;
@@ -129,7 +129,7 @@ export class SightHandler {
         const top = object.document.flags?.levels?.rangeTop ?? Infinity;
         const bottom = object.document.elevation ?? -Infinity;
         let lightHeight = null;
-        if (object instanceof Token) {
+        if (object instanceof foundry.canvas.placeables.Token) {
             lightHeight = object.losHeight;
         } else if (top != Infinity && bottom != -Infinity) {
             lightHeight = (top + bottom) / 2;
@@ -172,8 +172,8 @@ export class SightHandler {
 
         let e;
 
-        if (object instanceof Token && !Number.isFinite(elevation)) e = object.document.losHeight;
-        else if (object instanceof DoorControl) e = WallHeight.currentTokenElevation;
+        if (object instanceof foundry.canvas.placeables.Token && !Number.isFinite(elevation)) e = object.document.losHeight;
+        else if (object instanceof foundry.canvas.containers.DoorControl) e = WallHeight.currentTokenElevation;
         else e = elevation;
         const config = {
             object,
@@ -189,7 +189,7 @@ export class SightHandler {
     static elevatePoints(config, e) {
         const object = config.object;
         const unitsToPixel = canvas.dimensions.size / canvas.dimensions.distance;
-        if (object instanceof Token) {
+        if (object instanceof foundry.canvas.placeables.Token) {
             if (config.tests._levels !== object) {
                 config.tests.length = 0;
                 for (const p of SightHandler.getTestPoints(object)) {
@@ -200,9 +200,9 @@ export class SightHandler {
             }
         } else {
             let z;
-            if (object instanceof PlaceableObject) {
+            if (object instanceof foundry.canvas.placeables.PlaceableObject) {
                 z = object.document.elevation;
-            } else if (object instanceof DoorControl) {
+            } else if (object instanceof foundry.canvas.containers.DoorControl) {
                 z = e;
             }
             z ??= canvas.primary.background.elevation;
@@ -220,11 +220,11 @@ export class SightHandler {
         const target = CONFIG?.Levels?.visibilityTestObject;
         if (!visionSource?.object || !target) return wrapped(...args);
         let targetElevation;
-        if (target instanceof Token) {
+        if (target instanceof foundry.canvas.placeables.Token) {
             targetElevation = target.losHeight;
-        } else if (target instanceof PlaceableObject) {
+        } else if (target instanceof foundry.canvas.placeables.PlaceableObject) {
             targetElevation = target.document.elevation;
-        } else if (target instanceof DoorControl) {
+        } else if (target instanceof foundry.canvas.containers.DoorControl) {
             targetElevation = visionSource.elevation;
         } else {
             targetElevation = canvas.primary.background.elevation;
@@ -253,11 +253,11 @@ export class SightHandler {
     static containsWrapper(wrapped, ...args) {
         const LevelsConfig = CONFIG.Levels;
         const testTarget = LevelsConfig.visibilityTestObject;
-        if (!this.config?.source?.object || !(testTarget instanceof Token) || this.config.source instanceof foundry.canvas.sources.GlobalLightSource) return wrapped(...args);
+        if (!this.config?.source?.object || !(testTarget instanceof foundry.canvas.placeables.Token) || this.config.source instanceof foundry.canvas.sources.GlobalLightSource) return wrapped(...args);
         let result;
         if (this.config.source instanceof foundry.canvas.sources.PointLightSource) {
             result = LevelsConfig.handlers.SightHandler.testInLight(this.config.source.object, testTarget, this, wrapped(...args));
-        } else if (this.config.source.object instanceof Token) {
+        } else if (this.config.source.object instanceof foundry.canvas.placeables.Token) {
             const point = {
                 x: args[0],
                 y: args[1],
@@ -417,7 +417,7 @@ export class SightHandler {
             for (const [k, edge] of canvas.edges) {
                 if (this.shouldIgnoreWall(edge.object, TYPE, options, edge)) continue;
                 if (IGNOREDARKNESS && edge.type === "darkness") continue;
-                let isTerrain = (TYPE === 0 && edge.sight === CONST.WALL_SENSE_TYPES.LIMITED) || (TYPE === 1 && edge.move === CONST.WALL_MOVEMENT_TYPES.LIMITED) || (TYPE === 2 && edge.sound === CONST.WALL_MOVEMENT_TYPES.LIMITED) || (TYPE === 3 && edge.light === CONST.WALL_MOVEMENT_TYPES.LIMITED);
+                let isTerrain = (TYPE === 0 && edge.sight === CONST.WALL_SENSE_TYPES.LIMITED) || (TYPE === 1 && edge.move === CONST.WALL_MOVEMENT_TYPES.LIMITED) || (TYPE === 2 && edge.sound === CONST.WALL_SENSE_TYPES.LIMITED) || (TYPE === 3 && edge.light === CONST.WALL_SENSE_TYPES.LIMITED);
 
                 //declare points in 3d space of the rectangle created by the wall
                 const wallBotTop = getWallHeightRange3Dcollision(edge.object);
@@ -458,7 +458,8 @@ export class SightHandler {
                 const t = -(A * x0 + B * y0 + C * z0 + D) / (A * (x1 - x0) + B * (y1 - y0) + C * (z1 - z0)); //-(A*x0 + B*y0 + C*z0 + D) / (A*x1 + B*y1 + C*z1)
                 const ix = x0 + (x1 - x0) * t;
                 const iy = y0 + (y1 - y0) * t;
-                const iz = Math.round(z0 + (z1 - z0) * t);
+                // Removed rounding, see if it causes issues
+                const iz = z0 + (z1 - z0) * t;
 
                 //return true if the point is inisde the rectangle
                 const isb = isBetween({ x: wx1, y: wy1 }, { x: wx2, y: wy2 }, { x: ix, y: iy });
@@ -482,15 +483,15 @@ export class SightHandler {
      **/
     static checkCollision(tokenOrPoint1, tokenOrPoint2, type = "sight", options = {}) {
         const p0 =
-            tokenOrPoint1 instanceof Token
+            tokenOrPoint1 instanceof foundry.canvas.placeables.Token
                 ? {
-                      x: tokenOrPoint1.vision.x,
-                      y: tokenOrPoint1.vision.y,
+                      x: tokenOrPoint1.vision?.x ?? tokenOrPoint1.center.x,
+                      y: tokenOrPoint1.vision?.y ?? tokenOrPoint1.center.y,
                       z: tokenOrPoint1.losHeight,
                   }
                 : tokenOrPoint1;
         const p1 =
-            tokenOrPoint2 instanceof Token
+            tokenOrPoint2 instanceof foundry.canvas.placeables.Token
                 ? {
                       x: tokenOrPoint2.center.x,
                       y: tokenOrPoint2.center.y,

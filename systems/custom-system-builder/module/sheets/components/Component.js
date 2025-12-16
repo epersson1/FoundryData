@@ -1,35 +1,102 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-import templateFunctions from '../template-functions.js';
 import Formula from '../../formulas/Formula.js';
 import Logger from '../../Logger.js';
+import CustomItem from '../../documents/CustomItem.js';
 import { AlphanumericPatternError } from '../../errors/ComponentValidationError.js';
+import TemplateSystem from '../../documents/TemplateSystem.js';
 /**
  * Abstract component class
  * @abstract
  */
-class Component {
+export default class Component {
+    /**
+     * The value type of this component. This is used to display an input field in the Dynamic Table's templates
+     * This should be 'none' | 'string' | 'number' | 'boolean'
+     */
+    static valueType = 'none';
+    /**
+     * Component key
+     */
+    _key;
+    /**
+     * Component address in template definition
+     */
+    _templateAddress;
+    /**
+     * Component column spanning
+     */
+    _colSpan;
+    /**
+     *  Component row spanning
+     */
+    _rowSpan;
+    /**
+     * Component css class
+     */
+    _cssClass;
+    /**
+     * Component minimum role to be visible
+     */
+    _role;
+    /**
+     * Component minimum role to be editable
+     */
+    _editRole;
+    /**
+     * Component minimum permission to be visible
+     */
+    _permission;
+    /**
+     * Component tooltip
+     */
+    _tooltip;
+    /**
+     * Component visibility formula
+     */
+    _visibilityFormula;
+    /**
+     * Escape HTML in templates ?
+     */
+    _escapeHTML;
+    /**
+     * Composant parent
+     * @type {Container}
+     */
+    _parent;
+    /**
+     * Should be true if the template version should show a wrapper, as is made for templates
+     */
+    static addWrapperOnTemplate = false;
+    /**
+     * Should be true if the component is draggable to be copied
+     */
+    static draggable = true;
     /**
      * Component constructor
      * @constructor
      * @param componentProps Component properties
      */
-    constructor({ key, templateAddress, cssClass = '', role = 0, permission = 0, tooltip = '', visibilityFormula = '', parent }) {
+    constructor({ key, templateAddress, colSpan, rowSpan, cssClass = '', role = CONST.USER_ROLES.NONE, permission = CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE, editRole = CONST.USER_ROLES.NONE, tooltip = '', visibilityFormula = '', escapeHTML = false, parent }) {
         if (this.constructor === Component) {
             throw new TypeError('Abstract class "Component" cannot be instantiated directly');
         }
         this._key = key;
         this._templateAddress = templateAddress;
+        this._colSpan = colSpan ?? 1;
+        this._rowSpan = rowSpan ?? 1;
         this._cssClass = cssClass;
         this._role = role;
         this._permission = permission;
+        this._editRole = editRole;
         this._tooltip = tooltip;
         this._visibilityFormula = visibilityFormula;
+        this._escapeHTML = escapeHTML;
         this._parent = parent;
     }
     /**
@@ -57,19 +124,37 @@ class Component {
         return this._templateAddress;
     }
     /**
+     * Component column spanning
+     */
+    get colSpan() {
+        return this._colSpan;
+    }
+    /**
+     *  Component row spanning
+     */
+    get rowSpan() {
+        return this._rowSpan;
+    }
+    /**
      * Additional CSS class
      */
     get cssClass() {
         return this._cssClass;
     }
     /**
-     * Component minimum role
+     * Component minimum role to be visible
      */
     get role() {
         return this._role;
     }
     /**
-     * Component minimum permission
+     * Component minimum role to be editable
+     */
+    get editRole() {
+        return this._editRole;
+    }
+    /**
+     * Component minimum permission to be visible
      */
     get permission() {
         return this._permission;
@@ -79,6 +164,12 @@ class Component {
      */
     get visibilityFormula() {
         return this._visibilityFormula;
+    }
+    /**
+     * Escape HTML in templates ?
+     */
+    get escapeHTML() {
+        return this._escapeHTML;
     }
     /**
      * Component should have header on template mode
@@ -106,10 +197,10 @@ class Component {
      * @returns `true` if the component can be rendered, `false` otherwise
      */
     canBeRendered(entity, options = {}) {
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             return true;
         }
-        let canRender = game.user.role >= this.role && entity.entity.permission >= this.permission;
+        let canRender = game.user.role >= this.role && (entity.entity.permission ?? 0) >= this.permission;
         if (this.visibilityFormula) {
             const formula = new Formula(this.visibilityFormula);
             try {
@@ -140,7 +231,16 @@ class Component {
      * @return The jQuery element holding the component
      */
     async render(entity, isEditable = true, options = {}) {
-        const element = await this._getElement(entity, isEditable, options);
+        const canBeEdited = isEditable && game.user.role >= this.editRole;
+        const element = await this._getElement(entity, canBeEdited, {
+            ...options,
+            customProps: {
+                ...options.customProps,
+                this: this.key && TemplateSystem.isAppliedTemplateSystem(entity)
+                    ? foundry.utils.getProperty(entity.system.props, this.key)
+                    : null
+            }
+        });
         return this.canBeRendered(entity, options) ? element : $('<div style="display: none"></div>').append(element);
     }
     /**
@@ -155,10 +255,9 @@ class Component {
         let jQElement = $('<div></div>');
         jQElement.addClass('custom-system-component-contents');
         jQElement.addClass(this.key ?? '');
-        jQElement.addClass(this.cssClass);
         if (this.tooltip) {
             let tooltipText = this.tooltip;
-            if (!entity.isTemplate) {
+            if (TemplateSystem.isAppliedTemplateSystem(entity)) {
                 try {
                     tooltipText =
                         (await ComputablePhrase.computeMessage(this.tooltip, {
@@ -176,15 +275,14 @@ class Component {
                     tooltipText = 'ERROR';
                 }
             }
-            jQElement.attr('title', tooltipText);
+            jQElement.attr('data-tooltip', tooltipText);
         }
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             if (this.templateAddress !== 'body' && this.templateAddress !== 'header') {
                 let dragHandle = jQElement;
                 if (this.addWrapperOnTemplate) {
                     const templateWrapper = $('<div></div>');
                     templateWrapper.addClass('custom-system-editable-panel');
-                    templateWrapper.addClass(this.cssClass);
                     const panelTitle = $('<div></div>');
                     panelTitle.addClass('custom-system-editable-panel-title custom-system-editable-component');
                     if (this.key) {
@@ -204,7 +302,29 @@ class Component {
                 }
             }
         }
+        let cssClass = this.cssClass;
+        if (cssClass && TemplateSystem.isAppliedTemplateSystem(entity)) {
+            try {
+                cssClass =
+                    (await ComputablePhrase.computeMessage(cssClass, {
+                        ...entity.system.props,
+                        ...options.customProps
+                    }, {
+                        ...options,
+                        source: `${this.key}.css`,
+                        triggerEntity: entity,
+                        reference: options.reference
+                    })).result ?? 'ERROR';
+            }
+            catch (err) {
+                Logger.error(err.message, err);
+                cssClass = 'ERROR';
+            }
+        }
+        jQElement.addClass(cssClass);
         jQElement.addClass('custom-system-component-root');
+        jQElement.addClass(`grid-span-${this.colSpan}`);
+        jQElement.addClass(`grid-row-span-${this.rowSpan}`);
         return jQElement;
     }
     /**
@@ -218,6 +338,23 @@ class Component {
         }
         return componentMap;
     }
+    /**
+     * Go through the contents to get every property name in a flat array
+     * @override
+     */
+    getProperties() {
+        const properties = [];
+        if (this.propertyKey) {
+            properties.push(this.propertyKey);
+        }
+        return properties;
+    }
+    /**
+     * Sets default values in the entity, if no value exists for the component
+     * @param _entity The entity to set the value into
+     * @returns The value of the component, either the default or the preexisting one
+     */
+    setDefaultValue(_entity, _options = {}) { }
     /**
      * Handles drag & drop events for Components
      * @param entity Rendered entity (actor or item)
@@ -263,14 +400,14 @@ class Component {
                     $('.custom-system-drop-target').remove();
                 });
                 dropTarget.on('drop', (event) => {
-                    this.dropOnComponent(entity, event, this.parent, {
+                    void this.dropOnComponent(entity, event, this.parent, {
                         insertBefore: this
                     });
                 });
                 dropTarget.insertBefore(jQElement);
             });
             dragHandle.on('drop', (event) => {
-                this.dropOnComponent(entity, event, this.parent, {
+                void this.dropOnComponent(entity, event, this.parent, {
                     insertBefore: this
                 });
             });
@@ -283,29 +420,7 @@ class Component {
      * @param allowedComponents Allowed components to replace this component with
      */
     editComponent(entity, additionalAttributes, allowedComponents) {
-        const componentJSON = this.toJSON();
-        let componentData = componentJSON;
-        if (additionalAttributes) {
-            componentData = foundry.utils.mergeObject(componentJSON, additionalAttributes);
-        }
-        // Open dialog to edit component
-        templateFunctions.component((action, component) => {
-            // This is called on dialog validation
-            // Dialog has many buttons, clicked button is returned in action
-            // New component data is returns in component
-            // If we edit the component
-            if (action === 'edit') {
-                this.update(entity, component);
-            }
-            else if (action === 'delete') {
-                this.delete(entity);
-            }
-        }, {
-            componentData,
-            allowedComponents,
-            isDynamicTable: additionalAttributes !== undefined,
-            entity
-        });
+        void this.parent?.openComponentEditor(entity, { allowedComponents, additionalAttributes }, this);
     }
     /**
      * Saves component in database
@@ -359,7 +474,7 @@ class Component {
      * @param entity Template containing the component
      * @param event The DragEvent
      */
-    async dragOverComponent(entity, event) {
+    dragOverComponent(entity, event) {
         event.stopPropagation();
         event.preventDefault();
         const sourceId = globalThis.copiedComponent?.sourceId;
@@ -382,14 +497,14 @@ class Component {
             dropData = JSON.parse(event.originalEvent.dataTransfer.getData('text/plain'));
         }
         catch (_e) {
-            null;
+            // Nothing should happen
         }
         if (dropData) {
             try {
                 const item = await Item.fromDropData(dropData);
-                if (item && item.type === 'subTemplate') {
+                if (CustomItem.isSubTemplate(item)) {
                     try {
-                        await insertionTarget.addNewComponent(entity, item.system.body.contents, insertionOptions);
+                        await insertionTarget.addNewComponent(entity, item.system.body.contents ?? [], insertionOptions);
                     }
                     catch (e) {
                         ui.notifications.error(e.message);
@@ -400,7 +515,7 @@ class Component {
                 }
             }
             catch (_e) {
-                null;
+                // Nothing should happen
             }
         }
         const droppedData = globalThis.copiedComponent;
@@ -421,6 +536,12 @@ class Component {
             }
         }
     }
+    recalculateAddresses(newAddress) {
+        this._templateAddress = newAddress;
+    }
+    getSluggedId(entity) {
+        return `${entity.uuid}-${this.key}`.replace(/[. #]/g, '-');
+    }
     /**
      * Returns serialized component
      * Should be overridden by each Component subclass
@@ -429,11 +550,15 @@ class Component {
     toJSON() {
         return {
             key: this._key,
+            colSpan: this.colSpan,
+            rowSpan: this.rowSpan,
             cssClass: this.cssClass,
             role: this.role,
+            editRole: this.editRole,
             permission: this.permission,
             tooltip: this.tooltip,
             visibilityFormula: this.visibilityFormula,
+            escapeHTML: this.escapeHTML,
             type: this.constructor.getTechnicalName()
         };
     }
@@ -454,7 +579,7 @@ class Component {
      */
     static getTechnicalName() {
         // V13 DEPRECATION WARNING
-        Logger.warn(`static getTechnicalName was not implemented for Component Type ${this.constructor.name}. This will be mandatory for v5.0.0, with the Foundy 13 compatibility.`);
+        Logger.warn(`static getTechnicalName was not implemented for Component Type ${this.constructor.name}. This will be mandatory for v5.0.0, with the Foundry 13 compatibility.`);
         return 'component';
     }
     /**
@@ -474,34 +599,34 @@ class Component {
      * @throws {Error} If not implemented
      * @returns A JQuery Element containing the form
      */
-    static async getConfigForm(_existingComponent, _entity) {
+    static async getConfigForm(_entity, _appId, _existingComponent) {
         throw new Error('You must implement this function');
     }
-    /**
-     * Can be used to attach Event Listeners to the config form
-     * Can be overridden by each Component subclass
-     * @abstract
-     * @param _html The configuration form to attach events to
-     */
-    static attachListenersToConfigForm(_html) { }
     /**
      * Extracts configuration from submitted HTML form after Component Configuration dialog validation
      * Should be overridden by each Component subclass
      * @abstract
-     * @param html The submitted HTML form
+     * @param configData
+     * @param _html The submitted HTML-form
      * @throws {ComponentValidationError} If configuration contains validation errors
      * @returns The JSON version of the new Component configuration
      */
-    static extractConfig(html) {
-        const fieldData = {};
-        // Fetch fields existing for every type of components
-        const genericFields = $(html).find('.custom-system-component-generic-fields input, .custom-system-component-generic-fields select, .custom-system-component-generic-fields textarea');
-        // Store their value in an object
-        for (const field of genericFields) {
-            const jQField = $(field);
-            fieldData[jQField.data('key')] = jQField.val();
-        }
-        return fieldData;
+    static extractConfig(configData, _html) {
+        const componentConfigData = configData;
+        return {
+            type: componentConfigData.type,
+            key: componentConfigData.key,
+            colSpan: componentConfigData.colSpan,
+            rowSpan: componentConfigData.rowSpan,
+            cssClass: componentConfigData.cssClass,
+            permission: parseInt(componentConfigData.permission ?? '0'),
+            role: parseInt(componentConfigData.role ?? '0'),
+            editRole: parseInt(componentConfigData.editRole ?? '0'),
+            tooltip: componentConfigData.tooltip,
+            visibilityFormula: componentConfigData.visibilityFormula,
+            escapeHTML: componentConfigData.escapeHTML,
+            extraConf: componentConfigData.extraConf
+        };
     }
     /**
      * Validates if the passed JSON-Object meets all criteria for Component creation.
@@ -515,17 +640,3 @@ class Component {
         }
     }
 }
-/**
- * The value type of this component. This is used to display an input field in the Dynamic Table's templates
- * This should be 'none' | 'string' | 'number' | 'boolean'
- */
-Component.valueType = 'none';
-/**
- * Should be true if the template version should show a wrapper, as is made for templates
- */
-Component.addWrapperOnTemplate = false;
-/**
- * Should be true if the component is draggable to be copied
- */
-Component.draggable = true;
-export default Component;

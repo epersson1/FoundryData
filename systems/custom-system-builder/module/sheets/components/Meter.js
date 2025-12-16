@@ -1,13 +1,18 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
+/**
+ * @ignore
+ * @module
+ */
+import TemplateSystem from '../../documents/TemplateSystem.js';
 import Logger from '../../Logger.js';
-import InputComponent, { COMPONENT_SIZES } from './InputComponent.js';
 import { RequiredFieldError } from '../../errors/ComponentValidationError.js';
+import SizedComponent, { COMPONENT_SIZES } from './SizedComponent.js';
 const METER_TEXT_OPTIONS = {
     none: 'CSB.ComponentProperties.Meter.TextDisplay.None',
     showVal: 'CSB.ComponentProperties.Meter.TextDisplay.Value',
@@ -20,19 +25,53 @@ const METER_COLORS = {
     BAD_VALUE: '#FFBD4F',
     WORSE_VALUE: '#E22850'
 };
-class Meter extends InputComponent {
+class Meter extends SizedComponent {
+    static valueType = 'none';
+    /**
+     * Component label
+     */
+    _label;
+    /**
+     * Meter value formula
+     */
+    _value;
+    /**
+     * Minimum value formula
+     */
+    _min;
+    /**
+     * Maximum value formula
+     */
+    _max;
+    /**
+     * Low value formula
+     */
+    _low;
+    /**
+     * High value formula
+     */
+    _high;
+    /**
+     * Optimum value formula
+     */
+    _optimum;
+    /**
+     * Text display option
+     */
+    _textOption;
     /**
      * Meter constructor
      */
     constructor(props) {
         super(props);
+        this._label = props.label;
         this._value = props.value;
         this._min = props.min;
         this._max = props.max;
         this._low = props.low;
         this._high = props.high;
         this._optimum = props.optimum;
-        this._textOption = props.textOption;
+        this._textOption = props.textOption ?? textOptionDefault;
     }
     /**
      * Renders component
@@ -44,9 +83,13 @@ class Meter extends InputComponent {
      */
     async _getElement(entity, isEditable = true, options = {}) {
         const { customProps = {}, linkedEntity, reference } = options;
-        const formulaProps = foundry.utils.mergeObject(entity.system?.props ?? {}, customProps, { inplace: false });
         const jQElement = await super._getElement(entity, isEditable, options);
-        // TODO Redo meter HTML : https://jsfiddle.net/Lfg2p9to/
+        if (this._label) {
+            const label = $('<label></label>');
+            label.attr('for', this.getSluggedId(entity));
+            label.text(this._label);
+            jQElement.append(label);
+        }
         const meterElement = $('<div></div>');
         meterElement.addClass('custom-system-meter');
         const meterFill = $('<span></span>');
@@ -55,7 +98,7 @@ class Meter extends InputComponent {
         meterText.addClass('custom-system-meter-content');
         meterElement.append(meterFill);
         meterElement.append(meterText);
-        if (entity.isTemplate) {
+        if (TemplateSystem.isBuilderTemplateSystem(entity)) {
             meterFill.css({ width: `50%`, 'background-color': METER_COLORS.GOOD_VALUE });
             switch (this._textOption) {
                 case 'showVal':
@@ -73,12 +116,13 @@ class Meter extends InputComponent {
                 this.editComponent(entity);
             });
         }
-        else {
+        else if (TemplateSystem.isAppliedTemplateSystem(entity)) {
+            const formulaProps = foundry.utils.mergeObject(entity.system.props, customProps, { inplace: false });
             let min = 0;
             if (this._min) {
                 min = parseFloat(this._computeParam(this._min, entity, { ...options, source: `${this.key}.min` }));
             }
-            let max = 1;
+            let max = 100;
             if (this._max) {
                 max = parseFloat(this._computeParam(this._max, entity, { ...options, source: `${this.key}.max` }));
             }
@@ -183,7 +227,7 @@ class Meter extends InputComponent {
         return jQElement;
     }
     _computeParam(valueFormula, entity, options) {
-        const formulaProps = foundry.utils.mergeObject(entity.system?.props ?? {}, options?.customProps ?? {}, {
+        const formulaProps = foundry.utils.mergeObject(entity.system.props, options?.customProps ?? {}, {
             inplace: false
         });
         return ComputablePhrase.computeMessageStatic(valueFormula, formulaProps, {
@@ -228,6 +272,7 @@ class Meter extends InputComponent {
         const jsonObj = super.toJSON();
         return {
             ...jsonObj,
+            label: this._label,
             value: this._value,
             min: this._min,
             max: this._max,
@@ -244,24 +289,9 @@ class Meter extends InputComponent {
      */
     static fromJSON(json, templateAddress, parent) {
         return new Meter({
-            key: json.key,
-            tooltip: json.tooltip,
-            templateAddress: templateAddress,
-            label: json.label,
-            value: json.value,
-            min: json.min,
-            max: json.max,
-            low: json.low,
-            high: json.high,
-            optimum: json.optimum,
-            textOption: json.textOption ?? textOptionDefault,
-            size: json.size,
-            customSize: json.customSize,
-            cssClass: json.cssClass,
-            role: json.role,
-            permission: json.permission,
-            visibilityFormula: json.visibilityFormula,
-            parent: parent
+            ...json,
+            parent: parent,
+            templateAddress: templateAddress
         });
     }
     /**
@@ -284,25 +314,20 @@ class Meter extends InputComponent {
      * Get configuration form for component creation / edition
      * @return The jQuery element holding the component
      */
-    static async getConfigForm(existingComponent, _entity) {
-        const mainElt = $('<div></div>');
+    static async getConfigForm(_entity, appId, existingComponent) {
+        const mainElt = document.createElement('div');
         const predefinedValuesComponent = { ...existingComponent };
-        mainElt.append(await renderTemplate(`systems/${game.system.id}/templates/_template/components/meter.hbs`, {
+        mainElt.innerHTML = await foundry.applications.handlebars.renderTemplate(`systems/${game.system.id}/templates/_template/components/meter.hbs`, {
             ...predefinedValuesComponent,
             COMPONENT_SIZES,
-            METER_TEXT_OPTIONS
-        }));
-        return mainElt;
-    }
-    /** Attaches event-listeners to the html of the config-form */
-    static attachListenersToConfigForm(html) {
-        $(html)
-            .find('#meterSize')
-            .on('change', (event) => {
-            const target = $(event.currentTarget);
-            const customSizeBlock = $('.custom-system-size-custom');
+            METER_TEXT_OPTIONS,
+            appId
+        });
+        mainElt.querySelector('[name="size"]')?.addEventListener('change', (event) => {
+            const target = event.currentTarget;
+            const customSizeBlock = $(mainElt.querySelector('.custom-system-size-custom'));
             const slideValue = 200;
-            switch (target.val()) {
+            switch (target.value) {
                 case 'custom':
                     customSizeBlock.slideDown(slideValue);
                     break;
@@ -311,6 +336,7 @@ class Meter extends InputComponent {
                     break;
             }
         });
+        return mainElt;
     }
     /**
      * Extracts configuration from submitted HTML form
@@ -319,24 +345,20 @@ class Meter extends InputComponent {
      * @return The JSON representation of the component
      * @throws {Error} If configuration is not correct
      */
-    static extractConfig(html) {
+    static extractConfig(rawConfigData, html) {
+        const configData = rawConfigData;
         const fieldData = {
-            ...super.extractConfig(html),
+            ...super.extractConfig(configData, html),
             type: 'meter',
-            label: html.find('#meterLabel').val()?.toString() ?? '',
-            size: html.find('#meterSize').val()?.toString() ?? 'full-size',
-            value: html.find('#meterValue').val()?.toString() ?? '',
-            min: html.find('#meterMin').val()?.toString() ?? '',
-            max: html.find('#meterMax').val()?.toString() ?? '',
-            low: html.find('#meterLow').val()?.toString() ?? '',
-            high: html.find('#meterHigh').val()?.toString() ?? '',
-            optimum: html.find('#meterOptimum').val()?.toString() ?? '',
-            textOption: html.find('#meterTextOption').val()?.toString() ?? textOptionDefault
+            label: configData.label,
+            value: configData.value ?? '',
+            min: configData.min,
+            max: configData.max,
+            low: configData.low,
+            high: configData.high,
+            optimum: configData.optimum,
+            textOption: configData.textOption ?? textOptionDefault
         };
-        if (fieldData.size === 'custom') {
-            fieldData.customSize = parseInt(String(html.find('#meterCustomSize').val()));
-        }
-        this.validateConfig(fieldData);
         return fieldData;
     }
     static validateConfig(json) {
@@ -346,7 +368,6 @@ class Meter extends InputComponent {
         }
     }
 }
-Meter.valueType = 'none';
 /**
  * @ignore
  */

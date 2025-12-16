@@ -1,29 +1,22 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 import Logger from '../Logger.js';
-import migration_1_1_0 from './migration_1_1_0.js';
-import migration_1_4_0 from './migration_1_4_0.js';
-import migration_2_3_1 from './migration_2_3_1.js';
-import migration_3_1_0 from './migration_3_1_0.js';
-import migration_3_1_1 from './migration_3_1_1.js';
-import migration_3_1_2 from './migration_3_1_2.js';
-import migration_3_2_2 from './migration_3_2_2.js';
-import migration_3_2_4 from './migration_3_2_4.js';
+import migration_4_5_0 from './migration_4_5_0.js';
+import migration_4_5_1 from './migration_4_5_1.js';
+import migration_4_6_4 from './migration_4_6_4.js';
+import CustomDialogV2 from '../applications/CustomDialogV2.js';
+import migration_5_0_0 from './migration_5_0_0.js';
 export default async function processMigrations() {
     await detectSwitchVersion();
-    await migration_1_1_0.processMigration();
-    await migration_1_4_0.processMigration();
-    await migration_2_3_1.processMigration();
-    await migration_3_1_0.processMigration();
-    await migration_3_1_1.processMigration();
-    await migration_3_1_2.processMigration();
-    await migration_3_2_2.processMigration();
-    await migration_3_2_4.processMigration();
+    await migration_4_5_0.processMigration();
+    await migration_4_5_1.processMigration();
+    await migration_4_6_4.processMigration();
+    await migration_5_0_0.processMigration();
 }
 async function detectSwitchVersion() {
     if (!game.user.isGM) {
@@ -32,11 +25,12 @@ async function detectSwitchVersion() {
     const migrateFrom = needsMigration();
     if (migrateFrom) {
         await new Promise((resolve) => {
-            new Dialog({
-                title: `System switch detected`,
+            void new CustomDialogV2({
+                window: { title: `System switch detected` },
                 content: `<h2>System switch detected from <code>${migrateFrom}</code> to <code>${game.system.id}</code></h2><p>Do you want to migrate settings and flags (recommended)?</p><p>PLEASE BACK UP YOUR WORLD BEFORE DOING ANYTHING</p>`,
                 buttons: {
                     yes: {
+                        default: true,
                         icon: '<i class="fas fa-check"></i>',
                         label: 'Migrate Settings & Flags (recommended)',
                         callback: async () => {
@@ -59,9 +53,8 @@ async function detectSwitchVersion() {
                             resolve();
                         }
                     }
-                },
-                default: 'yes'
-            }).render(true);
+                }
+            }).render({ force: true });
         });
     }
 }
@@ -93,12 +86,13 @@ export const switchCSBVersion = async (fromKey, toKey, deleteOnly = false) => {
     catch (error) {
         Logger.error(error.message, error);
     }
+    const notification = ui.notifications.info('', { progress: true });
     // Now flags, let us write a convenience function
     async function changeFlagsInCollection(collection) {
         const total = collection.size;
         let current = 0;
         for (const doc of collection) {
-            logProgress(doc, current, total);
+            logProgress(doc, current, total, notification);
             const flags = doc.flags[fromKey];
             if (flags) {
                 if (!deleteOnly) {
@@ -131,8 +125,8 @@ export const switchCSBVersion = async (fromKey, toKey, deleteOnly = false) => {
     for (const doc of game.combats) {
         await changeFlagsInCollection(doc.combatants);
     }
-    SceneNavigation.displayProgressBar({
-        label: `CSB: Migration of flags finished`,
+    notification.update({
+        message: `CSB: Migration of flags finished`,
         pct: 100
     });
 };
@@ -168,10 +162,10 @@ export const needsMigration = () => {
     }
     return;
 };
-export const logProgress = (document, current, total) => {
+export const logProgress = (document, current, total, notification) => {
     Logger.log('Migrating flags for ' + document.name + ' - ' + document.id);
-    SceneNavigation.displayProgressBar({
-        label: `CSB: Migrating flags. Updating ${document.constructor.name} ${current + 1} / ${total}`,
+    notification.update({
+        message: `CSB: Migrating flags. Updating ${document.constructor.name} ${current + 1} / ${total}`,
         pct: Math.round((current * 100) / total)
     });
 };

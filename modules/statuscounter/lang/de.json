@@ -1,0 +1,67 @@
+{
+    "statuscounter": {
+        "rebindNumberKeys": {
+            "name": "Nummerntasten neu zuweisen",
+            "hint": "Überschreibt die Standardzuweisungen der Nummerntasten, um damit die Anzahl eines Status zu setzen."
+        },
+        "rebindMouseButtons": {
+            "name": "Maustasten neu zuweisen",
+            "hint": "Überschreibt die Standardzuweisungen der Maustasten, um mit Linksklick die Anzahl eines Status zu erhöhen und mit Rechtsklick zu reduzieren. Das Status-Overlay kann mit Umschalt + Linksklick gesetzt werden. Eine spezifische Anzahl kann mit Alt + Linksklick gesetzt werden."
+        },
+        "multiSelect": {
+            "name": "Alle ausgewählten Figuren bearbeiten",
+            "hint": "Ändert Effekte und Zähler für alle ausgewählten Figuren."
+        },
+        "displayOne": {
+            "name": "'1' anzeigen",
+            "hint": "Konfiguriert wann bzw. ob der Zähler angezeigt wird, wenn nur der Status nur einmal vorhanden ist.",
+            "always": "Immer",
+            "countdown": "Nur beim Runterzählen",
+            "never": "Nie"
+        },
+        "counterFontSize": {
+            "name": "Schriftgröße der Zähler",
+            "hint": "Die Höhe der Schrift auf dem Status."
+        },
+        "counterColor": {
+            "name": "Farbe der Zähler",
+            "hint": "Die Farbe der Schrift auf dem Status im RRGGBB Format."
+        },
+        "countdownColor": {
+            "name": "Farbe der Countdowns",
+            "hint": "Die Farbe von kampfbasierten Countdown-Zählern im RRGGBB Format."
+        },
+        "counterDefaults": {
+            "name": "Standards zurücksetzen",
+            "hint": "Öffnet einen Dialog, um Standardeinstellungen für einen oder mehrere Statuseffekte zurückzusetzen.",
+            "reset": "Ausgewählte Effekte zurücksetzen",
+            "none": "Es sind keine Standardeinstellungen vorhanden."
+        },
+        "config": {
+            "title": "Zähler-Konfiguration",
+            "value": "Anzahl",
+            "type": {
+                "name": "Art",
+                "default": "Einfach"
+            },
+            "durationType": {
+                "name": "Dauer",
+                "hint": "Bestimmt, wie die verbleibende Dauer des Effekts angezeigt wird.",
+                "none": "Keine",
+                "round": "Runden",
+                "turn": "Züge"
+            },
+            "localEffect": "Lokaler Effekt {name} kann nicht konfiguriert werden.",
+            "modifyDuration": {
+                "name": "Dauer modifizieren",
+                "hint": "Maus- und Tastatureingaben für das Token verändern die Dauer (anstatt die Anzahl)."
+            },
+            "multiplyEffect": {
+                "name": "Wirkung verstärken",
+                "hint": "Multipliziert die Auswirkungen des Effekts mit der Anzahl des Zählers. Dies wirkt sich nur auf additive und multiplikative Effekte aus."
+            },
+            "save": "Speichern",
+            "saveDefault": "Speichern als Standard für {status}"
+        }
+    }
+}

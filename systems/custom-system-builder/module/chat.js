@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,18 +17,6 @@ async function expandMfsRoll(ev) {
         for (const roll of data.rolls) {
             const rollObject = Roll.fromJSON(JSON.stringify(roll.roll));
             const rollGroups = getDiceGroupsFromRoll(rollObject);
-            /* let htmlTooltip = $(await rollObject.getTooltip());
-            let diceIcons = htmlTooltip.find('.dice-rolls li');
-
-            let spanIcons = [];
-            for (let icon of diceIcons) {
-                let span = $('<span>');
-                span.addClass($(icon).attr('class'));
-                span.addClass('custom-system-roll-tooltip-dice');
-                span.text($(icon).text());
-
-                spanIcons.push(span.prop('outerHTML'));
-            } */
             data.arrayExplanation.push({
                 name: roll.formula,
                 value: roll.roll.total,
@@ -80,28 +68,23 @@ async function expandMfsRoll(ev) {
         if (data) {
             const template_file = `systems/${game.system.id}/templates/chat/chat-roll-tooltip.hbs`;
             // Render explanation template
-            renderTemplate(template_file, data).then((html) => {
+            void foundry.applications.handlebars.renderTemplate(template_file, { ...data }).then((html) => {
                 // Add last-minute CSS
                 const tooltipWrapper = $(html)[0];
                 const tooltip = tooltipWrapper.children[0];
                 // Append the explanation to the message (Adding to DOM)
                 message.append($(tooltipWrapper));
-                $(tooltip).css({
-                    width: `max-content`,
-                    'min-width': `280px`,
-                    'max-width': `800px`
-                });
+                tooltip.showPopover();
                 // Set the position
                 const pa = target.getBoundingClientRect();
                 const pt = tooltip.getBoundingClientRect();
-                const zi = getComputedStyle(target).zIndex;
                 $(tooltip).css({
                     left: `${Math.min(pa.x, window.innerWidth - (pt.width + 3))}px`,
-                    top: `${Math.min(pa.y + pa.height + 3, window.innerHeight - (pt.height + 3))}px`,
-                    zIndex: Number.isNumeric(zi) ? zi + 1 : 100
+                    top: `${Math.min(pa.y + pa.height + 3, window.innerHeight - (pt.height + 3))}px`
                 });
                 // Adding a handler to remove explanation on click anywhere on the page
                 $(document).one('click', () => {
+                    tooltip.hidePopover();
                     $(tooltipWrapper).remove();
                 });
             });
@@ -119,10 +102,12 @@ const hideRollData = (roll) => {
 export default function initChat() {
     $(() => {
         // Adding the handler on every roll in the page, now and future
-        $(document).on('click', '.custom-system-roll', expandMfsRoll);
+        $(document).on('click', '.custom-system-roll', (ev) => {
+            void expandMfsRoll(ev);
+        });
     });
     // When rendering a chat message, applying roll mode
-    Hooks.on('renderChatMessage', (message, elt) => {
+    Hooks.on('renderChatMessageHTML', (message, elt) => {
         const rolls = $(elt).find('.custom-system-roll');
         for (const rollElt of rolls) {
             const roll = $(rollElt);
@@ -175,7 +160,6 @@ export default function initChat() {
                 actor = game.actors.filter((e) => e.name === actorName)[0];
             }
             // If actor was found
-            // @ts-expect-error Outdated types
             if (actor && actor.testUserPermission(game.user, CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED)) {
                 const refPropSplitted = refProp.split('.');
                 const [filterMatch, parentProp, filterProp, filterValue] = refPropSplitted.shift()?.match(/^([a-zA-Z0-9_]+)\(([a-zA-Z0-9_]+)=(.+)\)$/) ?? [];
@@ -187,17 +171,13 @@ export default function initChat() {
                 // Recovering value from data
                 const value = foundry.utils.getProperty(actor.getRollData(), refProp);
                 if (value) {
-                    // @ts-expect-error Outdated types
                     document.content = document.content.replace(fullRef, () => value);
                 }
             }
             reference = messageReferences.next();
         }
-        // @ts-expect-error Outdated types
         if (document.content !== data.content) {
-            // @ts-expect-error Outdated types
             document.updateSource({
-                // @ts-expect-error Outdated types
                 content: document.content
             });
         }

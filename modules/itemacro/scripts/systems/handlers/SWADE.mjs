@@ -24,6 +24,7 @@ export class SWADE extends BaseSystem {
   }
 
   registerHooks() {
+    Hooks.on("swadeAction", this.swadeAction);
   }
 
   systemValidation(macro) {
@@ -50,5 +51,17 @@ export class SWADE extends BaseSystem {
       return item.executeMacro();
 
     return item.rollDamage();
+  }
+
+  swadeAction(swadeActor, swadeItem, swadeAction, swadeRoll, swadeUserId) {
+    if (!swadeItem.hasMacro())
+      return true;
+
+    if (!settings.value("defaultmacro"))
+      return true;
+
+    swadeItem.executeMacro({}, swadeActor, swadeItem, swadeAction, swadeRoll, swadeUserId);
+
+    return false;
   }
 }

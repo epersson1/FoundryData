@@ -2,6 +2,8 @@ import CONSTANTS from "../constants.mjs";
 
 
 export async function extendEffectsForm(sheet, html) {
+  if (foundry.utils.isNewerVersion(game.version ?? "", "13")) return;
+
   const flags = sheet.object.flags ?? {};
   const FormIsAura = game.i18n.format("ACTIVEAURAS.FORM_IsAura");
   const FormIgnoreSelf = game.i18n.format("ACTIVEAURAS.FORM_IgnoreSelf");
@@ -26,7 +28,8 @@ export async function extendEffectsForm(sheet, html) {
   const Wildcard = game.i18n.format("ACTIVEAURAS.FORM_Wildcard");
   const Extra = game.i18n.format("ACTIVEAURAS.FORM_Extra");
   const FormNameOverride = game.i18n.format("ACTIVEAURAS.FORM_NameOverride");
-  const FormCustomConditionPrompt = game.i18n.format("ACTIVEAURAS.FORM_CustomCondition");
+  const FormCustomCondition = game.i18n.format("ACTIVEAURAS.FORM_CustomCondition");
+  const FormCustomConditionPrompt = game.i18n.format("ACTIVEAURAS.FORM_CustomConditionPrompt");
   const WallsBlockPrompt = game.i18n.format("ACTIVEAURAS.FORM_WallsBlock");
   const FormSystemWallsBlock = game.i18n.format("ACTIVEAURAS.FORM_SystemWallsBlock");
   const FormWallsBlock = game.i18n.format("ACTIVEAURAS.FORM_WallsDoBlock");
@@ -94,7 +97,7 @@ export async function extendEffectsForm(sheet, html) {
                 <input id="type" name="flags.${CONSTANTS.MODULE_NAME}.type" type="text" value="${type}" placeholder="${FormTypePrompt}"></input>
             </div>
             <div class="form-group">
-              <label>Custom Check</label>
+              <label>${FormCustomCondition}</label>
               <input id="type" name="flags.${CONSTANTS.MODULE_NAME}.customCheck" type="text" value="${customCheck}" placeholder="${FormCustomConditionPrompt}"></input>
             </div>
             <div class="form-group">

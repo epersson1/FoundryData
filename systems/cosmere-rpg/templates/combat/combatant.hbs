@@ -1,0 +1,45 @@
+<li class="combatant flexrow {{css}} {{turnSpeed}} {{#if hidden}}hide{{/if}} {{#if isDefeated}}defeated{{/if}}" data-phase="{{turnSpeed}}" data-combatant-id="{{id}}">
+    <img class="token-image" src="{{img}}" alt="{{name}}" />
+    <div class="token-name flexcol">
+        <h4 class="combatant-name">{{name}}</h4>
+        <div class="combatant-controls flexrow">
+            {{#if @root.user.isGM}}
+                <button type="button" class="inline-control combatant-control icon fa-solid fa-eye-slash {{#if hidden}}active{{/if}}"
+                        data-action="toggleHidden" data-tooltip aria-label="{{ localize "COMBAT.ToggleVis" }}"></button>
+                <button type="button" class="inline-control combatant-control icon fa-solid fa-skull {{#if isDefeated}}active{{/if}}"
+                        data-action="toggleDefeated" data-tooltip
+                        aria-label="{{ localize "COMBAT.ToggleDead" }}"></button>
+            {{/if}}
+            {{#if canPing}}
+                <button type="button" class="inline-control combatant-control icon fa-solid fa-bullseye-arrow"
+                            data-action="pingCombatant" data-tooltip
+                            aria-label="{{ localize "COMBAT.PingCombatant" }}"></button>
+            {{/if}}
+            {{#unless @root.user.isGM}}
+                <button type="button" class="inline-control combatant-control icon fa-solid fa-arrows-to-eye"
+                        data-action="panToCombatant" data-tooltip
+                        aria-label="{{ localize "COMBAT.PanToCombatant" }}"></button>
+            {{/unless}}
+            <div class="token-effects" data-tooltip-html="{{ effects.tooltip }}">
+                {{#each effects.icons}}
+                    <img class="token-effect" src="{{ img }}" alt="{{ name }}">
+                {{/each}}
+            </div>
+        </div>
+    </div>
+
+    {{#if resource includeZero=true}}
+        <div class="token-resource">
+            <span class="resource">{{resource}}</span>
+        </div>
+    {{/if}}
+
+    <div class="combatant-turn-controls">
+        {{#if isOwner}}
+            {{#unless isBoss}}
+                <a class="combatant-turn-speed-control {{turnSpeed}}" role="button" data-tooltip="COSMERE.Combat.ToggleTurn" data-action="toggleSpeed"></a>
+            {{/unless}} 
+        {{/if}}
+        <a class="combatant-turn-finish-control {{#if (getCombatActedState this)}}done{{/if}}" data-tooltip="COSMERE.Combat.Activate" {{#if isOwner}}data-action="activateCombatant"{{/if}}></a>    
+    </div>
+</li>

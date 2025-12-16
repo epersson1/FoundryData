@@ -17,7 +17,7 @@
 			<h3 class="mb-1 imp-advbk__header bold b-0">Importing: {{name}}</h3>
 
 			<div class="my-1">
-				Text will be imported to your <span class="clickable bold" onclick="ui.sidebar.activateTab('journal')">Journal Entries</span> tab.
+				Text will be imported to your <span class="clickable bold" onclick="ui.sidebar.changeTab('journal', 'primary')">Journal Entries</span> tab.
 			</div>
 			<div class="my-1">
 				Each other entity will be added to the game using the importer appropriate for that entity, and the resulting document will be linked from the imported text.
@@ -60,7 +60,7 @@
 					<div class="w-100 ve-flex-wrap">
 						{{#each sources}}
 							<label class="ve-flex-v-center my-1 mr-1 imp-advbk__wrp-cb-source">
-								<span class="mr-1 {{sourceClassName}}" title="{{sourceLong}}" {{#if sourceStyle}}style="{{sourceStyle}}"{{/if}}>{{sourceShort}}</span>
+								<span class="mr-1 {{sourceClassName}}" title="{{sourceLong}}">{{sourceShort}}</span>
 								<input type="checkbox" class="mr-1" data-tag="{{../tag}}" data-source="{{source}}" checked>
 								<span class="ve-muted">({{count}})</span>
 							</label>

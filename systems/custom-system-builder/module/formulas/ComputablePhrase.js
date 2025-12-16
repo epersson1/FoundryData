@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Jean-Baptiste Louvet-Daniel
+ * Author: Jean-Baptiste Louvet-Daniel
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,21 +8,30 @@
 import Formula from './Formula.js';
 import { postAugmentedChatMessage } from '../utils.js';
 import Logger from '../Logger.js';
+import { UncomputableError } from '../errors/UncomputableError.js';
 /**
  * Class holding computed phrase details, for explanation
  */
 export default class ComputablePhrase {
     /**
+     * The initial phrase to be computed
+     */
+    _rawPhrase;
+    /**
+     * The built phrase with every inner formula replaced with a unique identifier
+     */
+    _buildPhrase;
+    /**
+     * All the inner formulas computed, assigned with a unique identifier
+     */
+    _computedFormulas = {};
+    /** List of updates to make at the end of a computation. Populated at computation time with the calls to the `setPropertyInEntity` function. */
+    _updates = {};
+    /**
      * Constructs new ComputablePhrase with a phrase to compute
      * @param phrase The phrase to compute
      */
     constructor(phrase) {
-        /**
-         * All the inner formulas computed, assigned with a unique identifier
-         */
-        this._computedFormulas = {};
-        /** List of updates to make at the end of a computation. Populated at computation time with the calls to the `setPropertyInEntity` function. */
-        this._updates = {};
         this._rawPhrase = phrase;
     }
     /**
@@ -73,7 +82,7 @@ export default class ComputablePhrase {
      * @see https://foundryvtt.com/api/interfaces/foundry.types.ChatMessageData.html
      */
     postMessage(options) {
-        postAugmentedChatMessage({ buildPhrase: this.buildPhrase, values: this.values }, options);
+        void postAugmentedChatMessage({ buildPhrase: this.buildPhrase, values: this.values }, options);
     }
     /**
      * Computes everything in the phrase, including dynamic data such as rolls and user inputs
@@ -88,6 +97,9 @@ export default class ComputablePhrase {
         let localVars = {};
         const computedFormulas = {};
         let nComputed = 0;
+        const throwUncomputableError = (message, source = '') => {
+            throw new UncomputableError(message, source, '(Script-Expression)', options.triggerEntity?.entity.system.props);
+        };
         const processFormulas = async ({ buildPhrase, expression }) => {
             const allFormulas = this._extractFormulas(expression);
             for (const textFormula of allFormulas) {
@@ -125,7 +137,9 @@ export default class ComputablePhrase {
                     const AsyncFunction = async function () { }.constructor;
                     let result;
                     try {
-                        result = await AsyncFunction('entity', 'linkedEntity', 'localVars', 'options', processedFormula.expression)(options.triggerEntity, options.linkedEntity, localVars, options);
+                        // AsyncFunction is unsafe by design
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                        result = (await AsyncFunction('entity', 'linkedEntity', 'localVars', 'options', 'throwUncomputableError', processedFormula.expression)(options.triggerEntity?.entity, options.linkedEntity, localVars, options, throwUncomputableError));
                     }
                     catch (err) {
                         if (options.defaultValue !== null && options.defaultValue !== undefined) {
@@ -158,10 +172,10 @@ export default class ComputablePhrase {
         this._buildPhrase = processedFormula.buildPhrase;
         this._computedFormulas = computedFormulas;
         if (Object.keys(this._updates).length > 0) {
-            Logger.debug("Updating documents", this._updates);
+            Logger.debug('Updating documents', this._updates);
             const uuids = Object.keys(this._updates);
             for (const uuid of uuids) {
-                const document = await fromUuid(uuid.replaceAll('-', '.'));
+                const document = (await fromUuid(uuid.replaceAll('-', '.')));
                 await document.update(this._updates[uuid]);
             }
         }
@@ -180,6 +194,9 @@ export default class ComputablePhrase {
         let localVars = {};
         const computedFormulas = {};
         let nComputed = 0;
+        const throwUncomputableError = (message, source = '') => {
+            throw new UncomputableError(message, source, '(Script-Expression)', options.triggerEntity?.entity.system.props);
+        };
         const processFormulas = ({ buildPhrase, expression }) => {
             const allFormulas = this._extractFormulas(expression);
             for (const textFormula of allFormulas) {
@@ -213,7 +230,9 @@ export default class ComputablePhrase {
                     });
                     let result;
                     try {
-                        result = Function('entity', 'linkedEntity', 'localVars', 'options', processedFormula.expression)(options.triggerEntity, options.linkedEntity, localVars, options);
+                        // Function is unsafe by design
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-implied-eval
+                        result = Function('entity', 'linkedEntity', 'localVars', 'options', 'throwUncomputableError', processedFormula.expression)(options.triggerEntity?.entity, options.linkedEntity, localVars, options, throwUncomputableError);
                     }
                     catch (err) {
                         if (options.defaultValue !== null && options.defaultValue !== undefined) {
